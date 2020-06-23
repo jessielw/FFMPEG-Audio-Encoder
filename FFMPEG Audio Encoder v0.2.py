@@ -2,8 +2,9 @@
 from tkinter import *
 # from PIL import ImageTk,Image
 from tkinter import filedialog
-# import subprocess
+import subprocess
 import os
+from tkinter import dnd
 
 # Main Gui & Windows --------------------------------------------------------
 root = Tk()
@@ -35,7 +36,7 @@ def openaudiowindow():
 
     # Audio Codec Menu
     acodec = StringVar(audio_window)
-    acodec_choices = {'aac', 'ac3'}
+    acodec_choices = ['aac', 'ac3']
     acodec.set('aac')  # set the default option
     audio_menu_label = Label(audio_window, text="Choose Codec :")
     audio_menu_label.grid(row=0, column=0, columnspan=1, padx=10, pady=5)
@@ -44,7 +45,7 @@ def openaudiowindow():
 
     # Audio Bitrate Menu
     acodec_bitrate = StringVar(audio_window)
-    acodec_bitrate_choices = { '160k' ,'320k' }
+    acodec_bitrate_choices = [ '160k' ,'320k' ]
     acodec_bitrate.set('160k') # set the default option
     abitrate_menu_label = Label(audio_window, text="Choose Bitrate :")
     abitrate_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=5)
@@ -53,17 +54,17 @@ def openaudiowindow():
 
     # Audio Channel Menu
     acodec_channel = StringVar(audio_window)
-    acodec_channel_choices = { '2' ,'6' }
+    acodec_channel_choices = [ '2' ,'6' ]
     acodec_channel.set('2') # set the default option
     achannel_menu_label = Label(audio_window, text="Choose Channel :")
     achannel_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=5)
     achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices)
     achannel_menu.grid(row=2, column=2, columnspan=1, padx=10, pady=10)
 
-    if acodec.get() == 'aac':
-        print("True")
-    elif acodec.get() == 'ac3':
-        print("False")
+    # if acodec.get() == 'aac':
+    #     print("True")
+    # elif acodec.get() == 'ac3':
+    #     print("False")
 
 
 # Code------------------------------------------------------------------------
@@ -106,9 +107,11 @@ def start_button_hover_leave(e):
 button_status_label = Label(root, relief=SUNKEN)
 
 
-
 def start(): #final command of start button
-    os.system(" ffmpeg -i " + VideoInput + " -c:v copy -c:a " + acodec.get() + " -b:a " + acodec_bitrate.get() + " -ac " + acodec_channel.get() + " " + VideoOutput)
+    subprocess.run("powershell.exe ffmpeg -i " + VideoInput + " -c:v copy -c:a " + acodec.get() + " -b:a " + acodec_bitrate.get() + " -ac " + acodec_channel.get() + " " + VideoOutput, shell=True)
+
+# def start(): #final command of start button
+#     os.system(" ffmpeg -i " + VideoInput + " -c:v copy -c:a " + acodec.get() + " -b:a " + acodec_bitrate.get() + " -ac " + acodec_channel.get() + " " + VideoOutput)
 
 # Buttons Main Gui -------------------------------------------------
 
