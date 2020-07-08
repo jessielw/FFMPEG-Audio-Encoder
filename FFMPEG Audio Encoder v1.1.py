@@ -15,12 +15,12 @@ if __name__ == "__main__":
         ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 root = Tk()
-root.title("FFMPEG Audio Encoder 1.1")
-root.iconphoto(True, PhotoImage(file="Runtime/Topbar.png"))
+root.title("FFMPEG Audio Encoder v1.0")
+root.iconphoto(True, PhotoImage(file="Runtime/topbar.png"))
 root.configure(background="#434547")
 #root.resizable(False, False)  # This code helps to disable windows from resizing
-window_height = 180
-window_width = 386
+window_height = 190
+window_width = 400
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
 x_cordinate = int((screen_width/2) - (window_width/2))
@@ -30,6 +30,7 @@ root.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_c
 root.grid_columnconfigure(0,weight=1)
 root.grid_columnconfigure(1,weight=1)
 root.grid_columnconfigure(2,weight=1)
+root.grid_columnconfigure(3,weight=1)
 root.grid_rowconfigure(0,weight=1)
 root.grid_rowconfigure(1,weight=1)
 root.grid_rowconfigure(2,weight=1)
@@ -86,7 +87,6 @@ help_menu.add_command(label="About", command=openaboutwindow) # Possibly Expand 
 
 def encoder_changed(*args): #File Auto Save Feature
     global VideoOutput
-    audiosettings_button.configure(state=NORMAL)
     if encoder.get() == 'AAC':
         filename = pathlib.PureWindowsPath(VideoInput)
         VideoOut = filename.with_suffix('.NEW.mp4')
@@ -95,6 +95,7 @@ def encoder_changed(*args): #File Auto Save Feature
         output_entry.delete(0, END)
         output_entry.insert(0, VideoOut)
         output_entry.configure(state=DISABLED)
+        audiosettings_button.configure(state=NORMAL)
 
     elif encoder.get() == 'AC3':
         filename = pathlib.PureWindowsPath(VideoInput)
@@ -104,6 +105,7 @@ def encoder_changed(*args): #File Auto Save Feature
         output_entry.delete(0, END)
         output_entry.insert(0, VideoOut)
         output_entry.configure(state=DISABLED)
+        audiosettings_button.configure(state=NORMAL)
 
     elif encoder.get() == "DTS":
         filename = pathlib.PureWindowsPath(VideoInput)
@@ -113,15 +115,17 @@ def encoder_changed(*args): #File Auto Save Feature
         output_entry.delete(0, END)
         output_entry.insert(0, VideoOut)
         output_entry.configure(state=DISABLED)
+        audiosettings_button.configure(state=NORMAL)
 
     elif encoder.get() == "Opus":
         filename = pathlib.PureWindowsPath(VideoInput)
-        VideoOut = filename.with_suffix('.NEW.ogg')
+        VideoOut = filename.with_suffix('.NEW.opus')
         VideoOutput = str(VideoOut)
         output_entry.configure(state=NORMAL)
         output_entry.delete(0, END)
         output_entry.insert(0, VideoOut)
         output_entry.configure(state=DISABLED)
+        audiosettings_button.configure(state=NORMAL)
 
     elif encoder.get() == 'MP3':
         filename = pathlib.PureWindowsPath(VideoInput)
@@ -131,261 +135,735 @@ def encoder_changed(*args): #File Auto Save Feature
         output_entry.delete(0, END)
         output_entry.insert(0, VideoOut)
         output_entry.configure(state=DISABLED)
+        audiosettings_button.configure(state=NORMAL)
 
-    elif encoder.get() == 'Vorbis':
+    elif encoder.get() == 'E-AC3':
         filename = pathlib.PureWindowsPath(VideoInput)
-        VideoOut = filename.with_suffix('.NEW.ogg')
+        VideoOut = filename.with_suffix('.NEW.ac3')
         VideoOutput = str(VideoOut)
         output_entry.configure(state=NORMAL)
         output_entry.delete(0, END)
         output_entry.insert(0, VideoOut)
         output_entry.configure(state=DISABLED)
+        audiosettings_button.configure(state=NORMAL)
 
 
 def ffprobe_track_count(*args):
     global acodec_stream_track_counter
-    if ffprobeoutput == '0\n': # 1 Track
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",}
-    if ffprobeoutput == '0\n' '1\n': # 2 Tracks
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                       'Track 2': " -map 0:a:1 "}
-    elif ffprobeoutput == '0\n' '1\n' '2\n': # 3 Tracks
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                     'Track 2': " -map 0:a:1 ",
-                                     'Track 3': " -map 0:a:2 "}
-    elif ffprobeoutput == '0\n' '1\n' '2\n' '3\n': # 4 Tracks
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                     'Track 2': " -map 0:a:1 ",
-                                     'Track 3': " -map 0:a:2 ",
-                                     'Track 4': " -map 0:a:3 "}
-    elif ffprobeoutput == '0\n' '1\n' '2\n' '3\n' '4\n': # 5 Tracks
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                     'Track 2': " -map 0:a:1 ",
-                                     'Track 3': " -map 0:a:2 ",
-                                     'Track 4': " -map 0:a:3 ",
-                                     'Track 5': " -map 0:a:4 "}
-    elif ffprobeoutput == '0\n' '1\n' '2\n' '3\n' '4\n' '5\n': # 6 Tracks
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                     'Track 2': " -map 0:a:1 ",
-                                     'Track 3': " -map 0:a:2 ",
-                                     'Track 4': " -map 0:a:3 ",
-                                     'Track 5': " -map 0:a:4 ",
-                                     'Track 6': " -map 0:a:5 "}
-    elif ffprobeoutput == '0\n' '1\n' '2\n' '3\n' '4\n' '5\n' '6\n': # 7 Tracks
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                     'Track 2': " -map 0:a:1 ",
-                                     'Track 3': " -map 0:a:2 ",
-                                     'Track 4': " -map 0:a:3 ",
-                                     'Track 5': " -map 0:a:4 ",
-                                     'Track 6': " -map 0:a:5 ",
-                                     'Track 7': " -map 0:a:6 "}
-    elif ffprobeoutput == '0\n' '1\n' '2\n' '3\n' '4\n' '5\n' '6\n' '7\n': # 8 Tracks
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                     'Track 2': " -map 0:a:1 ",
-                                     'Track 3': " -map 0:a:2 ",
-                                     'Track 4': " -map 0:a:3 ",
-                                     'Track 5': " -map 0:a:4 ",
-                                     'Track 6': " -map 0:a:5 ",
-                                     'Track 7': " -map 0:a:6 ",
-                                     'Track 8': " -map 0:a:7 "}
-    elif ffprobeoutput == '0\n' '1\n' '2\n' '3\n' '4\n' '5\n' '6\n' '7\n' '8\n': # 9 Tracks
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0",
-                                     'Track 2': " -map 0:a:1 ",
-                                     'Track 3': " -map 0:a:2 ",
-                                     'Track 4': " -map 0:a:3 ",
-                                     'Track 5': " -map 0:a:4 ",
-                                     'Track 6': " -map 0:a:5 ",
-                                     'Track 7': " -map 0:a:6 ",
-                                     'Track 8': " -map 0:a:7 ",
-                                     'Track 9': " -map 0:a:8 "}
-    elif ffprobeoutput == '0\n' '1\n' '2\n' '3\n' '4\n' '5\n' '6\n' '7\n' '8\n' '9\n': # 10 Tracks
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                     'Track 2': " -map 0:a:1 ",
-                                     'Track 3': " -map 0:a:2 ",
-                                     'Track 4': " -map 0:a:3 ",
-                                     'Track 5': " -map 0:a:4 ",
-                                     'Track 6': " -map 0:a:5 ",
-                                     'Track 7': " -map 0:a:6 ",
-                                     'Track 8': " -map 0:a:7 ",
-                                     'Track 9': " -map 0:a:8 ",
-                                     'Track 10': " -map 0:a:9 "}
-    elif ffprobeoutput == '0\n' '1\n' '2\n' '3\n' '4\n' '5\n' '6\n' '7\n' '8\n' '9\n' '10\n': # 11 Tracks
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                     'Track 2': " -map 0:a:1 ",
-                                     'Track 3': " -map 0:a:2 ",
-                                     'Track 4': " -map 0:a:3 ",
-                                     'Track 5': " -map 0:a:4 ",
-                                     'Track 6': " -map 0:a:5 ",
-                                     'Track 7': " -map 0:a:6 ",
-                                     'Track 8': " -map 0:a:7 ",
-                                     'Track 9': " -map 0:a:8 ",
-                                     'Track 10': " -map 0:a:9 ",
-                                     'Track 11': " -map 0:a:10 "}
-    elif ffprobeoutput == '0\n' '1\n' '2\n' '3\n' '4\n' '5\n' '6\n' '7\n' '8\n' '9\n' '10\n' '11\n': # 12 Tracks
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                     'Track 2': " -map 0:a:1 ",
-                                     'Track 3': " -map 0:a:2 ",
-                                     'Track 4': " -map 0:a:3 ",
-                                     'Track 5': " -map 0:a:4 ",
-                                     'Track 6': " -map 0:a:5 ",
-                                     'Track 7': " -map 0:a:6 ",
-                                     'Track 8': " -map 0:a:7 ",
-                                     'Track 9': " -map 0:a:8 ",
-                                     'Track 10': " -map 0:a:9 ",
-                                     'Track 11': " -map 0:a:10 ",
-                                     'Track 12': " -map 0:a:11 "}
-    elif ffprobeoutput == '0\n' '1\n' '2\n' '3\n' '4\n' '5\n' '6\n' '7\n' '8\n' '9\n' '10\n' '11\n' '12\n': # 13 Tracks
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                     'Track 2': " -map 0:a:1 ",
-                                     'Track 3': " -map 0:a:2 ",
-                                     'Track 4': " -map 0:a:3 ",
-                                     'Track 5': " -map 0:a:4 ",
-                                     'Track 6': " -map 0:a:5 ",
-                                     'Track 7': " -map 0:a:6 ",
-                                     'Track 8': " -map 0:a:7 ",
-                                     'Track 9': " -map 0:a:8 ",
-                                     'Track 10': " -map 0:a:9 ",
-                                     'Track 11': " -map 0:a:10 ",
-                                     'Track 12': " -map 0:a:11 ",
-                                     'Track 13': " -map 0:a:12 "}
-    elif ffprobeoutput == '0\n' '1\n' '2\n' '3\n' '4\n' '5\n' '6\n' '7\n' '8\n' '9\n' '10\n' '11\n' '12\n' '13\n': # 14 Tracks
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                     'Track 2': " -map 0:a:1 ",
-                                     'Track 3': " -map 0:a:2 ",
-                                     'Track 4': " -map 0:a:3 ",
-                                     'Track 5': " -map 0:a:4 ",
-                                     'Track 6': " -map 0:a:5 ",
-                                     'Track 7': " -map 0:a:6 ",
-                                     'Track 8': " -map 0:a:7 ",
-                                     'Track 9': " -map 0:a:8 ",
-                                     'Track 10': " -map 0:a:9 ",
-                                     'Track 11': " -map 0:a:10 ",
-                                     'Track 12': " -map 0:a:11 ",
-                                     'Track 13': " -map 0:a:12 ",
-                                     'Track 14': " -map 0:a:13 "}
-    elif ffprobeoutput == '0\n' '1\n' '2\n' '3\n' '4\n' '5\n' '6\n' '7\n' '8\n' '9\n' '10\n' '11\n' '12\n' '13\n' '14\n': # 15 Tracks
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                     'Track 2': " -map 0:a:1 ",
-                                     'Track 3': " -map 0:a:2 ",
-                                     'Track 4': " -map 0:a:3 ",
-                                     'Track 5': " -map 0:a:4 ",
-                                     'Track 6': " -map 0:a:5 ",
-                                     'Track 7': " -map 0:a:6 ",
-                                     'Track 8': " -map 0:a:7 ",
-                                     'Track 9': " -map 0:a:8 ",
-                                     'Track 10': " -map 0:a:9 ",
-                                     'Track 11': " -map 0:a:10 ",
-                                     'Track 12': " -map 0:a:11 ",
-                                     'Track 13': " -map 0:a:12 ",
-                                     'Track 14': " -map 0:a:13 ",
-                                     'Track 15': " -map 0:a:14 "}
-    elif ffprobeoutput == '0\n' '1\n' '2\n' '3\n' '4\n' '5\n' '6\n' '7\n' '8\n' '9\n' '10\n' '11\n' '12\n' '13\n' '14\n' '15\n':  # 16 Tracks
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                     'Track 2': " -map 0:a:1 ",
-                                     'Track 3': " -map 0:a:2 ",
-                                     'Track 4': " -map 0:a:3 ",
-                                     'Track 5': " -map 0:a:4 ",
-                                     'Track 6': " -map 0:a:5 ",
-                                     'Track 7': " -map 0:a:6 ",
-                                     'Track 8': " -map 0:a:7 ",
-                                     'Track 9': " -map 0:a:8 ",
-                                     'Track 10': " -map 0:a:9 ",
-                                     'Track 11': " -map 0:a:10 ",
-                                     'Track 12': " -map 0:a:11 ",
-                                     'Track 13': " -map 0:a:12 ",
-                                     'Track 14': " -map 0:a:13 ",
-                                     'Track 15': " -map 0:a:14 ",
-                                     'Track 16': " -map 0:a:15 "}
-    elif ffprobeoutput == '0\n' '1\n' '2\n' '3\n' '4\n' '5\n' '6\n' '7\n' '8\n' '9\n' '10\n' '11\n' '12\n' '13\n' '14\n' '15\n' '16\n':  # 17 Tracks
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                     'Track 2': " -map 0:a:1 ",
-                                     'Track 3': " -map 0:a:2 ",
-                                     'Track 4': " -map 0:a:3 ",
-                                     'Track 5': " -map 0:a:4 ",
-                                     'Track 6': " -map 0:a:5 ",
-                                     'Track 7': " -map 0:a:6 ",
-                                     'Track 8': " -map 0:a:7 ",
-                                     'Track 9': " -map 0:a:8 ",
-                                     'Track 10': " -map 0:a:9 ",
-                                     'Track 11': " -map 0:a:10 ",
-                                     'Track 12': " -map 0:a:11 ",
-                                     'Track 13': " -map 0:a:12 ",
-                                     'Track 14': " -map 0:a:13 ",
-                                     'Track 15': " -map 0:a:14 ",
-                                     'Track 16': " -map 0:a:15 ",
-                                     'Track 17': " -map 0:a:16 "}
-    elif ffprobeoutput == '0\n' '1\n' '2\n' '3\n' '4\n' '5\n' '6\n' '7\n' '8\n' '9\n' '10\n' '11\n' '12\n' '13\n' '14\n' '15\n' '16\n' '17\n':  # 18 Tracks
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                     'Track 2': " -map 0:a:1 ",
-                                     'Track 3': " -map 0:a:2 ",
-                                     'Track 4': " -map 0:a:3 ",
-                                     'Track 5': " -map 0:a:4 ",
-                                     'Track 6': " -map 0:a:5 ",
-                                     'Track 7': " -map 0:a:6 ",
-                                     'Track 8': " -map 0:a:7 ",
-                                     'Track 9': " -map 0:a:8 ",
-                                     'Track 10': " -map 0:a:9 ",
-                                     'Track 11': " -map 0:a:10 ",
-                                     'Track 12': " -map 0:a:11 ",
-                                     'Track 13': " -map 0:a:12 ",
-                                     'Track 14': " -map 0:a:13 ",
-                                     'Track 15': " -map 0:a:14 ",
-                                     'Track 16': " -map 0:a:15 ",
-                                     'Track 17': " -map 0:a:16 ",
-                                     'Track 18': " -map 0:a:17 "}
-    elif ffprobeoutput == '0\n' '1\n' '2\n' '3\n' '4\n' '5\n' '6\n' '7\n' '8\n' '9\n' '10\n' '11\n' '12\n' '13\n' '14\n' '15\n' '16\n' '17\n' '18\n':  # 19 Tracks
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                     'Track 2': " -map 0:a:1 ",
-                                     'Track 3': " -map 0:a:2 ",
-                                     'Track 4': " -map 0:a:3 ",
-                                     'Track 5': " -map 0:a:4 ",
-                                     'Track 6': " -map 0:a:5 ",
-                                     'Track 7': " -map 0:a:6 ",
-                                     'Track 8': " -map 0:a:7 ",
-                                     'Track 9': " -map 0:a:8 ",
-                                     'Track 10': " -map 0:a:9 ",
-                                     'Track 11': " -map 0:a:10 ",
-                                     'Track 12': " -map 0:a:11 ",
-                                     'Track 13': " -map 0:a:12 ",
-                                     'Track 14': " -map 0:a:13 ",
-                                     'Track 15': " -map 0:a:14 ",
-                                     'Track 16': " -map 0:a:15 ",
-                                     'Track 17': " -map 0:a:16 ",
-                                     'Track 18': " -map 0:a:17 ",
-                                     'Track 19': " -map 0:a:18 "}
-    elif ffprobeoutput == '0\n' '1\n' '2\n' '3\n' '4\n' '5\n' '6\n' '7\n' '8\n' '9\n' '10\n' '11\n' '12\n' '13\n' '14\n' '15\n' '16\n' '17\n' '18\n' '19\n':  # 20 Tracks
-        acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                     'Track 2': " -map 0:a:1 ",
-                                     'Track 3': " -map 0:a:2 ",
-                                     'Track 4': " -map 0:a:3 ",
-                                     'Track 5': " -map 0:a:4 ",
-                                     'Track 6': " -map 0:a:5 ",
-                                     'Track 7': " -map 0:a:6 ",
-                                     'Track 8': " -map 0:a:7 ",
-                                     'Track 9': " -map 0:a:8 ",
-                                     'Track 10': " -map 0:a:9 ",
-                                     'Track 11': " -map 0:a:10 ",
-                                     'Track 12': " -map 0:a:11 ",
-                                     'Track 13': " -map 0:a:12 ",
-                                     'Track 14': " -map 0:a:13 ",
-                                     'Track 15': " -map 0:a:14 ",
-                                     'Track 16': " -map 0:a:15 ",
-                                     'Track 17': " -map 0:a:16 ",
-                                     'Track 18': " -map 0:a:17 ",
-                                     'Track 19': " -map 0:a:18 ",
-                                     'Track 20': " -map 0:a:19 "}
+    if str.split(ffprobeoutput2) == []: # If track has no video included
+        if str.split(ffprobeoutput)[-1] == '0': # 1 Track
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 "}
+        if str.split(ffprobeoutput)[-1] == '1': # 2 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                           'Track 2': " -map 0:a:1 "}
+        if str.split(ffprobeoutput)[-1] == '2': # 3 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 "}
+        if str.split(ffprobeoutput)[-1] == '3': # 4 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 "}
+        if str.split(ffprobeoutput)[-1] == '4': # 5 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 "}
+        if str.split(ffprobeoutput)[-1] == '5': # 6 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 "}
+        if str.split(ffprobeoutput)[-1] == '6': # 7 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 "}
+        if str.split(ffprobeoutput)[-1] == '7': # 8 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 "}
+        if str.split(ffprobeoutput)[-1] == '8': # 9 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 "}
+        if str.split(ffprobeoutput)[-1] == '9': # 10 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 "}
+        if str.split(ffprobeoutput)[-1] == '10': # 11 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 "}
+        if str.split(ffprobeoutput)[-1] == '11': # 12 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 "}
+        if str.split(ffprobeoutput)[-1] == '12': # 13 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 "}
+        if str.split(ffprobeoutput)[-1] == '13': # 14 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 ",
+                                         'Track 14': " -map 0:a:13 "}
+        if str.split(ffprobeoutput)[-1] == '14': # 15 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 ",
+                                         'Track 14': " -map 0:a:13 ",
+                                         'Track 15': " -map 0:a:14 "}
+        if str.split(ffprobeoutput)[-1] == '15':  # 16 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 ",
+                                         'Track 14': " -map 0:a:13 ",
+                                         'Track 15': " -map 0:a:14 ",
+                                         'Track 16': " -map 0:a:15 "}
+        if str.split(ffprobeoutput)[-1] == '16':  # 17 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 ",
+                                         'Track 14': " -map 0:a:13 ",
+                                         'Track 15': " -map 0:a:14 ",
+                                         'Track 16': " -map 0:a:15 ",
+                                         'Track 17': " -map 0:a:16 "}
+        if str.split(ffprobeoutput)[-1] == '17':  # 18 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 ",
+                                         'Track 14': " -map 0:a:13 ",
+                                         'Track 15': " -map 0:a:14 ",
+                                         'Track 16': " -map 0:a:15 ",
+                                         'Track 17': " -map 0:a:16 ",
+                                         'Track 18': " -map 0:a:17 "}
+        if str.split(ffprobeoutput)[-1] == '18':  # 19 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 ",
+                                         'Track 14': " -map 0:a:13 ",
+                                         'Track 15': " -map 0:a:14 ",
+                                         'Track 16': " -map 0:a:15 ",
+                                         'Track 17': " -map 0:a:16 ",
+                                         'Track 18': " -map 0:a:17 ",
+                                         'Track 19': " -map 0:a:18 "}
+        if str.split(ffprobeoutput)[-1] == '19':  # 20 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 ",
+                                         'Track 14': " -map 0:a:13 ",
+                                         'Track 15': " -map 0:a:14 ",
+                                         'Track 16': " -map 0:a:15 ",
+                                         'Track 17': " -map 0:a:16 ",
+                                         'Track 18': " -map 0:a:17 ",
+                                         'Track 19': " -map 0:a:18 ",
+                                         'Track 20': " -map 0:a:19 "}
+        if str.split(ffprobeoutput)[-1] == '20':  # 21 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 ",
+                                         'Track 14': " -map 0:a:13 ",
+                                         'Track 15': " -map 0:a:14 ",
+                                         'Track 16': " -map 0:a:15 ",
+                                         'Track 17': " -map 0:a:16 ",
+                                         'Track 18': " -map 0:a:17 ",
+                                         'Track 19': " -map 0:a:18 ",
+                                         'Track 20': " -map 0:a:19 ",
+                                         'Track 21': " -map 0:a:20 "}
+        if str.split(ffprobeoutput)[-1] == '21':  # 22 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 ",
+                                         'Track 14': " -map 0:a:13 ",
+                                         'Track 15': " -map 0:a:14 ",
+                                         'Track 16': " -map 0:a:15 ",
+                                         'Track 17': " -map 0:a:16 ",
+                                         'Track 18': " -map 0:a:17 ",
+                                         'Track 19': " -map 0:a:18 ",
+                                         'Track 20': " -map 0:a:19 ",
+                                         'Track 21': " -map 0:a:20 ",
+                                         'Track 22': " -map 0:a:21 "}
+        if str.split(ffprobeoutput)[-1] == '22':  # 23 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 ",
+                                         'Track 14': " -map 0:a:13 ",
+                                         'Track 15': " -map 0:a:14 ",
+                                         'Track 16': " -map 0:a:15 ",
+                                         'Track 17': " -map 0:a:16 ",
+                                         'Track 18': " -map 0:a:17 ",
+                                         'Track 19': " -map 0:a:18 ",
+                                         'Track 20': " -map 0:a:19 ",
+                                         'Track 21': " -map 0:a:20 ",
+                                         'Track 22': " -map 0:a:21 ",
+                                         'Track 23': " -map 0:a:22 "}
+        if str.split(ffprobeoutput)[-1] == '23':  # 24 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 ",
+                                         'Track 14': " -map 0:a:13 ",
+                                         'Track 15': " -map 0:a:14 ",
+                                         'Track 16': " -map 0:a:15 ",
+                                         'Track 17': " -map 0:a:16 ",
+                                         'Track 18': " -map 0:a:17 ",
+                                         'Track 19': " -map 0:a:18 ",
+                                         'Track 20': " -map 0:a:19 ",
+                                         'Track 21': " -map 0:a:20 ",
+                                         'Track 22': " -map 0:a:21 ",
+                                         'Track 23': " -map 0:a:22 ",
+                                         'Track 24': " -map 0:a:23 "}
+        if str.split(ffprobeoutput)[-1] == '24':  # 25 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 ",
+                                         'Track 14': " -map 0:a:13 ",
+                                         'Track 15': " -map 0:a:14 ",
+                                         'Track 16': " -map 0:a:15 ",
+                                         'Track 17': " -map 0:a:16 ",
+                                         'Track 18': " -map 0:a:17 ",
+                                         'Track 19': " -map 0:a:18 ",
+                                         'Track 20': " -map 0:a:19 ",
+                                         'Track 21': " -map 0:a:20 ",
+                                         'Track 22': " -map 0:a:21 ",
+                                         'Track 23': " -map 0:a:22 ",
+                                         'Track 24': " -map 0:a:23 ",
+                                         'Track 25': " -map 0:a:24 "}
+
+    if str.split(ffprobeoutput2) == ['0']: # If track has Video as well
+        if str.split(ffprobeoutput)[-1] == '1': # 1 Track
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 "}
+        if str.split(ffprobeoutput)[-1] == '2': # 2 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                           'Track 2': " -map 0:a:1 "}
+        if str.split(ffprobeoutput)[-1] == '3': # 3 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 "}
+        if str.split(ffprobeoutput)[-1] == '4': # 4 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 "}
+        if str.split(ffprobeoutput)[-1] == '5': # 5 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 "}
+        if str.split(ffprobeoutput)[-1] == '6': # 6 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 "}
+        if str.split(ffprobeoutput)[-1] == '7': # 7 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 "}
+        if str.split(ffprobeoutput)[-1] == '8': # 8 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 "}
+        if str.split(ffprobeoutput)[-1] == '9': # 9 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 "}
+        if str.split(ffprobeoutput)[-1] == '10': # 10 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 "}
+        if str.split(ffprobeoutput)[-1] == '11': # 11 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 "}
+        if str.split(ffprobeoutput)[-1] == '12': # 12 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 "}
+        if str.split(ffprobeoutput)[-1] == '13': # 13 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 "}
+        if str.split(ffprobeoutput)[-1] == '14': # 14 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 ",
+                                         'Track 14': " -map 0:a:13 "}
+        if str.split(ffprobeoutput)[-1] == '15': # 15 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 ",
+                                         'Track 14': " -map 0:a:13 ",
+                                         'Track 15': " -map 0:a:14 "}
+        if str.split(ffprobeoutput)[-1] == '16':  # 16 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 ",
+                                         'Track 14': " -map 0:a:13 ",
+                                         'Track 15': " -map 0:a:14 ",
+                                         'Track 16': " -map 0:a:15 "}
+        if str.split(ffprobeoutput)[-1] == '17':  # 17 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 ",
+                                         'Track 14': " -map 0:a:13 ",
+                                         'Track 15': " -map 0:a:14 ",
+                                         'Track 16': " -map 0:a:15 ",
+                                         'Track 17': " -map 0:a:16 "}
+        if str.split(ffprobeoutput)[-1] == '18':  # 18 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 ",
+                                         'Track 14': " -map 0:a:13 ",
+                                         'Track 15': " -map 0:a:14 ",
+                                         'Track 16': " -map 0:a:15 ",
+                                         'Track 17': " -map 0:a:16 ",
+                                         'Track 18': " -map 0:a:17 "}
+        if str.split(ffprobeoutput)[-1] == '19':  # 19 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 ",
+                                         'Track 14': " -map 0:a:13 ",
+                                         'Track 15': " -map 0:a:14 ",
+                                         'Track 16': " -map 0:a:15 ",
+                                         'Track 17': " -map 0:a:16 ",
+                                         'Track 18': " -map 0:a:17 ",
+                                         'Track 19': " -map 0:a:18 "}
+        if str.split(ffprobeoutput)[-1] == '20':  # 20 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                         'Track 2': " -map 0:a:1 ",
+                                         'Track 3': " -map 0:a:2 ",
+                                         'Track 4': " -map 0:a:3 ",
+                                         'Track 5': " -map 0:a:4 ",
+                                         'Track 6': " -map 0:a:5 ",
+                                         'Track 7': " -map 0:a:6 ",
+                                         'Track 8': " -map 0:a:7 ",
+                                         'Track 9': " -map 0:a:8 ",
+                                         'Track 10': " -map 0:a:9 ",
+                                         'Track 11': " -map 0:a:10 ",
+                                         'Track 12': " -map 0:a:11 ",
+                                         'Track 13': " -map 0:a:12 ",
+                                         'Track 14': " -map 0:a:13 ",
+                                         'Track 15': " -map 0:a:14 ",
+                                         'Track 16': " -map 0:a:15 ",
+                                         'Track 17': " -map 0:a:16 ",
+                                         'Track 18': " -map 0:a:17 ",
+                                         'Track 19': " -map 0:a:18 ",
+                                         'Track 20': " -map 0:a:19 "}
+        if str.split(ffprobeoutput)[-1] == '21':  # 21 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                           'Track 2': " -map 0:a:1 ",
+                                           'Track 3': " -map 0:a:2 ",
+                                           'Track 4': " -map 0:a:3 ",
+                                           'Track 5': " -map 0:a:4 ",
+                                           'Track 6': " -map 0:a:5 ",
+                                           'Track 7': " -map 0:a:6 ",
+                                           'Track 8': " -map 0:a:7 ",
+                                           'Track 9': " -map 0:a:8 ",
+                                           'Track 10': " -map 0:a:9 ",
+                                           'Track 11': " -map 0:a:10 ",
+                                           'Track 12': " -map 0:a:11 ",
+                                           'Track 13': " -map 0:a:12 ",
+                                           'Track 14': " -map 0:a:13 ",
+                                           'Track 15': " -map 0:a:14 ",
+                                           'Track 16': " -map 0:a:15 ",
+                                           'Track 17': " -map 0:a:16 ",
+                                           'Track 18': " -map 0:a:17 ",
+                                           'Track 19': " -map 0:a:18 ",
+                                           'Track 20': " -map 0:a:19 ",
+                                           'Track 21': " -map 0:a:20 "}
+        if str.split(ffprobeoutput)[-1] == '22':  # 22 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                           'Track 2': " -map 0:a:1 ",
+                                           'Track 3': " -map 0:a:2 ",
+                                           'Track 4': " -map 0:a:3 ",
+                                           'Track 5': " -map 0:a:4 ",
+                                           'Track 6': " -map 0:a:5 ",
+                                           'Track 7': " -map 0:a:6 ",
+                                           'Track 8': " -map 0:a:7 ",
+                                           'Track 9': " -map 0:a:8 ",
+                                           'Track 10': " -map 0:a:9 ",
+                                           'Track 11': " -map 0:a:10 ",
+                                           'Track 12': " -map 0:a:11 ",
+                                           'Track 13': " -map 0:a:12 ",
+                                           'Track 14': " -map 0:a:13 ",
+                                           'Track 15': " -map 0:a:14 ",
+                                           'Track 16': " -map 0:a:15 ",
+                                           'Track 17': " -map 0:a:16 ",
+                                           'Track 18': " -map 0:a:17 ",
+                                           'Track 19': " -map 0:a:18 ",
+                                           'Track 20': " -map 0:a:19 ",
+                                           'Track 21': " -map 0:a:20 ",
+                                           'Track 22': " -map 0:a:21 "}
+        if str.split(ffprobeoutput)[-1] == '23':  # 23 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                           'Track 2': " -map 0:a:1 ",
+                                           'Track 3': " -map 0:a:2 ",
+                                           'Track 4': " -map 0:a:3 ",
+                                           'Track 5': " -map 0:a:4 ",
+                                           'Track 6': " -map 0:a:5 ",
+                                           'Track 7': " -map 0:a:6 ",
+                                           'Track 8': " -map 0:a:7 ",
+                                           'Track 9': " -map 0:a:8 ",
+                                           'Track 10': " -map 0:a:9 ",
+                                           'Track 11': " -map 0:a:10 ",
+                                           'Track 12': " -map 0:a:11 ",
+                                           'Track 13': " -map 0:a:12 ",
+                                           'Track 14': " -map 0:a:13 ",
+                                           'Track 15': " -map 0:a:14 ",
+                                           'Track 16': " -map 0:a:15 ",
+                                           'Track 17': " -map 0:a:16 ",
+                                           'Track 18': " -map 0:a:17 ",
+                                           'Track 19': " -map 0:a:18 ",
+                                           'Track 20': " -map 0:a:19 ",
+                                           'Track 21': " -map 0:a:20 ",
+                                           'Track 22': " -map 0:a:21 ",
+                                           'Track 23': " -map 0:a:22 "}
+        if str.split(ffprobeoutput)[-1] == '24':  # 24 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                           'Track 2': " -map 0:a:1 ",
+                                           'Track 3': " -map 0:a:2 ",
+                                           'Track 4': " -map 0:a:3 ",
+                                           'Track 5': " -map 0:a:4 ",
+                                           'Track 6': " -map 0:a:5 ",
+                                           'Track 7': " -map 0:a:6 ",
+                                           'Track 8': " -map 0:a:7 ",
+                                           'Track 9': " -map 0:a:8 ",
+                                           'Track 10': " -map 0:a:9 ",
+                                           'Track 11': " -map 0:a:10 ",
+                                           'Track 12': " -map 0:a:11 ",
+                                           'Track 13': " -map 0:a:12 ",
+                                           'Track 14': " -map 0:a:13 ",
+                                           'Track 15': " -map 0:a:14 ",
+                                           'Track 16': " -map 0:a:15 ",
+                                           'Track 17': " -map 0:a:16 ",
+                                           'Track 18': " -map 0:a:17 ",
+                                           'Track 19': " -map 0:a:18 ",
+                                           'Track 20': " -map 0:a:19 ",
+                                           'Track 21': " -map 0:a:20 ",
+                                           'Track 22': " -map 0:a:21 ",
+                                           'Track 23': " -map 0:a:22 ",
+                                           'Track 24': " -map 0:a:23 "}
+        if str.split(ffprobeoutput)[-1] == '25':  # 25 Tracks
+            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
+                                           'Track 2': " -map 0:a:1 ",
+                                           'Track 3': " -map 0:a:2 ",
+                                           'Track 4': " -map 0:a:3 ",
+                                           'Track 5': " -map 0:a:4 ",
+                                           'Track 6': " -map 0:a:5 ",
+                                           'Track 7': " -map 0:a:6 ",
+                                           'Track 8': " -map 0:a:7 ",
+                                           'Track 9': " -map 0:a:8 ",
+                                           'Track 10': " -map 0:a:9 ",
+                                           'Track 11': " -map 0:a:10 ",
+                                           'Track 12': " -map 0:a:11 ",
+                                           'Track 13': " -map 0:a:12 ",
+                                           'Track 14': " -map 0:a:13 ",
+                                           'Track 15': " -map 0:a:14 ",
+                                           'Track 16': " -map 0:a:15 ",
+                                           'Track 17': " -map 0:a:16 ",
+                                           'Track 18': " -map 0:a:17 ",
+                                           'Track 19': " -map 0:a:18 ",
+                                           'Track 20': " -map 0:a:19 ",
+                                           'Track 21': " -map 0:a:20 ",
+                                           'Track 22': " -map 0:a:21 ",
+                                           'Track 23': " -map 0:a:22 ",
+                                           'Track 24': " -map 0:a:23 ",
+                                           'Track 25': " -map 0:a:24 "}
 
 # Encoder Codec Drop Down
 encoder_dropdownmenu_choices = {
     "AAC": " -c:a aac ",
     "AC3": " -c:a ac3 ",
+    "E-AC3": " -c:a eac3 ",
     "DTS": " -c:a dts ",
     "Opus": " -c:a libopus ",
-    "MP3": " -c:a libmp3lame ",
-    "Vorbis": " -c:a libvorbis "
-}
+    "MP3": " -c:a libmp3lame "}
 encoder = StringVar(root)
-encoder.set("Select")
+encoder.set("Set Codec")
 encoder.trace('w', encoder_changed)
 encoder_menu = OptionMenu(root, encoder, *encoder_dropdownmenu_choices.keys(), command=ffprobe_track_count)
 encoder_menu.grid(row=1, column=2, columnspan=1, padx=5, pady=5, sticky=N+S+W+E)
@@ -1175,10 +1653,10 @@ def openaudiowindow():
         acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
         acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
 
-        # Vorbis Window -----------------------
-    elif encoder.get() == "Vorbis":
+        # E-AC3 Window -----------------------
+    elif encoder.get() == "E-AC3":
         audio_window = Toplevel()
-        audio_window.title('Vorbis Settings')
+        audio_window.title('E-AC3 Settings')
         audio_window.configure(background="#434547")
         window_height = 150
         window_width = 350
@@ -1243,21 +1721,47 @@ def openaudiowindow():
 
         # Audio Bitrate Menu
         acodec_bitrate = StringVar(audio_window)
-        acodec_bitrate_choices = {'CBR: 16k': ' -b:a 16k ',
-                                  'CBR: 32k': ' -b:a 32k ',
-                                  'CBR: 64k': ' -b:a 64k ',
+        acodec_bitrate_choices = {'CBR: 64k': ' -b:a 64k ',
+                                  'CBR: 96k': ' -b:a 96k ',
+                                  'CBR: 160k': ' -b:a 160k ',
                                   'CBR: 128k': ' -b:a 128k ',
                                   'CBR: 192k': ' -b:a 192k ',
+                                  'CBR: 224k': ' -b:a 224k ',
                                   'CBR: 256k': ' -b:a 256k ',
+                                  'CBR: 288k': ' -b:a 288k ',
                                   'CBR: 320k': ' -b:a 320k ',
+                                  'CBR: 352k': ' -b:a 352k ',
+                                  'CBR: 384k': ' -b:a 384k ',
+                                  'CBR: 416k': ' -b:a 416k ',
                                   'CBR: 448k': ' -b:a 448k ',
-                                  'VBR: 1': ' -q:a 1 ',
-                                  'VBR: 2': ' -q:a 2 ',
-                                  'VBR: 3': ' -q:a 3 ',
-                                  'VBR: 4': ' -q:a 4 ',
-                                  'VBR: 5': ' -q:a 5 ',
-                                  'VBR: 6': ' -q:a 6 ',
-                                  'VBR: 7': ' -q:a 7 ',}
+                                  'CBR: 480k': ' -b:a 480k ',
+                                  'CBR: 512k': ' -b:a 512k ',
+                                  'CBR: 544k': ' -b:a 544k ',
+                                  'CBR: 576k': ' -b:a 576k ',
+                                  'CBR: 608k': ' -b:a 608k ',
+                                  'CBR: 640k': ' -b:a 640k ',
+                                  'CBR: 672k': ' -b:a 672k ',
+                                  'CBR: 704k': ' -b:a 704k ',
+                                  'CBR: 736k': ' -b:a 736k ',
+                                  'CBR: 768k': ' -b:a 768k ',
+                                  'CBR: 800k': ' -b:a 800k ',
+                                  'CBR: 832k': ' -b:a 832k ',
+                                  'CBR: 864k': ' -b:a 864k ',
+                                  'CBR: 896k': ' -b:a 896k ',
+                                  'CBR: 928k': ' -b:a 928k ',
+                                  'CBR: 960k': ' -b:a 960k ',
+                                  'CBR: 1056k': ' -b:a 1056k ',
+                                  'CBR: 1088k': ' -b:a 1088k ',
+                                  'CBR: 1120k': ' -b:a 1120k ',
+                                  'CBR: 1152k': ' -b:a 1152k ',
+                                  'CBR: 1184k': ' -b:a 1184k ',
+                                  'CBR: 1216k': ' -b:a 1216k ',
+                                  'CBR: 1248k': ' -b:a 1248k ',
+                                  'CBR: 1280k': ' -b:a 1280k ',
+                                  'CBR: 1312k': ' -b:a 1312k ',
+                                  'CBR: 1344k': ' -b:a 1344k ',
+                                  'CBR: 1367k': ' -b:a 1376k ',
+                                  'CBR: 1408k': ' -b:a 1408k ',}
         acodec_bitrate.set('CBR: 192k')  # set the default option
         acodec_bitrate_menu_label = Label(audio_window, text="Quality :", background="#434547", foreground="white")
         acodec_bitrate_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W+E)
@@ -1273,9 +1777,7 @@ def openaudiowindow():
         acodec_channel_choices = { 'Original': " ",
                                    '1 (Mono)': " -ac 1 ",
                                    '2 (Stereo)': " -ac 2 ",
-                                   '5.1 (Surround)': " -ac 6 ",
-                                   '6.1 (Surround)': " -ac 7 ",
-                                   '7.1 (Surround)': " -ac 8 "}
+                                   '5.1 (Surround)': " -ac 6 "}
         acodec_channel.set('Original') # set the default option
         achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
         achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W+E)
@@ -1335,8 +1837,6 @@ def openaudiowindow():
         # Audio Sample Rate Selection
         acodec_samplerate = StringVar(audio_window)
         acodec_samplerate_choices = {'Original': " ",
-                                     '11025 Hz': " -ar 11025 ",
-                                     '22050 Hz': " -ar 22050 ",
                                      '44100 Hz': " -ar 44100 ",
                                      '48000 Hz': " -ar 48000 ",}
         acodec_samplerate.set('Original')  # set the default option
@@ -1358,8 +1858,9 @@ def file_input():
     global VideoOutputQuoted
     global autofilesave_dir_path
     global ffprobeoutput
+    global ffprobeoutput2
     VideoInput = filedialog.askopenfilename(initialdir="/", title="Select A File",
-                                            filetypes=(("WAV, MP3, AAC, OGG, OGV, M4V, MPEG, AVI, VOB, WEBM, MKV, MP4, DTS", "*.wav *.mp3 *.aac *.ogg *.ogv *.m4v *.mpeg *.avi *.vob *.webm *.mp4 *.mkv *.dts"), ("All Files", "*.*")))
+                                            filetypes=(("MKA, WAV, MP3, AAC, OGG, OGV, M4V, MPEG, AVI, VOB, WEBM, MKV, MP4, DTS, AC3, MT2S, WAV", "*.wav *.mt2s *.ac3 *.mka *.wav *.mp3 *.aac *.ogg *.ogv *.m4v *.mpeg *.avi *.vob *.webm *.mp4 *.mkv *.dts"), ("All Files", "*.*")))
     input_entry.delete(0, END)  # Remove current text in entry
     input_entry.insert(0, VideoInput)  # Insert the 'path'
     autofilesave_file_path = pathlib.PureWindowsPath(VideoInput) # Command to get file input location
@@ -1376,11 +1877,17 @@ def file_input():
         VideoInputQuoted = '"' + VideoInput + '"'
         # This gets the total amount of audio streams -------------
         ffprobecommand = "-show_entries stream=index -select_streams a -of compact=p=0:nk=1 -v 0"
-        ffprobeinfo = subprocess.Popen(ffprobe + " " + VideoInputQuoted + " " + ffprobecommand, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+        ffprobeinfo = subprocess.Popen(ffprobe + " " + VideoInputQuoted + " " + ffprobecommand, creationflags=subprocess.CREATE_NO_WINDOW, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
         ffprobeoutput,error = ffprobeinfo.communicate()
+
         output_entry.configure(state=NORMAL)
         output_entry.delete(0, END)
         output_entry.configure(state=DISABLED)
+
+        ffprobecommand2 = "-show_entries stream=index -select_streams v -of compact=p=0:nk=1 -v 0"
+        ffprobeinfo2 = subprocess.Popen(ffprobe + " " + VideoInputQuoted + " " + ffprobecommand2, creationflags=subprocess.CREATE_NO_WINDOW, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+        ffprobeoutput2,error2 = ffprobeinfo2.communicate()
+
 
 def file_save():
     global VideoOutput
@@ -1397,17 +1904,17 @@ def file_save():
                                                    title="Select a Save Location",
                                                    filetypes=(("DTS", "*.dts"), ("All Files", "*.*")))
     elif encoder.get() == "Opus":
-        VideoOutput = filedialog.asksaveasfilename(defaultextension=".ogg", initialdir=autofilesave_dir_path,
+        VideoOutput = filedialog.asksaveasfilename(defaultextension=".opus", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location",
-                                                   filetypes=(("Opus", "*.ogg"), ("All Files", "*.*")))
+                                                   filetypes=(("Opus", "*.opus"), ("All Files", "*.*")))
     elif encoder.get() == "MP3":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".mp3", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location",
                                                    filetypes=(("MP3", "*.mp3"), ("All Files", "*.*")))
-    elif encoder.get() == "Vorbis":
-        VideoOutput = filedialog.asksaveasfilename(defaultextension=".ogg", initialdir=autofilesave_dir_path,
+    elif encoder.get() == "E-AC3":
+        VideoOutput = filedialog.asksaveasfilename(defaultextension=".ac3", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location",
-                                                   filetypes=(("Vorbis", "*.ogg"), ("All Files", "*.*")))
+                                                   filetypes=(("E-AC3", "*.ac3"), ("All Files", "*.*")))
 
     output_entry.configure(state=NORMAL) # Enable entry box for commands under
     output_entry.delete(0, END)  # Remove current text in entry
@@ -1474,7 +1981,7 @@ def startaudiojob():
         commands = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner -v error -stats"
         subprocess.Popen(commands)
 
-    elif encoder.get() == "Vorbis":
+    elif encoder.get() == "E-AC3":
         commands = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner -v error -stats"
         subprocess.Popen(commands)
 
@@ -1494,20 +2001,18 @@ show_streams_button.grid(row=1, column=0, columnspan=1, padx=5, pady=5, sticky=N
 show_streams_button.bind("<Enter>", show_streams_button_hover)
 show_streams_button.bind("<Leave>", show_streams_button_hover_leave)
 
-# Audio Encoding Button
-def enableordisable(*args):
-    update_button = encoder.get()
-    if update_button == "Choose Codec":
-        audiosettings_button.config(state=DISABLED)
-    else:
-        audiosettings_button.config(state=NORMAL)
 audiosettings_button = Button(root, text="Audio Settings", command=openaudiowindow, foreground="white", background="#23272A", state=DISABLED, borderwidth="3")
 audiosettings_button.grid(row=1, column=3, columnspan=2, padx=5, pady=5, sticky=N+S+W+E)
 audiosettings_button.bind("<Enter>", audiosettings_button_hover)
 audiosettings_button.bind("<Leave>", audiosettings_button_hover_leave)
-encoder.trace('w', enableordisable)
 
-input_button = tk.Button(root, text="Open File", command=file_input, foreground="white", background="#23272A", borderwidth="3")
+def input_button_commands():
+    encoder.set('Set Codec')
+    audiosettings_button.configure(state=DISABLED)
+    file_input()
+
+
+input_button = tk.Button(root, text="Open File", command=input_button_commands, foreground="white", background="#23272A", borderwidth="3")
 input_button.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N+S+E+W)
 input_entry = Entry(root, width=35, borderwidth=4, background="#CACACA")
 input_entry.grid(row=0, column=1, columnspan=3, padx=5, pady=5, sticky=S+E+W)
