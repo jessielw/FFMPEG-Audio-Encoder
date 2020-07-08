@@ -1,4 +1,4 @@
-#  ------------------------ FFMPEG-Audio-Encoder --------------------------
+#  ------------FFMPEG-Audio-Encoder -------------------
 First stable release of a project I have been working on for a few weeks.
 It's coded completely in python and it's completely portable. 
 
@@ -8,7 +8,7 @@ All of these are included with the programs in their own folders. They do not ne
 If you want to use a specific version of FFPROBE/FFMPEG you can easily just replace them in the programs folders and it should work great.
 
 
-## ------------------------------------------ Instructions ------------------------------------------------
+## --------------------- Instructions ------------------------
 
 
 ##### 1) Open your file
