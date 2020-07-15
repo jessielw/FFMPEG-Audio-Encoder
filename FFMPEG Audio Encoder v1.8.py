@@ -1,12 +1,13 @@
 # Imports--------------------------------------------------------------------
-
 from tkinter import *
 from tkinter import filedialog, StringVar
 import subprocess
-import os
 import ctypes
 import tkinter as tk
 import pathlib
+import tkinter.scrolledtext as scrolledtextwidget
+from TkinterDnD2 import *
+from tkinter import messagebox
 
 # Main Gui & Windows --------------------------------------------------------
 
@@ -14,11 +15,10 @@ if __name__ == "__main__":
     if 'win' in sys.platform:
         ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
-root = Tk()
-root.title("FFMPEG Audio Encoder 1.8")
-root.iconphoto(True, PhotoImage(file="Runtime/Topbar.png"))
+root = TkinterDnD.Tk()
+root.title("FFMPEG Audio Encoder v1.7")
+root.iconphoto(True, PhotoImage(file="Runtime/topbar.png"))
 root.configure(background="#434547")
-#root.resizable(False, False)  # This code helps to disable windows from resizing
 window_height = 190
 window_width = 400
 screen_width = root.winfo_screenwidth()
@@ -38,15 +38,17 @@ root.grid_rowconfigure(3,weight=1)
 
 # Menu Bar Settings ---------------------------------------------------------
 
-my_menu = Menu(root, tearoff=0)
-root.config(menu=my_menu)
+my_menu_bar = Menu(root, tearoff=0)
+root.config(menu=my_menu_bar)
 
 # Bundled Apps ---------------------------------------------------------------
 
-PROGRAM_DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
-ffmpeg = "Apps/FFMPEG/ffmpeg.exe"
+ffmpeg = '"' + 'Apps/FFMPEG/ffmpeg.exe' + '"'
 mediainfo = "Apps/MediaInfo/MediaInfo.exe"
-ffprobe = "Apps/FFMPEG/ffprobe.exe"
+mediainfocli = '"' + "Apps/MediaInfoCLI/MediaInfo.exe" + '"'
+fdkaac = '"' + 'Apps/fdkaac/fdkaac.exe' + '"'
+qaac = '"' + "Apps/qaac/qaac64.exe" + '"'
+
 
 # About Window ---------------------------------------------------------------
 
@@ -64,7 +66,7 @@ def openaboutwindow():
     about_window_text = Text(about_window, background="#434547", foreground="white", relief=SUNKEN)
     about_window_text.pack()
     about_window_text.configure(state=NORMAL)
-    about_window_text.insert(INSERT, "FFMPEG Audio Encoder 1.0 \n")
+    about_window_text.insert(INSERT, "FFMPEG Audio Encoder v1.7 \n")
     about_window_text.insert(INSERT, "\n")
     about_window_text.insert(INSERT, "Development: jlw4049 \n")
     about_window_text.insert(INSERT, "\n")
@@ -74,799 +76,71 @@ def openaboutwindow():
 
 # Menu Items and Sub-Bars ----------------------------------------------------
 
-file_menu = Menu(my_menu, tearoff=0, activebackground="dim grey")
-my_menu.add_cascade(label="File", menu=file_menu)
+file_menu = Menu(my_menu_bar, tearoff=0, activebackground="dim grey")
+my_menu_bar.add_cascade(label="File", menu=file_menu)
 file_menu.add_command(label="Exit", command=root.quit)
 
-# edit_menu = Menu(my_menu, tearoff=0, activebackground="dim grey")
-# my_menu.add_cascade(label="Edit", menu=edit_menu)
+shell_options = StringVar()
+shell_options.set("Default")
+options_menu = Menu(my_menu_bar, tearoff=0, activebackground="dim grey")
+my_menu_bar.add_cascade(label="Options", menu=options_menu)
+options_submenu = Menu(root, tearoff=0, activebackground="dim grey")
+options_menu.add_cascade(label="Shell Options", menu=options_submenu)
+options_submenu.add_radiobutton(label="Shell Closes Automatically", variable=shell_options, value="Default")
+options_submenu.add_radiobutton(label="Shell Stays Open (Debug)", variable=shell_options, value="Debug")
 
-help_menu = Menu(my_menu, tearoff=0, activebackground="dim grey")
-my_menu.add_cascade(label="Help", menu=help_menu)
-help_menu.add_command(label="About", command=openaboutwindow) # Possibly Expand This Later
+help_menu = Menu(my_menu_bar, tearoff=0, activebackground="dim grey")
+my_menu_bar.add_cascade(label="Help", menu=help_menu)
+help_menu.add_command(label="About", command=openaboutwindow)
 
 def encoder_changed(*args): #File Auto Save Feature
     global VideoOutput
-    if encoder.get() == 'AAC':
-        filename = pathlib.PureWindowsPath(VideoInput)
-        VideoOut = filename.with_suffix('.NEW.mp4')
+    global autosavefilename
+    if encoder.get() == "Set Codec":
+        pass
+    else:
+        filename = pathlib.Path(VideoInput)
+        if encoder.get() == 'AAC':
+            VideoOut = filename.with_suffix('.NEW.mp4')
+        elif encoder.get() == 'AC3' or encoder.get() == 'E-AC3':
+            VideoOut = filename.with_suffix('.NEW.ac3')
+        elif encoder.get() == "DTS":
+            VideoOut = filename.with_suffix('.NEW.dts')
+        elif encoder.get() == "Opus":
+            VideoOut = filename.with_suffix('.NEW.opus')
+        elif encoder.get() == 'MP3':
+            VideoOut = filename.with_suffix('.NEW.mp3')
+        elif encoder.get() == "FDK-AAC" or encoder.get() == "QAAC":
+            VideoOut = filename.with_suffix('.NEW.m4a')
         VideoOutput = str(VideoOut)
         output_entry.configure(state=NORMAL)
         output_entry.delete(0, END)
         output_entry.insert(0, VideoOut)
         output_entry.configure(state=DISABLED)
         audiosettings_button.configure(state=NORMAL)
+        command_line_button.config(state=DISABLED)
+        autosavefilename = VideoOut.name
 
-    elif encoder.get() == 'AC3':
-        filename = pathlib.PureWindowsPath(VideoInput)
-        VideoOut = filename.with_suffix('.NEW.ac3')
-        VideoOutput = str(VideoOut)
-        output_entry.configure(state=NORMAL)
-        output_entry.delete(0, END)
-        output_entry.insert(0, VideoOut)
-        output_entry.configure(state=DISABLED)
-        audiosettings_button.configure(state=NORMAL)
-
-    elif encoder.get() == "DTS":
-        filename = pathlib.PureWindowsPath(VideoInput)
-        VideoOut = filename.with_suffix('.NEW.dts')
-        VideoOutput = str(VideoOut)
-        output_entry.configure(state=NORMAL)
-        output_entry.delete(0, END)
-        output_entry.insert(0, VideoOut)
-        output_entry.configure(state=DISABLED)
-        audiosettings_button.configure(state=NORMAL)
-
-    elif encoder.get() == "Opus":
-        filename = pathlib.PureWindowsPath(VideoInput)
-        VideoOut = filename.with_suffix('.NEW.ogg')
-        VideoOutput = str(VideoOut)
-        output_entry.configure(state=NORMAL)
-        output_entry.delete(0, END)
-        output_entry.insert(0, VideoOut)
-        output_entry.configure(state=DISABLED)
-        audiosettings_button.configure(state=NORMAL)
-
-    elif encoder.get() == 'MP3':
-        filename = pathlib.PureWindowsPath(VideoInput)
-        VideoOut = filename.with_suffix('.NEW.mp3')
-        VideoOutput = str(VideoOut)
-        output_entry.configure(state=NORMAL)
-        output_entry.delete(0, END)
-        output_entry.insert(0, VideoOut)
-        output_entry.configure(state=DISABLED)
-        audiosettings_button.configure(state=NORMAL)
-
-    elif encoder.get() == 'Vorbis':
-        filename = pathlib.PureWindowsPath(VideoInput)
-        VideoOut = filename.with_suffix('.NEW.ogg')
-        VideoOutput = str(VideoOut)
-        output_entry.configure(state=NORMAL)
-        output_entry.delete(0, END)
-        output_entry.insert(0, VideoOut)
-        output_entry.configure(state=DISABLED)
-        audiosettings_button.configure(state=NORMAL)
-
-
-def ffprobe_track_count(*args):
+def track_count(*args): # Thanks for helping me shorten this 'gmes78'
     global acodec_stream_track_counter
-    if str.split(ffprobeoutput2) == []: # If track has no video included
-        if str.split(ffprobeoutput)[-1] == '0': # 1 Track
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 "}
-        if str.split(ffprobeoutput)[-1] == '1': # 2 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                           'Track 2': " -map 0:a:1 "}
-        if str.split(ffprobeoutput)[-1] == '2': # 3 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 "}
-        if str.split(ffprobeoutput)[-1] == '3': # 4 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 "}
-        if str.split(ffprobeoutput)[-1] == '4': # 5 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 "}
-        if str.split(ffprobeoutput)[-1] == '5': # 6 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 "}
-        if str.split(ffprobeoutput)[-1] == '6': # 7 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 "}
-        if str.split(ffprobeoutput)[-1] == '7': # 8 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 "}
-        if str.split(ffprobeoutput)[-1] == '8': # 9 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 "}
-        if str.split(ffprobeoutput)[-1] == '9': # 10 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 "}
-        if str.split(ffprobeoutput)[-1] == '10': # 11 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 "}
-        if str.split(ffprobeoutput)[-1] == '11': # 12 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 "}
-        if str.split(ffprobeoutput)[-1] == '12': # 13 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 "}
-        if str.split(ffprobeoutput)[-1] == '13': # 14 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 ",
-                                         'Track 14': " -map 0:a:13 "}
-        if str.split(ffprobeoutput)[-1] == '14': # 15 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 ",
-                                         'Track 14': " -map 0:a:13 ",
-                                         'Track 15': " -map 0:a:14 "}
-        if str.split(ffprobeoutput)[-1] == '15':  # 16 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 ",
-                                         'Track 14': " -map 0:a:13 ",
-                                         'Track 15': " -map 0:a:14 ",
-                                         'Track 16': " -map 0:a:15 "}
-        if str.split(ffprobeoutput)[-1] == '16':  # 17 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 ",
-                                         'Track 14': " -map 0:a:13 ",
-                                         'Track 15': " -map 0:a:14 ",
-                                         'Track 16': " -map 0:a:15 ",
-                                         'Track 17': " -map 0:a:16 "}
-        if str.split(ffprobeoutput)[-1] == '17':  # 18 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 ",
-                                         'Track 14': " -map 0:a:13 ",
-                                         'Track 15': " -map 0:a:14 ",
-                                         'Track 16': " -map 0:a:15 ",
-                                         'Track 17': " -map 0:a:16 ",
-                                         'Track 18': " -map 0:a:17 "}
-        if str.split(ffprobeoutput)[-1] == '18':  # 19 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 ",
-                                         'Track 14': " -map 0:a:13 ",
-                                         'Track 15': " -map 0:a:14 ",
-                                         'Track 16': " -map 0:a:15 ",
-                                         'Track 17': " -map 0:a:16 ",
-                                         'Track 18': " -map 0:a:17 ",
-                                         'Track 19': " -map 0:a:18 "}
-        if str.split(ffprobeoutput)[-1] == '19':  # 20 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 ",
-                                         'Track 14': " -map 0:a:13 ",
-                                         'Track 15': " -map 0:a:14 ",
-                                         'Track 16': " -map 0:a:15 ",
-                                         'Track 17': " -map 0:a:16 ",
-                                         'Track 18': " -map 0:a:17 ",
-                                         'Track 19': " -map 0:a:18 ",
-                                         'Track 20': " -map 0:a:19 "}
-        if str.split(ffprobeoutput)[-1] == '20':  # 21 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 ",
-                                         'Track 14': " -map 0:a:13 ",
-                                         'Track 15': " -map 0:a:14 ",
-                                         'Track 16': " -map 0:a:15 ",
-                                         'Track 17': " -map 0:a:16 ",
-                                         'Track 18': " -map 0:a:17 ",
-                                         'Track 19': " -map 0:a:18 ",
-                                         'Track 20': " -map 0:a:19 ",
-                                         'Track 21': " -map 0:a:20 "}
-        if str.split(ffprobeoutput)[-1] == '21':  # 22 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 ",
-                                         'Track 14': " -map 0:a:13 ",
-                                         'Track 15': " -map 0:a:14 ",
-                                         'Track 16': " -map 0:a:15 ",
-                                         'Track 17': " -map 0:a:16 ",
-                                         'Track 18': " -map 0:a:17 ",
-                                         'Track 19': " -map 0:a:18 ",
-                                         'Track 20': " -map 0:a:19 ",
-                                         'Track 21': " -map 0:a:20 ",
-                                         'Track 22': " -map 0:a:21 "}
-        if str.split(ffprobeoutput)[-1] == '22':  # 23 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 ",
-                                         'Track 14': " -map 0:a:13 ",
-                                         'Track 15': " -map 0:a:14 ",
-                                         'Track 16': " -map 0:a:15 ",
-                                         'Track 17': " -map 0:a:16 ",
-                                         'Track 18': " -map 0:a:17 ",
-                                         'Track 19': " -map 0:a:18 ",
-                                         'Track 20': " -map 0:a:19 ",
-                                         'Track 21': " -map 0:a:20 ",
-                                         'Track 22': " -map 0:a:21 ",
-                                         'Track 23': " -map 0:a:22 "}
-        if str.split(ffprobeoutput)[-1] == '23':  # 24 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 ",
-                                         'Track 14': " -map 0:a:13 ",
-                                         'Track 15': " -map 0:a:14 ",
-                                         'Track 16': " -map 0:a:15 ",
-                                         'Track 17': " -map 0:a:16 ",
-                                         'Track 18': " -map 0:a:17 ",
-                                         'Track 19': " -map 0:a:18 ",
-                                         'Track 20': " -map 0:a:19 ",
-                                         'Track 21': " -map 0:a:20 ",
-                                         'Track 22': " -map 0:a:21 ",
-                                         'Track 23': " -map 0:a:22 ",
-                                         'Track 24': " -map 0:a:23 "}
-        if str.split(ffprobeoutput)[-1] == '24':  # 25 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 ",
-                                         'Track 14': " -map 0:a:13 ",
-                                         'Track 15': " -map 0:a:14 ",
-                                         'Track 16': " -map 0:a:15 ",
-                                         'Track 17': " -map 0:a:16 ",
-                                         'Track 18': " -map 0:a:17 ",
-                                         'Track 19': " -map 0:a:18 ",
-                                         'Track 20': " -map 0:a:19 ",
-                                         'Track 21': " -map 0:a:20 ",
-                                         'Track 22': " -map 0:a:21 ",
-                                         'Track 23': " -map 0:a:22 ",
-                                         'Track 24': " -map 0:a:23 ",
-                                         'Track 25': " -map 0:a:24 "}
-
-    if str.split(ffprobeoutput2) == ['0']: # If track has Video as well
-        if str.split(ffprobeoutput)[-1] == '1': # 1 Track
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 "}
-        if str.split(ffprobeoutput)[-1] == '2': # 2 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                           'Track 2': " -map 0:a:1 "}
-        if str.split(ffprobeoutput)[-1] == '3': # 3 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 "}
-        if str.split(ffprobeoutput)[-1] == '4': # 4 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 "}
-        if str.split(ffprobeoutput)[-1] == '5': # 5 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 "}
-        if str.split(ffprobeoutput)[-1] == '6': # 6 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 "}
-        if str.split(ffprobeoutput)[-1] == '7': # 7 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 "}
-        if str.split(ffprobeoutput)[-1] == '8': # 8 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 "}
-        if str.split(ffprobeoutput)[-1] == '9': # 9 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 "}
-        if str.split(ffprobeoutput)[-1] == '10': # 10 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 "}
-        if str.split(ffprobeoutput)[-1] == '11': # 11 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 "}
-        if str.split(ffprobeoutput)[-1] == '12': # 12 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 "}
-        if str.split(ffprobeoutput)[-1] == '13': # 13 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 "}
-        if str.split(ffprobeoutput)[-1] == '14': # 14 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 ",
-                                         'Track 14': " -map 0:a:13 "}
-        if str.split(ffprobeoutput)[-1] == '15': # 15 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 ",
-                                         'Track 14': " -map 0:a:13 ",
-                                         'Track 15': " -map 0:a:14 "}
-        if str.split(ffprobeoutput)[-1] == '16':  # 16 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 ",
-                                         'Track 14': " -map 0:a:13 ",
-                                         'Track 15': " -map 0:a:14 ",
-                                         'Track 16': " -map 0:a:15 "}
-        if str.split(ffprobeoutput)[-1] == '17':  # 17 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 ",
-                                         'Track 14': " -map 0:a:13 ",
-                                         'Track 15': " -map 0:a:14 ",
-                                         'Track 16': " -map 0:a:15 ",
-                                         'Track 17': " -map 0:a:16 "}
-        if str.split(ffprobeoutput)[-1] == '18':  # 18 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 ",
-                                         'Track 14': " -map 0:a:13 ",
-                                         'Track 15': " -map 0:a:14 ",
-                                         'Track 16': " -map 0:a:15 ",
-                                         'Track 17': " -map 0:a:16 ",
-                                         'Track 18': " -map 0:a:17 "}
-        if str.split(ffprobeoutput)[-1] == '19':  # 19 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 ",
-                                         'Track 14': " -map 0:a:13 ",
-                                         'Track 15': " -map 0:a:14 ",
-                                         'Track 16': " -map 0:a:15 ",
-                                         'Track 17': " -map 0:a:16 ",
-                                         'Track 18': " -map 0:a:17 ",
-                                         'Track 19': " -map 0:a:18 "}
-        if str.split(ffprobeoutput)[-1] == '20':  # 20 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                         'Track 2': " -map 0:a:1 ",
-                                         'Track 3': " -map 0:a:2 ",
-                                         'Track 4': " -map 0:a:3 ",
-                                         'Track 5': " -map 0:a:4 ",
-                                         'Track 6': " -map 0:a:5 ",
-                                         'Track 7': " -map 0:a:6 ",
-                                         'Track 8': " -map 0:a:7 ",
-                                         'Track 9': " -map 0:a:8 ",
-                                         'Track 10': " -map 0:a:9 ",
-                                         'Track 11': " -map 0:a:10 ",
-                                         'Track 12': " -map 0:a:11 ",
-                                         'Track 13': " -map 0:a:12 ",
-                                         'Track 14': " -map 0:a:13 ",
-                                         'Track 15': " -map 0:a:14 ",
-                                         'Track 16': " -map 0:a:15 ",
-                                         'Track 17': " -map 0:a:16 ",
-                                         'Track 18': " -map 0:a:17 ",
-                                         'Track 19': " -map 0:a:18 ",
-                                         'Track 20': " -map 0:a:19 "}
-        if str.split(ffprobeoutput)[-1] == '21':  # 21 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                           'Track 2': " -map 0:a:1 ",
-                                           'Track 3': " -map 0:a:2 ",
-                                           'Track 4': " -map 0:a:3 ",
-                                           'Track 5': " -map 0:a:4 ",
-                                           'Track 6': " -map 0:a:5 ",
-                                           'Track 7': " -map 0:a:6 ",
-                                           'Track 8': " -map 0:a:7 ",
-                                           'Track 9': " -map 0:a:8 ",
-                                           'Track 10': " -map 0:a:9 ",
-                                           'Track 11': " -map 0:a:10 ",
-                                           'Track 12': " -map 0:a:11 ",
-                                           'Track 13': " -map 0:a:12 ",
-                                           'Track 14': " -map 0:a:13 ",
-                                           'Track 15': " -map 0:a:14 ",
-                                           'Track 16': " -map 0:a:15 ",
-                                           'Track 17': " -map 0:a:16 ",
-                                           'Track 18': " -map 0:a:17 ",
-                                           'Track 19': " -map 0:a:18 ",
-                                           'Track 20': " -map 0:a:19 ",
-                                           'Track 21': " -map 0:a:20 "}
-        if str.split(ffprobeoutput)[-1] == '22':  # 22 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                           'Track 2': " -map 0:a:1 ",
-                                           'Track 3': " -map 0:a:2 ",
-                                           'Track 4': " -map 0:a:3 ",
-                                           'Track 5': " -map 0:a:4 ",
-                                           'Track 6': " -map 0:a:5 ",
-                                           'Track 7': " -map 0:a:6 ",
-                                           'Track 8': " -map 0:a:7 ",
-                                           'Track 9': " -map 0:a:8 ",
-                                           'Track 10': " -map 0:a:9 ",
-                                           'Track 11': " -map 0:a:10 ",
-                                           'Track 12': " -map 0:a:11 ",
-                                           'Track 13': " -map 0:a:12 ",
-                                           'Track 14': " -map 0:a:13 ",
-                                           'Track 15': " -map 0:a:14 ",
-                                           'Track 16': " -map 0:a:15 ",
-                                           'Track 17': " -map 0:a:16 ",
-                                           'Track 18': " -map 0:a:17 ",
-                                           'Track 19': " -map 0:a:18 ",
-                                           'Track 20': " -map 0:a:19 ",
-                                           'Track 21': " -map 0:a:20 ",
-                                           'Track 22': " -map 0:a:21 "}
-        if str.split(ffprobeoutput)[-1] == '23':  # 23 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                           'Track 2': " -map 0:a:1 ",
-                                           'Track 3': " -map 0:a:2 ",
-                                           'Track 4': " -map 0:a:3 ",
-                                           'Track 5': " -map 0:a:4 ",
-                                           'Track 6': " -map 0:a:5 ",
-                                           'Track 7': " -map 0:a:6 ",
-                                           'Track 8': " -map 0:a:7 ",
-                                           'Track 9': " -map 0:a:8 ",
-                                           'Track 10': " -map 0:a:9 ",
-                                           'Track 11': " -map 0:a:10 ",
-                                           'Track 12': " -map 0:a:11 ",
-                                           'Track 13': " -map 0:a:12 ",
-                                           'Track 14': " -map 0:a:13 ",
-                                           'Track 15': " -map 0:a:14 ",
-                                           'Track 16': " -map 0:a:15 ",
-                                           'Track 17': " -map 0:a:16 ",
-                                           'Track 18': " -map 0:a:17 ",
-                                           'Track 19': " -map 0:a:18 ",
-                                           'Track 20': " -map 0:a:19 ",
-                                           'Track 21': " -map 0:a:20 ",
-                                           'Track 22': " -map 0:a:21 ",
-                                           'Track 23': " -map 0:a:22 "}
-        if str.split(ffprobeoutput)[-1] == '24':  # 24 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                           'Track 2': " -map 0:a:1 ",
-                                           'Track 3': " -map 0:a:2 ",
-                                           'Track 4': " -map 0:a:3 ",
-                                           'Track 5': " -map 0:a:4 ",
-                                           'Track 6': " -map 0:a:5 ",
-                                           'Track 7': " -map 0:a:6 ",
-                                           'Track 8': " -map 0:a:7 ",
-                                           'Track 9': " -map 0:a:8 ",
-                                           'Track 10': " -map 0:a:9 ",
-                                           'Track 11': " -map 0:a:10 ",
-                                           'Track 12': " -map 0:a:11 ",
-                                           'Track 13': " -map 0:a:12 ",
-                                           'Track 14': " -map 0:a:13 ",
-                                           'Track 15': " -map 0:a:14 ",
-                                           'Track 16': " -map 0:a:15 ",
-                                           'Track 17': " -map 0:a:16 ",
-                                           'Track 18': " -map 0:a:17 ",
-                                           'Track 19': " -map 0:a:18 ",
-                                           'Track 20': " -map 0:a:19 ",
-                                           'Track 21': " -map 0:a:20 ",
-                                           'Track 22': " -map 0:a:21 ",
-                                           'Track 23': " -map 0:a:22 ",
-                                           'Track 24': " -map 0:a:23 "}
-        if str.split(ffprobeoutput)[-1] == '25':  # 25 Tracks
-            acodec_stream_track_counter = {'Track 1': " -map 0:a:0 ",
-                                           'Track 2': " -map 0:a:1 ",
-                                           'Track 3': " -map 0:a:2 ",
-                                           'Track 4': " -map 0:a:3 ",
-                                           'Track 5': " -map 0:a:4 ",
-                                           'Track 6': " -map 0:a:5 ",
-                                           'Track 7': " -map 0:a:6 ",
-                                           'Track 8': " -map 0:a:7 ",
-                                           'Track 9': " -map 0:a:8 ",
-                                           'Track 10': " -map 0:a:9 ",
-                                           'Track 11': " -map 0:a:10 ",
-                                           'Track 12': " -map 0:a:11 ",
-                                           'Track 13': " -map 0:a:12 ",
-                                           'Track 14': " -map 0:a:13 ",
-                                           'Track 15': " -map 0:a:14 ",
-                                           'Track 16': " -map 0:a:15 ",
-                                           'Track 17': " -map 0:a:16 ",
-                                           'Track 18': " -map 0:a:17 ",
-                                           'Track 19': " -map 0:a:18 ",
-                                           'Track 20': " -map 0:a:19 ",
-                                           'Track 21': " -map 0:a:20 ",
-                                           'Track 22': " -map 0:a:21 ",
-                                           'Track 23': " -map 0:a:22 ",
-                                           'Track 24': " -map 0:a:23 ",
-                                           'Track 25': " -map 0:a:24 "}
+    acodec_stream_track_counter = {}
+    for i in range(int(str.split(track_count)[-1])):
+        acodec_stream_track_counter[f'Track {i + 1}'] = f' -map 0:a:{i}'
 
 # Encoder Codec Drop Down
 encoder_dropdownmenu_choices = {
-    "AAC": " -c:a aac ",
-    "AC3": " -c:a ac3 ",
-    "DTS": " -c:a dts ",
-    "Opus": " -c:a libopus ",
-    "MP3": " -c:a libmp3lame ",
-    "Vorbis": " -c:a libvorbis "
-}
+    "AAC": "-c:a aac ",
+    "AC3": "-c:a ac3 ",
+    "E-AC3": "-c:a eac3 ",
+    "DTS": "-c:a dts ",
+    "Opus": "-c:a libopus ",
+    "MP3": "-c:a libmp3lame ",
+    "FDK-AAC": fdkaac,
+    "QAAC": qaac}
 encoder = StringVar(root)
 encoder.set("Set Codec")
 encoder.trace('w', encoder_changed)
-encoder_menu = OptionMenu(root, encoder, *encoder_dropdownmenu_choices.keys(), command=ffprobe_track_count)
+encoder_menu = OptionMenu(root, encoder, *encoder_dropdownmenu_choices.keys(), command=track_count)
 encoder_menu.grid(row=1, column=2, columnspan=1, padx=5, pady=5, sticky=N+S+W+E)
 encoder_menu.config(state=DISABLED, background="#23272A", foreground="white", highlightthickness=1)
 encoder_menu["menu"].configure(activebackground="dim grey")
@@ -891,6 +165,21 @@ def openaudiowindow():
     global acodec_samplerate
     global acodec_samplerate_choices
 
+    def show_streams_mediainfo(): # Stream Viewer
+        commands = '"' + mediainfocli + ' --Output="Audio;Track #:..............................%ID%\\nFormat:................................%Format%\\nDuration:..............................%Duration/String2%\\nBit Rate Mode:.....................%BitRate_Mode/String%\\nBitrate:.................................%BitRate/String%\\nSampling Rate:....................%SamplingRate/String%\\nAudio Channels:..................%Channel(s)%\\nChannel Layout:..................%ChannelLayout%\\nCompression Mode:............%Compression_Mode/String%\\nStream Size:........................%StreamSize/String5%\\nTitle:....................................%Title%\\nLanguage:...........................%Language/String%\\n\\n" ' + VideoInputQuoted + '"'
+        run = subprocess.Popen('cmd /c ' + commands, creationflags=subprocess.CREATE_NO_WINDOW, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                               stdin=subprocess.PIPE, shell=True)
+        stream_window = Toplevel(audio_window)
+        stream_window.title("Audio Streams")
+        stream_window.configure(background="#434547")
+        Label(stream_window, text="---------- Audio Streams ----------", font = ("Times New Roman", 16), background='#434547', foreground="white").grid(column=0, row=0)
+        text_area = scrolledtextwidget.ScrolledText(stream_window, width=50, height=25, tabs=10, spacing2=3, spacing1=2, spacing3=3)
+        text_area.grid(column=0, pady=10, padx=10)
+        text_area.insert(INSERT, run.communicate())
+        text_area.configure(font=("Helvetica" ,12))
+        text_area.configure(state=DISABLED)
+        stream_window.grid_columnconfigure(0, weight=1)
+
     # AC3 Window ----------------------------
     if encoder.get() == "AC3":
         audio_window = Toplevel()
@@ -903,6 +192,11 @@ def openaudiowindow():
         x_cordinate = int((screen_width / 2) - (window_width / 2))
         y_cordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+
+        my_menu = Menu(audio_window, tearoff=0)
+        audio_window.config(menu=my_menu)
+        check_streams = Menu(my_menu, tearoff=0, activebackground="dim grey")
+        my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
 
         audio_window.grid_columnconfigure(0, weight=1)
         audio_window.grid_columnconfigure(1, weight=1)
@@ -951,6 +245,7 @@ def openaudiowindow():
             audio_window.destroy()
             output_button.config(state=NORMAL)
             start_audio_button.config(state=NORMAL)
+            command_line_button.config(state=NORMAL)
 
         apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A", command=gotosavefile)
         apply_button.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N+S+W+E)
@@ -959,11 +254,11 @@ def openaudiowindow():
 
         # Audio Bitrate Selection
         acodec_bitrate = StringVar(audio_window)
-        acodec_bitrate_choices = { '192k': " -b:a 192k ",
-                                   '224k': " -b:a 224k ",
-                                   '384k': " -b:a 384k ",
-                                   '448k': " -b:a 448k ",
-                                   '640k': " -b:a 640k "}
+        acodec_bitrate_choices = { '192k': "-b:a 192k ",
+                                   '224k': "-b:a 224k ",
+                                   '384k': "-b:a 384k ",
+                                   '448k': "-b:a 448k ",
+                                   '640k': "-b:a 640k "}
         acodec_bitrate.set('224k') # set the default option
         acodec_bitrate_menu_label = Label(audio_window, text="Bitrate :", background="#434547", foreground="white")
         acodec_bitrate_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W+E)
@@ -989,13 +284,12 @@ def openaudiowindow():
 
         # Audio Channel Selection
         acodec_channel = StringVar(audio_window)
-        acodec_channel_choices = { 'Original': " ",
-                                   '1 (Mono)': " -ac 1 ",
-                                   '2 (Stereo)': " -ac 2 ",
-                                   '5.1 (Surround)': " -ac 6 ",
-                                   '6.1 (Surround)': " -ac 7 ",
-                                   '7.1 (Surround)': " -ac 8 "
-                                   }
+        acodec_channel_choices = { 'Original': "",
+                                   '1 (Mono)': "-ac 1 ",
+                                   '2 (Stereo)': "-ac 2 ",
+                                   '5.1 (Surround)': "-ac 6 ",
+                                   '6.1 (Surround)': "-ac 7 ",
+                                   '7.1 (Surround)': "-ac 8 "}
         acodec_channel.set('Original') # set the default option
         achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
         achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W+E)
@@ -1008,28 +302,27 @@ def openaudiowindow():
 
         # Audio Gain Selection
         acodec_gain = StringVar(audio_window)
-        acodec_gain_choices = {'Default (0)': " -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+10 dB': " -af volume=10dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+9 dB': " -af volume=9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+8 dB': " -af volume=8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+7 dB': " -af volume=7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+6 dB': " -af volume=6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+5 dB': " -af volume=5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+4 dB': " -af volume=4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+3 dB': " -af volume=3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+2 dB': " -af volume=2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+1 dB': " -af volume=1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-1 dB': " -af volume=-1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-2 dB': " -af volume=-2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-3 dB': " -af volume=-3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-4 dB': " -af volume=-4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-5 dB': " -af volume=-5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-6 dB': " -af volume=-6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-7 dB': " -af volume=-7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-8 dB': " -af volume=-8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-9 dB': " -af volume=-9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-10 dB': " -af volume=-10dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               }
+        acodec_gain_choices = {'Default (0)': "-sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+10 dB': "-af volume=10dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+9 dB': "-af volume=9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+8 dB': "-af volume=8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+7 dB': "-af volume=7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+6 dB': "-af volume=6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+5 dB': "-af volume=5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+4 dB': "-af volume=4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+3 dB': "-af volume=3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+2 dB': "-af volume=2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+1 dB': "-af volume=1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-1 dB': "-af volume=-1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-2 dB': "-af volume=-2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-3 dB': "-af volume=-3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-4 dB': "-af volume=-4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-5 dB': "-af volume=-5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-6 dB': "-af volume=-6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-7 dB': "-af volume=-7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-8 dB': "-af volume=-8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-9 dB': "-af volume=-9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-10 dB': "-af volume=-10dB -sn -vn -map_chapters -1 -map_metadata -1 "}
         acodec_gain.set('Default (0)')  # set the default option
         acodec_gain_label = Label(audio_window, text="Gain :", background="#434547", foreground="white")
         acodec_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N+S+E+W)
@@ -1042,9 +335,9 @@ def openaudiowindow():
 
         # Audio Sample Rate Selection
         acodec_samplerate = StringVar(audio_window)
-        acodec_samplerate_choices = {'Original': " ",
-                                     '44100 Hz': " -ar 44100 ",
-                                     '48000 Hz': " -ar 48000"}
+        acodec_samplerate_choices = {'Original': "",
+                                     '44100 Hz': "-ar 44100 ",
+                                     '48000 Hz': "-ar 48000 "}
         acodec_samplerate.set('Original')  # set the default option
         acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547", foreground="white")
         acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N+S+E+W)
@@ -1061,12 +354,17 @@ def openaudiowindow():
         audio_window.title('AAC Settings')
         audio_window.configure(background="#434547")
         window_height = 150
-        window_width = 370
+        window_width = 385
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
         x_cordinate = int((screen_width / 2) - (window_width / 2))
         y_cordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+
+        my_menu = Menu(audio_window, tearoff=0)
+        audio_window.config(menu=my_menu)
+        check_streams = Menu(my_menu, tearoff=0, activebackground="dim grey")
+        my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
 
         audio_window.grid_columnconfigure(0, weight=1)
         audio_window.grid_columnconfigure(1, weight=1)
@@ -1074,6 +372,7 @@ def openaudiowindow():
         audio_window.grid_rowconfigure(0, weight=1)
         audio_window.grid_rowconfigure(1, weight=1)
         audio_window.grid_rowconfigure(2, weight=1)
+        audio_window.grid_rowconfigure(3, weight=1)
 
         def apply_button_hover(e):
             apply_button["bg"] = "grey"
@@ -1114,6 +413,7 @@ def openaudiowindow():
             audio_window.destroy()
             output_button.config(state=NORMAL)
             start_audio_button.config(state=NORMAL)
+            command_line_button.config(state=NORMAL)
 
         apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A", command=gotosavefile)
         apply_button.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N+S+W+E)
@@ -1122,22 +422,22 @@ def openaudiowindow():
 
         # Audio Bitrate Menu
         acodec_bitrate = StringVar(audio_window)
-        acodec_bitrate_choices = {'CBR: 16k': " -b:a 16k ",
-                                  'CBR: 32k': " -b:a 32k ",
-                                  'CBR: 64k': " -b:a 64k ",
-                                  'CBR: 128k': " -b:a 128k ",
-                                  'CBR: 192k': " -b:a 192k ",
-                                  'CBR: 256k': " -b:a 256k ",
-                                  'CBR: 320k': " -b:a 320k ",
-                                  'CBR: 448k': " -b:a 448k ",
-                                  'CBR: 640k': " -b:a 640k ",
-                                  'VBR: 1': " -q:a 1 ",
-                                  'VBR: 2': " -q:a 2 ",
-                                  'VBR: 3': " -q:a 3 ",
-                                  'VBR: 4': " -q:a 4 ",
-                                  'VBR: 5': " -q:a 5 ",
-                                  'VBR: 6': " -q:a 6 ",
-                                  'VBR: 7': " -q:a 7 ",}
+        acodec_bitrate_choices = {'CBR: 16k': "-b:a 16k ",
+                                  'CBR: 32k': "-b:a 32k ",
+                                  'CBR: 64k': "-b:a 64k ",
+                                  'CBR: 128k': "-b:a 128k ",
+                                  'CBR: 192k': "-b:a 192k ",
+                                  'CBR: 256k': "-b:a 256k ",
+                                  'CBR: 320k': "-b:a 320k ",
+                                  'CBR: 448k': "-b:a 448k ",
+                                  'CBR: 640k': "-b:a 640k ",
+                                  'VBR: 1': "-q:a 1 ",
+                                  'VBR: 2': "-q:a 2 ",
+                                  'VBR: 3': "-q:a 3 ",
+                                  'VBR: 4': "-q:a 4 ",
+                                  'VBR: 5': "-q:a 5 ",
+                                  'VBR: 6': "-q:a 6 ",
+                                  'VBR: 7': "-q:a 7 "}
         acodec_bitrate.set('CBR: 192k')  # set the default option
         acodec_bitrate_menu_label = Label(audio_window, text="Quality :", background="#434547", foreground="white")
         acodec_bitrate_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W+E)
@@ -1150,13 +450,12 @@ def openaudiowindow():
 
         # Audio Channel Selection
         acodec_channel = StringVar(audio_window)
-        acodec_channel_choices = { 'Original': " ",
-                                   '1 (Mono)': " -ac 1 ",
-                                   '2 (Stereo)': " -ac 2 ",
-                                   '5.1 (Surround)': " -ac 6 ",
-                                   '6.1 (Surround)': " -ac 7 ",
-                                   '7.1 (Surround)': " -ac 8 "
-                                   }
+        acodec_channel_choices = { 'Original': "",
+                                   '1 (Mono)': "-ac 1 ",
+                                   '2 (Stereo)': "-ac 2 ",
+                                   '5.1 (Surround)': "-ac 6 ",
+                                   '6.1 (Surround)': "-ac 7 ",
+                                   '7.1 (Surround)': "-ac 8 "}
         acodec_channel.set('Original') # set the default option
         achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
         achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W+E)
@@ -1182,28 +481,27 @@ def openaudiowindow():
 
         # Audio Gain Selection
         acodec_gain = StringVar(audio_window)
-        acodec_gain_choices = {'Default (0)': " -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+10 dB': " -af volume=10dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+9 dB': " -af volume=9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+8 dB': " -af volume=8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+7 dB': " -af volume=7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+6 dB': " -af volume=6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+5 dB': " -af volume=5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+4 dB': " -af volume=4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+3 dB': " -af volume=3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+2 dB': " -af volume=2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+1 dB': " -af volume=1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-1 dB': " -af volume=-1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-2 dB': " -af volume=-2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-3 dB': " -af volume=-3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-4 dB': " -af volume=-4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-5 dB': " -af volume=-5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-6 dB': " -af volume=-6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-7 dB': " -af volume=-7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-8 dB': " -af volume=-8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-9 dB': " -af volume=-9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-10 dB': " -af volume=-10dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               }
+        acodec_gain_choices = {'Default (0)': "-sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+10 dB': "-af volume=10dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+9 dB': "-af volume=9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+8 dB': "-af volume=8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+7 dB': "-af volume=7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+6 dB': "-af volume=6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+5 dB': "-af volume=5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+4 dB': "-af volume=4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+3 dB': "-af volume=3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+2 dB': "-af volume=2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+1 dB': "-af volume=1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-1 dB': "-af volume=-1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-2 dB': "-af volume=-2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-3 dB': "-af volume=-3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-4 dB': "-af volume=-4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-5 dB': "-af volume=-5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-6 dB': "-af volume=-6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-7 dB': "-af volume=-7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-8 dB': "-af volume=-8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-9 dB': "-af volume=-9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-10 dB': "-af volume=-10dB -sn -vn -map_chapters -1 -map_metadata -1 "}
         acodec_gain.set('Default (0)')  # set the default option
         acodec_gain_label = Label(audio_window, text="Gain :", background="#434547", foreground="white")
         acodec_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N+S+E+W)
@@ -1216,13 +514,13 @@ def openaudiowindow():
 
         # Audio Sample Rate Selection
         acodec_samplerate = StringVar(audio_window)
-        acodec_samplerate_choices = {'Original': " ",
-                                     '11025 Hz': " -ar 11025 ",
-                                     '22050 Hz': " -ar 22050 ",
-                                     '44100 Hz': " -ar 44100 ",
-                                     '48000 Hz': " -ar 48000 ",
-                                     '88200 Hz': " -ar 88200 ",
-                                     '96000 Hz': " -ar 96000 "}
+        acodec_samplerate_choices = {'Original': "",
+                                     '11025 Hz': "-ar 11025 ",
+                                     '22050 Hz': "-ar 22050 ",
+                                     '44100 Hz': "-ar 44100 ",
+                                     '48000 Hz': "-ar 48000 ",
+                                     '88200 Hz': "-ar 88200 ",
+                                     '96000 Hz': "-ar 96000 "}
         acodec_samplerate.set('Original')  # set the default option
         acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547", foreground="white")
         acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N+S+E+W)
@@ -1246,6 +544,11 @@ def openaudiowindow():
         x_cordinate = int((screen_width / 2) - (window_width / 2))
         y_cordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+
+        my_menu = Menu(audio_window, tearoff=0)
+        audio_window.config(menu=my_menu)
+        check_streams = Menu(my_menu, tearoff=0, activebackground="dim grey")
+        my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
 
         audio_window.grid_columnconfigure(0, weight=1)
         audio_window.grid_columnconfigure(1, weight=1)
@@ -1276,6 +579,7 @@ def openaudiowindow():
             audio_window.destroy()
             output_button.config(state=NORMAL)
             start_audio_button.config(state=NORMAL)
+            command_line_button.config(state=NORMAL)
 
         apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A", command=gotosavefile)
         apply_button.grid(row=2, column=2, columnspan=1, padx=10, pady=3, sticky=N+S+E)
@@ -1297,8 +601,8 @@ def openaudiowindow():
 
         # DTS Setting(s)
         dts_settings = StringVar(audio_window)
-        dts_settings_choices = {'Reduce to Core': " -bsf:a dca_core -c:a copy ",
-                                  'Extract HD Track': " -c:a copy "}
+        dts_settings_choices = {'Reduce to Core': "-bsf:a dca_core -c:a copy ",
+                                  'Extract HD Track': "-c:a copy "}
         dts_settings.set('Reduce to Core')  # set the default option
         dts_settings_label = Label(audio_window, text="DTS Settings :", background="#434547", foreground="white")
         dts_settings_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3)
@@ -1320,6 +624,11 @@ def openaudiowindow():
         x_cordinate = int((screen_width / 2) - (window_width / 2))
         y_cordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+
+        my_menu = Menu(audio_window, tearoff=0)
+        audio_window.config(menu=my_menu)
+        check_streams = Menu(my_menu, tearoff=0, activebackground="dim grey")
+        my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
 
         audio_window.grid_columnconfigure(0, weight=1)
         audio_window.grid_columnconfigure(1, weight=1)
@@ -1368,6 +677,7 @@ def openaudiowindow():
             audio_window.destroy()
             output_button.config(state=NORMAL)
             start_audio_button.config(state=NORMAL)
+            command_line_button.config(state=NORMAL)
 
         apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A", command=gotosavefile)
         apply_button.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N+S+E+W)
@@ -1376,22 +686,22 @@ def openaudiowindow():
 
         # Audio Bitrate Menu
         acodec_bitrate = StringVar(audio_window)
-        acodec_bitrate_choices = {'6k': " -b:a 6k ",
-                                  '8k': " -b:a 8k ",
-                                  '16k': " -b:a 16k ",
-                                  '24k': " -b:a 24k ",
-                                  '40k': " -b:a 40k ",
-                                  '48k': " -b:a 48k ",
-                                  '64k': " -b:a 64k ",
-                                  '96k': " -b:a 96k ",
-                                  '112k': " -b:a 112k ",
-                                  '128k': " -b:a 128k ",
-                                  '160k': " -b:a 160k ",
-                                  '192k': " -b:a 192k ",
-                                  '256k': " -b:a 256k ",
-                                  '320k': " -b:a 320k ",
-                                  '448k': " -b:a 448k ",
-                                  '510k': " -b:a 510k "}
+        acodec_bitrate_choices = {'6k': "-b:a 6k ",
+                                  '8k': "-b:a 8k ",
+                                  '16k': "-b:a 16k ",
+                                  '24k': "-b:a 24k ",
+                                  '40k': "-b:a 40k ",
+                                  '48k': "-b:a 48k ",
+                                  '64k': "-b:a 64k ",
+                                  '96k': "-b:a 96k ",
+                                  '112k': "-b:a 112k ",
+                                  '128k': "-b:a 128k ",
+                                  '160k': "-b:a 160k ",
+                                  '192k': "-b:a 192k ",
+                                  '256k': "-b:a 256k ",
+                                  '320k': "-b:a 320k ",
+                                  '448k': "-b:a 448k ",
+                                  '510k': "-b:a 510k "}
         acodec_bitrate.set('160k')  # set the default option
         acodec_bitrate_menu_label = Label(audio_window, text="Quality :", background="#434547", foreground="white")
         acodec_bitrate_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W+E)
@@ -1404,8 +714,8 @@ def openaudiowindow():
 
         # Audio VBR Toggle
         acodec_vbr = StringVar(audio_window)
-        acodec_vbr_choices = {'VBR: On': " -vbr on ",
-                              'VBR: Off': " -vbr off "}
+        acodec_vbr_choices = {'VBR: On': "-vbr on ",
+                              'VBR: Off': "-vbr off "}
         acodec_vbr.set('VBR: On')  # set the default option
         acodec_vbr_menu_label = Label(audio_window, text="VBR :", background="#434547", foreground="white")
         acodec_vbr_menu_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3)
@@ -1418,12 +728,12 @@ def openaudiowindow():
 
         # Audio Channel Selection
         acodec_channel = StringVar(audio_window)
-        acodec_channel_choices = { 'Original': " -ac 2 ",
-                                   '1 (Mono)': " -ac 1 ",
-                                   '2 (Stereo)': " -ac 2 ",
-                                   '5.1 (Surround)': " -ac 6 ",
-                                   '6.1 (Surround)': " -ac 7 ",
-                                   '7.1 (Surround)': " -ac 8 "}
+        acodec_channel_choices = { 'Original': "-ac 2 ",
+                                   '1 (Mono)': "-ac 1 ",
+                                   '2 (Stereo)': "-ac 2 ",
+                                   '5.1 (Surround)': "-ac 6 ",
+                                   '6.1 (Surround)': "-ac 7 ",
+                                   '7.1 (Surround)': "-ac 8 "}
         acodec_channel.set('Original') # set the default option
         achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
         achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W+E)
@@ -1449,27 +759,27 @@ def openaudiowindow():
 
         # Audio Gain Selection
         acodec_gain = StringVar(audio_window)
-        acodec_gain_choices = {'Default (0)': " -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+10 dB': " -af volume=10dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+9 dB': " -af volume=9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+8 dB': " -af volume=8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+7 dB': " -af volume=7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+6 dB': " -af volume=6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+5 dB': " -af volume=5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+4 dB': " -af volume=4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+3 dB': " -af volume=3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+2 dB': " -af volume=2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+1 dB': " -af volume=1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-1 dB': " -af volume=-1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-2 dB': " -af volume=-2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-3 dB': " -af volume=-3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-4 dB': " -af volume=-4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-5 dB': " -af volume=-5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-6 dB': " -af volume=-6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-7 dB': " -af volume=-7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-8 dB': " -af volume=-8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-9 dB': " -af volume=-9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-10 dB': " -af volume=-10dB -sn -vn -map_chapters -1 -map_metadata -1 ",}
+        acodec_gain_choices = {'Default (0)': "-sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+10 dB': "-af volume=10dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+9 dB': "-af volume=9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+8 dB': "-af volume=8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+7 dB': "-af volume=7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+6 dB': "-af volume=6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+5 dB': "-af volume=5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+4 dB': "-af volume=4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+3 dB': "-af volume=3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+2 dB': "-af volume=2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+1 dB': "-af volume=1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-1 dB': "-af volume=-1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-2 dB': "-af volume=-2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-3 dB': "-af volume=-3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-4 dB': "-af volume=-4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-5 dB': "-af volume=-5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-6 dB': "-af volume=-6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-7 dB': "-af volume=-7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-8 dB': "-af volume=-8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-9 dB': "-af volume=-9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-10 dB': "-af volume=-10dB -sn -vn -map_chapters -1 -map_metadata -1 "}
         acodec_gain.set('Default (0)')  # set the default option
         acodec_gain_label = Label(audio_window, text="Gain :", background="#434547", foreground="white")
         acodec_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N+S+E+W)
@@ -1486,12 +796,17 @@ def openaudiowindow():
         audio_window.title('AAC Settings')
         audio_window.configure(background="#434547")
         window_height = 150
-        window_width = 350
+        window_width = 385
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
         x_cordinate = int((screen_width / 2) - (window_width / 2))
         y_cordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+
+        my_menu = Menu(audio_window, tearoff=0)
+        audio_window.config(menu=my_menu)
+        check_streams = Menu(my_menu, tearoff=0, activebackground="dim grey")
+        my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
 
         audio_window.grid_columnconfigure(0, weight=1)
         audio_window.grid_columnconfigure(1, weight=1)
@@ -1540,6 +855,7 @@ def openaudiowindow():
             audio_window.destroy()
             output_button.config(state=NORMAL)
             start_audio_button.config(state=NORMAL)
+            command_line_button.config(state=NORMAL)
 
         apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A", command=gotosavefile)
         apply_button.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N+S+E+W)
@@ -1548,21 +864,21 @@ def openaudiowindow():
 
         # Audio Bitrate Menu
         acodec_bitrate = StringVar(audio_window)
-        acodec_bitrate_choices = {'CBR: 16k': ' -b:a 16k ',
-                                  'CBR: 32k': ' -b:a 32k ',
-                                  'CBR: 64k': ' -b:a 64k ',
-                                  'CBR: 128k': ' -b:a 128k ',
-                                  'CBR: 192k': ' -b:a 192k ',
-                                  'CBR: 256k': ' -b:a 256k ',
-                                  'CBR: 320k': ' -b:a 320k ',
-                                  'CBR: 448k': ' -b:a 448k ',
-                                  'VBR: 1': ' -q:a 1 ',
-                                  'VBR: 2': ' -q:a 2 ',
-                                  'VBR: 3': ' -q:a 3 ',
-                                  'VBR: 4': ' -q:a 4 ',
-                                  'VBR: 5': ' -q:a 5 ',
-                                  'VBR: 6': ' -q:a 6 ',
-                                  'VBR: 7': ' -q:a 7 ',}
+        acodec_bitrate_choices = {'CBR: 16k': '-b:a 16k ',
+                                  'CBR: 32k': '-b:a 32k ',
+                                  'CBR: 64k': '-b:a 64k ',
+                                  'CBR: 128k': '-b:a 128k ',
+                                  'CBR: 192k': '-b:a 192k ',
+                                  'CBR: 256k': '-b:a 256k ',
+                                  'CBR: 320k': '-b:a 320k ',
+                                  'CBR: 448k': '-b:a 448k ',
+                                  'VBR: 1': '-q:a 1 ',
+                                  'VBR: 2': '-q:a 2 ',
+                                  'VBR: 3': '-q:a 3 ',
+                                  'VBR: 4': '-q:a 4 ',
+                                  'VBR: 5': '-q:a 5 ',
+                                  'VBR: 6': '-q:a 6 ',
+                                  'VBR: 7': '-q:a 7 '}
         acodec_bitrate.set('CBR: 192k')  # set the default option
         acodec_bitrate_menu_label = Label(audio_window, text="Quality :", background="#434547", foreground="white")
         acodec_bitrate_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W+E)
@@ -1575,12 +891,12 @@ def openaudiowindow():
 
         # Audio Channel Selection
         acodec_channel = StringVar(audio_window)
-        acodec_channel_choices = { 'Original': " ",
-                                   '1 (Mono)': " -ac 1 ",
-                                   '2 (Stereo)': " -ac 2 ",
-                                   '5.1 (Surround)': " -ac 6 ",
-                                   '6.1 (Surround)': " -ac 7 ",
-                                   '7.1 (Surround)': " -ac 8 "}
+        acodec_channel_choices = { 'Original': "",
+                                   '1 (Mono)': "-ac 1 ",
+                                   '2 (Stereo)': "-ac 2 ",
+                                   '5.1 (Surround)': "-ac 6 ",
+                                   '6.1 (Surround)': "-ac 7 ",
+                                   '7.1 (Surround)': "-ac 8 "}
         acodec_channel.set('Original') # set the default option
         achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
         achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W+E)
@@ -1606,27 +922,27 @@ def openaudiowindow():
 
         # Audio Gain Selection
         acodec_gain = StringVar(audio_window)
-        acodec_gain_choices = {'Default (0)': " -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+10 dB': " -af volume=10dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+9 dB': " -af volume=9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+8 dB': " -af volume=8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+7 dB': " -af volume=7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+6 dB': " -af volume=6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+5 dB': " -af volume=5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+4 dB': " -af volume=4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+3 dB': " -af volume=3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+2 dB': " -af volume=2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+1 dB': " -af volume=1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-1 dB': " -af volume=-1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-2 dB': " -af volume=-2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-3 dB': " -af volume=-3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-4 dB': " -af volume=-4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-5 dB': " -af volume=-5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-6 dB': " -af volume=-6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-7 dB': " -af volume=-7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-8 dB': " -af volume=-8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-9 dB': " -af volume=-9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-10 dB': " -af volume=-10dB -sn -vn -map_chapters -1 -map_metadata -1 ",}
+        acodec_gain_choices = {'Default (0)': "-sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+10 dB': "-af volume=10dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+9 dB': "-af volume=9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+8 dB': "-af volume=8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+7 dB': "-af volume=7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+6 dB': "-af volume=6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+5 dB': "-af volume=5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+4 dB': "-af volume=4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+3 dB': "-af volume=3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+2 dB': "-af volume=2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+1 dB': "-af volume=1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-1 dB': "-af volume=-1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-2 dB': "-af volume=-2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-3 dB': "-af volume=-3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-4 dB': "-af volume=-4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-5 dB': "-af volume=-5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-6 dB': "-af volume=-6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-7 dB': "-af volume=-7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-8 dB': "-af volume=-8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-9 dB': "-af volume=-9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-10 dB': "-af volume=-10dB -sn -vn -map_chapters -1 -map_metadata -1 "}
         acodec_gain.set('Default (0)')  # set the default option
         acodec_gain_label = Label(audio_window, text="Gain :", background="#434547", foreground="white")
         acodec_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N+S+E+W)
@@ -1639,11 +955,11 @@ def openaudiowindow():
 
         # Audio Sample Rate Selection
         acodec_samplerate = StringVar(audio_window)
-        acodec_samplerate_choices = {'Original': " ",
-                                     '11025 Hz': " -ar 11025 ",
-                                     '22050 Hz': " -ar 22050 ",
-                                     '44100 Hz': " -ar 44100 ",
-                                     '48000 Hz': " -ar 48000 ",}
+        acodec_samplerate_choices = {'Original': "",
+                                     '11025 Hz': "-ar 11025 ",
+                                     '22050 Hz': "-ar 22050 ",
+                                     '44100 Hz': "-ar 44100 ",
+                                     '48000 Hz': "-ar 48000 "}
         acodec_samplerate.set('Original')  # set the default option
         acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547", foreground="white")
         acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N+S+E+W)
@@ -1654,18 +970,23 @@ def openaudiowindow():
         acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
         acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
 
-        # Vorbis Window -----------------------
-    elif encoder.get() == "Vorbis":
+        # E-AC3 Window -----------------------
+    elif encoder.get() == "E-AC3":
         audio_window = Toplevel()
-        audio_window.title('Vorbis Settings')
+        audio_window.title('E-AC3 Settings')
         audio_window.configure(background="#434547")
         window_height = 150
-        window_width = 350
+        window_width = 385
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
         x_cordinate = int((screen_width / 2) - (window_width / 2))
         y_cordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+
+        my_menu = Menu(audio_window, tearoff=0)
+        audio_window.config(menu=my_menu)
+        check_streams = Menu(my_menu, tearoff=0, activebackground="dim grey")
+        my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
 
         audio_window.grid_columnconfigure(0, weight=1)
         audio_window.grid_columnconfigure(1, weight=1)
@@ -1714,6 +1035,7 @@ def openaudiowindow():
             audio_window.destroy()
             output_button.config(state=NORMAL)
             start_audio_button.config(state=NORMAL)
+            command_line_button.config(state=NORMAL)
 
         apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A", command=gotosavefile)
         apply_button.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N+S+E+W)
@@ -1722,21 +1044,47 @@ def openaudiowindow():
 
         # Audio Bitrate Menu
         acodec_bitrate = StringVar(audio_window)
-        acodec_bitrate_choices = {'CBR: 16k': ' -b:a 16k ',
-                                  'CBR: 32k': ' -b:a 32k ',
-                                  'CBR: 64k': ' -b:a 64k ',
-                                  'CBR: 128k': ' -b:a 128k ',
-                                  'CBR: 192k': ' -b:a 192k ',
-                                  'CBR: 256k': ' -b:a 256k ',
-                                  'CBR: 320k': ' -b:a 320k ',
-                                  'CBR: 448k': ' -b:a 448k ',
-                                  'VBR: 1': ' -q:a 1 ',
-                                  'VBR: 2': ' -q:a 2 ',
-                                  'VBR: 3': ' -q:a 3 ',
-                                  'VBR: 4': ' -q:a 4 ',
-                                  'VBR: 5': ' -q:a 5 ',
-                                  'VBR: 6': ' -q:a 6 ',
-                                  'VBR: 7': ' -q:a 7 ',}
+        acodec_bitrate_choices = {'CBR: 64k': '-b:a 64k ',
+                                  'CBR: 96k': '-b:a 96k ',
+                                  'CBR: 160k': '-b:a 160k ',
+                                  'CBR: 128k': '-b:a 128k ',
+                                  'CBR: 192k': '-b:a 192k ',
+                                  'CBR: 224k': '-b:a 224k ',
+                                  'CBR: 256k': '-b:a 256k ',
+                                  'CBR: 288k': '-b:a 288k ',
+                                  'CBR: 320k': '-b:a 320k ',
+                                  'CBR: 352k': '-b:a 352k ',
+                                  'CBR: 384k': '-b:a 384k ',
+                                  'CBR: 416k': '-b:a 416k ',
+                                  'CBR: 448k': '-b:a 448k ',
+                                  'CBR: 480k': '-b:a 480k ',
+                                  'CBR: 512k': '-b:a 512k ',
+                                  'CBR: 544k': '-b:a 544k ',
+                                  'CBR: 576k': '-b:a 576k ',
+                                  'CBR: 608k': '-b:a 608k ',
+                                  'CBR: 640k': '-b:a 640k ',
+                                  'CBR: 672k': '-b:a 672k ',
+                                  'CBR: 704k': '-b:a 704k ',
+                                  'CBR: 736k': '-b:a 736k ',
+                                  'CBR: 768k': '-b:a 768k ',
+                                  'CBR: 800k': '-b:a 800k ',
+                                  'CBR: 832k': '-b:a 832k ',
+                                  'CBR: 864k': '-b:a 864k ',
+                                  'CBR: 896k': '-b:a 896k ',
+                                  'CBR: 928k': '-b:a 928k ',
+                                  'CBR: 960k': '-b:a 960k ',
+                                  'CBR: 1056k': '-b:a 1056k ',
+                                  'CBR: 1088k': '-b:a 1088k ',
+                                  'CBR: 1120k': '-b:a 1120k ',
+                                  'CBR: 1152k': '-b:a 1152k ',
+                                  'CBR: 1184k': '-b:a 1184k ',
+                                  'CBR: 1216k': '-b:a 1216k ',
+                                  'CBR: 1248k': '-b:a 1248k ',
+                                  'CBR: 1280k': '-b:a 1280k ',
+                                  'CBR: 1312k': '-b:a 1312k ',
+                                  'CBR: 1344k': '-b:a 1344k ',
+                                  'CBR: 1367k': '-b:a 1376k ',
+                                  'CBR: 1408k': '-b:a 1408k '}
         acodec_bitrate.set('CBR: 192k')  # set the default option
         acodec_bitrate_menu_label = Label(audio_window, text="Quality :", background="#434547", foreground="white")
         acodec_bitrate_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W+E)
@@ -1749,12 +1097,10 @@ def openaudiowindow():
 
         # Audio Channel Selection
         acodec_channel = StringVar(audio_window)
-        acodec_channel_choices = { 'Original': " ",
-                                   '1 (Mono)': " -ac 1 ",
-                                   '2 (Stereo)': " -ac 2 ",
-                                   '5.1 (Surround)': " -ac 6 ",
-                                   '6.1 (Surround)': " -ac 7 ",
-                                   '7.1 (Surround)': " -ac 8 "}
+        acodec_channel_choices = { 'Original': "",
+                                   '1 (Mono)': "-ac 1 ",
+                                   '2 (Stereo)': "-ac 2 ",
+                                   '5.1 (Surround)': "-ac 6 "}
         acodec_channel.set('Original') # set the default option
         achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
         achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W+E)
@@ -1780,27 +1126,27 @@ def openaudiowindow():
 
         # Audio Gain Selection
         acodec_gain = StringVar(audio_window)
-        acodec_gain_choices = {'Default (0)': " -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+10 dB': " -af volume=10dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+9 dB': " -af volume=9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+8 dB': " -af volume=8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+7 dB': " -af volume=7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+6 dB': " -af volume=6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+5 dB': " -af volume=5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+4 dB': " -af volume=4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+3 dB': " -af volume=3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+2 dB': " -af volume=2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+1 dB': " -af volume=1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-1 dB': " -af volume=-1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-2 dB': " -af volume=-2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-3 dB': " -af volume=-3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-4 dB': " -af volume=-4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-5 dB': " -af volume=-5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-6 dB': " -af volume=-6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-7 dB': " -af volume=-7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-8 dB': " -af volume=-8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-9 dB': " -af volume=-9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-10 dB': " -af volume=-10dB -sn -vn -map_chapters -1 -map_metadata -1 ",}
+        acodec_gain_choices = {'Default (0)': "-sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+10 dB': "-af volume=10dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+9 dB': "-af volume=9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+8 dB': "-af volume=8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+7 dB': "-af volume=7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+6 dB': "-af volume=6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+5 dB': "-af volume=5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+4 dB': "-af volume=4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+3 dB': "-af volume=3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+2 dB': "-af volume=2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+1 dB': "-af volume=1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-1 dB': "-af volume=-1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-2 dB': "-af volume=-2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-3 dB': "-af volume=-3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-4 dB': "-af volume=-4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-5 dB': "-af volume=-5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-6 dB': "-af volume=-6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-7 dB': "-af volume=-7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-8 dB': "-af volume=-8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-9 dB': "-af volume=-9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-10 dB': "-af volume=-10dB -sn -vn -map_chapters -1 -map_metadata -1 "}
         acodec_gain.set('Default (0)')  # set the default option
         acodec_gain_label = Label(audio_window, text="Gain :", background="#434547", foreground="white")
         acodec_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N+S+E+W)
@@ -1813,11 +1159,9 @@ def openaudiowindow():
 
         # Audio Sample Rate Selection
         acodec_samplerate = StringVar(audio_window)
-        acodec_samplerate_choices = {'Original': " ",
-                                     '11025 Hz': " -ar 11025 ",
-                                     '22050 Hz': " -ar 22050 ",
-                                     '44100 Hz': " -ar 44100 ",
-                                     '48000 Hz': " -ar 48000 ",}
+        acodec_samplerate_choices = {'Original': "",
+                                     '44100 Hz': "-ar 44100 ",
+                                     '48000 Hz': "-ar 48000 "}
         acodec_samplerate.set('Original')  # set the default option
         acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547", foreground="white")
         acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N+S+E+W)
@@ -1827,78 +1171,797 @@ def openaudiowindow():
         acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
         acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
         acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
+
+        # FDK-AAC Window -----------------------
+    elif encoder.get() == "FDK-AAC":
+        audio_window = Toplevel()
+        audio_window.title('FDK-AAC Settings')
+        audio_window.configure(background="#434547")
+        window_height = 500
+        window_width = 700
+        screen_width = audio_window.winfo_screenwidth()
+        screen_height = audio_window.winfo_screenheight()
+        x_cordinate = int((screen_width / 2) - (window_width / 2))
+        y_cordinate = int((screen_height / 2) - (window_height / 2))
+        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+
+        my_menu = Menu(audio_window, tearoff=0)
+        audio_window.config(menu=my_menu)
+        check_streams = Menu(my_menu, tearoff=0, activebackground="dim grey")
+        my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
+
+        audio_window.grid_columnconfigure(0, weight=1)
+        audio_window.grid_columnconfigure(1, weight=1)
+        audio_window.grid_columnconfigure(2, weight=1)
+        audio_window.grid_rowconfigure(0, weight=1)
+        audio_window.grid_rowconfigure(1, weight=1)
+        audio_window.grid_rowconfigure(2, weight=1)
+        audio_window.grid_rowconfigure(3, weight=1)
+        audio_window.grid_rowconfigure(4, weight=1)
+        audio_window.grid_rowconfigure(5, weight=1)
+        audio_window.grid_rowconfigure(6, weight=1)
+        audio_window.grid_rowconfigure(7, weight=1)
+        audio_window.grid_rowconfigure(8, weight=1)
+        audio_window.grid_rowconfigure(9, weight=1)
+        audio_window.grid_rowconfigure(10, weight=1)
+
+        def apply_button_hover(e):
+            apply_button["bg"] = "grey"
+        def apply_button_hover_leave(e):
+            apply_button["bg"] = "#23272A"
+
+        def help_button_hover(e):
+            help_button["bg"] = "grey"
+        def help_button_hover_leave(e):
+            help_button["bg"] = "#23272A"
+
+
+        def acodec_bitrate_menu_hover(e):
+            acodec_bitrate_menu["bg"] = "grey"
+            acodec_bitrate_menu["activebackground"] = "grey"
+        def acodec_bitrate_menu_hover_leave(e):
+            acodec_bitrate_menu["bg"] = "#23272A"
+
+        def acodec_stream_menu_hover(e):
+            acodec_stream_menu["bg"] = "grey"
+            acodec_stream_menu["activebackground"] = "grey"
+        def acodec_stream_menu_hover_leave(e):
+            acodec_stream_menu["bg"] = "#23272A"
+
+        def achannel_menu_hover(e):
+            achannel_menu["bg"] = "grey"
+            achannel_menu["activebackground"] = "grey"
+        def achannel_menu_hover_leave(e):
+            achannel_menu["bg"] = "#23272A"
+
+        def acodec_gain_menu_hover(e):
+            acodec_gain_menu["bg"] = "grey"
+            acodec_gain_menu["activebackground"] = "grey"
+        def acodec_gain_menu_hover_leave(e):
+            acodec_gain_menu["bg"] = "#23272A"
+
+        def acodec_samplerate_menu_hover(e):
+            acodec_samplerate_menu["bg"] = "grey"
+            acodec_samplerate_menu["activebackground"] = "grey"
+        def acodec_samplerate_menu_hover_leave(e):
+            acodec_samplerate_menu["bg"] = "#23272A"
+
+        def acodec_profile_menu_hover(e):
+            acodec_profile_menu["bg"] = "grey"
+            acodec_profile_menu["activebackground"] = "grey"
+        def acodec_profile_menu_hover_leave(e):
+            acodec_profile_menu["bg"] = "#23272A"
+
+        def acodec_lowdelay_menu_hover(e):
+            acodec_lowdelay_menu["bg"] = "grey"
+            acodec_lowdelay_menu["activebackground"] = "grey"
+        def acodec_lowdelay_menu_hover_leave(e):
+            acodec_lowdelay_menu["bg"] = "#23272A"
+
+        def acodec_sbr_ratio_menu_hover(e):
+            acodec_sbr_ratio_menu["bg"] = "grey"
+            acodec_sbr_ratio_menu["activebackground"] = "grey"
+        def acodec_sbr_ratio_menu_hover_leave(e):
+            acodec_sbr_ratio_menu["bg"] = "#23272A"
+
+        def acodec_gapless_mode_menu_hover(e):
+            acodec_gapless_mode_menu["bg"] = "grey"
+            acodec_gapless_mode_menu["activebackground"] = "grey"
+        def acodec_gapless_mode_menu_hover_leave(e):
+            acodec_gapless_mode_menu["bg"] = "#23272A"
+
+        def acodec_transport_format_menu_hover(e):
+            acodec_transport_format_menu["bg"] = "grey"
+            acodec_transport_format_menu["activebackground"] = "grey"
+        def acodec_transport_format_menu_hover_leave(e):
+            acodec_transport_format_menu["bg"] = "#23272A"
+
+        def gotofdkaachelp():
+            helpfile_window = Toplevel(audio_window)
+            helpfile_window.title("FDK-AAC Advanced Settings Help")
+            helpfile_window.configure(background="#434547")
+            Label(helpfile_window, text="Advanced Settings Information",
+                  font=("Times New Roman", 14), background='#434547', foreground="white").grid(column=0, row=0)
+            helpfile_window.grid_columnconfigure(0, weight=1)
+            helpfile_window.grid_rowconfigure(0, weight=1)
+            text_area = scrolledtextwidget.ScrolledText(helpfile_window, width=80, height=25)
+            text_area.grid(column=0, pady=10, padx=10)
+            with open("Apps/fdkaac/FDK-AAC-Help.txt", "r") as helpfile:
+                text_area.insert(INSERT, helpfile.read())
+                text_area.configure(font=("Helvetica", 14))
+                text_area.configure(state=DISABLED)
+
+        def gotosavefile():
+            audio_window.destroy()
+            output_button.config(state=NORMAL)
+            start_audio_button.config(state=NORMAL)
+            command_line_button.config(state=NORMAL)
+
+        apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
+                              command=gotosavefile)
+        apply_button.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        apply_button.bind("<Enter>", apply_button_hover)
+        apply_button.bind("<Leave>", apply_button_hover_leave)
+
+        help_button = Button(audio_window, text="Help + Information", foreground="white", background="#23272A", command=gotofdkaachelp)
+        help_button.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        help_button.bind("<Enter>", help_button_hover)
+        help_button.bind("<Leave>", help_button_hover_leave)
+
+        advanced_label = Label(audio_window, text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - - - - - - - - - - - - - - - - - - -", background="#434547", foreground="white", relief=GROOVE)
+        advanced_label.grid(row=4, column=0, columnspan=3, padx=10, pady=10, sticky=W+E)
+
+        # Audio Bitrate Menu
+        acodec_bitrate = StringVar(audio_window)
+        acodec_bitrate_choices = {'CBR: 16k': "-b16 ",
+                                  'CBR: 32k': "-b32 ",
+                                  'CBR: 64k': "-b64 ",
+                                  'CBR: 128k': "-b128 ",
+                                  'CBR: 192k': "-b192 ",
+                                  'CBR: 256k': "-b256 ",
+                                  'CBR: 320k': "-b320 ",
+                                  'CBR: 448k': "-b448 ",
+                                  'CBR: 640k': "-b640 ",
+                                  'VBR: 1': "-m1 ",
+                                  'VBR: 2': "-m2 ",
+                                  'VBR: 3': "-m3 ",
+                                  'VBR: 4': "-m4 ",
+                                  'VBR: 5': "-m5 "}
+        acodec_bitrate.set('CBR: 192k')  # set the default option
+        acodec_bitrate_menu_label = Label(audio_window, text="Quality :", background="#434547", foreground="white")
+        acodec_bitrate_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
+        acodec_bitrate_menu = OptionMenu(audio_window, acodec_bitrate, *acodec_bitrate_choices.keys())
+        acodec_bitrate_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_bitrate_menu.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        acodec_bitrate_menu["menu"].configure(activebackground="dim grey")
+        acodec_bitrate_menu.bind("<Enter>", acodec_bitrate_menu_hover)
+        acodec_bitrate_menu.bind("<Leave>", acodec_bitrate_menu_hover_leave)
+
+        # Audio Channel Selection
+        acodec_channel = StringVar(audio_window)
+        acodec_channel_choices = {'Original': "",
+                                  '1 (Mono)': "-ac 1 ",
+                                  '2 (Stereo)': "-ac 2 ",
+                                  '5.1 (Surround)': "-ac 6 ",
+                                  '6.1 (Surround)': "-ac 7 ",
+                                  '7.1 (Surround)': "-ac 8 "}
+        acodec_channel.set('Original')  # set the default option
+        achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
+        achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
+        achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
+        achannel_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        achannel_menu.grid(row=1, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        achannel_menu["menu"].configure(activebackground="dim grey")
+        achannel_menu.bind("<Enter>", achannel_menu_hover)
+        achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
+
+        # Audio Stream Selection
+        acodec_stream = StringVar(audio_window)
+        acodec_stream_choices = acodec_stream_track_counter
+        acodec_stream.set('Track 1')  # set the default option
+        acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
+        acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
+        acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
+        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        acodec_stream_menu["menu"].configure(activebackground="dim grey")
+        acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
+        acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+
+        # Audio Gain Selection
+        acodec_gain = StringVar(audio_window)
+        acodec_gain_choices = {'Default (0)': "-sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+10 dB': "-af volume=10dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+9 dB': "-af volume=9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+8 dB': "-af volume=8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+7 dB': "-af volume=7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+6 dB': "-af volume=6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+5 dB': "-af volume=5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+4 dB': "-af volume=4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+3 dB': "-af volume=3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+2 dB': "-af volume=2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+1 dB': "-af volume=1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-1 dB': "-af volume=-1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-2 dB': "-af volume=-2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-3 dB': "-af volume=-3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-4 dB': "-af volume=-4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-5 dB': "-af volume=-5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-6 dB': "-af volume=-6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-7 dB': "-af volume=-7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-8 dB': "-af volume=-8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-9 dB': "-af volume=-9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-10 dB': "-af volume=-10dB -sn -vn -map_chapters -1 -map_metadata -1 "}
+        acodec_gain.set('Default (0)')  # set the default option
+        acodec_gain_label = Label(audio_window, text="Gain :", background="#434547", foreground="white")
+        acodec_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_gain_menu = OptionMenu(audio_window, acodec_gain, *acodec_gain_choices.keys())
+        acodec_gain_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_gain_menu.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_gain_menu["menu"].configure(activebackground="dim grey")
+        acodec_gain_menu.bind("<Enter>", acodec_gain_menu_hover)
+        acodec_gain_menu.bind("<Leave>", acodec_gain_menu_hover_leave)
+
+        # Audio Sample Rate Selection
+        acodec_samplerate = StringVar(audio_window)
+        acodec_samplerate_choices = {'Original': "",
+                                     '11025 Hz': "-ar 11025 ",
+                                     '22050 Hz': "-ar 22050 ",
+                                     '44100 Hz': "-ar 44100 ",
+                                     '48000 Hz': "-ar 48000 ",
+                                     '88200 Hz': "-ar 88200 ",
+                                     '96000 Hz': "-ar 96000 "}
+        acodec_samplerate.set('Original')  # set the default option
+        acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547", foreground="white")
+        acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate, *acodec_samplerate_choices.keys())
+        acodec_samplerate_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_samplerate_menu.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
+        acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
+        acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
+
+        # Advanced Section ---------
+
+        # Audio Profile Selection
+        global acodec_profile
+        global acodec_profile_choices
+        acodec_profile = StringVar(audio_window)
+        acodec_profile_choices = {'AAC LC (Default)': "-p2 ",
+                                     'HE-AAC SBR': "-p5 ",
+                                     'HE-AAC V2 (SBR+PS)': "-p29 ",
+                                     'AAC LD': "-p23 ",
+                                     'AAC ELD': "-p39 "}
+        acodec_profile.set('AAC LC (Default)')  # set the default option
+        acodec_profile_label = Label(audio_window, text="Profile :", background="#434547", foreground="white")
+        acodec_profile_label.grid(row=5, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_profile_menu = OptionMenu(audio_window, acodec_profile, *acodec_profile_choices.keys())
+        acodec_profile_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_profile_menu.grid(row=6, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_profile_menu["menu"].configure(activebackground="dim grey")
+        acodec_profile_menu.bind("<Enter>", acodec_profile_menu_hover)
+        acodec_profile_menu.bind("<Leave>", acodec_profile_menu_hover_leave)
+
+        # Audio Lowdelay SBR Selection
+        global acodec_lowdelay
+        global acodec_lowdelay_choices
+        acodec_lowdelay = StringVar(audio_window)
+        acodec_lowdelay_choices = {'Disable SBR on ELD (DEF)': "-L0 ",
+                                     'ELD SBR Auto Conf': "-L-1 ",
+                                     'Enable SBR on ELD': "-L1 "}
+        acodec_lowdelay.set('Disable SBR on ELD (DEF)')  # set the default option
+        acodec_lowdelay_label = Label(audio_window, text="Lowdelay SBR :", background="#434547", foreground="white")
+        acodec_lowdelay_label.grid(row=5, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_lowdelay_menu = OptionMenu(audio_window, acodec_lowdelay, *acodec_lowdelay_choices.keys())
+        acodec_lowdelay_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_lowdelay_menu.grid(row=6, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_lowdelay_menu["menu"].configure(activebackground="dim grey")
+        acodec_lowdelay_menu.bind("<Enter>", acodec_lowdelay_menu_hover)
+        acodec_lowdelay_menu.bind("<Leave>", acodec_lowdelay_menu_hover_leave)
+
+        # Audio SBR Ratio
+        global acodec_sbr_ratio
+        global acodec_sbr_ratio_choices
+        acodec_sbr_ratio = StringVar(audio_window)
+        acodec_sbr_ratio_choices = {'Libary Default': "-s0 ",
+                                     'Downsampled SBR (ELD+SBR Def)': "-s1 ",
+                                     'Dual-Rate SBR (HE-AAC-Def)': "-s2 "}
+        acodec_sbr_ratio.set('Libary Default')  # set the default option
+        acodec_sbr_ratio_label = Label(audio_window, text="SBR Ratio :", background="#434547", foreground="white")
+        acodec_sbr_ratio_label.grid(row=5, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_sbr_ratio_menu = OptionMenu(audio_window, acodec_sbr_ratio, *acodec_sbr_ratio_choices.keys())
+        acodec_sbr_ratio_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_sbr_ratio_menu.grid(row=6, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_sbr_ratio_menu["menu"].configure(activebackground="dim grey")
+        acodec_sbr_ratio_menu.bind("<Enter>", acodec_sbr_ratio_menu_hover)
+        acodec_sbr_ratio_menu.bind("<Leave>", acodec_sbr_ratio_menu_hover_leave)
+
+        # Audio Gapless Mode
+        global acodec_gapless_mode
+        global acodec_gapless_mode_choices
+        acodec_gapless_mode = StringVar(audio_window)
+        acodec_gapless_mode_choices = {'iTunSMPB (Def)': "-G0 ",
+                                     'ISO Standard (EDTS+SGPD)': "-G1 ",
+                                     'Both': "-G2 "}
+        acodec_gapless_mode.set('iTunSMPB (Def)')  # set the default option
+        acodec_gapless_mode_label = Label(audio_window, text="SBR Ratio :", background="#434547", foreground="white")
+        acodec_gapless_mode_label.grid(row=7, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_gapless_mode_menu = OptionMenu(audio_window, acodec_gapless_mode, *acodec_gapless_mode_choices.keys())
+        acodec_gapless_mode_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_gapless_mode_menu.grid(row=8, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_gapless_mode_menu["menu"].configure(activebackground="dim grey")
+        acodec_gapless_mode_menu.bind("<Enter>", acodec_gapless_mode_menu_hover)
+        acodec_gapless_mode_menu.bind("<Leave>", acodec_gapless_mode_menu_hover_leave)
+
+        # Audio Transport Format
+        global acodec_transport_format
+        global acodec_transport_format_choices
+        acodec_transport_format = StringVar(audio_window)
+        acodec_transport_format_choices = {'M4A (Def)': "-f0 ",
+                                           'ADIF': "-f1 ",
+                                           'ADTS': "-f2 ",
+                                           'LATM MCP=1': "-f6 ",
+                                           'LATM MCP=0': "-f7 ",
+                                           'LOAS/LATM (LATM w/in LOAS)': "-f10 "}
+        acodec_transport_format.set('M4A (Def)')  # set the default option
+        acodec_transport_format_label = Label(audio_window, text="Transport Format :", background="#434547", foreground="white")
+        acodec_transport_format_label.grid(row=7, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_transport_format_menu = OptionMenu(audio_window, acodec_transport_format, *acodec_transport_format_choices.keys())
+        acodec_transport_format_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_transport_format_menu.grid(row=8, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_transport_format_menu["menu"].configure(activebackground="dim grey")
+        acodec_transport_format_menu.bind("<Enter>", acodec_transport_format_menu_hover)
+        acodec_transport_format_menu.bind("<Leave>", acodec_transport_format_menu_hover_leave)
+
+        #Misc Checkboxes - Afterburner
+        global afterburnervar
+        afterburnervar = StringVar()
+        afterburnervar.set("-a1 ")
+        afterburner_checkbox = Checkbutton(audio_window, text='Afterburner', variable=afterburnervar, onvalue="-a1 ", offvalue="-a0 ")
+        afterburner_checkbox.grid(row=8, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        afterburner_checkbox.configure(background="#434547", foreground="white", activebackground="#434547", activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+
+        #Misc Checkboxes - Add CRC Check on ADTS Header
+        global crccheck
+        crccheck = StringVar()
+        crccheck.set("")
+        crccheck_checkbox = Checkbutton(audio_window, text='CRC Check on\n ADTS Header', variable=crccheck, onvalue="-C ", offvalue="")
+        crccheck_checkbox.grid(row=9, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        crccheck_checkbox.configure(background="#434547", foreground="white", activebackground="#434547", activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+
+        # Misc Checkboxes - Header Period
+        global headerperiod
+        headerperiod = StringVar()
+        headerperiod.set("")
+        headerperiod_checkbox = Checkbutton(audio_window, text='Header Period', variable=headerperiod,
+                                        onvalue="-h ", offvalue="")
+        headerperiod_checkbox.grid(row=9, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        headerperiod_checkbox.configure(background="#434547", foreground="white", activebackground="#434547", activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+
+        # Misc Checkboxes - Include SBR Delay
+        global sbrdelay
+        sbrdelay = StringVar()
+        sbrdelay.set("")
+        sbrdelay_checkbox = Checkbutton(audio_window, text='SBR Delay', variable=sbrdelay,
+                                            onvalue="--include-sbr-delay ", offvalue="")
+        sbrdelay_checkbox.grid(row=9, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        sbrdelay_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                        activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+
+        # Misc Checkboxes - Place Moov Box Before Mdat Box
+        global moovbox
+        moovbox = StringVar()
+        moovbox.set("")
+        moovbox_checkbox = Checkbutton(audio_window, text='Place Moov Box Before Mdat Box', variable=moovbox,
+                                            onvalue="--moov-before-mdat ", offvalue="", anchor='w')
+        moovbox_checkbox.grid(row=10, column=0, columnspan=2, padx=10, pady=3, sticky=N + S + E + W)
+        moovbox_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                        activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+
+        # QAAC Window -----------------------
+    elif encoder.get() == "QAAC":
+        audio_window = Toplevel()
+        audio_window.title('QAAC Settings')
+        audio_window.configure(background="#434547")
+        window_height = 400
+        window_width = 600
+        screen_width = audio_window.winfo_screenwidth()
+        screen_height = audio_window.winfo_screenheight()
+        x_cordinate = int((screen_width / 2) - (window_width / 2))
+        y_cordinate = int((screen_height / 2) - (window_height / 2))
+        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+
+        my_menu = Menu(audio_window, tearoff=0)
+        audio_window.config(menu=my_menu)
+        check_streams = Menu(my_menu, tearoff=0, activebackground="dim grey")
+        my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
+
+        audio_window.grid_columnconfigure(0, weight=1)
+        audio_window.grid_columnconfigure(1, weight=1)
+        audio_window.grid_columnconfigure(2, weight=1)
+        audio_window.grid_rowconfigure(0, weight=1)
+        audio_window.grid_rowconfigure(1, weight=1)
+        audio_window.grid_rowconfigure(2, weight=1)
+        audio_window.grid_rowconfigure(3, weight=1)
+        audio_window.grid_rowconfigure(4, weight=1)
+        audio_window.grid_rowconfigure(5, weight=1)
+        audio_window.grid_rowconfigure(6, weight=1)
+        audio_window.grid_rowconfigure(7, weight=1)
+        audio_window.grid_rowconfigure(8, weight=1)
+        audio_window.grid_rowconfigure(9, weight=1)
+        audio_window.grid_rowconfigure(10, weight=1)
+
+        def apply_button_hover(e):
+            apply_button["bg"] = "grey"
+        def apply_button_hover_leave(e):
+            apply_button["bg"] = "#23272A"
+
+        def help_button_hover(e):
+            help_button["bg"] = "grey"
+        def help_button_hover_leave(e):
+            help_button["bg"] = "#23272A"
+
+        def q_acodec_profile_hover(e):
+            q_acodec_profile_menu["bg"] = "grey"
+            q_acodec_profile_menu["activebackground"] = "grey"
+        def q_acodec_profile_hover_leave(e):
+            q_acodec_profile_menu["bg"] = "#23272A"
+
+        def acodec_stream_menu_hover(e):
+            acodec_stream_menu["bg"] = "grey"
+            acodec_stream_menu["activebackground"] = "grey"
+        def acodec_stream_menu_hover_leave(e):
+            acodec_stream_menu["bg"] = "#23272A"
+
+        def achannel_menu_hover(e):
+            achannel_menu["bg"] = "grey"
+            achannel_menu["activebackground"] = "grey"
+        def achannel_menu_hover_leave(e):
+            achannel_menu["bg"] = "#23272A"
+
+        def acodec_gain_menu_hover(e):
+            acodec_gain_menu["bg"] = "grey"
+            acodec_gain_menu["activebackground"] = "grey"
+        def acodec_gain_menu_hover_leave(e):
+            acodec_gain_menu["bg"] = "#23272A"
+
+        def acodec_samplerate_menu_hover(e):
+            acodec_samplerate_menu["bg"] = "grey"
+            acodec_samplerate_menu["activebackground"] = "grey"
+        def acodec_samplerate_menu_hover_leave(e):
+            acodec_samplerate_menu["bg"] = "#23272A"
+
+        def q_acodec_quality_menu_hover(e):
+            q_acodec_quality_menu["bg"] = "grey"
+            q_acodec_quality_menu["activebackground"] = "grey"
+        def q_acodec_quality_menu_hover_leave(e):
+            q_acodec_quality_menu["bg"] = "#23272A"
+
+        def gotoqaachelp():
+            helpfile_window = Toplevel(audio_window)
+            helpfile_window.title("QAAC Advanced Settings Help")
+            helpfile_window.configure(background="#434547")
+            Label(helpfile_window, text="Advanced Settings Information",
+                  font=("Times New Roman", 14), background='#434547', foreground="white").grid(column=0, row=0)
+            helpfile_window.grid_columnconfigure(0, weight=1)
+            helpfile_window.grid_rowconfigure(0, weight=1)
+            text_area = scrolledtextwidget.ScrolledText(helpfile_window, width=80, height=25)
+            text_area.grid(column=0, pady=10, padx=10)
+            with open("Apps/qaac/qaac information.txt", "r") as helpfile:
+                text_area.insert(INSERT, helpfile.read())
+                text_area.configure(font=("Helvetica", 14))
+                text_area.configure(state=DISABLED)
+
+        def gotosavefile():
+            audio_window.destroy()
+            output_button.config(state=NORMAL)
+            start_audio_button.config(state=NORMAL)
+            command_line_button.config(state=NORMAL)
+
+        apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
+                              command=gotosavefile)
+        apply_button.grid(row=9, column=2, columnspan=1, padx=10, pady=20, sticky=N+S+W+E)
+        apply_button.bind("<Enter>", apply_button_hover)
+        apply_button.bind("<Leave>", apply_button_hover_leave)
+
+        help_button = Button(audio_window, text="Help + Information", foreground="white", background="#23272A",
+                             command=gotoqaachelp)
+        help_button.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N+S+W+E)
+        help_button.bind("<Enter>", help_button_hover)
+        help_button.bind("<Leave>", help_button_hover_leave)
+
+        advanced_label = Label(audio_window,
+                               text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - - - - - - - - - - - - - - - - - - -",
+                               background="#434547", foreground="white", relief=GROOVE)
+        advanced_label.grid(row=4, column=0, columnspan=3, padx=10, pady=10, sticky=W + E)
+
+        def quality_or_bitrate(*args):
+            if q_acodec_profile.get() == 'True VBR':
+                q_acodec_quality_spinbox.configure(state=NORMAL)
+                q_acodec_bitrate_spinbox.configure(state=DISABLED)
+                qaac_high_efficiency.set("")
+                qaac_high_efficiency_checkbox.configure(state=DISABLED)
+            elif q_acodec_profile.get() == 'Constrained VBR' or q_acodec_profile.get() == 'ABR' or\
+                    q_acodec_profile.get() == 'CBR':
+                q_acodec_quality_spinbox.configure(state=DISABLED)
+                q_acodec_bitrate_spinbox.configure(state=NORMAL)
+                qaac_high_efficiency_checkbox.configure(state=NORMAL)
+
+        # Audio Profile Menu
+        global q_acodec_profile
+        global q_acodec_profile_choices
+        q_acodec_profile = StringVar(audio_window)
+        q_acodec_profile_choices = {'True VBR': "--tvbr ",
+                                  'Constrained VBR': "--cvbr ",
+                                  'ABR': "--abr ",
+                                  'CBR': "--cbr "}
+        q_acodec_profile.set('True VBR')  # set the default option
+        q_acodec_profile.trace('w', quality_or_bitrate)
+        q_acodec_profile_menu_label = Label(audio_window, text="Mode :", background="#434547", foreground="white")
+        q_acodec_profile_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
+        q_acodec_profile_menu = OptionMenu(audio_window, q_acodec_profile, *q_acodec_profile_choices.keys())
+        q_acodec_profile_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        q_acodec_profile_menu.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        q_acodec_profile_menu["menu"].configure(activebackground="dim grey")
+        q_acodec_profile_menu.bind("<Enter>", q_acodec_profile_hover)
+        q_acodec_profile_menu.bind("<Leave>", q_acodec_profile_hover_leave)
+
+        # Audio Channel Selection
+        acodec_channel = StringVar(audio_window)
+        acodec_channel_choices = {'Original': "",
+                                  '1 (Mono)': "-ac 1 ",
+                                  '2 (Stereo)': "-ac 2 ",
+                                  '5.1 (Surround)': "-ac 6 ",
+                                  '6.1 (Surround)': "-ac 7 ",
+                                  '7.1 (Surround)': "-ac 8 "}
+        acodec_channel.set('Original')  # set the default option
+        achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
+        achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
+        achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
+        achannel_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        achannel_menu.grid(row=1, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        achannel_menu["menu"].configure(activebackground="dim grey")
+        achannel_menu.bind("<Enter>", achannel_menu_hover)
+        achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
+
+        # Audio Stream Selection
+        acodec_stream = StringVar(audio_window)
+        acodec_stream_choices = acodec_stream_track_counter
+        acodec_stream.set('Track 1')  # set the default option
+        acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
+        acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
+        acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
+        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        acodec_stream_menu["menu"].configure(activebackground="dim grey")
+        acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
+        acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+
+        # Audio Gain Selection
+        acodec_gain = StringVar(audio_window)
+        acodec_gain_choices = {'Default (0)': "-sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+10 dB': "-af volume=10dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+9 dB': "-af volume=9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+8 dB': "-af volume=8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+7 dB': "-af volume=7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+6 dB': "-af volume=6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+5 dB': "-af volume=5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+4 dB': "-af volume=4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+3 dB': "-af volume=3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+2 dB': "-af volume=2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '+1 dB': "-af volume=1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-1 dB': "-af volume=-1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-2 dB': "-af volume=-2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-3 dB': "-af volume=-3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-4 dB': "-af volume=-4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-5 dB': "-af volume=-5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-6 dB': "-af volume=-6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-7 dB': "-af volume=-7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-8 dB': "-af volume=-8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-9 dB': "-af volume=-9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
+                               '-10 dB': "-af volume=-10dB -sn -vn -map_chapters -1 -map_metadata -1 "}
+        acodec_gain.set('Default (0)')  # set the default option
+        acodec_gain_label = Label(audio_window, text="Gain :", background="#434547", foreground="white")
+        acodec_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_gain_menu = OptionMenu(audio_window, acodec_gain, *acodec_gain_choices.keys())
+        acodec_gain_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_gain_menu.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_gain_menu["menu"].configure(activebackground="dim grey")
+        acodec_gain_menu.bind("<Enter>", acodec_gain_menu_hover)
+        acodec_gain_menu.bind("<Leave>", acodec_gain_menu_hover_leave)
+
+        # Audio Sample Rate Selection
+        acodec_samplerate = StringVar(audio_window)
+        acodec_samplerate_choices = {'Original': "",
+                                     '11025 Hz': "-ar 11025 ",
+                                     '22050 Hz': "-ar 22050 ",
+                                     '44100 Hz': "-ar 44100 ",
+                                     '48000 Hz': "-ar 48000 ",
+                                     '88200 Hz': "-ar 88200 ",
+                                     '96000 Hz': "-ar 96000 "}
+        acodec_samplerate.set('Original')  # set the default option
+        acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547", foreground="white")
+        acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate, *acodec_samplerate_choices.keys())
+        acodec_samplerate_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_samplerate_menu.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
+        acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
+        acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
+
+        # Advanced Section ---------
+
+        # Audio Quality Selection
+        global q_acodec_quality
+        global q_acodec_quality_choices
+        q_acodec_quality = StringVar(audio_window)
+        q_acodec_quality_choices = {'High (Default)': "",
+                                  'Medium': "--quality 1 ",
+                                  'Low': "--quality 0 "}
+        q_acodec_quality.set('High (Default)')  # set the default option
+        q_acodec_quality_label = Label(audio_window, text="Quality :", background="#434547", foreground="white")
+        q_acodec_quality_label.grid(row=5, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        q_acodec_quality_menu = OptionMenu(audio_window, q_acodec_quality, *q_acodec_quality_choices.keys())
+        q_acodec_quality_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        q_acodec_quality_menu.grid(row=6, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        q_acodec_quality_menu["menu"].configure(activebackground="dim grey")
+        q_acodec_quality_menu.bind("<Enter>", q_acodec_quality_menu_hover)
+        q_acodec_quality_menu.bind("<Leave>", q_acodec_quality_menu_hover_leave)
+
+        # Audio Lowdelay Spinbox
+        global q_acodec_lowpass
+        q_acodec_lowpass = StringVar(audio_window)
+        q_acodec_lowpass.set(0)  # set the default option
+        q_acodec_lowpass_label = Label(audio_window, text="Lowpass :", background="#434547", foreground="white")
+        q_acodec_lowpass_label.grid(row=5, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        q_acodec_lowpass_spinbox = Spinbox(audio_window, from_=0, to=100, justify=CENTER, wrap=True, textvariable=q_acodec_lowpass)
+        q_acodec_lowpass_spinbox.config(background="#23272A", foreground="white", highlightthickness=1, buttonbackground="black")
+        q_acodec_lowpass_spinbox.grid(row=6, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+
+        # Audio Quality Spinbox
+        global q_acodec_quality_amnt
+        q_acodec_quality_amnt = StringVar(audio_window)
+        q_acodec_quality_amnt.set(50)  # set the default option
+        q_acodec_quality_spinbox_label = Label(audio_window, text="T-VBR Quality :", background="#434547", foreground="white")
+        q_acodec_quality_spinbox_label.grid(row=5, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        q_acodec_quality_spinbox = Spinbox(audio_window, from_=0, to=127, justify=CENTER, wrap=True, textvariable=q_acodec_quality_amnt)
+        q_acodec_quality_spinbox.config(background="#23272A", foreground="white", highlightthickness=1, buttonbackground="black")
+        q_acodec_quality_spinbox.grid(row=6, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+
+        # Audio Bitrate
+        global q_acodec_bitrate
+        q_acodec_bitrate = StringVar(audio_window)
+        q_acodec_bitrate.set(256)  # set the default option
+        q_acodec_bitrate_label = Label(audio_window, text="Bitrate :", background="#434547", foreground="white")
+        q_acodec_bitrate_label.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        q_acodec_bitrate_spinbox = Spinbox(audio_window, from_=1, to=1280, justify=CENTER, wrap=True, textvariable=q_acodec_bitrate, state=DISABLED)
+        q_acodec_bitrate_spinbox.config(background="#23272A", foreground="white", highlightthickness=1, buttonbackground="black")
+        q_acodec_bitrate_spinbox.grid(row=8, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+
+        #Misc Checkboxes - Normalize
+        global qaac_normalize
+        qaac_normalize = StringVar()
+        qaac_normalize.set("")
+        qaac_normalize_checkbox = Checkbutton(audio_window, text='Normalize', variable=qaac_normalize, onvalue="--normalize ",
+                                           offvalue="")
+        qaac_normalize_checkbox.grid(row=8, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        qaac_normalize_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                       activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+
+        #Misc Checkboxes - High Efficiency
+        global qaac_high_efficiency
+        qaac_high_efficiency = StringVar()
+        qaac_high_efficiency.set("")
+        qaac_high_efficiency_checkbox = Checkbutton(audio_window, text='High Efficiency', variable=qaac_high_efficiency, onvalue="--he ",
+                                           offvalue="", state=DISABLED)
+        qaac_high_efficiency_checkbox.grid(row=8, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        qaac_high_efficiency_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                       activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+
+        #Misc Checkboxes - No Dither When Quantizing to Lower Bit Depth
+        global qaac_nodither
+        qaac_nodither = StringVar()
+        qaac_nodither.set("")
+        qaac_nodither_checkbox = Checkbutton(audio_window, text='No Dither When Quantizing to Lower Bit Depth', variable=qaac_nodither, onvalue="--no-dither ",
+                                           offvalue="")
+        qaac_nodither_checkbox.grid(row=9, column=0, columnspan=2, padx=10, pady=3, sticky=N + S + E + W)
+        qaac_nodither_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                       activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
 
 
 # Code------------------------------------------------------------------------
 
 def file_input():
     global VideoInput
+    global VideoInputQuoted
     global VideoOutput
     global VideoOutputQuoted
     global autofilesave_dir_path
-    global ffprobeoutput
-    global ffprobeoutput2
+    global track_count
     VideoInput = filedialog.askopenfilename(initialdir="/", title="Select A File",
-                                            filetypes=(("MKA, WAV, MP3, AAC, OGG, OGV, M4V, MPEG, AVI, VOB, WEBM, MKV, MP4, DTS", "*.mka *.wav *.mp3 *.aac *.ogg *.ogv *.m4v *.mpeg *.avi *.vob *.webm *.mp4 *.mkv *.dts"), ("All Files", "*.*")))
-    input_entry.delete(0, END)  # Remove current text in entry
-    input_entry.insert(0, VideoInput)  # Insert the 'path'
-    autofilesave_file_path = pathlib.PureWindowsPath(VideoInput) # Command to get file input location
-    autofilesave_dir_path = autofilesave_file_path.parents[0] # Final command to get only the directory of fileinput
-
+                                            filetypes=(("MOV, MKA, WAV, MP3, AAC, OGG, OGV, M4V, MPEG, AVI, VOB, WEBM, MKV, MP4, DTS, AC3, MT2S, WAV", "*.mov *.wav *.mt2s *.ac3 *.mka *.wav *.mp3 *.aac *.ogg *.ogv *.m4v *.mpeg *.avi *.vob *.webm *.mp4 *.mkv *.dts"), ("All Files", "*.*")))
+    input_entry.configure(state=NORMAL)
+    input_entry.delete(0, END)
+    file_extension = pathlib.Path(VideoInput).suffix
+    if VideoInput:
+        if file_extension == '.wav' or file_extension == '.mt2s' or file_extension == '.ac3' or file_extension == '.mka' or\
+                file_extension == '.wav' or file_extension == '.mp3' or file_extension == '.aac' or\
+                file_extension == '.ogg' or file_extension == '.ogv' or file_extension == '.m4v' or\
+                file_extension == '.mpeg' or file_extension == '.avi' or file_extension == '.vob' or\
+                file_extension == '.webm' or file_extension == '.mp4' or file_extension == '.mkv' or\
+                file_extension == '.dts' or file_extension == '.m4a' or file_extension == '.mov':
+            autofilesave_file_path = pathlib.PureWindowsPath(VideoInput)  # Command to get file input location
+            autofilesave_dir_path = autofilesave_file_path.parents[0]  # Final command to get only the directory of fileinput
+            VideoInputQuoted = '"' + VideoInput + '"'
+            show_streams_button.config(state=NORMAL)
+            encoder_menu.config(state=NORMAL)
+            # This gets the total amount of audio streams -----------------------------------------------------------------
+            mediainfocli_cmd = '"' + mediainfocli + " " + '--Output="General;%AudioCount%"' + " " + VideoInputQuoted + '"'
+            mediainfo_count = subprocess.Popen('cmd /c ' + mediainfocli_cmd, creationflags=subprocess.CREATE_NO_WINDOW,
+                                               universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                               stdin=subprocess.PIPE)
+            stdout, stderr = mediainfo_count.communicate()
+            track_count = stdout
+            show_streams_button.configure(state=NORMAL)
+            input_entry.configure(state=NORMAL)
+            input_entry.insert(0, VideoInput)
+            input_entry.configure(state=DISABLED)
+            output_entry.configure(state=NORMAL)
+            output_entry.delete(0, END)
+            output_entry.configure(state=DISABLED)
+        else:
+            messagebox.showinfo(title="Wrong File Type", message="Try Again With a Supported File Type!\n\nIf this is a "
+                                                                 "file that should be supported, please let me know.")
     if not VideoInput:
+        input_entry.configure(state=NORMAL)
+        input_entry.delete(0, END)
+        input_entry.configure(state=DISABLED)
         output_button.config(state=DISABLED)
         show_streams_button.config(state=DISABLED)
         encoder_menu.config(state=DISABLED)
         audiosettings_button.configure(state=DISABLED)
-    else:
-        show_streams_button.config(state=NORMAL)
-        encoder_menu.config(state=NORMAL)
-        VideoInputQuoted = '"' + VideoInput + '"'
-        # This gets the total amount of audio streams -------------
-        ffprobecommand = "-show_entries stream=index -select_streams a -of compact=p=0:nk=1 -v 0"
-        ffprobeinfo = subprocess.Popen(ffprobe + " " + VideoInputQuoted + " " + ffprobecommand, creationflags=subprocess.CREATE_NO_WINDOW, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-        ffprobeoutput,error = ffprobeinfo.communicate()
-
-        output_entry.configure(state=NORMAL)
-        output_entry.delete(0, END)
-        output_entry.configure(state=DISABLED)
-
-        ffprobecommand2 = "-show_entries stream=index -select_streams v -of compact=p=0:nk=1 -v 0"
-        ffprobeinfo2 = subprocess.Popen(ffprobe + " " + VideoInputQuoted + " " + ffprobecommand2, creationflags=subprocess.CREATE_NO_WINDOW, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-        ffprobeoutput2,error2 = ffprobeinfo2.communicate()
-
 
 def file_save():
     global VideoOutput
     if encoder.get() == "AAC":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".mp4", initialdir=autofilesave_dir_path,
-                                                   title="Select a Save Location",
+                                                   title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("AAC", "*.mp4"), ("All Files", "*.*")))
     elif encoder.get() == "AC3":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".ac3", initialdir=autofilesave_dir_path,
-                                                   title="Select a Save Location",
+                                                   title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("AC3", "*.ac3"), ("All Files", "*.*")))
     elif encoder.get() == "DTS":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".dts", initialdir=autofilesave_dir_path,
-                                                   title="Select a Save Location",
+                                                   title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("DTS", "*.dts"), ("All Files", "*.*")))
     elif encoder.get() == "Opus":
-        VideoOutput = filedialog.asksaveasfilename(defaultextension=".ogg", initialdir=autofilesave_dir_path,
-                                                   title="Select a Save Location",
-                                                   filetypes=(("Opus", "*.ogg"), ("All Files", "*.*")))
+        VideoOutput = filedialog.asksaveasfilename(defaultextension=".opus", initialdir=autofilesave_dir_path,
+                                                   title="Select a Save Location", initialfile=autosavefilename,
+                                                   filetypes=(("Opus", "*.opus"), ("All Files", "*.*")))
     elif encoder.get() == "MP3":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".mp3", initialdir=autofilesave_dir_path,
-                                                   title="Select a Save Location",
+                                                   title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("MP3", "*.mp3"), ("All Files", "*.*")))
-    elif encoder.get() == "Vorbis":
-        VideoOutput = filedialog.asksaveasfilename(defaultextension=".ogg", initialdir=autofilesave_dir_path,
-                                                   title="Select a Save Location",
-                                                   filetypes=(("Vorbis", "*.ogg"), ("All Files", "*.*")))
+    elif encoder.get() == "E-AC3":
+        VideoOutput = filedialog.asksaveasfilename(defaultextension=".ac3", initialdir=autofilesave_dir_path,
+                                                   title="Select a Save Location", initialfile=autosavefilename,
+                                                   filetypes=(("E-AC3", "*.ac3"), ("All Files", "*.*")))
+    elif encoder.get() == "FDK-AAC":
+        VideoOutput = filedialog.asksaveasfilename(defaultextension=".m4a", initialdir=autofilesave_dir_path,
+                                                   title="Select a Save Location", initialfile=autosavefilename,
+                                                   filetypes=(("AAC", "*.m4a"), ("All Files", "*.*")))
+    elif encoder.get() == "QAAC":
+        VideoOutput = filedialog.asksaveasfilename(defaultextension=".m4a", initialdir=autofilesave_dir_path,
+                                                   title="Select a Save Location", initialfile=autosavefilename,
+                                                   filetypes=(("AAC", "*.m4a"), ("All Files", "*.*")))
 
-    output_entry.configure(state=NORMAL) # Enable entry box for commands under
-    output_entry.delete(0, END)  # Remove current text in entry
-    output_entry.insert(0, VideoOutput)  # Insert the 'path'
-    output_entry.configure(state=DISABLED) # Disables Entry Box
+    if VideoOutput:
+        output_entry.configure(state=NORMAL) # Enable entry box for commands under
+        output_entry.delete(0, END)  # Remove current text in entry
+        output_entry.insert(0, VideoOutput)  # Insert the 'path'
+        output_entry.configure(state=DISABLED) # Disables Entry Box
+    if not VideoOutput:
+        pass
 
 def input_button_hover(e):
     input_button["bg"] = "grey"
@@ -1925,6 +1988,11 @@ def start_audio_button_hover(e):
 def start_audio_button_hover_leave(e):
     start_audio_button["bg"] = "#23272A"
 
+def command_line_button_hover(e):
+    command_line_button["bg"] = "grey"
+def command_line_button_hover_leave(e):
+    command_line_button["bg"] = "#23272A"
+
 def encoder_menu_hover(e):
     encoder_menu["bg"] = "grey"
     encoder_menu["activebackground"] = "grey"
@@ -1933,38 +2001,120 @@ def encoder_menu_hover_leave(e):
 
 button_status_label = Label(root, relief=SUNKEN)
 
+def print_command_line():
+    cmd_line_window = Toplevel()
+    cmd_line_window.title('Command Line')
+    cmd_line_window.configure(background="#434547")
+    VideoInputQuoted = '"' + VideoInput + '"'
+    VideoOutputQuoted = '"' + VideoOutput + '"'
+    if encoder.get() == "DTS":
+        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " +"\n \n"+ VideoInputQuoted +"\n \n"+ acodec_stream_choices[
+            acodec_stream.get()] + dts_settings_choices[
+                           dts_settings.get()] + " -sn -vn -map_chapters -1 " +"\n \n"+ VideoOutputQuoted
+    elif encoder.get() == "FDK-AAC":
+        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " +"\n \n"+ VideoInputQuoted +"\n \n"+ acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + "-f caf - | " +"\n \n"+ "fdkaac.exe" + " " + acodec_profile_choices[acodec_profile.get()] + afterburnervar.get() + crccheck.get() + moovbox.get() + sbrdelay.get() + headerperiod.get() + acodec_lowdelay_choices[acodec_lowdelay.get()] + acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] + acodec_transport_format_choices[acodec_transport_format.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " +"\n \n"+ VideoOutputQuoted
+
+    elif encoder.get() == "QAAC":
+        if q_acodec_profile.get() == "True VBR":
+            example_cmd_output = ffmpeg + " -analyzeduration 100M -probesize 50M -i " +"\n \n"+ VideoInputQuoted +"\n \n"+ acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + "-f wav - | " +"\n \n"+ "qaac.exe " + q_acodec_profile_choices[q_acodec_profile.get()] + q_acodec_quality_amnt.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() + "--lowpass " + q_acodec_lowpass.get() + " " + qaac_nodither.get() + "- -o " +"\n \n"+ VideoOutputQuoted
+        else:
+            example_cmd_output = ffmpeg + " -analyzeduration 100M -probesize 50M -i " +"\n \n"+ VideoInputQuoted +"\n \n"+ acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + "-f wav - | " +"\n \n"+ "qaac.exe " + q_acodec_profile_choices[q_acodec_profile.get()] + q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() + "--lowpass " + q_acodec_lowpass.get() + " " + qaac_nodither.get() + "- -o " +"\n \n"+ VideoOutputQuoted
+    else:
+        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " +"\n \n"+ VideoInputQuoted +"\n \n"+ \
+                             acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
+                             acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + \
+                             acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[
+                                 acodec_gain.get()] +"\n \n"+ VideoOutputQuoted
+    cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
+    cmd_label.config(font=("Helvetica", 16))
+    cmd_label.pack()
+
+
 # Job Buttons ---------------------------------------------------------
 
 def startaudiojob():
+    global example_cmd_output
     # Quote File Input/Output Paths--------------
-    VideoInputQuoted = ' "' + VideoInput + '" '
-    VideoOutputQuoted = ' "' + VideoOutput + '" '
+    VideoInputQuoted = '"' + VideoInput + '"'
+    VideoOutputQuoted = '"' + VideoOutput + '"'
     # Commands------------------------------------
     if encoder.get() == "AC3":
-        commands = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner -v error -stats"
-        subprocess.Popen(commands)
+        if shell_options.get() == "Default":
+            finalcommand = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner -v error -stats"
+            subprocess.Popen(finalcommand)
+        elif shell_options.get() == "Debug":
+            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner" + '"'
+            subprocess.Popen('cmd /k ' + finalcommand)
 
     elif encoder.get() == "AAC":
-        commands = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner -v error -stats"
-        subprocess.Popen(commands)
+        if shell_options.get() == "Default":
+            finalcommand = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner -v error -stats"
+            subprocess.Popen(finalcommand)
+        elif shell_options.get() == "Debug":
+            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner" + '"'
+            subprocess.Popen('cmd /k ' + finalcommand)
 
     elif encoder.get() == 'DTS':
-        commands = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] + " -sn -vn -map_chapters -1 " + VideoOutputQuoted + " -hide_banner -v error -stats"
-        subprocess.Popen(commands)
+        if shell_options.get() == "Default":
+            finalcommand = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] + " -sn -vn -map_chapters -1 " + VideoOutputQuoted + " -hide_banner -v error -stats"
+            subprocess.Popen(finalcommand)
+        elif shell_options.get() == "Debug":
+            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] + " -sn -vn -map_chapters -1 " + VideoOutputQuoted + " -hide_banner" + '"'
+            subprocess.Popen('cmd /k ' + finalcommand)
 
     elif encoder.get() == "Opus":
-        commands = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_vbr_choices[acodec_vbr.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner -v error -stats"
-        subprocess.Popen(commands)
+        if shell_options.get() == "Default":
+            finalcommand = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_vbr_choices[acodec_vbr.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner -v error -stats"
+            subprocess.Popen(finalcommand)
+        elif shell_options.get() == "Debug":
+            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_vbr_choices[acodec_vbr.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner" + '"'
+            subprocess.Popen('cmd /k ' + finalcommand)
 
     elif encoder.get() == "MP3":
-        commands = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner -v error -stats"
-        subprocess.Popen(commands)
+        if shell_options.get() == "Default":
+            finalcommand = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner -v error -stats"
+            subprocess.Popen(finalcommand)
+        elif shell_options.get() == "Debug":
+            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner" + '"'
+            subprocess.Popen('cmd /k ' + finalcommand)
 
-    elif encoder.get() == "Vorbis":
-        commands = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner -v error -stats"
-        subprocess.Popen(commands)
+    elif encoder.get() == "E-AC3":
+        if shell_options.get() == "Default":
+            finalcommand = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner -v error -stats"
+            subprocess.Popen(finalcommand)
+        elif shell_options.get() == "Debug":
+            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner" + '"'
+            subprocess.Popen('cmd /k ' + finalcommand)
 
-def ffprobe_start(): # Opens file via included portable MediaInfo
+    elif encoder.get() == "FDK-AAC":
+        if shell_options.get() == "Default":
+            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + "-f caf - | " + fdkaac + " " + acodec_profile_choices[acodec_profile.get()] + afterburnervar.get() + crccheck.get() + moovbox.get() + sbrdelay.get() + headerperiod.get() + acodec_lowdelay_choices[acodec_lowdelay.get()] + acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] + acodec_transport_format_choices[acodec_transport_format.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " + VideoOutputQuoted + '"'
+            subprocess.Popen('cmd /c ' + finalcommand) #DELETE THIS AND FINISH THIS LATER, THIS IS PROPER COMMAND WITH ABOVE COMMAND
+        elif shell_options.get() == "Debug":
+            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + "-f caf - | " + fdkaac + " " + acodec_profile_choices[acodec_profile.get()] + afterburnervar.get() + crccheck.get() + moovbox.get() + sbrdelay.get() + headerperiod.get() + acodec_lowdelay_choices[acodec_lowdelay.get()] + acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] + acodec_transport_format_choices[acodec_transport_format.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " + VideoOutputQuoted + '"'
+            subprocess.Popen('cmd /k ' + finalcommand)
+
+    elif encoder.get() == "QAAC":
+        if shell_options.get() == "Default":
+            if q_acodec_profile.get() == "True VBR":
+                finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + "-f wav - | " + qaac + " " + q_acodec_profile_choices[q_acodec_profile.get()] + q_acodec_quality_amnt.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() + "--lowpass " + q_acodec_lowpass.get() + " " + qaac_nodither.get() + "- -o " + VideoOutputQuoted + '"'
+                print(finalcommand)
+                subprocess.Popen('cmd /c ' + finalcommand)
+            else:
+                finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + "-f wav - | " + qaac + " " + q_acodec_profile_choices[q_acodec_profile.get()] + q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() + "--lowpass " + q_acodec_lowpass.get() + " " + qaac_nodither.get() + "- -o " + VideoOutputQuoted + '"'
+                print(finalcommand)
+                subprocess.Popen('cmd /c ' + finalcommand)
+        elif shell_options.get() == "Debug":
+            if q_acodec_profile.get() == "True VBR":
+                finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + "-f wav - | " + qaac + " " + q_acodec_profile_choices[q_acodec_profile.get()] + q_acodec_quality_amnt.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() + "--lowpass " + q_acodec_lowpass.get() + " " + qaac_nodither.get() + "- -o " + VideoOutputQuoted + '"'
+                print(finalcommand)
+                subprocess.Popen('cmd /k ' + finalcommand)
+            else:
+                finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + "-f wav - | " + qaac + " " + q_acodec_profile_choices[q_acodec_profile.get()] + q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() + "--lowpass " + q_acodec_lowpass.get() + " " + qaac_nodither.get() + "- -o " + VideoOutputQuoted + '"'
+                print(finalcommand)
+                subprocess.Popen('cmd /k ' + finalcommand)
+
+def mediainfogui(): # Opens file via included portable MediaInfo
     VideoInputQuoted = '"' + VideoInput + '"'
     MediaInfoQuoted = '"' + mediainfo + '"'
     commands = MediaInfoQuoted + " " + VideoInputQuoted
@@ -1975,7 +2125,7 @@ def ffprobe_start(): # Opens file via included portable MediaInfo
 encoder_menu.bind("<Enter>", encoder_menu_hover)
 encoder_menu.bind("<Leave>", encoder_menu_hover_leave)
 
-show_streams_button = Button(root, text="MediaInfo", command=ffprobe_start, state=DISABLED, foreground="white", background="#23272A", borderwidth="3")
+show_streams_button = Button(root, text="MediaInfo", command=mediainfogui, state=DISABLED, foreground="white", background="#23272A", borderwidth="3")
 show_streams_button.grid(row=1, column=0, columnspan=1, padx=5, pady=5, sticky=N+S+E+W)
 show_streams_button.bind("<Enter>", show_streams_button_hover)
 show_streams_button.bind("<Leave>", show_streams_button_hover_leave)
@@ -1988,15 +2138,73 @@ audiosettings_button.bind("<Leave>", audiosettings_button_hover_leave)
 def input_button_commands():
     encoder.set('Set Codec')
     audiosettings_button.configure(state=DISABLED)
+    output_entry.configure(state=NORMAL)
+    output_entry.delete(0, END)
+    output_entry.configure(state=DISABLED)
+    input_entry.configure(state=NORMAL)
+    input_entry.delete(0, END)
+    input_entry.configure(state=DISABLED)
+    show_streams_button.configure(state=DISABLED)
+    encoder_menu.configure(state=DISABLED)
+    output_button.configure(state=DISABLED)
+    command_line_button.configure(state=DISABLED)
     file_input()
 
+def drop_input(event):
+    input_dnd.set(event.data)
+def update_file_input(*args):
+    global VideoInput
+    global track_count
+    global autofilesave_dir_path
+    global VideoInputQuoted
+    input_entry.configure(state=NORMAL)
+    input_entry.delete(0, END)
+    VideoInput = str(input_dnd.get()).replace("{", "").replace("}", "")
+    file_extension = pathlib.Path(VideoInput).suffix
+    if file_extension == '.wav' or file_extension == '.mt2s' or file_extension == '.ac3' or file_extension == '.mka' or\
+            file_extension == '.wav' or file_extension == '.mp3' or file_extension == '.aac' or\
+            file_extension == '.ogg' or file_extension == '.ogv' or file_extension == '.m4v' or\
+            file_extension == '.mpeg' or file_extension == '.avi' or file_extension == '.vob' or\
+            file_extension == '.webm' or file_extension == '.mp4' or file_extension == '.mkv' or\
+            file_extension == '.dts' or file_extension == '.m4a' or file_extension == '.mov':
+        autofilesave_file_path = pathlib.PureWindowsPath(VideoInput)  # Command to get file input location
+        autofilesave_dir_path = autofilesave_file_path.parents[0]  # Final command to get only the directory of fileinput
+        VideoInputQuoted = '"' + VideoInput + '"'
+        # This gets the total amount of audio streams For DnD-
+        mediainfocli_cmd = '"' + mediainfocli + " " + '--Output="General;%AudioCount%"' + " " + VideoInputQuoted + '"'
+        mediainfo_count = subprocess.Popen('cmd /c ' + mediainfocli_cmd, creationflags=subprocess.CREATE_NO_WINDOW,
+                                           universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                           stdin=subprocess.PIPE)
+        stdout, stderr = mediainfo_count.communicate()
+        track_count = stdout
+        input_entry.insert(0, str(input_dnd.get()).replace("{", "").replace("}", ""))
+        input_entry.configure(state=DISABLED)
+        output_entry.configure(state=NORMAL)
+        output_entry.delete(0, END)
+        output_entry.configure(state=DISABLED)
+        encoder.set("Set Codec")
+        audiosettings_button.configure(state=DISABLED)
+        output_button.configure(state=DISABLED)
+        start_audio_button.configure(state=DISABLED)
+        encoder_menu.configure(state=NORMAL)
+        show_streams_button.configure(state=NORMAL)
+    else:
+        messagebox.showinfo(title="Wrong File Type", message="Try Again With a Supported File Type!\n\nIf this is a "
+                                                             "file that should be supported, please let me know.")
 
+input_dnd = StringVar()
+input_dnd.trace('w', update_file_input)
 input_button = tk.Button(root, text="Open File", command=input_button_commands, foreground="white", background="#23272A", borderwidth="3")
 input_button.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N+S+E+W)
-input_entry = Entry(root, width=35, borderwidth=4, background="#CACACA")
-input_entry.grid(row=0, column=1, columnspan=3, padx=5, pady=5, sticky=S+E+W)
+input_button.drop_target_register(DND_FILES)
+input_button.dnd_bind('<<Drop>>', drop_input)
 input_button.bind("<Enter>", input_button_hover)
 input_button.bind("<Leave>", input_button_hover_leave)
+
+input_entry = Entry(root, width=35, borderwidth=4, background="#CACACA")
+input_entry.grid(row=0, column=1, columnspan=3, padx=5, pady=5, sticky=S+E+W)
+input_entry.drop_target_register(DND_FILES)
+input_entry.dnd_bind('<<Drop>>', drop_input)
 
 output_button = Button(root, text="Save File", command=file_save, state=DISABLED, foreground="white", background="#23272A", borderwidth="3")
 output_button.grid(row=2, column=0, columnspan=1, padx=5, pady=5, sticky=N+S+E+W)
@@ -2005,9 +2213,15 @@ output_entry.grid(row=2, column=1, columnspan=3, padx=5, pady=5, sticky=S+E+W)
 output_button.bind("<Enter>", output_button_hover)
 output_button.bind("<Leave>", output_button_hover_leave)
 
+# Print Final Command Line
+command_line_button = Button(root, text="Show\nCommand", command=print_command_line, state=DISABLED, foreground="white", background="#23272A", borderwidth="3")
+command_line_button.grid(row=3, column=0, columnspan=1, padx=5, pady=5, sticky=N+S+E+W)
+command_line_button.bind("<Enter>", command_line_button_hover)
+command_line_button.bind("<Leave>", command_line_button_hover_leave)
+
 # Start Audio Job
 start_audio_button = Button(root, text="Start Audio Job", command=startaudiojob, state=DISABLED, foreground="white", background="#23272A", borderwidth="3")
-start_audio_button.grid(row=3, column=0, columnspan=4, padx=5, pady=5, sticky=N+S+E+W)
+start_audio_button.grid(row=3, column=1, columnspan=3, padx=5, pady=5, sticky=N+S+E+W)
 start_audio_button.bind("<Enter>", start_audio_button_hover)
 start_audio_button.bind("<Leave>", start_audio_button_hover_leave)
 
