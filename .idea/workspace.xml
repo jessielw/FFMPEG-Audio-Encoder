@@ -10,7 +10,10 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6dcbe201-6afb-4983-bd86-f2db98da963b" name="Default Changelist" comment="" />
+    <list default="true" id="6dcbe201-6afb-4983-bd86-f2db98da963b" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FFMPEG Audio Encoder v1.85.py" beforeDir="false" afterPath="$PROJECT_DIR$/FFMPEG Audio Encoder v1.85.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -51,49 +54,7 @@
       <recent name="D:\Python Stuff\FFMPEG Audio Encoder\TEST Files\dist" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.FFMPEG Audio Encoder v1.75">
-    <configuration name="FFMPEG Audio Encoder v1.6" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="FFMPEG Audio Encoder" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/FFMPEG Audio Encoder v1.6.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="FFMPEG Audio Encoder v1.65" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="FFMPEG Audio Encoder" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/FFMPEG Audio Encoder v1.65.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
+  <component name="RunManager" selected="Python.FFMPEG Audio Encoder v1.85">
     <configuration name="FFMPEG Audio Encoder v1.7" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="FFMPEG Audio Encoder" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -136,7 +97,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="testing3" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="FFMPEG Audio Encoder v1.8" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="FFMPEG Audio Encoder" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -144,11 +105,53 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/TEST Files/dist" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/TEST Files/dist/testing3.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/FFMPEG Audio Encoder v1.8.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="FFMPEG Audio Encoder v1.82" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="FFMPEG Audio Encoder" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/FFMPEG Audio Encoder v1.82.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="FFMPEG Audio Encoder v1.85" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="FFMPEG Audio Encoder" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/FFMPEG Audio Encoder v1.85.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -159,11 +162,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.FFMPEG Audio Encoder v1.85" />
+        <item itemvalue="Python.FFMPEG Audio Encoder v1.8" />
+        <item itemvalue="Python.FFMPEG Audio Encoder v1.82" />
         <item itemvalue="Python.FFMPEG Audio Encoder v1.75" />
         <item itemvalue="Python.FFMPEG Audio Encoder v1.7" />
-        <item itemvalue="Python.FFMPEG Audio Encoder v1.65" />
-        <item itemvalue="Python.FFMPEG Audio Encoder v1.6" />
-        <item itemvalue="Python.testing3" />
       </list>
     </recent_temporary>
   </component>
@@ -205,26 +208,30 @@
       <screen x="0" y="0" width="1676" height="902" />
     </state>
     <state x="474" y="0" key="#test/0.0.1676.902/1920.0.1676.902@0.0.1676.902" timestamp="1593142236689" />
+    <state x="92" y="92" width="1491" height="717" key="DiffContextDialog" timestamp="1594868242793">
+      <screen x="0" y="0" width="1676" height="902" />
+    </state>
+    <state x="92" y="92" width="1491" height="717" key="DiffContextDialog/0.0.1676.902/1920.0.1676.902@0.0.1676.902" timestamp="1594868242793" />
     <state x="564" y="145" key="FileChooserDialogImpl" timestamp="1592858017452">
       <screen x="0" y="0" width="1676" height="902" />
     </state>
     <state x="564" y="145" key="FileChooserDialogImpl/0.0.1676.902/1920.0.1676.902@0.0.1676.902" timestamp="1592858017452" />
-    <state width="1648" height="152" key="GridCell.Tab.0.bottom" timestamp="1594848545612">
+    <state width="1648" height="152" key="GridCell.Tab.0.bottom" timestamp="1594882700600">
       <screen x="0" y="0" width="1676" height="902" />
     </state>
-    <state width="1648" height="152" key="GridCell.Tab.0.bottom/0.0.1676.902/1920.0.1676.902@0.0.1676.902" timestamp="1594848545612" />
-    <state width="1648" height="152" key="GridCell.Tab.0.center" timestamp="1594848545612">
+    <state width="1648" height="152" key="GridCell.Tab.0.bottom/0.0.1676.902/1920.0.1676.902@0.0.1676.902" timestamp="1594882700600" />
+    <state width="1648" height="152" key="GridCell.Tab.0.center" timestamp="1594882700600">
       <screen x="0" y="0" width="1676" height="902" />
     </state>
-    <state width="1648" height="152" key="GridCell.Tab.0.center/0.0.1676.902/1920.0.1676.902@0.0.1676.902" timestamp="1594848545612" />
-    <state width="1648" height="152" key="GridCell.Tab.0.left" timestamp="1594848545612">
+    <state width="1648" height="152" key="GridCell.Tab.0.center/0.0.1676.902/1920.0.1676.902@0.0.1676.902" timestamp="1594882700600" />
+    <state width="1648" height="152" key="GridCell.Tab.0.left" timestamp="1594882700600">
       <screen x="0" y="0" width="1676" height="902" />
     </state>
-    <state width="1648" height="152" key="GridCell.Tab.0.left/0.0.1676.902/1920.0.1676.902@0.0.1676.902" timestamp="1594848545612" />
-    <state width="1648" height="152" key="GridCell.Tab.0.right" timestamp="1594848545612">
+    <state width="1648" height="152" key="GridCell.Tab.0.left/0.0.1676.902/1920.0.1676.902@0.0.1676.902" timestamp="1594882700600" />
+    <state width="1648" height="152" key="GridCell.Tab.0.right" timestamp="1594882700600">
       <screen x="0" y="0" width="1676" height="902" />
     </state>
-    <state width="1648" height="152" key="GridCell.Tab.0.right/0.0.1676.902/1920.0.1676.902@0.0.1676.902" timestamp="1594848545612" />
+    <state width="1648" height="152" key="GridCell.Tab.0.right/0.0.1676.902/1920.0.1676.902@0.0.1676.902" timestamp="1594882700600" />
     <state width="1648" height="273" key="GridCell.Tab.1.bottom" timestamp="1594693774603">
       <screen x="0" y="0" width="1676" height="902" />
     </state>
@@ -261,10 +268,10 @@
       <screen x="0" y="0" width="1676" height="902" />
     </state>
     <state x="258" y="113" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/0.0.1676.902/1920.0.1676.902@0.0.1676.902" timestamp="1593501050523" />
-    <state x="416" y="0" width="840" height="900" key="search.everywhere.popup" timestamp="1594585057878">
+    <state x="416" y="0" width="840" height="900" key="search.everywhere.popup" timestamp="1594871085644">
       <screen x="0" y="0" width="1676" height="902" />
     </state>
-    <state x="416" y="0" width="840" height="900" key="search.everywhere.popup/0.0.1676.902/1920.0.1676.902@0.0.1676.902" timestamp="1594585057878" />
+    <state x="416" y="0" width="840" height="900" key="search.everywhere.popup/0.0.1676.902/1920.0.1676.902@0.0.1676.902" timestamp="1594871085644" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -272,6 +279,16 @@
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/TEST Files/ffprobe testing.py</url>
           <option name="timeStamp" value="74" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/FFMPEG Audio Encoder v1.85.py</url>
+          <line>2057</line>
+          <option name="timeStamp" value="98" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/FFMPEG Audio Encoder v1.85.py</url>
+          <line>443</line>
+          <option name="timeStamp" value="99" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
