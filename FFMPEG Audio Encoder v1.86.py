@@ -16,7 +16,7 @@ if __name__ == "__main__":
         ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v1.85")
+root.title("FFMPEG Audio Encoder v1.86")
 root.iconphoto(True, PhotoImage(file="Runtime/topbar.png"))
 root.configure(background="#434547")
 window_height = 190
@@ -66,7 +66,7 @@ def openaboutwindow():
     about_window_text = Text(about_window, background="#434547", foreground="white", relief=SUNKEN)
     about_window_text.pack()
     about_window_text.configure(state=NORMAL)
-    about_window_text.insert(INSERT, "FFMPEG Audio Encoder v1.85 \n")
+    about_window_text.insert(INSERT, "FFMPEG Audio Encoder v1.86 \n")
     about_window_text.insert(INSERT, "\n")
     about_window_text.insert(INSERT, "Development: jlw4049 \n")
     about_window_text.insert(INSERT, "\n")
@@ -353,8 +353,8 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('AAC Settings')
         audio_window.configure(background="#434547")
-        window_height = 150
-        window_width = 385
+        window_height = 300
+        window_width = 400
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
         x_cordinate = int((screen_width / 2) - (window_width / 2))
@@ -373,6 +373,10 @@ def openaudiowindow():
         audio_window.grid_rowconfigure(1, weight=1)
         audio_window.grid_rowconfigure(2, weight=1)
         audio_window.grid_rowconfigure(3, weight=1)
+        audio_window.grid_rowconfigure(4, weight=1)
+        audio_window.grid_rowconfigure(5, weight=1)
+        audio_window.grid_rowconfigure(6, weight=1)
+        audio_window.grid_rowconfigure(7, weight=1)
 
         def apply_button_hover(e):
             apply_button["bg"] = "grey"
@@ -419,6 +423,38 @@ def openaudiowindow():
         apply_button.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N+S+W+E)
         apply_button.bind("<Enter>", apply_button_hover)
         apply_button.bind("<Leave>", apply_button_hover_leave)
+
+        # Entry Box for Custom Command Line
+        def aac_cmd(*args):
+            global aac_custom_cmd_input
+            if aac_custom_cmd.get() == (""):
+                aac_custom_cmd_input = ("")
+            else:
+                cstmcmd = aac_custom_cmd.get()
+                aac_custom_cmd_input = cstmcmd + " "
+        aac_custom_cmd = StringVar()
+        aac_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547", foreground="white")
+        aac_cmd_entrybox_label.grid(row=6, column=0, columnspan=2, padx=10, pady=(5,0), sticky=N+S+W+E)
+        aac_cmd_entrybox = Entry(audio_window, textvariable=aac_custom_cmd, borderwidth=4, background="#CACACA")
+        aac_cmd_entrybox.grid(row=7, column=0, columnspan=3, padx=10, pady=(0,5), sticky=N+S+W+E)
+        aac_custom_cmd.trace('w', aac_cmd)
+        aac_custom_cmd.set("")
+
+        # Entry Box for Track Title
+        def aac_title_check(*args):
+            global aac_title_input
+            if aac_title.get() == (""):
+                aac_title_input = ("")
+            else:
+                title_cmd = aac_title.get()
+                aac_title_input = "-metadata:s:a:0 title=" + '"' + title_cmd + '"' + " "
+        aac_title = StringVar()
+        aac_title_entrybox_label = Label(audio_window, text="Track Name :", anchor=W, background="#434547", foreground="white")
+        aac_title_entrybox_label.grid(row=4, column=0, columnspan=2, padx=10, pady=(5,0), sticky=N+S+W+E)
+        aac_title_entrybox = Entry(audio_window, textvariable=aac_title, borderwidth=4, background="#CACACA")
+        aac_title_entrybox.grid(row=5, column=0, columnspan=3, padx=10, pady=(0,5), sticky=N+S+W+E)
+        aac_title.trace('w', aac_title_check)
+        aac_title.set("")
 
         # Audio Bitrate Menu
         acodec_bitrate = StringVar(audio_window)
@@ -2021,10 +2057,10 @@ def startaudiojob():
 
     elif encoder.get() == "AAC":
         if shell_options.get() == "Default":
-            finalcommand = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner -v error -stats"
+            finalcommand = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + aac_custom_cmd_input + aac_title_input + VideoOutputQuoted + " -hide_banner -v error -stats"
             subprocess.Popen(finalcommand)
         elif shell_options.get() == "Debug":
-            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner" + '"'
+            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + aac_custom_cmd_input + aac_title_input + VideoOutputQuoted + " -hide_banner" + '"'
             subprocess.Popen('cmd /k ' + finalcommand)
 
     elif encoder.get() == 'DTS':
