@@ -2026,18 +2026,24 @@ def print_command_line():
                              "-b:a " + eac3_spinbox.get() + acodec_channel_choices[acodec_channel.get()] + \
                              acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[
                                  acodec_gain.get()] +"\n \n"+ VideoOutputQuoted
-    else:
+    elif encoder.get() == "AAC":
         example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " +"\n \n"+ VideoInputQuoted +"\n \n"+ \
                              acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
-                             acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + \
+                             acodec_bitrate_choices[acodec_bitrate.get()] + \
+                             acodec_channel_choices[acodec_channel.get()] + \
+                             acodec_samplerate_choices[acodec_samplerate.get()] + \
+                             acodec_gain_choices[acodec_gain.get()] + aac_custom_cmd_input + \
+                             aac_title_input +"\n \n"+ VideoOutputQuoted
+    else:
+        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted + "\n \n" + \
+                             acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
+                             acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[
+                                 acodec_channel.get()] + \
                              acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[
-                                 acodec_gain.get()] +"\n \n"+ VideoOutputQuoted
+                                 acodec_gain.get()] + "\n \n" + VideoOutputQuoted
     cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
     cmd_label.config(font=("Helvetica", 16))
     cmd_label.pack()
-
-
-
 
 # Job Buttons ---------------------------------------------------------
 
