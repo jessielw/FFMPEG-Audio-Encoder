@@ -829,7 +829,7 @@ def openaudiowindow():
         # MP3 Window -----------------------
     elif encoder.get() == "MP3":
         audio_window = Toplevel()
-        audio_window.title('AAC Settings')
+        audio_window.title('MP3 Settings')
         audio_window.configure(background="#434547")
         window_height = 150
         window_width = 385
@@ -907,14 +907,14 @@ def openaudiowindow():
                                   'CBR: 192k': '-b:a 192k ',
                                   'CBR: 256k': '-b:a 256k ',
                                   'CBR: 320k': '-b:a 320k ',
-                                  'CBR: 448k': '-b:a 448k ',
-                                  'VBR: 1': '-q:a 1 ',
-                                  'VBR: 2': '-q:a 2 ',
-                                  'VBR: 3': '-q:a 3 ',
-                                  'VBR: 4': '-q:a 4 ',
-                                  'VBR: 5': '-q:a 5 ',
-                                  'VBR: 6': '-q:a 6 ',
-                                  'VBR: 7': '-q:a 7 '}
+                                  'VBR: -V 0': '-q:a 0 ',
+                                  'VBR: -V 1': '-q:a 1 ',
+                                  'VBR: -V 2': '-q:a 2 ',
+                                  'VBR: -V 3': '-q:a 3 ',
+                                  'VBR: -V 4': '-q:a 4 ',
+                                  'VBR: -V 5': '-q:a 5 ',
+                                  'VBR: -V 6': '-q:a 6 ',
+                                  'VBR: -V 7': '-q:a 7 '}
         acodec_bitrate.set('CBR: 192k')  # set the default option
         acodec_bitrate_menu_label = Label(audio_window, text="Quality :", background="#434547", foreground="white")
         acodec_bitrate_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W+E)
@@ -929,10 +929,7 @@ def openaudiowindow():
         acodec_channel = StringVar(audio_window)
         acodec_channel_choices = { 'Original': "",
                                    '1 (Mono)': "-ac 1 ",
-                                   '2 (Stereo)': "-ac 2 ",
-                                   '5.1 (Surround)': "-ac 6 ",
-                                   '6.1 (Surround)': "-ac 7 ",
-                                   '7.1 (Surround)': "-ac 8 "}
+                                   '2 (Stereo)': "-ac 2 "}
         acodec_channel.set('Original') # set the default option
         achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
         achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W+E)
