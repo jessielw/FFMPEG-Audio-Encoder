@@ -391,35 +391,41 @@ def openaudiowindow():
 
         def apply_button_hover(e):
             apply_button["bg"] = "grey"
+
         def apply_button_hover_leave(e):
             apply_button["bg"] = "#23272A"
 
         def show_cmd_hover(e):
             show_cmd["bg"] = "grey"
+
         def show_cmd_hover_leave(e):
             show_cmd["bg"] = "#23272A"
 
         def acodec_stream_menu_hover(e):
             acodec_stream_menu["bg"] = "grey"
             acodec_stream_menu["activebackground"] = "grey"
+
         def acodec_stream_menu_hover_leave(e):
             acodec_stream_menu["bg"] = "#23272A"
 
         def achannel_menu_hover(e):
             achannel_menu["bg"] = "grey"
             achannel_menu["activebackground"] = "grey"
+
         def achannel_menu_hover_leave(e):
             achannel_menu["bg"] = "#23272A"
 
         def acodec_gain_menu_hover(e):
             acodec_gain_menu["bg"] = "grey"
             acodec_gain_menu["activebackground"] = "grey"
+
         def acodec_gain_menu_hover_leave(e):
             acodec_gain_menu["bg"] = "#23272A"
 
         def acodec_samplerate_menu_hover(e):
             acodec_samplerate_menu["bg"] = "grey"
             acodec_samplerate_menu["activebackground"] = "grey"
+
         def acodec_samplerate_menu_hover_leave(e):
             acodec_samplerate_menu["bg"] = "#23272A"
 
@@ -429,27 +435,30 @@ def openaudiowindow():
             start_audio_button.config(state=NORMAL)
             command_line_button.config(state=NORMAL)
 
-        def view_command(): # Views Command ---------------------------------------------------------------------------
-                cmd_line_window = Toplevel()
-                cmd_line_window.title('Command Line')
-                cmd_line_window.configure(background="#434547")
-                if aac_vbr_toggle.get() == "-c:a ":
-                    example_cmd_output = acodec_stream_choices[acodec_stream.get()] + \
-                                         encoder_dropdownmenu_choices[encoder.get()] + \
-                          "-b:a " + aac_bitrate_spinbox.get() + "k " + acodec_channel_choices[acodec_channel.get()] + \
-                          acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] + \
-                          aac_custom_cmd_input + aac_title_input
-                elif aac_vbr_toggle.get() == "-q:a ":
-                    example_cmd_output = acodec_stream_choices[acodec_stream.get()] + \
-                                         encoder_dropdownmenu_choices[encoder.get()] + \
-                                         "-q:a " + aac_quality_spinbox.get() + " " + acodec_channel_choices[
-                                             acodec_channel.get()] + \
-                                         acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[
-                                             acodec_gain.get()] + \
-                                         aac_custom_cmd_input + aac_title_input
-                cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
-                cmd_label.config(font=("Helvetica", 16))
-                cmd_label.pack()
+        def view_command():  # Views Command ---------------------------------------------------------------------------
+            cmd_line_window = Toplevel()
+            cmd_line_window.title('Command Line')
+            cmd_line_window.configure(background="#434547")
+            if aac_vbr_toggle.get() == "-c:a ":
+                example_cmd_output = acodec_stream_choices[acodec_stream.get()] + \
+                                     encoder_dropdownmenu_choices[encoder.get()] + \
+                                     "-b:a " + aac_bitrate_spinbox.get() + "k " + acodec_channel_choices[
+                                         acodec_channel.get()] + \
+                                     acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[
+                                         acodec_gain.get()] + \
+                                     aac_custom_cmd_input + aac_title_input
+            elif aac_vbr_toggle.get() == "-q:a ":
+                example_cmd_output = acodec_stream_choices[acodec_stream.get()] + \
+                                     encoder_dropdownmenu_choices[encoder.get()] + \
+                                     "-q:a " + aac_quality_spinbox.get() + " " + acodec_channel_choices[
+                                         acodec_channel.get()] + \
+                                     acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[
+                                         acodec_gain.get()] + \
+                                     aac_custom_cmd_input + aac_title_input
+            cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
+            cmd_label.config(font=("Helvetica", 16))
+            cmd_label.pack()
+
         # ----------------------------------------------------------------------------------------------- Views Command
 
         # Buttons -----------------------------------------------------------------------------------------------------
@@ -464,6 +473,7 @@ def openaudiowindow():
         show_cmd.grid(row=8, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
+
         # ----------------------------------------------------------------------------------------------------- Buttons
 
         # Entry Box for Custom Command Line ---------------------------------------------------------------------------
@@ -2225,6 +2235,17 @@ def print_command_line():
                              "-b:a " + eac3_spinbox.get() + acodec_channel_choices[acodec_channel.get()] + \
                              acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[
                                  acodec_gain.get()] + "\n \n" + VideoOutputQuoted
+    elif encoder.get() == "AAC":
+        if aac_vbr_toggle.get() == "-c:a ":
+            bitrate_or_quality = f"-b:a {aac_bitrate_spinbox.get()}k "
+        elif aac_vbr_toggle.get() == "-q:a ":
+            bitrate_or_quality = f"-q:a {aac_quality_spinbox.get()} "
+        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + \
+                             VideoInputQuoted + "\n \n" + acodec_stream_choices[acodec_stream.get()] \
+                             + encoder_dropdownmenu_choices[encoder.get()] + bitrate_or_quality \
+                             + acodec_channel_choices[acodec_channel.get()] + \
+                             acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[
+                             acodec_gain.get()] + aac_custom_cmd_input + aac_title_input + "\n \n" + VideoOutputQuoted
     else:
         example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted + "\n \n" + \
                              acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
@@ -2261,7 +2282,7 @@ def startaudiojob():
                                acodec_gain.get()] + VideoOutputQuoted + " -hide_banner" + '"'
             subprocess.Popen('cmd /k ' + finalcommand)
 
-    elif encoder.get() == "AAC": # AAC Start Job ----------------------------------------------------------------------
+    elif encoder.get() == "AAC":  # AAC Start Job ----------------------------------------------------------------------
         if aac_vbr_toggle.get() == "-c:a ":
             bitrate_or_quality = f"-b:a {aac_bitrate_spinbox.get()}k "
         elif aac_vbr_toggle.get() == "-q:a ":
