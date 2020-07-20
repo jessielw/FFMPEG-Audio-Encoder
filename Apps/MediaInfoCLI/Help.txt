@@ -1,0 +1,110 @@
+MediaInfo Command line, 
+MediaInfoLib - v20.03
+Usage: "MediaInfo [-Options...] FileName1 [Filename2...]"
+
+Options:
+--Help, -h
+                    Display this help and exit
+--Help-Output
+                    Display help for Output= option
+--Help-AnOption
+                    Display help for "AnOption"
+--Version
+                    Display MediaInfo version and exit
+
+--Full, -f
+                    Full information Display (all internal tags)
+--Output=HTML
+                    Full information Display with HTML tags
+--Output=XML
+                    Full information Display with XML tags
+--Output=OLDXML
+                    Full information Display with XML tags using the older
+                    MediaInfo schema
+--Output=JSON
+                    Full information Display using JSON
+--Output=EBUCore
+                    Full information Display with EBUCore compliant XML tags
+--Output=EBUCore_JSON
+                    Full information Display with EBUCore 1.8 compliant JSON
+--Output=PBCore
+                    Full information Display with PBCore compliant XML tags
+--Output=PBCore2
+                    Full information Display with PBCore 2.0 compliant XML tags
+--AcquisitionDataOutputMode=segmentParameter
+                    Display Acquisition Data by segment then parameter (EBUCore
+                    and NISO Z39.87 outputs)
+--AcquisitionDataOutputMode=parameterSegment
+                    Display Acquisition Data by parameter then segment (EBUCore
+                    and NISO Z39.87 outputs)
+--ExternalMetadata=...
+                    Add external metadata to the output (EBUCore output)
+--ExternalMetadataConfig=...
+                    Output template for external metadata (EBUCore output)
+--Info-Parameters
+                    Display list of Inform= parameters
+
+--Language=raw
+                    Display non-translated unique identifiers (internal text)
+--Details=1
+                    Display mediatrace info
+--File_TestContinuousFileNames=0
+                    Disable image sequence detection
+--LogFile=...
+                    Save the output in the specified file
+--BOM
+                    Byte order mark for UTF-8 output
+
+--Ssl_CertificateFileName=...
+                    File name of the SSL certificate.
+                    The default format is "PEM" and can be changed
+                    with --Ssl_CertificateFormat.
+--Ssl_CertificateFormat=...
+                    File format of the SSL certificate.
+                    Supported formats are "PEM" and "DER"
+--Ssl_PrivateKeyFileName=...
+                    File name of the SSL private key.
+                    The default format is "PEM" and can be changed
+                    with --Ssl_PrivateKeyFormat.
+                    Note: private key with a password is not supported.
+--Ssl_PrivateKeyFormat=...
+                    File format of the SSL private key.
+                    Supported formats are "PEM" and "DER"
+--Ssl_CertificateAuthorityFileName=...
+                    File name of the SSL certificate authorities
+                    to verify the peer with.
+--Ssl_CertificateAuthorityPath=...
+                    Path of the SSL certificate authorities
+                    to verify the peer with.
+--Ssl_CertificateRevocationListFileName=...
+                    File name of the SSL certificate revocation list.
+                    The format is "PEM"
+--Ssl_IgnoreSecurity=...
+                    Does not verify the authenticity of the peer's certificate
+                    Use it at your own risks
+--Ssh_PublicKeyFileName=...
+                    File name of the SSH private key.
+                    Default is $HOME/.ssh/id_rsa.pub or $HOME/.ssh/id_dsa.pub
+                    if the HOME environment variable is set, and just
+                    "id_rsa.pub" or "id_dsa.pub" in the current directory
+                    if HOME is not set.
+                    Note: you need to set both public and private key.
+--Ssh_PrivateKeyFileName=...
+                    File name of the SSH private key.
+                    Default is $HOME/.ssh/id_rsa or $HOME/.ssh/id_dsa
+                    if the HOME environment variable is set, and just
+                    "id_rsa" or "id_dsa" in the current directory
+                    if HOME is not set.
+                    Note: you need to set both public and private key.
+                    Note: private key with a password is not supported.
+--Ssh_KnownHostsFileName=...
+                    File name of the known hosts
+                    The format is the OpenSSH file format (libssh2)
+                    Default is $HOME/.ssh/known_hosts
+                    if the HOME environment variable is set, and just
+                    "known_hosts" in the current directory
+                    if HOME is not set.
+--Ssh_IgnoreSecurity
+                    Does not verify the authenticity of the peer
+                    (you don't need to accept the key with ssh first)
+                    Use it at your own risks

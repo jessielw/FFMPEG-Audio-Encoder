@@ -1,0 +1,26 @@
+General;
+Video
+Audio;Audio #%StreamKindID%          : %Codec/String%$if(%BitRate%, at %BitRate/String%)\r\nInfos             : %Channel(s)/String%, %SamplingRate/String%\r\n$if(%Language%,Language          : %Language%\r\n)\r\n
+Text;
+Chapters;
+File_Begin;
+File_End;
+Page_Begin
+Page_Middle
+Page_End
+General_Begin
+General_End
+Video_Begin
+Video_Middle
+Video_End
+Audio_Begin
+Audio_Middle
+Audio_End
+Text_Begin
+Text_Middle
+Text_End
+Chapters_Begin
+Chapters_Middle
+Chapters_End
+
+;
