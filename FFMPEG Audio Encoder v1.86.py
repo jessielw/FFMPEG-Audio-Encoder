@@ -829,7 +829,7 @@ def openaudiowindow():
         # MP3 Window -----------------------
     elif encoder.get() == "MP3":
         audio_window = Toplevel()
-        audio_window.title('MP3 Settings')
+        audio_window.title('AAC Settings')
         audio_window.configure(background="#434547")
         window_height = 150
         window_width = 385
@@ -907,7 +907,7 @@ def openaudiowindow():
                                   'CBR: 192k': '-b:a 192k ',
                                   'CBR: 256k': '-b:a 256k ',
                                   'CBR: 320k': '-b:a 320k ',
-                                  'VBR: 0': '-q:a 0 ',
+                                  'CBR: 448k': '-b:a 448k ',
                                   'VBR: 1': '-q:a 1 ',
                                   'VBR: 2': '-q:a 2 ',
                                   'VBR: 3': '-q:a 3 ',
@@ -927,9 +927,12 @@ def openaudiowindow():
 
         # Audio Channel Selection
         acodec_channel = StringVar(audio_window)
-        acodec_channel_choices = {'Original': "",
-                                  '1 (Mono)': "-ac 1 ",
-                                  '2 (Stereo)': "-ac 2 "}
+        acodec_channel_choices = { 'Original': "",
+                                   '1 (Mono)': "-ac 1 ",
+                                   '2 (Stereo)': "-ac 2 ",
+                                   '5.1 (Surround)': "-ac 6 ",
+                                   '6.1 (Surround)': "-ac 7 ",
+                                   '7.1 (Surround)': "-ac 8 "}
         acodec_channel.set('Original') # set the default option
         achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
         achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W+E)
@@ -2023,24 +2026,18 @@ def print_command_line():
                              "-b:a " + eac3_spinbox.get() + acodec_channel_choices[acodec_channel.get()] + \
                              acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[
                                  acodec_gain.get()] +"\n \n"+ VideoOutputQuoted
-    elif encoder.get() == "AAC":
+    else:
         example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " +"\n \n"+ VideoInputQuoted +"\n \n"+ \
                              acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
-                             acodec_bitrate_choices[acodec_bitrate.get()] + \
-                             acodec_channel_choices[acodec_channel.get()] + \
-                             acodec_samplerate_choices[acodec_samplerate.get()] + \
-                             acodec_gain_choices[acodec_gain.get()] + aac_custom_cmd_input + \
-                             aac_title_input +"\n \n"+ VideoOutputQuoted
-    else:
-        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted + "\n \n" + \
-                             acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
-                             acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[
-                                 acodec_channel.get()] + \
+                             acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] + \
                              acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[
-                                 acodec_gain.get()] + "\n \n" + VideoOutputQuoted
+                                 acodec_gain.get()] +"\n \n"+ VideoOutputQuoted
     cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
     cmd_label.config(font=("Helvetica", 16))
     cmd_label.pack()
+
+
+
 
 # Job Buttons ---------------------------------------------------------
 
