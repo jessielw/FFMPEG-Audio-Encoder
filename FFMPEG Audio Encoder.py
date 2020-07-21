@@ -391,41 +391,35 @@ def openaudiowindow():
 
         def apply_button_hover(e):
             apply_button["bg"] = "grey"
-
         def apply_button_hover_leave(e):
             apply_button["bg"] = "#23272A"
 
         def show_cmd_hover(e):
             show_cmd["bg"] = "grey"
-
         def show_cmd_hover_leave(e):
             show_cmd["bg"] = "#23272A"
 
         def acodec_stream_menu_hover(e):
             acodec_stream_menu["bg"] = "grey"
             acodec_stream_menu["activebackground"] = "grey"
-
         def acodec_stream_menu_hover_leave(e):
             acodec_stream_menu["bg"] = "#23272A"
 
         def achannel_menu_hover(e):
             achannel_menu["bg"] = "grey"
             achannel_menu["activebackground"] = "grey"
-
         def achannel_menu_hover_leave(e):
             achannel_menu["bg"] = "#23272A"
 
         def acodec_gain_menu_hover(e):
             acodec_gain_menu["bg"] = "grey"
             acodec_gain_menu["activebackground"] = "grey"
-
         def acodec_gain_menu_hover_leave(e):
             acodec_gain_menu["bg"] = "#23272A"
 
         def acodec_samplerate_menu_hover(e):
             acodec_samplerate_menu["bg"] = "grey"
             acodec_samplerate_menu["activebackground"] = "grey"
-
         def acodec_samplerate_menu_hover_leave(e):
             acodec_samplerate_menu["bg"] = "#23272A"
 
@@ -434,6 +428,9 @@ def openaudiowindow():
             output_button.config(state=NORMAL)
             start_audio_button.config(state=NORMAL)
             command_line_button.config(state=NORMAL)
+            for cmd_line_window in root.winfo_children():
+                if isinstance(cmd_line_window, tk.Toplevel):
+                    cmd_line_window.destroy()
 
         def view_command():  # Views Command ---------------------------------------------------------------------------
             cmd_line_window = Toplevel()
