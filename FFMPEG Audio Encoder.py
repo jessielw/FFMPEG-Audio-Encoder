@@ -16,7 +16,7 @@ if __name__ == "__main__":
         ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v1.9")
+root.title("FFMPEG Audio Encoder v1.92")
 root.iconphoto(True, PhotoImage(file="Runtime/topbar.png"))
 root.configure(background="#434547")
 window_height = 210
@@ -66,7 +66,7 @@ def openaboutwindow():
     about_window_text = Text(about_window, background="#434547", foreground="white", relief=SUNKEN)
     about_window_text.pack()
     about_window_text.configure(state=NORMAL)
-    about_window_text.insert(INSERT, "FFMPEG Audio Encoder v1.9 \n")
+    about_window_text.insert(INSERT, "FFMPEG Audio Encoder v1.92 \n")
     about_window_text.insert(INSERT, "\n")
     about_window_text.insert(INSERT, "Development: jlw4049 \n")
     about_window_text.insert(INSERT, "\n")
@@ -360,7 +360,7 @@ def openaudiowindow():
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
         acodec_gain = StringVar(audio_window)
-        acodec_gain_choices = {'Default (0)': " ",
+        acodec_gain_choices = {'Default (0)': "",
                                '+10 dB': "-af volume=10dB ",
                                '+9 dB': "-af volume=9dB ",
                                '+8 dB': "-af volume=8dB ",
@@ -698,7 +698,7 @@ def openaudiowindow():
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
         acodec_gain = StringVar(audio_window)
-        acodec_gain_choices = {'Default (0)': " ",
+        acodec_gain_choices = {'Default (0)': "",
                                '+10 dB': "-af volume=10dB ",
                                '+9 dB': "-af volume=9dB ",
                                '+8 dB': "-af volume=8dB ",
@@ -759,8 +759,8 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('DTS Settings')
         audio_window.configure(background="#434547")
-        window_height = 300
-        window_width = 450
+        window_height = 280
+        window_width = 470
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
         x_cordinate = int((screen_width / 2) - (window_width / 2))
@@ -778,11 +778,24 @@ def openaudiowindow():
         audio_window.grid_rowconfigure(0, weight=1)
         audio_window.grid_rowconfigure(1, weight=1)
         audio_window.grid_rowconfigure(2, weight=1)
+        audio_window.grid_rowconfigure(3, weight=1)
+        audio_window.grid_rowconfigure(6, weight=1)
 
         def apply_button_hover(e):
             apply_button["bg"] = "grey"
         def apply_button_hover_leave(e):
             apply_button["bg"] = "#23272A"
+
+        def show_cmd_hover(e):
+            show_cmd["bg"] = "grey"
+        def show_cmd_hover_leave(e):
+            show_cmd["bg"] = "#23272A"
+
+        def acodec_samplerate_menu_hover(e):
+            acodec_samplerate_menu["bg"] = "grey"
+            acodec_samplerate_menu["activebackground"] = "grey"
+        def acodec_samplerate_menu_hover_leave(e):
+            acodec_samplerate_menu["bg"] = "#23272A"
 
         def acodec_stream_menu_hover(e):
             acodec_stream_menu["bg"] = "grey"
@@ -802,33 +815,171 @@ def openaudiowindow():
         def achannel_menu_hover_leave(e):
             achannel_menu["bg"] = "#23272A"
 
+        def acodec_gain_menu_hover(e):
+            acodec_gain_menu["bg"] = "grey"
+            acodec_gain_menu["activebackground"] = "grey"
+        def acodec_gain_menu_hover_leave(e):
+            acodec_gain_menu["bg"] = "#23272A"
+
         def gotosavefile():
             audio_window.destroy()
             output_button.config(state=NORMAL)
             start_audio_button.config(state=NORMAL)
             command_line_button.config(state=NORMAL)
+            for cmd_line_window in root.winfo_children():
+                if isinstance(cmd_line_window, tk.Toplevel):
+                    cmd_line_window.destroy()
 
         def dts_setting_choice_trace(*args):
-            print(dts_settings.get())
+            if dts_settings.get() == 'DTS Encoder':
+                achannel_menu.config(state=NORMAL)
+                acodec_channel.set('Original')
+                acodec_gain_menu.config(state=NORMAL)
+                acodec_gain.set('Default (0)')
+                acodec_samplerate_menu.config(state=NORMAL)
+                acodec_samplerate.set('Original')
+                dts_acodec_bitrate_spinbox.config(state=NORMAL)
+                dts_bitrate_spinbox.set(448)
+            else:
+                acodec_channel.set('Original')
+                achannel_menu.config(state=DISABLED)
+                acodec_gain.set('Default (0)')
+                acodec_gain_menu.config(state=DISABLED)
+                acodec_samplerate.set('Original')
+                acodec_samplerate_menu.config(state=DISABLED)
+                dts_bitrate_spinbox.set("")
+                dts_acodec_bitrate_spinbox.config(state=DISABLED)
 
-        # SUPPORTED SAMPLE RATES
-        # 8000
-        # 16000
-        # 32000
-        # 11025
-        # 22050
-        # 44100
-        # 12000
-        # 24000
-        # 48000
+        # Views Command -----------------------------------------------------------------------------------------------
+        def view_command():
+            global cmd_label
+            if dts_settings.get() == 'DTS Encoder':
+                example_cmd_output = acodec_stream_choices[acodec_stream.get()] \
+                                 + dts_settings_choices[dts_settings.get()] + \
+                                 "-b:a " + dts_bitrate_spinbox.get() + "k " + \
+                                 acodec_channel_choices[acodec_channel.get()] + \
+                                 acodec_samplerate_choices[acodec_samplerate.get()] + \
+                                 acodec_gain_choices[acodec_gain.get()] + dts_custom_cmd_input
+            else:
+                example_cmd_output = acodec_stream_choices[acodec_stream.get()] \
+                                     + dts_settings_choices[dts_settings.get()] + \
+                                     dts_custom_cmd_input
+            try:
+
+                cmd_label.config(text=example_cmd_output)
+            except (AttributeError, NameError):
+                cmd_line_window = Toplevel()
+                cmd_line_window.title('Command Line')
+                cmd_line_window.configure(background="#434547")
+                cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
+                cmd_label.config(font=("Helvetica", 16))
+                cmd_label.winfo_exists()
+                cmd_label.pack()
+        # ----------------------------------------------------------------------------------------------- Views Command
 
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                               command=gotosavefile)
-        apply_button.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        apply_button.grid(row=8, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         apply_button.bind("<Enter>", apply_button_hover)
         apply_button.bind("<Leave>", apply_button_hover_leave)
+
+        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A", \
+                          command=view_command)
+        show_cmd.grid(row=8, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        show_cmd.bind("<Enter>", show_cmd_hover)
+        show_cmd.bind("<Leave>", show_cmd_hover_leave)
         # ----------------------------------------------------------------------------------------------------- Buttons
+
+        # Entry Box for Custom Command Line ---------------------------------------------------------------------------
+        def dts_cmd(*args):
+            global dts_custom_cmd_input
+            if dts_custom_cmd.get() == (""):
+                dts_custom_cmd_input = ("")
+            else:
+                cstmcmd = dts_custom_cmd.get()
+                dts_custom_cmd_input = cstmcmd + " "
+
+        dts_custom_cmd = StringVar()
+        dts_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547", \
+                                       foreground="white")
+        dts_cmd_entrybox_label.grid(row=4, column=0, columnspan=2, padx=10, pady=(0, 0), sticky=N + S + W + E)
+        dts_cmd_entrybox = Entry(audio_window, textvariable=dts_custom_cmd, borderwidth=4, background="#CACACA")
+        dts_cmd_entrybox.grid(row=5, column=0, columnspan=3, padx=10, pady=(0, 0), sticky=W + E)
+        dts_custom_cmd.trace('w', dts_cmd)
+        dts_custom_cmd.set("")
+
+        # ----------------------------------------------------------------------------------------- Custom Command Line
+
+        # Audio Bitrate Spinbox ---------------------------------------------------------------------------------------
+        global dts_bitrate_spinbox
+        dts_bitrate_spinbox = StringVar()
+        dts_acodec_bitrate_spinbox_label = Label(audio_window, text="Bitrate :", background="#434547",
+                                                 foreground="white")
+        dts_acodec_bitrate_spinbox_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3,
+                                              sticky=N + S + E + W)
+        dts_acodec_bitrate_spinbox = Spinbox(audio_window, from_=250, to=3840, increment=1.0, justify=CENTER,
+                                             wrap=True, textvariable=dts_bitrate_spinbox, state=DISABLED, \
+                                             disabledbackground='grey')
+        dts_acodec_bitrate_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+                                             buttonbackground="black", width=15, readonlybackground="#23272A")
+        dts_acodec_bitrate_spinbox.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        dts_bitrate_spinbox.set("")
+        # --------------------------------------------------------------------------------------- Audio Bitrate Spinbox
+
+        # Audio Gain Selection ----------------------------------------------------------------------------------------
+        acodec_gain = StringVar(audio_window)
+        acodec_gain_choices = {'Default (0)': "",
+                               '+10 dB': "-af volume=10dB ",
+                               '+9 dB': "-af volume=9dB ",
+                               '+8 dB': "-af volume=8dB ",
+                               '+7 dB': "-af volume=7dB ",
+                               '+6 dB': "-af volume=6dB ",
+                               '+5 dB': "-af volume=5dB ",
+                               '+4 dB': "-af volume=4dB ",
+                               '+3 dB': "-af volume=3dB ",
+                               '+2 dB': "-af volume=2dB ",
+                               '+1 dB': "-af volume=1dB ",
+                               '-1 dB': "-af volume=-1dB ",
+                               '-2 dB': "-af volume=-2dB ",
+                               '-3 dB': "-af volume=-3dB ",
+                               '-4 dB': "-af volume=-4dB ",
+                               '-5 dB': "-af volume=-5dB ",
+                               '-6 dB': "-af volume=-6dB ",
+                               '-7 dB': "-af volume=-7dB ",
+                               '-8 dB': "-af volume=-8dB ",
+                               '-9 dB': "-af volume=-9dB ",
+                               '-10 dB': "-af volume=-10dB "}
+        acodec_gain.set('Default (0)')  # set the default option
+        acodec_gain_label = Label(audio_window, text="Gain :", background="#434547", foreground="white")
+        acodec_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_gain_menu = OptionMenu(audio_window, acodec_gain, *acodec_gain_choices.keys())
+        acodec_gain_menu.config(background="#23272A", foreground="white", highlightthickness=1, state=DISABLED)
+        acodec_gain_menu.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_gain_menu["menu"].configure(activebackground="dim grey")
+        acodec_gain_menu.bind("<Enter>", acodec_gain_menu_hover)
+        acodec_gain_menu.bind("<Leave>", acodec_gain_menu_hover_leave)
+        # ---------------------------------------------------------------------------------------- Audio Gain Selection
+
+        # Audio Sample Rate Selection ---------------------------------------------------------------------------------
+        acodec_samplerate = StringVar(audio_window)
+        acodec_samplerate_choices = {'Original': "",
+                                     '16000 Hz': "-ar 16000 ",
+                                     '22050 Hz': "-ar 22050 ",
+                                     '24000 Hz': "-ar 24000 ",
+                                     '32000 Hz': "-ar 32000 ",
+                                     '44100 Hz': "-ar 44100 ",
+                                     '48000 Hz': "-ar 48000 "}
+        acodec_samplerate.set('Original')  # set the default option
+        acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547", foreground="white")
+        acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate, *acodec_samplerate_choices.keys())
+        acodec_samplerate_menu.config(background="#23272A", foreground="white", highlightthickness=1, state=DISABLED)
+        acodec_samplerate_menu.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
+        acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
+        acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
+        # --------------------------------------------------------------------------------- Audio Sample Rate Selection
 
         # Audio Stream Selection --------------------------------------------------------------------------------------
         acodec_stream = StringVar(audio_window)
@@ -2325,11 +2476,22 @@ def print_command_line():
     cmd_line_window.configure(background="#434547")
     VideoInputQuoted = '"' + VideoInput + '"'
     VideoOutputQuoted = '"' + VideoOutput + '"'
+    # DTS Command Line Main Gui ---------------------------------------------------------------------------------------
     if encoder.get() == "DTS":
-        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted + "\n \n" + \
-                             acodec_stream_choices[
-                                 acodec_stream.get()] + dts_settings_choices[
-                                 dts_settings.get()] + " -sn -vn -map_chapters -1 " + "\n \n" + VideoOutputQuoted
+        if dts_settings.get() == 'DTS Encoder':
+            example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted + \
+                                 "\n \n" + acodec_stream_choices[acodec_stream.get()] \
+                                 + dts_settings_choices[dts_settings.get()] + "-b:a " + dts_bitrate_spinbox.get() \
+                                 + "k " + acodec_channel_choices[acodec_channel.get()] \
+                                 + acodec_samplerate_choices[acodec_samplerate.get()] \
+                                 + acodec_gain_choices[acodec_gain.get()] + dts_custom_cmd_input \
+                                 + "\n \n" + VideoOutputQuoted
+        else:
+            example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted \
+                                 + "\n \n" + acodec_stream_choices[acodec_stream.get()] \
+                                 + dts_settings_choices[dts_settings.get()] \
+                                 + dts_custom_cmd_input + "\n \n" + VideoOutputQuoted
+    # --------------------------------------------------------------------------------------- DTS Command Line Main Gui
     elif encoder.get() == "FDK-AAC":
         example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted + "\n \n" + \
                              acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + \
@@ -2451,18 +2613,41 @@ def startaudiojob():
                            + aac_title_input + VideoOutputQuoted + " -hide_banner" + '"'
             subprocess.Popen('cmd /k ' + finalcommand)
             # ------------------------------------------------------------------------------------------------- AAC Job
-
+    # DTS Start Job ---------------------------------------------------------------------------------------------------
     elif encoder.get() == 'DTS':
         if shell_options.get() == "Default":
-            finalcommand = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                           acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[
-                               dts_settings.get()] + " -sn -vn -map_chapters -1 " + VideoOutputQuoted + " -hide_banner -v error -stats"
+            if dts_settings.get() == 'DTS Encoder':
+                finalcommand = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+                               acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
+                               + "-b:a " + dts_bitrate_spinbox.get() + "k " \
+                               + acodec_channel_choices[acodec_channel.get()] \
+                               + acodec_samplerate_choices[acodec_samplerate.get()] \
+                               + acodec_gain_choices[acodec_gain.get()] + dts_custom_cmd_input \
+                               + "-sn -vn -map_chapters -1 " \
+                               + VideoOutputQuoted + " -hide_banner -v error -stats"
+            else:
+                finalcommand = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted \
+                               + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
+                               + dts_custom_cmd_input + "-sn -vn -map_chapters -1 " \
+                               + VideoOutputQuoted + " -hide_banner -v error -stats"
             subprocess.Popen(finalcommand)
         elif shell_options.get() == "Debug":
-            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                           acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[
-                               dts_settings.get()] + " -sn -vn -map_chapters -1 " + VideoOutputQuoted + " -hide_banner" + '"'
+            if dts_settings.get() == 'DTS Encoder':
+                finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+                               acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
+                               + "-b:a " + dts_bitrate_spinbox.get() + "k " \
+                               + acodec_channel_choices[acodec_channel.get()] \
+                               + acodec_samplerate_choices[acodec_samplerate.get()] \
+                               + acodec_gain_choices[acodec_gain.get()] + dts_custom_cmd_input \
+                               + "-sn -vn -map_chapters -1 " \
+                               + VideoOutputQuoted + " -hide_banner" + '"'
+            else:
+                finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted \
+                               + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
+                               + dts_custom_cmd_input + "-sn -vn -map_chapters -1 " \
+                               + VideoOutputQuoted + " -hide_banner" + '"'
             subprocess.Popen('cmd /k ' + finalcommand)
+    # ------------------------------------------------------------------------------------------------------------- DTS
 
     elif encoder.get() == "Opus":
         if shell_options.get() == "Default":
