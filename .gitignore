@@ -1,2 +1,6 @@
 .idea/
 Encoder/
+build/
+dist/
+__pycache__/
+FFMPEG Audio Encoder.spec
