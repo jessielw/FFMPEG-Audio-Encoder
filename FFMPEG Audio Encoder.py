@@ -169,8 +169,80 @@ def openaudiowindow():
     global acodec_samplerate
     global acodec_samplerate_choices
 
+    def apply_button_hover(e):
+        apply_button["bg"] = "grey"
+
+    def apply_button_hover_leave(e):
+        apply_button["bg"] = "#23272a"
+
+    def show_cmd_hover(e):
+        show_cmd["bg"] = "grey"
+
+    def show_cmd_hover_leave(e):
+        show_cmd["bg"] = "#23272A"
+
+    def acodec_bitrate_menu_hover(e):
+        acodec_bitrate_menu["bg"] = "grey"
+        acodec_bitrate_menu["activebackground"] = "grey"
+
+    def acodec_bitrate_menu_hover_leave(e):
+        acodec_bitrate_menu["bg"] = "#23272A"
+
+    def acodec_stream_menu_hover(e):
+        acodec_stream_menu["bg"] = "grey"
+        acodec_stream_menu["activebackground"] = "grey"
+
+    def acodec_stream_menu_hover_leave(e):
+        acodec_stream_menu["bg"] = "#23272A"
+
+    def achannel_menu_hover(e):
+        achannel_menu["bg"] = "grey"
+        achannel_menu["activebackground"] = "grey"
+
+    def achannel_menu_hover_leave(e):
+        achannel_menu["bg"] = "#23272A"
+
+    def acodec_gain_menu_hover(e):
+        acodec_gain_menu["bg"] = "grey"
+        acodec_gain_menu["activebackground"] = "grey"
+
+    def acodec_gain_menu_hover_leave(e):
+        acodec_gain_menu["bg"] = "#23272A"
+
+    def acodec_samplerate_menu_hover(e):
+        acodec_samplerate_menu["bg"] = "grey"
+        acodec_samplerate_menu["activebackground"] = "grey"
+
+    def acodec_samplerate_menu_hover_leave(e):
+        acodec_samplerate_menu["bg"] = "#23272A"
+
+    def dts_settings_menu_hover(e):
+        dts_settings_menu["bg"] = "grey"
+        dts_settings_menu["activebackground"] = "grey"
+
+    def dts_settings_menu_hover_leave(e):
+        dts_settings_menu["bg"] = "#23272A"
+
+    def gotosavefile():
+        audio_window.destroy()
+        output_button.config(state=NORMAL)
+        start_audio_button.config(state=NORMAL)
+        command_line_button.config(state=NORMAL)
+        for cmd_line_window in root.winfo_children():
+            if isinstance(cmd_line_window, tk.Toplevel):
+                cmd_line_window.destroy()
+
+    # Show Streams Inside Audio Settings Window -----------------------------------------------------------------------
     def show_streams_mediainfo():  # Stream Viewer
-        commands = '"' + mediainfocli + ' --Output="Audio;Track #:..............................%ID%\\nFormat:................................%Format%\\nDuration:..............................%Duration/String2%\\nBit Rate Mode:.....................%BitRate_Mode/String%\\nBitrate:.................................%BitRate/String%\\nSampling Rate:....................%SamplingRate/String%\\nAudio Channels:..................%Channel(s)%\\nChannel Layout:..................%ChannelLayout%\\nCompression Mode:............%Compression_Mode/String%\\nStream Size:........................%StreamSize/String5%\\nTitle:....................................%Title%\\nLanguage:...........................%Language/String%\\n\\n" ' + VideoInputQuoted + '"'
+        commands = '"' + mediainfocli + ' --Output="Audio;Track #:..............................%ID%\\nFormat:..' + \
+                   '..............................%Format%\\nDuration:.........................' + \
+                   '.....%Duration/String2%\\nBit Rate Mode:.....................%BitRate_Mode/String%\\nBitrate:.' + \
+                   '................................%BitRate/String%\\nSampling Rate:................' + \
+                   '....%SamplingRate/String%\\nAudio Channels:..................%Channel(s)%\\nChannel Layout:..' + \
+                   '................%ChannelLayout%\\nCompression Mode:.........' + \
+                   '...%Compression_Mode/String%\\nStream Size:......................' + \
+                   '..%StreamSize/String5%\\nTitle:....................................%Title%\\nLanguage:..' + \
+                   '.........................%Language/String%\\n\\n" ' + VideoInputQuoted + '"'
         run = subprocess.Popen('cmd /c ' + commands, creationflags=subprocess.CREATE_NO_WINDOW, universal_newlines=True,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                stdin=subprocess.PIPE, shell=True)
@@ -186,6 +258,7 @@ def openaudiowindow():
         text_area.configure(font=("Helvetica", 12))
         text_area.configure(state=DISABLED)
         stream_window.grid_columnconfigure(0, weight=1)
+    # ---------------------------------------------------------------------------------------------------- Show Streams
 
     # AC3 Window ------------------------------------------------------------------------------------------------------
     if encoder.get() == "AC3":
@@ -214,54 +287,6 @@ def openaudiowindow():
         audio_window.grid_rowconfigure(3, weight=1)
         audio_window.grid_rowconfigure(8, weight=1)
 
-        def apply_button_hover(e):
-            apply_button["bg"] = "grey"
-        def apply_button_hover_leave(e):
-            apply_button["bg"] = "#23272a"
-
-        def show_cmd_hover(e):
-            show_cmd["bg"] = "grey"
-        def show_cmd_hover_leave(e):
-            show_cmd["bg"] = "#23272A"
-
-        def acodec_bitrate_menu_hover(e):
-            acodec_bitrate_menu["bg"] = "grey"
-            acodec_bitrate_menu["activebackground"] = "grey"
-        def acodec_bitrate_menu_hover_leave(e):
-            acodec_bitrate_menu["bg"] = "#23272A"
-
-        def acodec_stream_menu_hover(e):
-            acodec_stream_menu["bg"] = "grey"
-            acodec_stream_menu["activebackground"] = "grey"
-        def acodec_stream_menu_hover_leave(e):
-            acodec_stream_menu["bg"] = "#23272A"
-
-        def achannel_menu_hover(e):
-            achannel_menu["bg"] = "grey"
-            achannel_menu["activebackground"] = "grey"
-        def achannel_menu_hover_leave(e):
-            achannel_menu["bg"] = "#23272A"
-
-        def acodec_gain_menu_hover(e):
-            acodec_gain_menu["bg"] = "grey"
-            acodec_gain_menu["activebackground"] = "grey"
-        def acodec_gain_menu_hover_leave(e):
-            acodec_gain_menu["bg"] = "#23272A"
-
-        def acodec_samplerate_menu_hover(e):
-            acodec_samplerate_menu["bg"] = "grey"
-            acodec_samplerate_menu["activebackground"] = "grey"
-        def acodec_samplerate_menu_hover_leave(e):
-            acodec_samplerate_menu["bg"] = "#23272A"
-
-        def gotosavefile():
-            audio_window.destroy()
-            output_button.config(state=NORMAL)
-            start_audio_button.config(state=NORMAL)
-            command_line_button.config(state=NORMAL)
-            for cmd_line_window in root.winfo_children():
-                if isinstance(cmd_line_window, tk.Toplevel):
-                    cmd_line_window.destroy()
 
         # Views Command -----------------------------------------------------------------------------------------------
         def view_command():
@@ -475,49 +500,6 @@ def openaudiowindow():
         audio_window.grid_rowconfigure(2, weight=1)
         audio_window.grid_rowconfigure(3, weight=1)
         audio_window.grid_rowconfigure(8, weight=1)
-
-        def apply_button_hover(e):
-            apply_button["bg"] = "grey"
-        def apply_button_hover_leave(e):
-            apply_button["bg"] = "#23272A"
-
-        def show_cmd_hover(e):
-            show_cmd["bg"] = "grey"
-        def show_cmd_hover_leave(e):
-            show_cmd["bg"] = "#23272A"
-
-        def acodec_stream_menu_hover(e):
-            acodec_stream_menu["bg"] = "grey"
-            acodec_stream_menu["activebackground"] = "grey"
-        def acodec_stream_menu_hover_leave(e):
-            acodec_stream_menu["bg"] = "#23272A"
-
-        def achannel_menu_hover(e):
-            achannel_menu["bg"] = "grey"
-            achannel_menu["activebackground"] = "grey"
-        def achannel_menu_hover_leave(e):
-            achannel_menu["bg"] = "#23272A"
-
-        def acodec_gain_menu_hover(e):
-            acodec_gain_menu["bg"] = "grey"
-            acodec_gain_menu["activebackground"] = "grey"
-        def acodec_gain_menu_hover_leave(e):
-            acodec_gain_menu["bg"] = "#23272A"
-
-        def acodec_samplerate_menu_hover(e):
-            acodec_samplerate_menu["bg"] = "grey"
-            acodec_samplerate_menu["activebackground"] = "grey"
-        def acodec_samplerate_menu_hover_leave(e):
-            acodec_samplerate_menu["bg"] = "#23272A"
-
-        def gotosavefile():
-            audio_window.destroy()
-            output_button.config(state=NORMAL)
-            start_audio_button.config(state=NORMAL)
-            command_line_button.config(state=NORMAL)
-            for cmd_line_window in root.winfo_children():
-                if isinstance(cmd_line_window, tk.Toplevel):
-                    cmd_line_window.destroy()
 
         def view_command():  # Views Command ---------------------------------------------------------------------------
             global cmd_label
@@ -780,55 +762,6 @@ def openaudiowindow():
         audio_window.grid_rowconfigure(2, weight=1)
         audio_window.grid_rowconfigure(3, weight=1)
         audio_window.grid_rowconfigure(6, weight=1)
-
-        def apply_button_hover(e):
-            apply_button["bg"] = "grey"
-        def apply_button_hover_leave(e):
-            apply_button["bg"] = "#23272A"
-
-        def show_cmd_hover(e):
-            show_cmd["bg"] = "grey"
-        def show_cmd_hover_leave(e):
-            show_cmd["bg"] = "#23272A"
-
-        def acodec_samplerate_menu_hover(e):
-            acodec_samplerate_menu["bg"] = "grey"
-            acodec_samplerate_menu["activebackground"] = "grey"
-        def acodec_samplerate_menu_hover_leave(e):
-            acodec_samplerate_menu["bg"] = "#23272A"
-
-        def acodec_stream_menu_hover(e):
-            acodec_stream_menu["bg"] = "grey"
-            acodec_stream_menu["activebackground"] = "grey"
-        def acodec_stream_menu_hover_leave(e):
-            acodec_stream_menu["bg"] = "#23272A"
-
-        def dts_settings_menu_hover(e):
-            dts_settings_menu["bg"] = "grey"
-            dts_settings_menu["activebackground"] = "grey"
-        def dts_settings_menu_hover_leave(e):
-            dts_settings_menu["bg"] = "#23272A"
-
-        def achannel_menu_hover(e):
-            achannel_menu["bg"] = "grey"
-            achannel_menu["activebackground"] = "grey"
-        def achannel_menu_hover_leave(e):
-            achannel_menu["bg"] = "#23272A"
-
-        def acodec_gain_menu_hover(e):
-            acodec_gain_menu["bg"] = "grey"
-            acodec_gain_menu["activebackground"] = "grey"
-        def acodec_gain_menu_hover_leave(e):
-            acodec_gain_menu["bg"] = "#23272A"
-
-        def gotosavefile():
-            audio_window.destroy()
-            output_button.config(state=NORMAL)
-            start_audio_button.config(state=NORMAL)
-            command_line_button.config(state=NORMAL)
-            for cmd_line_window in root.winfo_children():
-                if isinstance(cmd_line_window, tk.Toplevel):
-                    cmd_line_window.destroy()
 
         def dts_setting_choice_trace(*args):
             if dts_settings.get() == 'DTS Encoder':
