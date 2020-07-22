@@ -265,18 +265,22 @@ def openaudiowindow():
 
         # Views Command -----------------------------------------------------------------------------------------------
         def view_command():
-            cmd_line_window = Toplevel()
-            cmd_line_window.title('Command Line')
-            cmd_line_window.configure(background="#434547")
+            global cmd_label
             example_cmd_output = acodec_stream_choices[acodec_stream.get()] \
                              + encoder_dropdownmenu_choices[encoder.get()] + \
                              acodec_bitrate_choices[acodec_bitrate.get()] + \
                              acodec_channel_choices[acodec_channel.get()] + \
                              acodec_samplerate_choices[acodec_samplerate.get()] + \
                              acodec_gain_choices[acodec_gain.get()] + ac3_custom_cmd_input + ac3_title_input
-            cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
-            cmd_label.config(font=("Helvetica", 16))
-            cmd_label.pack()
+            try:
+                cmd_label.config(text=example_cmd_output)
+            except (AttributeError, NameError):
+                cmd_line_window = Toplevel()
+                cmd_line_window.title('Command Line')
+                cmd_line_window.configure(background="#434547")
+                cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
+                cmd_label.config(font=("Helvetica", 16))
+                cmd_label.pack()
         # ----------------------------------------------------------------------------------------------- Views Command
 
         # Buttons -----------------------------------------------------------------------------------------------------
@@ -516,9 +520,7 @@ def openaudiowindow():
                     cmd_line_window.destroy()
 
         def view_command():  # Views Command ---------------------------------------------------------------------------
-            cmd_line_window = Toplevel()
-            cmd_line_window.title('Command Line')
-            cmd_line_window.configure(background="#434547")
+            global cmd_label
             if aac_vbr_toggle.get() == "-c:a ":
                 example_cmd_output = acodec_stream_choices[acodec_stream.get()] + \
                                      encoder_dropdownmenu_choices[encoder.get()] + \
@@ -535,9 +537,16 @@ def openaudiowindow():
                                      acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[
                                          acodec_gain.get()] + \
                                      aac_custom_cmd_input + aac_title_input
-            cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
-            cmd_label.config(font=("Helvetica", 16))
-            cmd_label.pack()
+            try:
+                cmd_label.config(text=example_cmd_output)
+            except (AttributeError, NameError):
+                cmd_line_window = Toplevel()
+                cmd_line_window.title('Command Line')
+                cmd_line_window.configure(background="#434547")
+                cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
+                cmd_label.config(font=("Helvetica", 16))
+                cmd_label.winfo_exists()
+                cmd_label.pack()
         # ----------------------------------------------------------------------------------------------- Views Command
 
         # Buttons -----------------------------------------------------------------------------------------------------
@@ -750,8 +759,8 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('DTS Settings')
         audio_window.configure(background="#434547")
-        window_height = 110
-        window_width = 276
+        window_height = 300
+        window_width = 450
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
         x_cordinate = int((screen_width / 2) - (window_width / 2))
@@ -760,7 +769,7 @@ def openaudiowindow():
 
         my_menu = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu)
-        check_streams = Menu(my_menu, tearoff=0, activebackground="dim grey")
+        Menu(my_menu, tearoff=0, activebackground="dim grey")
         my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
 
         audio_window.grid_columnconfigure(0, weight=1)
@@ -772,23 +781,26 @@ def openaudiowindow():
 
         def apply_button_hover(e):
             apply_button["bg"] = "grey"
-
         def apply_button_hover_leave(e):
             apply_button["bg"] = "#23272A"
 
         def acodec_stream_menu_hover(e):
             acodec_stream_menu["bg"] = "grey"
             acodec_stream_menu["activebackground"] = "grey"
-
         def acodec_stream_menu_hover_leave(e):
             acodec_stream_menu["bg"] = "#23272A"
 
         def dts_settings_menu_hover(e):
             dts_settings_menu["bg"] = "grey"
             dts_settings_menu["activebackground"] = "grey"
-
         def dts_settings_menu_hover_leave(e):
             dts_settings_menu["bg"] = "#23272A"
+
+        def achannel_menu_hover(e):
+            achannel_menu["bg"] = "grey"
+            achannel_menu["activebackground"] = "grey"
+        def achannel_menu_hover_leave(e):
+            achannel_menu["bg"] = "#23272A"
 
         def gotosavefile():
             audio_window.destroy()
@@ -796,16 +808,32 @@ def openaudiowindow():
             start_audio_button.config(state=NORMAL)
             command_line_button.config(state=NORMAL)
 
+        def dts_setting_choice_trace(*args):
+            print(dts_settings.get())
+
+        # SUPPORTED SAMPLE RATES
+        # 8000
+        # 16000
+        # 32000
+        # 11025
+        # 22050
+        # 44100
+        # 12000
+        # 24000
+        # 48000
+
+        # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                               command=gotosavefile)
-        apply_button.grid(row=2, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E)
+        apply_button.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         apply_button.bind("<Enter>", apply_button_hover)
         apply_button.bind("<Leave>", apply_button_hover_leave)
+        # ----------------------------------------------------------------------------------------------------- Buttons
 
-        # Audio Stream Selection
+        # Audio Stream Selection --------------------------------------------------------------------------------------
         acodec_stream = StringVar(audio_window)
         acodec_stream_choices = acodec_stream_track_counter
-        acodec_stream.set('Track 1')  # set the default option
+        acodec_stream.set('Track 1')
         acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
         acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
         acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
@@ -814,19 +842,39 @@ def openaudiowindow():
         acodec_stream_menu["menu"].configure(activebackground="dim grey")
         acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
         acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+        # ------------------------------------------------------------------------------------------------ Audio Stream
 
-        # DTS Setting(s)
+        # Audio Channel Selection -------------------------------------------------------------------------------------
+        acodec_channel = StringVar(audio_window)
+        acodec_channel_choices = {'Original': "",
+                                  '(Mono)': "-ac 1 ",
+                                  '2.0 (Stereo)': "-ac 2 "}
+        acodec_channel.set('Original')  # set the default option
+        achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
+        achannel_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W + E + N + S)
+        achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
+        achannel_menu.config(background="#23272A", foreground="white", highlightthickness=1, state=DISABLED)
+        achannel_menu.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        achannel_menu["menu"].configure(activebackground="dim grey")
+        achannel_menu.bind("<Enter>", achannel_menu_hover)
+        achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
+        # ------------------------------------------------------------------------------------- Audio Channel Selection
+
+        # DTS Encoder(s) ----------------------------------------------------------------------------------------------
         dts_settings = StringVar(audio_window)
         dts_settings_choices = {'Reduce to Core': "-bsf:a dca_core -c:a copy ",
-                                'Extract HD Track': "-c:a copy "}
+                                'Extract HD Track': "-c:a copy ",
+                                'DTS Encoder': "-strict -2 -c:a dca "}
         dts_settings.set('Reduce to Core')  # set the default option
         dts_settings_label = Label(audio_window, text="DTS Settings :", background="#434547", foreground="white")
-        dts_settings_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3)
+        dts_settings_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         dts_settings_menu = OptionMenu(audio_window, dts_settings, *dts_settings_choices.keys())
         dts_settings_menu.config(background="#23272A", foreground="white", highlightthickness=1)
-        dts_settings_menu.grid(row=1, column=2, columnspan=1, padx=10, pady=3)
+        dts_settings_menu.grid(row=1, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         dts_settings_menu.bind("<Enter>", dts_settings_menu_hover)
         dts_settings_menu.bind("<Leave>", dts_settings_menu_hover_leave)
+        dts_settings.trace('w', dts_setting_choice_trace)
+        # --------------------------------------------------------------------------------------------------------- DTS
 
     # Opus Window --------------------------------------------
     elif encoder.get() == "Opus":
