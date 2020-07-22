@@ -228,9 +228,10 @@ def openaudiowindow():
         output_button.config(state=NORMAL)
         start_audio_button.config(state=NORMAL)
         command_line_button.config(state=NORMAL)
-        for cmd_line_window in root.winfo_children():
-            if isinstance(cmd_line_window, tk.Toplevel):
-                cmd_line_window.destroy()
+        try:
+            cmd_line_window.withdraw()
+        except:
+            pass
 
     # Show Streams Inside Audio Settings Window -----------------------------------------------------------------------
     def show_streams_mediainfo():  # Stream Viewer
@@ -246,18 +247,23 @@ def openaudiowindow():
         run = subprocess.Popen('cmd /c ' + commands, creationflags=subprocess.CREATE_NO_WINDOW, universal_newlines=True,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                stdin=subprocess.PIPE, shell=True)
-        stream_window = Toplevel(audio_window)
-        stream_window.title("Audio Streams")
-        stream_window.configure(background="#434547")
-        Label(stream_window, text="---------- Audio Streams ----------", font=("Times New Roman", 16),
-              background='#434547', foreground="white").grid(column=0, row=0)
-        text_area = scrolledtextwidget.ScrolledText(stream_window, width=50, height=25, tabs=10, spacing2=3, spacing1=2,
-                                                    spacing3=3)
-        text_area.grid(column=0, pady=10, padx=10)
-        text_area.insert(INSERT, run.communicate())
-        text_area.configure(font=("Helvetica", 12))
-        text_area.configure(state=DISABLED)
-        stream_window.grid_columnconfigure(0, weight=1)
+        try:
+            global text_area
+            text_area.delete("1.0", END)
+            text_area.insert(END, run.communicate())
+        except:
+            stream_window = Toplevel(audio_window)
+            stream_window.title("Audio Streams")
+            stream_window.configure(background="#434547")
+            Label(stream_window, text="---------- Audio Streams ----------", font=("Times New Roman", 16),
+                  background='#434547', foreground="white").grid(column=0, row=0)
+            text_area = scrolledtextwidget.ScrolledText(stream_window, width=50, height=25, tabs=10, spacing2=3, spacing1=2,
+                                                        spacing3=3)
+            text_area.grid(column=0, pady=10, padx=10)
+            text_area.insert(INSERT, run.communicate())
+            text_area.configure(font=("Helvetica", 12))
+            text_area.configure(state=DISABLED)
+            stream_window.grid_columnconfigure(0, weight=1)
     # ---------------------------------------------------------------------------------------------------- Show Streams
 
     # AC3 Window ------------------------------------------------------------------------------------------------------
@@ -290,6 +296,7 @@ def openaudiowindow():
 
         # Views Command -----------------------------------------------------------------------------------------------
         def view_command():
+            global cmd_line_window
             global cmd_label
             example_cmd_output = acodec_stream_choices[acodec_stream.get()] \
                              + encoder_dropdownmenu_choices[encoder.get()] + \
@@ -299,6 +306,7 @@ def openaudiowindow():
                              acodec_gain_choices[acodec_gain.get()] + ac3_custom_cmd_input + ac3_title_input
             try:
                 cmd_label.config(text=example_cmd_output)
+                cmd_line_window.deiconify()
             except (AttributeError, NameError):
                 cmd_line_window = Toplevel()
                 cmd_line_window.title('Command Line')
@@ -503,6 +511,7 @@ def openaudiowindow():
 
         def view_command():  # Views Command ---------------------------------------------------------------------------
             global cmd_label
+            global cmd_line_window
             if aac_vbr_toggle.get() == "-c:a ":
                 example_cmd_output = acodec_stream_choices[acodec_stream.get()] + \
                                      encoder_dropdownmenu_choices[encoder.get()] + \
@@ -521,6 +530,7 @@ def openaudiowindow():
                                      aac_custom_cmd_input + aac_title_input
             try:
                 cmd_label.config(text=example_cmd_output)
+                cmd_line_window.deiconify()
             except (AttributeError, NameError):
                 cmd_line_window = Toplevel()
                 cmd_line_window.title('Command Line')
@@ -736,7 +746,7 @@ def openaudiowindow():
         # --------------------------------------------------------------------------------- Audio Sample Rate Selection
         # -------------------------------------------------------------------------------------------------- AAC Window
 
-        # DTS Window --------------------------------------------------------------------------------------------------
+    # DTS Window ------------------------------------------------------------------------------------------------------
     elif encoder.get() == "DTS":
         audio_window = Toplevel()
         audio_window.title('DTS Settings')
@@ -786,6 +796,7 @@ def openaudiowindow():
         # Views Command -----------------------------------------------------------------------------------------------
         def view_command():
             global cmd_label
+            global cmd_line_window
             if dts_settings.get() == 'DTS Encoder':
                 example_cmd_output = acodec_stream_choices[acodec_stream.get()] \
                                  + dts_settings_choices[dts_settings.get()] + \
@@ -798,8 +809,8 @@ def openaudiowindow():
                                      + dts_settings_choices[dts_settings.get()] + \
                                      dts_custom_cmd_input
             try:
-
                 cmd_label.config(text=example_cmd_output)
+                cmd_line_window.deiconify()
             except (AttributeError, NameError):
                 cmd_line_window = Toplevel()
                 cmd_line_window.title('Command Line')
@@ -958,9 +969,9 @@ def openaudiowindow():
         dts_settings_menu.bind("<Enter>", dts_settings_menu_hover)
         dts_settings_menu.bind("<Leave>", dts_settings_menu_hover_leave)
         dts_settings.trace('w', dts_setting_choice_trace)
-        # --------------------------------------------------------------------------------------------------------- DTS
+    # ------------------------------------------------------------------------------------------------------------- DTS
 
-    # Opus Window --------------------------------------------
+    # Opus Window -----------------------------------------------------------------------------------------------------
     elif encoder.get() == "Opus":
         audio_window = Toplevel()
         audio_window.title('Opus Settings')
@@ -975,7 +986,7 @@ def openaudiowindow():
 
         my_menu = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu)
-        check_streams = Menu(my_menu, tearoff=0, activebackground="dim grey")
+        Menu(my_menu, tearoff=0, activebackground="dim grey")
         my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
 
         audio_window.grid_columnconfigure(0, weight=1)
@@ -986,52 +997,12 @@ def openaudiowindow():
         audio_window.grid_rowconfigure(2, weight=1)
         audio_window.grid_rowconfigure(3, weight=1)
 
-        def apply_button_hover(e):
-            apply_button["bg"] = "grey"
-
-        def apply_button_hover_leave(e):
-            apply_button["bg"] = "#23272A"
-
-        def acodec_bitrate_menu_hover(e):
-            acodec_bitrate_menu["bg"] = "grey"
-            acodec_bitrate_menu["activebackground"] = "grey"
-
-        def acodec_bitrate_menu_hover_leave(e):
-            acodec_bitrate_menu["bg"] = "#23272A"
-
-        def acodec_stream_menu_hover(e):
-            acodec_stream_menu["bg"] = "grey"
-            acodec_stream_menu["activebackground"] = "grey"
-
-        def acodec_stream_menu_hover_leave(e):
-            acodec_stream_menu["bg"] = "#23272A"
-
-        def achannel_menu_hover(e):
-            achannel_menu["bg"] = "grey"
-            achannel_menu["activebackground"] = "grey"
-
-        def achannel_menu_hover_leave(e):
-            achannel_menu["bg"] = "#23272A"
-
-        def acodec_gain_menu_hover(e):
-            acodec_gain_menu["bg"] = "grey"
-            acodec_gain_menu["activebackground"] = "grey"
-
-        def acodec_gain_menu_hover_leave(e):
-            acodec_gain_menu["bg"] = "#23272A"
-
         def acodec_vbr_menu_hover(e):
             acodec_vbr_menu["bg"] = "grey"
             acodec_vbr_menu["activebackground"] = "grey"
 
         def acodec_vbr_menu_hover_leave(e):
             acodec_vbr_menu["bg"] = "#23272A"
-
-        def gotosavefile():
-            audio_window.destroy()
-            output_button.config(state=NORMAL)
-            start_audio_button.config(state=NORMAL)
-            command_line_button.config(state=NORMAL)
 
         apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                               command=gotosavefile)
@@ -1144,6 +1115,7 @@ def openaudiowindow():
         acodec_gain_menu["menu"].configure(activebackground="dim grey")
         acodec_gain_menu.bind("<Enter>", acodec_gain_menu_hover)
         acodec_gain_menu.bind("<Leave>", acodec_gain_menu_hover_leave)
+    # ----------------------------------------------------------------------------------------------------- Opus Window
 
         # MP3 Window -----------------------
     elif encoder.get() == "MP3":
