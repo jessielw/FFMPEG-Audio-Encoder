@@ -170,6 +170,8 @@ def openaudiowindow():
     global acodec_samplerate_choices
     global acodec_application
     global acodec_application_choices
+    global acodec_profile
+    global acodec_profile_choices
 
     def apply_button_hover(e):
         apply_button["bg"] = "grey"
@@ -331,7 +333,9 @@ def openaudiowindow():
                 cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
                 cmd_label.config(font=("Helvetica", 16))
                 cmd_label.pack()
-
+                def hide_instead():
+                    cmd_line_window.withdraw()
+                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
         # ----------------------------------------------------------------------------------------------- Views Command
 
         # Buttons -----------------------------------------------------------------------------------------------------
@@ -558,6 +562,9 @@ def openaudiowindow():
                 cmd_label.config(font=("Helvetica", 16))
                 cmd_label.winfo_exists()
                 cmd_label.pack()
+                def hide_instead():
+                    cmd_line_window.withdraw()
+                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
 
         # ----------------------------------------------------------------------------------------------- Views Command
 
@@ -839,6 +846,9 @@ def openaudiowindow():
                 cmd_label.config(font=("Helvetica", 16))
                 cmd_label.winfo_exists()
                 cmd_label.pack()
+                def hide_instead():
+                    cmd_line_window.withdraw()
+                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
 
         # ----------------------------------------------------------------------------------------------- Views Command
 
@@ -1060,6 +1070,9 @@ def openaudiowindow():
                 cmd_label.config(font=("Helvetica", 16))
                 cmd_label.winfo_exists()
                 cmd_label.pack()
+                def hide_instead():
+                    cmd_line_window.withdraw()
+                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
         # ----------------------------------------------------------------------------------------------- Views Command
 
         # Buttons -----------------------------------------------------------------------------------------------------
@@ -1385,6 +1398,9 @@ def openaudiowindow():
                 cmd_label.config(font=("Helvetica", 16))
                 cmd_label.winfo_exists()
                 cmd_label.pack()
+                def hide_instead():
+                    cmd_line_window.withdraw()
+                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
 
         # ----------------------------------------------------------------------------------------------- Views Command
 
@@ -1731,13 +1747,13 @@ def openaudiowindow():
         acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
         acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
 
-        # FDK-AAC Window -----------------------
+    # FDK-AAC Window --------------------------------------------------------------------------------------------------
     elif encoder.get() == "FDK-AAC":
         audio_window = Toplevel()
         audio_window.title('FDK-AAC Settings')
         audio_window.configure(background="#434547")
-        window_height = 500
-        window_width = 700
+        window_height = 700
+        window_width = 780
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
         x_cordinate = int((screen_width / 2) - (window_width / 2))
@@ -1746,7 +1762,7 @@ def openaudiowindow():
 
         my_menu = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu)
-        check_streams = Menu(my_menu, tearoff=0, activebackground="dim grey")
+        Menu(my_menu, tearoff=0, activebackground="dim grey")
         my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
 
         audio_window.grid_columnconfigure(0, weight=1)
@@ -1763,60 +1779,13 @@ def openaudiowindow():
         audio_window.grid_rowconfigure(8, weight=1)
         audio_window.grid_rowconfigure(9, weight=1)
         audio_window.grid_rowconfigure(10, weight=1)
-
-        def apply_button_hover(e):
-            apply_button["bg"] = "grey"
-
-        def apply_button_hover_leave(e):
-            apply_button["bg"] = "#23272A"
+        audio_window.grid_rowconfigure(15, weight=1)
 
         def help_button_hover(e):
             help_button["bg"] = "grey"
 
         def help_button_hover_leave(e):
             help_button["bg"] = "#23272A"
-
-        def acodec_bitrate_menu_hover(e):
-            acodec_bitrate_menu["bg"] = "grey"
-            acodec_bitrate_menu["activebackground"] = "grey"
-
-        def acodec_bitrate_menu_hover_leave(e):
-            acodec_bitrate_menu["bg"] = "#23272A"
-
-        def acodec_stream_menu_hover(e):
-            acodec_stream_menu["bg"] = "grey"
-            acodec_stream_menu["activebackground"] = "grey"
-
-        def acodec_stream_menu_hover_leave(e):
-            acodec_stream_menu["bg"] = "#23272A"
-
-        def achannel_menu_hover(e):
-            achannel_menu["bg"] = "grey"
-            achannel_menu["activebackground"] = "grey"
-
-        def achannel_menu_hover_leave(e):
-            achannel_menu["bg"] = "#23272A"
-
-        def acodec_gain_menu_hover(e):
-            acodec_gain_menu["bg"] = "grey"
-            acodec_gain_menu["activebackground"] = "grey"
-
-        def acodec_gain_menu_hover_leave(e):
-            acodec_gain_menu["bg"] = "#23272A"
-
-        def acodec_samplerate_menu_hover(e):
-            acodec_samplerate_menu["bg"] = "grey"
-            acodec_samplerate_menu["activebackground"] = "grey"
-
-        def acodec_samplerate_menu_hover_leave(e):
-            acodec_samplerate_menu["bg"] = "#23272A"
-
-        def acodec_profile_menu_hover(e):
-            acodec_profile_menu["bg"] = "grey"
-            acodec_profile_menu["activebackground"] = "grey"
-
-        def acodec_profile_menu_hover_leave(e):
-            acodec_profile_menu["bg"] = "#23272A"
 
         def acodec_lowdelay_menu_hover(e):
             acodec_lowdelay_menu["bg"] = "grey"
@@ -1846,6 +1815,14 @@ def openaudiowindow():
         def acodec_transport_format_menu_hover_leave(e):
             acodec_transport_format_menu["bg"] = "#23272A"
 
+        def acodec_profile_menu_hover(e):
+            acodec_profile_menu["bg"] = "grey"
+            acodec_profile_menu["activebackground"] = "grey"
+
+        def acodec_profile_menu_hover_leave(e):
+            acodec_profile_menu["bg"] = "#23272A"
+
+        # Help Button for FDK -----------------------------------------------------------------------------------------
         def gotofdkaachelp():
             helpfile_window = Toplevel(audio_window)
             helpfile_window.title("FDK-AAC Advanced Settings Help")
@@ -1860,31 +1837,68 @@ def openaudiowindow():
                 text_area.insert(INSERT, helpfile.read())
                 text_area.configure(font=("Helvetica", 14))
                 text_area.configure(state=DISABLED)
+        # ---------------------------------------------------------------------------------------------------- FDK Help
 
-        def gotosavefile():
-            audio_window.destroy()
-            output_button.config(state=NORMAL)
-            start_audio_button.config(state=NORMAL)
-            command_line_button.config(state=NORMAL)
+        # Views Command -----------------------------------------------------------------------------------------------
+        def view_command():
+            global cmd_label
+            global cmd_line_window
+            example_cmd_output = acodec_stream_choices[acodec_stream.get()] + \
+                                 acodec_channel_choices[acodec_channel.get()] + \
+                                 acodec_samplerate_choices[acodec_samplerate.get()] + \
+                                 acodec_gain_choices[acodec_gain.get()] + "-f caf - | " + \
+                                 "\n \n" + "fdkaac.exe" + " " + \
+                                 acodec_profile_choices[acodec_profile.get()] + afterburnervar.get() \
+                                 + fdkaac_title_input + fdkaac_custom_cmd_input + \
+                                 crccheck.get() + moovbox.get() + sbrdelay.get() + headerperiod.get() + \
+                                 acodec_lowdelay_choices[acodec_lowdelay.get()] + \
+                                 acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] + \
+                                 acodec_transport_format_choices[acodec_transport_format.get()] + \
+                                 acodec_bitrate_choices[acodec_bitrate.get()] + "- -o "
+            try:
+                cmd_label.config(text=example_cmd_output)
+                cmd_line_window.deiconify()
+            except (AttributeError, NameError):
+                cmd_line_window = Toplevel()
+                cmd_line_window.title('Command Line')
+                cmd_line_window.configure(background="#434547")
+                cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
+                cmd_label.config(font=("Helvetica", 16))
+                cmd_label.winfo_exists()
+                cmd_label.pack()
+                def hide_instead():
+                    cmd_line_window.withdraw()
+                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
+        # ----------------------------------------------------------------------------------------------- Views Command
 
+        # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                               command=gotosavefile)
-        apply_button.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        apply_button.grid(row=15, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         apply_button.bind("<Enter>", apply_button_hover)
         apply_button.bind("<Leave>", apply_button_hover_leave)
 
+        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A", \
+                          command=view_command)
+        show_cmd.grid(row=15, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        show_cmd.bind("<Enter>", show_cmd_hover)
+        show_cmd.bind("<Leave>", show_cmd_hover_leave)
+
+
         help_button = Button(audio_window, text="Help + Information", foreground="white", background="#23272A",
                              command=gotofdkaachelp)
-        help_button.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        help_button.grid(row=15, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         help_button.bind("<Enter>", help_button_hover)
         help_button.bind("<Leave>", help_button_hover_leave)
+        # ----------------------------------------------------------------------------------------------------- Buttons
 
         advanced_label = Label(audio_window,
-                               text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - - - - - - - - - - - - - - - - - - -",
+                               text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - - - - - - - - - - "
+                                    "- - - - - - - - -",
                                background="#434547", foreground="white", relief=GROOVE)
         advanced_label.grid(row=4, column=0, columnspan=3, padx=10, pady=10, sticky=W + E)
 
-        # Audio Bitrate Menu
+        # Audio Bitrate Menu ------------------------------------------------------------------------------------------
         acodec_bitrate = StringVar(audio_window)
         acodec_bitrate_choices = {'CBR: 16k': "-b16 ",
                                   'CBR: 32k': "-b32 ",
@@ -1909,8 +1923,9 @@ def openaudiowindow():
         acodec_bitrate_menu["menu"].configure(activebackground="dim grey")
         acodec_bitrate_menu.bind("<Enter>", acodec_bitrate_menu_hover)
         acodec_bitrate_menu.bind("<Leave>", acodec_bitrate_menu_hover_leave)
+        # ------------------------------------------------------------------------------------------------ Bitrate Menu
 
-        # Audio Channel Selection
+        # Audio Channel Selection -------------------------------------------------------------------------------------
         acodec_channel = StringVar(audio_window)
         acodec_channel_choices = {'Original': "",
                                   '1 (Mono)': "-ac 1 ",
@@ -1927,8 +1942,9 @@ def openaudiowindow():
         achannel_menu["menu"].configure(activebackground="dim grey")
         achannel_menu.bind("<Enter>", achannel_menu_hover)
         achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
+        # ----------------------------------------------------------------------------------------------------- Channel
 
-        # Audio Stream Selection
+        # Audio Stream Selection --------------------------------------------------------------------------------------
         acodec_stream = StringVar(audio_window)
         acodec_stream_choices = acodec_stream_track_counter
         acodec_stream.set('Track 1')  # set the default option
@@ -1940,30 +1956,31 @@ def openaudiowindow():
         acodec_stream_menu["menu"].configure(activebackground="dim grey")
         acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
         acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+        # ------------------------------------------------------------------------------------------------------ Stream
 
-        # Audio Gain Selection
+        # Audio Gain Selection ----------------------------------------------------------------------------------------
         acodec_gain = StringVar(audio_window)
-        acodec_gain_choices = {'Default (0)': "-sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+10 dB': "-af volume=10dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+9 dB': "-af volume=9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+8 dB': "-af volume=8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+7 dB': "-af volume=7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+6 dB': "-af volume=6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+5 dB': "-af volume=5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+4 dB': "-af volume=4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+3 dB': "-af volume=3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+2 dB': "-af volume=2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+1 dB': "-af volume=1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-1 dB': "-af volume=-1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-2 dB': "-af volume=-2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-3 dB': "-af volume=-3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-4 dB': "-af volume=-4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-5 dB': "-af volume=-5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-6 dB': "-af volume=-6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-7 dB': "-af volume=-7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-8 dB': "-af volume=-8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-9 dB': "-af volume=-9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-10 dB': "-af volume=-10dB -sn -vn -map_chapters -1 -map_metadata -1 "}
+        acodec_gain_choices = {'Default (0)': "",
+                               '+10 dB': "-af volume=10dB ",
+                               '+9 dB': "-af volume=9dB ",
+                               '+8 dB': "-af volume=8dB ",
+                               '+7 dB': "-af volume=7dB ",
+                               '+6 dB': "-af volume=6dB ",
+                               '+5 dB': "-af volume=5dB ",
+                               '+4 dB': "-af volume=4dB ",
+                               '+3 dB': "-af volume=3dB ",
+                               '+2 dB': "-af volume=2dB ",
+                               '+1 dB': "-af volume=1dB ",
+                               '-1 dB': "-af volume=-1dB ",
+                               '-2 dB': "-af volume=-2dB ",
+                               '-3 dB': "-af volume=-3dB ",
+                               '-4 dB': "-af volume=-4dB ",
+                               '-5 dB': "-af volume=-5dB ",
+                               '-6 dB': "-af volume=-6dB ",
+                               '-7 dB': "-af volume=-7dB ",
+                               '-8 dB': "-af volume=-8dB ",
+                               '-9 dB': "-af volume=-9dB ",
+                               '-10 dB': "-af volume=-10dB "}
         acodec_gain.set('Default (0)')  # set the default option
         acodec_gain_label = Label(audio_window, text="Gain :", background="#434547", foreground="white")
         acodec_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -1973,8 +1990,9 @@ def openaudiowindow():
         acodec_gain_menu["menu"].configure(activebackground="dim grey")
         acodec_gain_menu.bind("<Enter>", acodec_gain_menu_hover)
         acodec_gain_menu.bind("<Leave>", acodec_gain_menu_hover_leave)
+        # -------------------------------------------------------------------------------------------------------- Gain
 
-        # Audio Sample Rate Selection
+        # Audio Sample Rate Selection ---------------------------------------------------------------------------------
         acodec_samplerate = StringVar(audio_window)
         acodec_samplerate_choices = {'Original': "",
                                      '11025 Hz': "-ar 11025 ",
@@ -1992,12 +2010,47 @@ def openaudiowindow():
         acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
         acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
         acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
+        # ------------------------------------------------------------------------------------------------- Sample Rate
 
-        # Advanced Section ---------
+        # Entry Box for Custom Command Line ---------------------------------------------------------------------------
+        def fdkaac_cmd(*args):
+            global fdkaac_custom_cmd_input
+            if fdkaac_custom_cmd.get() == (""):
+                fdkaac_custom_cmd_input = ("")
+            else:
+                cstmcmd = fdkaac_custom_cmd.get()
+                fdkaac_custom_cmd_input = cstmcmd + " "
 
-        # Audio Profile Selection
-        global acodec_profile
-        global acodec_profile_choices
+        fdkaac_custom_cmd = StringVar()
+        fdkaac_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547", \
+                                       foreground="white")
+        fdkaac_cmd_entrybox_label.grid(row=11, column=0, columnspan=2, padx=10, pady=(0, 0), sticky=N + S + W + E)
+        fdkaac_cmd_entrybox = Entry(audio_window, textvariable=fdkaac_custom_cmd, borderwidth=4, background="#CACACA")
+        fdkaac_cmd_entrybox.grid(row=12, column=0, columnspan=3, padx=10, pady=(0, 0), sticky=W + E)
+        fdkaac_custom_cmd.trace('w', fdkaac_cmd)
+        fdkaac_custom_cmd.set("")
+        # ----------------------------------------------------------------------------------------- Custom Command Line
+
+        # Entry Box for Track Title -----------------------------------------------------------------------------------
+        def fdkaac_title_check(*args):
+            global fdkaac_title_input
+            if fdkaac_title.get() == (""):
+                fdkaac_title_input = ("")
+            else:
+                title_cmd = fdkaac_title.get()
+                fdkaac_title_input = "--title " + '"' + title_cmd + '"' + " "
+
+        fdkaac_title = StringVar()
+        fdkaac_title_entrybox_label = Label(audio_window, text="Track Name :", anchor=W, background="#434547", \
+                                         foreground="white")
+        fdkaac_title_entrybox_label.grid(row=13, column=0, columnspan=2, padx=10, pady=(5, 0), sticky=N + S + W + E)
+        fdkaac_title_entrybox = Entry(audio_window, textvariable=fdkaac_title, borderwidth=4, background="#CACACA")
+        fdkaac_title_entrybox.grid(row=14, column=0, columnspan=3, padx=10, pady=(0, 10), sticky=W + E)
+        fdkaac_title.trace('w', fdkaac_title_check)
+        fdkaac_title.set("")
+        # ------------------------------------------------------------------------------------------------- Track Title
+
+        # Audio Profile Selection -------------------------------------------------------------------------------------
         acodec_profile = StringVar(audio_window)
         acodec_profile_choices = {'AAC LC (Default)': "-p2 ",
                                   'HE-AAC SBR': "-p5 ",
@@ -2013,8 +2066,9 @@ def openaudiowindow():
         acodec_profile_menu["menu"].configure(activebackground="dim grey")
         acodec_profile_menu.bind("<Enter>", acodec_profile_menu_hover)
         acodec_profile_menu.bind("<Leave>", acodec_profile_menu_hover_leave)
+        # ------------------------------------------------------------------------------------------- Profile Selection
 
-        # Audio Lowdelay SBR Selection
+        # Audio Lowdelay SBR Selection --------------------------------------------------------------------------------
         global acodec_lowdelay
         global acodec_lowdelay_choices
         acodec_lowdelay = StringVar(audio_window)
@@ -2030,8 +2084,9 @@ def openaudiowindow():
         acodec_lowdelay_menu["menu"].configure(activebackground="dim grey")
         acodec_lowdelay_menu.bind("<Enter>", acodec_lowdelay_menu_hover)
         acodec_lowdelay_menu.bind("<Leave>", acodec_lowdelay_menu_hover_leave)
+        # --------------------------------------------------------------------------------------------------- Low Delay
 
-        # Audio SBR Ratio
+        # Audio SBR Ratio ---------------------------------------------------------------------------------------------
         global acodec_sbr_ratio
         global acodec_sbr_ratio_choices
         acodec_sbr_ratio = StringVar(audio_window)
@@ -2047,8 +2102,9 @@ def openaudiowindow():
         acodec_sbr_ratio_menu["menu"].configure(activebackground="dim grey")
         acodec_sbr_ratio_menu.bind("<Enter>", acodec_sbr_ratio_menu_hover)
         acodec_sbr_ratio_menu.bind("<Leave>", acodec_sbr_ratio_menu_hover_leave)
+        # --------------------------------------------------------------------------------------------------- SBR Ratio
 
-        # Audio Gapless Mode
+        # Audio Gapless Mode ------------------------------------------------------------------------------------------
         global acodec_gapless_mode
         global acodec_gapless_mode_choices
         acodec_gapless_mode = StringVar(audio_window)
@@ -2064,8 +2120,9 @@ def openaudiowindow():
         acodec_gapless_mode_menu["menu"].configure(activebackground="dim grey")
         acodec_gapless_mode_menu.bind("<Enter>", acodec_gapless_mode_menu_hover)
         acodec_gapless_mode_menu.bind("<Leave>", acodec_gapless_mode_menu_hover_leave)
+        # ------------------------------------------------------------------------------------------ Audio Gapless Mode
 
-        # Audio Transport Format
+        # Audio Transport Format --------------------------------------------------------------------------------------
         global acodec_transport_format
         global acodec_transport_format_choices
         acodec_transport_format = StringVar(audio_window)
@@ -2086,8 +2143,9 @@ def openaudiowindow():
         acodec_transport_format_menu["menu"].configure(activebackground="dim grey")
         acodec_transport_format_menu.bind("<Enter>", acodec_transport_format_menu_hover)
         acodec_transport_format_menu.bind("<Leave>", acodec_transport_format_menu_hover_leave)
+        # --------------------------------------------------------------------------------------------------- Transport
 
-        # Misc Checkboxes - Afterburner
+        # Misc Checkboxes - Afterburner -------------------------------------------------------------------------------
         global afterburnervar
         afterburnervar = StringVar()
         afterburnervar.set("-a1 ")
@@ -2096,8 +2154,9 @@ def openaudiowindow():
         afterburner_checkbox.grid(row=8, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         afterburner_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                        activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+        # ------------------------------------------------------------------------------------------------- Afterburner
 
-        # Misc Checkboxes - Add CRC Check on ADTS Header
+        # Misc Checkboxes - Add CRC Check on ADTS Header --------------------------------------------------------------
         global crccheck
         crccheck = StringVar()
         crccheck.set("")
@@ -2106,8 +2165,9 @@ def openaudiowindow():
         crccheck_checkbox.grid(row=9, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         crccheck_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                     activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+        # --------------------------------------------------------------------------------------------------------- CRC
 
-        # Misc Checkboxes - Header Period
+        # Misc Checkboxes - Header Period -----------------------------------------------------------------------------
         global headerperiod
         headerperiod = StringVar()
         headerperiod.set("")
@@ -2116,8 +2176,9 @@ def openaudiowindow():
         headerperiod_checkbox.grid(row=9, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         headerperiod_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                         activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+        # ------------------------------------------------------------------------------------------------------ Header
 
-        # Misc Checkboxes - Include SBR Delay
+        # Misc Checkboxes - Include SBR Delay -------------------------------------------------------------------------
         global sbrdelay
         sbrdelay = StringVar()
         sbrdelay.set("")
@@ -2126,16 +2187,19 @@ def openaudiowindow():
         sbrdelay_checkbox.grid(row=9, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         sbrdelay_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                     activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+        # --------------------------------------------------------------------------------------------------- SBR Delay
 
-        # Misc Checkboxes - Place Moov Box Before Mdat Box
+        # Misc Checkboxes - Place Moov Box Before Mdat Box ------------------------------------------------------------
         global moovbox
         moovbox = StringVar()
         moovbox.set("")
         moovbox_checkbox = Checkbutton(audio_window, text='Place Moov Box Before Mdat Box', variable=moovbox,
                                        onvalue="--moov-before-mdat ", offvalue="", anchor='w')
-        moovbox_checkbox.grid(row=10, column=0, columnspan=2, padx=10, pady=3, sticky=N + S + E + W)
+        moovbox_checkbox.grid(row=10, column=1, columnspan=3, padx=10, pady=3, sticky=N + S + E + W)
         moovbox_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                    activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+        # ---------------------------------------------------------------------------------------------------- Moov Box
+    # --------------------------------------------------------------------------------------------------------- FDK AAC
 
         # QAAC Window -----------------------
     elif encoder.get() == "QAAC":
@@ -2650,17 +2714,25 @@ def print_command_line():
                                  + dts_settings_choices[dts_settings.get()] \
                                  + dts_custom_cmd_input + "\n \n" + VideoOutputQuoted
     # --------------------------------------------------------------------------------------- DTS Command Line Main Gui
+
+    # FDK View Command Line -------------------------------------------------------------------------------------------
     elif encoder.get() == "FDK-AAC":
-        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted + "\n \n" + \
-                             acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + \
-                             acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[
-                                 acodec_gain.get()] + "-f caf - | " + "\n \n" + "fdkaac.exe" + " " + \
-                             acodec_profile_choices[
-                                 acodec_profile.get()] + afterburnervar.get() + crccheck.get() + moovbox.get() + sbrdelay.get() + headerperiod.get() + \
-                             acodec_lowdelay_choices[acodec_lowdelay.get()] + acodec_sbr_ratio_choices[
-                                 acodec_sbr_ratio.get()] + acodec_transport_format_choices[
-                                 acodec_transport_format.get()] + acodec_bitrate_choices[
-                                 acodec_bitrate.get()] + "- -o " + "\n \n" + VideoOutputQuoted
+        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + \
+                             VideoInputQuoted + "\n \n" + \
+                             acodec_stream_choices[acodec_stream.get()] + \
+                             acodec_channel_choices[acodec_channel.get()] + \
+                             acodec_samplerate_choices[acodec_samplerate.get()] + \
+                             acodec_gain_choices[acodec_gain.get()] + \
+                             "-f caf - | " + "\n \n" + "fdkaac.exe" + " " + \
+                             acodec_profile_choices[acodec_profile.get()] + afterburnervar.get() + fdkaac_title_input \
+                             + fdkaac_custom_cmd_input + \
+                             crccheck.get() + moovbox.get() + sbrdelay.get() + headerperiod.get() + \
+                             acodec_lowdelay_choices[acodec_lowdelay.get()] + \
+                             acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] + \
+                             acodec_transport_format_choices[acodec_transport_format.get()] + \
+                             acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " + "\n \n" + VideoOutputQuoted
+    # ---------------------------------------------------------------------------------------------------- FDK CMD LINE
+
     elif encoder.get() == "QAAC":
         if q_acodec_profile.get() == "True VBR":
             example_cmd_output = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted + "\n \n" + \
@@ -2868,16 +2940,16 @@ def startaudiojob():
                            acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
                            acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] \
                            + mp3_abr.get() + acodec_samplerate_choices[acodec_samplerate.get()] \
-                           + acodec_gain_choices[acodec_gain.get()] + mp3_custom_cmd_input \
-                           + VideoOutputQuoted + " -hide_banner -v error -stats"
+                           + acodec_gain_choices[acodec_gain.get()] + "-sn -vn -map_chapters -1 -map_metadata -1 " \
+                           + mp3_custom_cmd_input + VideoOutputQuoted + " -hide_banner -v error -stats"
             subprocess.Popen(finalcommand)
         elif shell_options.get() == "Debug":
             finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
                            acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
                            acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] \
                            + mp3_abr.get() + acodec_samplerate_choices[acodec_samplerate.get()] \
-                           + acodec_gain_choices[acodec_gain.get()] + mp3_custom_cmd_input \
-                           + VideoOutputQuoted + " -hide_banner" + '"'
+                           + acodec_gain_choices[acodec_gain.get()] + "-sn -vn -map_chapters -1 -map_metadata -1 " \
+                           + mp3_custom_cmd_input + VideoOutputQuoted + " -hide_banner" + '"'
             subprocess.Popen('cmd /k ' + finalcommand)
     # ------------------------------------------------------------------------------------------------------------- MP3
 
@@ -2897,30 +2969,37 @@ def startaudiojob():
                            acodec_gain_choices[acodec_gain.get()] + VideoOutputQuoted + " -hide_banner" + '"'
             subprocess.Popen('cmd /k ' + finalcommand)
 
+    # FDK_AAC Start Job -----------------------------------------------------------------------------------------------
     elif encoder.get() == "FDK-AAC":
         if shell_options.get() == "Default":
             finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
                            acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + \
-                           acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[
-                               acodec_gain.get()] + "-f caf - | " + fdkaac + " " + acodec_profile_choices[
-                               acodec_profile.get()] + afterburnervar.get() + crccheck.get() + moovbox.get() + sbrdelay.get() + headerperiod.get() + \
-                           acodec_lowdelay_choices[acodec_lowdelay.get()] + acodec_sbr_ratio_choices[
-                               acodec_sbr_ratio.get()] + acodec_transport_format_choices[
-                               acodec_transport_format.get()] + acodec_bitrate_choices[
-                               acodec_bitrate.get()] + "- -o " + VideoOutputQuoted + '"'
-            subprocess.Popen(
-                'cmd /c ' + finalcommand)
+                           acodec_samplerate_choices[acodec_samplerate.get()] + \
+                           acodec_gain_choices[acodec_gain.get()] + \
+                           "-f caf - | " + fdkaac + " " + acodec_profile_choices[acodec_profile.get()] + \
+                           fdkaac_title_input + fdkaac_custom_cmd_input + \
+                           afterburnervar.get() + crccheck.get() + moovbox.get() \
+                           + sbrdelay.get() + headerperiod.get() + \
+                           acodec_lowdelay_choices[acodec_lowdelay.get()] + \
+                           acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] + \
+                           acodec_transport_format_choices[acodec_transport_format.get()] + \
+                           acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " + VideoOutputQuoted + '"'
+            subprocess.Popen('cmd /c ' + finalcommand)
         elif shell_options.get() == "Debug":
             finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
                            acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + \
-                           acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[
-                               acodec_gain.get()] + "-f caf - | " + fdkaac + " " + acodec_profile_choices[
-                               acodec_profile.get()] + afterburnervar.get() + crccheck.get() + moovbox.get() + sbrdelay.get() + headerperiod.get() + \
-                           acodec_lowdelay_choices[acodec_lowdelay.get()] + acodec_sbr_ratio_choices[
-                               acodec_sbr_ratio.get()] + acodec_transport_format_choices[
-                               acodec_transport_format.get()] + acodec_bitrate_choices[
-                               acodec_bitrate.get()] + "- -o " + VideoOutputQuoted + '"'
+                           acodec_samplerate_choices[acodec_samplerate.get()] + \
+                           acodec_gain_choices[acodec_gain.get()] + \
+                           "-f caf - | " + fdkaac + " " + acodec_profile_choices[acodec_profile.get()] + \
+                           fdkaac_title_input + fdkaac_custom_cmd_input + \
+                           afterburnervar.get() + crccheck.get() + moovbox.get() \
+                           + sbrdelay.get() + headerperiod.get() + \
+                           acodec_lowdelay_choices[acodec_lowdelay.get()] + \
+                           acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] + \
+                           acodec_transport_format_choices[acodec_transport_format.get()] + \
+                           acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " + VideoOutputQuoted + '"'
             subprocess.Popen('cmd /k ' + finalcommand)
+    # ------------------------------------------------------------------------------------------------------------- FDK
 
     elif encoder.get() == "QAAC":
         if shell_options.get() == "Default":
