@@ -297,6 +297,35 @@ def openaudiowindow():
     def stereo_rematrixing_menu_hover_leave(e):
         stereo_rematrixing_menu["bg"] = "#23272A"
 
+    def q_acodec_profile_hover(e):
+        q_acodec_profile_menu["bg"] = "grey"
+        q_acodec_profile_menu["activebackground"] = "grey"
+
+    def q_acodec_profile_hover_leave(e):
+        q_acodec_profile_menu["bg"] = "#23272A"
+
+    def q_acodec_quality_menu_hover(e):
+        q_acodec_quality_menu["bg"] = "grey"
+        q_acodec_quality_menu["activebackground"] = "grey"
+
+    def q_acodec_quality_menu_hover_leave(e):
+        q_acodec_quality_menu["bg"] = "#23272A"
+
+    def help_button_hover(e):
+        help_button["bg"] = "grey"
+        help_button["activebackground"] = "grey"
+
+    def help_button_hover_leave(e):
+        help_button["bg"] = "#23272A"
+
+    def q_gapless_mode_menu_hover(e):
+        q_gapless_mode_menu["bg"] = "grey"
+        q_gapless_mode_menu["activebackground"] = "grey"
+
+    def q_gapless_mode_menu_hover_leave(e):
+        q_gapless_mode_menu["bg"] = "#23272A"
+
+
     def gotosavefile():
         audio_window.destroy()
         output_button.config(state=NORMAL)
@@ -2626,13 +2655,13 @@ def openaudiowindow():
         # ---------------------------------------------------------------------------------------------------- Moov Box
     # --------------------------------------------------------------------------------------------------------- FDK AAC
 
-    # QAAC Window -----------------------
+    # 1 Window -----------------------------------------------------------------------------------------------------
     elif encoder.get() == "QAAC":
         audio_window = Toplevel()
         audio_window.title('QAAC Settings')
         audio_window.configure(background="#434547")
-        window_height = 400
-        window_width = 600
+        window_height = 700
+        window_width = 750
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
         x_cordinate = int((screen_width / 2) - (window_width / 2))
@@ -2641,7 +2670,7 @@ def openaudiowindow():
 
         my_menu = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu)
-        check_streams = Menu(my_menu, tearoff=0, activebackground="dim grey")
+        Menu(my_menu, tearoff=0, activebackground="dim grey")
         my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
 
         audio_window.grid_columnconfigure(0, weight=1)
@@ -2657,62 +2686,10 @@ def openaudiowindow():
         audio_window.grid_rowconfigure(7, weight=1)
         audio_window.grid_rowconfigure(8, weight=1)
         audio_window.grid_rowconfigure(9, weight=1)
-        audio_window.grid_rowconfigure(10, weight=1)
+        audio_window.grid_rowconfigure(14, weight=1)
 
-        def apply_button_hover(e):
-            apply_button["bg"] = "grey"
 
-        def apply_button_hover_leave(e):
-            apply_button["bg"] = "#23272A"
-
-        def help_button_hover(e):
-            help_button["bg"] = "grey"
-
-        def help_button_hover_leave(e):
-            help_button["bg"] = "#23272A"
-
-        def q_acodec_profile_hover(e):
-            q_acodec_profile_menu["bg"] = "grey"
-            q_acodec_profile_menu["activebackground"] = "grey"
-
-        def q_acodec_profile_hover_leave(e):
-            q_acodec_profile_menu["bg"] = "#23272A"
-
-        def acodec_stream_menu_hover(e):
-            acodec_stream_menu["bg"] = "grey"
-            acodec_stream_menu["activebackground"] = "grey"
-
-        def acodec_stream_menu_hover_leave(e):
-            acodec_stream_menu["bg"] = "#23272A"
-
-        def achannel_menu_hover(e):
-            achannel_menu["bg"] = "grey"
-            achannel_menu["activebackground"] = "grey"
-
-        def achannel_menu_hover_leave(e):
-            achannel_menu["bg"] = "#23272A"
-
-        def acodec_gain_menu_hover(e):
-            acodec_gain_menu["bg"] = "grey"
-            acodec_gain_menu["activebackground"] = "grey"
-
-        def acodec_gain_menu_hover_leave(e):
-            acodec_gain_menu["bg"] = "#23272A"
-
-        def acodec_samplerate_menu_hover(e):
-            acodec_samplerate_menu["bg"] = "grey"
-            acodec_samplerate_menu["activebackground"] = "grey"
-
-        def acodec_samplerate_menu_hover_leave(e):
-            acodec_samplerate_menu["bg"] = "#23272A"
-
-        def q_acodec_quality_menu_hover(e):
-            q_acodec_quality_menu["bg"] = "grey"
-            q_acodec_quality_menu["activebackground"] = "grey"
-
-        def q_acodec_quality_menu_hover_leave(e):
-            q_acodec_quality_menu["bg"] = "#23272A"
-
+        # Help --------------------------------------------------------------------------------------------------------
         def gotoqaachelp():
             helpfile_window = Toplevel(audio_window)
             helpfile_window.title("QAAC Advanced Settings Help")
@@ -2727,30 +2704,80 @@ def openaudiowindow():
                 text_area.insert(INSERT, helpfile.read())
                 text_area.configure(font=("Helvetica", 14))
                 text_area.configure(state=DISABLED)
+        # -------------------------------------------------------------------------------------------------------- Help
 
-        def gotosavefile():
-            audio_window.destroy()
-            output_button.config(state=NORMAL)
-            start_audio_button.config(state=NORMAL)
-            command_line_button.config(state=NORMAL)
+        # Views Command -----------------------------------------------------------------------------------------------
+        def view_command():
+            global cmd_label
+            global cmd_line_window
+            if q_acodec_profile.get() == "True VBR":
+                example_cmd_output = acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[
+                                     acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] \
+                                     + "\n \n" + "-f wav - | " + qaac + " " + "\n \n" \
+                                     + q_acodec_profile_choices[q_acodec_profile.get()] + q_acodec_quality_amnt.get() \
+                                     + " " + qaac_high_efficiency.get() + qaac_normalize.get() + qaac_nodither.get() \
+                                     + "--gain " + q_acodec_gain.get() + " " + \
+                                     q_acodec_quality_choices[q_acodec_quality.get()] + qaac_normalize.get() \
+                                     + qaac_nodelay.get() + q_gapless_mode_choices[q_gapless_mode.get()] \
+                                     + qaac_nooptimize.get() + qaac_threading.get() + qaac_limiter.get() \
+                                     + qaac_title_input + qaac_custom_cmd_input
+            else:
+                example_cmd_output = acodec_stream_choices[acodec_stream.get()] + \
+                                     acodec_channel_choices[acodec_channel.get()] + \
+                                     acodec_samplerate_choices[acodec_samplerate.get()] \
+                                     + "\n \n" + "-f wav - | " + qaac + " " + "\n \n" \
+                                     + q_acodec_profile_choices[q_acodec_profile.get()] + \
+                                     q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() \
+                                     + qaac_nodither.get() + "--gain " + q_acodec_gain.get() + " " \
+                                     + q_acodec_quality_choices[q_acodec_quality.get()] + qaac_normalize.get() \
+                                     + qaac_nodelay.get() \
+                                     + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
+                                     + qaac_threading.get() + qaac_limiter.get() + qaac_title_input \
+                                     + qaac_custom_cmd_input
+            try:
+                cmd_label.config(text=example_cmd_output)
+                cmd_line_window.deiconify()
+            except (AttributeError, NameError):
+                cmd_line_window = Toplevel()
+                cmd_line_window.title('Command Line')
+                cmd_line_window.configure(background="#434547")
+                cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
+                cmd_label.config(font=("Helvetica", 16))
+                cmd_label.winfo_exists()
+                cmd_label.pack()
 
+                def hide_instead():
+                    cmd_line_window.withdraw()
+
+                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
+        # ----------------------------------------------------------------------------------------------- Views Command
+        # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                               command=gotosavefile)
-        apply_button.grid(row=9, column=2, columnspan=1, padx=10, pady=20, sticky=N + S + W + E)
+        apply_button.grid(row=14, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         apply_button.bind("<Enter>", apply_button_hover)
         apply_button.bind("<Leave>", apply_button_hover_leave)
 
+        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A", \
+                          command=view_command)
+        show_cmd.grid(row=14, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        show_cmd.bind("<Enter>", show_cmd_hover)
+        show_cmd.bind("<Leave>", show_cmd_hover_leave)
+
         help_button = Button(audio_window, text="Help + Information", foreground="white", background="#23272A",
                              command=gotoqaachelp)
-        help_button.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        help_button.grid(row=14, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         help_button.bind("<Enter>", help_button_hover)
         help_button.bind("<Leave>", help_button_hover_leave)
+        # ----------------------------------------------------------------------------------------------------- Buttons
 
         advanced_label = Label(audio_window,
-                               text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - - - - - - - - - - - - - - - - - - -",
+                               text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - - - - - - - - - - "
+                                    "- - - - - - - - -",
                                background="#434547", foreground="white", relief=GROOVE)
-        advanced_label.grid(row=4, column=0, columnspan=3, padx=10, pady=10, sticky=W + E)
+        advanced_label.grid(row=6, column=0, columnspan=3, padx=10, pady=10, sticky=W + E)
 
+        # Quality or Bitrate ------------------------------------------------------------------------------------------
         def quality_or_bitrate(*args):
             if q_acodec_profile.get() == 'True VBR':
                 q_acodec_quality_spinbox.configure(state=NORMAL)
@@ -2762,8 +2789,9 @@ def openaudiowindow():
                 q_acodec_quality_spinbox.configure(state=DISABLED)
                 q_acodec_bitrate_spinbox.configure(state=NORMAL)
                 qaac_high_efficiency_checkbox.configure(state=NORMAL)
+        # ------------------------------------------------------------------------------------------ Quality or Bitrate
 
-        # Audio Profile Menu
+        # Audio Profile Menu ------------------------------------------------------------------------------------------
         global q_acodec_profile
         global q_acodec_profile_choices
         q_acodec_profile = StringVar(audio_window)
@@ -2774,15 +2802,16 @@ def openaudiowindow():
         q_acodec_profile.set('True VBR')  # set the default option
         q_acodec_profile.trace('w', quality_or_bitrate)
         q_acodec_profile_menu_label = Label(audio_window, text="Mode :", background="#434547", foreground="white")
-        q_acodec_profile_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
+        q_acodec_profile_menu_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
         q_acodec_profile_menu = OptionMenu(audio_window, q_acodec_profile, *q_acodec_profile_choices.keys())
         q_acodec_profile_menu.config(background="#23272A", foreground="white", highlightthickness=1)
-        q_acodec_profile_menu.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        q_acodec_profile_menu.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         q_acodec_profile_menu["menu"].configure(activebackground="dim grey")
         q_acodec_profile_menu.bind("<Enter>", q_acodec_profile_hover)
         q_acodec_profile_menu.bind("<Leave>", q_acodec_profile_hover_leave)
+        # ------------------------------------------------------------------------------------------ Audio Profile Menu
 
-        # Audio Channel Selection
+        # Audio Channel Selection -------------------------------------------------------------------------------------
         acodec_channel = StringVar(audio_window)
         acodec_channel_choices = {'Original': "",
                                   '1 (Mono)': "-ac 1 ",
@@ -2799,8 +2828,9 @@ def openaudiowindow():
         achannel_menu["menu"].configure(activebackground="dim grey")
         achannel_menu.bind("<Enter>", achannel_menu_hover)
         achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
+        # ----------------------------------------------------------------------------------------------- Audio Channel
 
-        # Audio Stream Selection
+        # Audio Stream Selection --------------------------------------------------------------------------------------
         acodec_stream = StringVar(audio_window)
         acodec_stream_choices = acodec_stream_track_counter
         acodec_stream.set('Track 1')  # set the default option
@@ -2812,41 +2842,47 @@ def openaudiowindow():
         acodec_stream_menu["menu"].configure(activebackground="dim grey")
         acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
         acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+        # ------------------------------------------------------------------------------------------------ Audio Stream
 
-        # Audio Gain Selection
-        acodec_gain = StringVar(audio_window)
-        acodec_gain_choices = {'Default (0)': "-sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+10 dB': "-af volume=10dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+9 dB': "-af volume=9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+8 dB': "-af volume=8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+7 dB': "-af volume=7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+6 dB': "-af volume=6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+5 dB': "-af volume=5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+4 dB': "-af volume=4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+3 dB': "-af volume=3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+2 dB': "-af volume=2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '+1 dB': "-af volume=1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-1 dB': "-af volume=-1dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-2 dB': "-af volume=-2dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-3 dB': "-af volume=-3dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-4 dB': "-af volume=-4dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-5 dB': "-af volume=-5dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-6 dB': "-af volume=-6dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-7 dB': "-af volume=-7dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-8 dB': "-af volume=-8dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-9 dB': "-af volume=-9dB -sn -vn -map_chapters -1 -map_metadata -1 ",
-                               '-10 dB': "-af volume=-10dB -sn -vn -map_chapters -1 -map_metadata -1 "}
-        acodec_gain.set('Default (0)')  # set the default option
-        acodec_gain_label = Label(audio_window, text="Gain :", background="#434547", foreground="white")
-        acodec_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        acodec_gain_menu = OptionMenu(audio_window, acodec_gain, *acodec_gain_choices.keys())
-        acodec_gain_menu.config(background="#23272A", foreground="white", highlightthickness=1)
-        acodec_gain_menu.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        acodec_gain_menu["menu"].configure(activebackground="dim grey")
-        acodec_gain_menu.bind("<Enter>", acodec_gain_menu_hover)
-        acodec_gain_menu.bind("<Leave>", acodec_gain_menu_hover_leave)
+        # Entry Box for Custom Command Line ---------------------------------------------------------------------------
+        def qaac_cmd(*args):
+            global qaac_custom_cmd_input
+            if qaac_custom_cmd.get() == (""):
+                qaac_custom_cmd_input = ("")
+            else:
+                cstmcmd = qaac_custom_cmd.get()
+                qaac_custom_cmd_input = cstmcmd + " "
 
-        # Audio Sample Rate Selection
+        qaac_custom_cmd = StringVar()
+        qaac_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547", \
+                                          foreground="white")
+        qaac_cmd_entrybox_label.grid(row=10, column=0, columnspan=2, padx=10, pady=(0, 0), sticky=N + S + W + E)
+        qaac_cmd_entrybox = Entry(audio_window, textvariable=qaac_custom_cmd, borderwidth=4, background="#CACACA")
+        qaac_cmd_entrybox.grid(row=11, column=0, columnspan=3, padx=10, pady=(0, 0), sticky=W + E)
+        qaac_custom_cmd.trace('w', qaac_cmd)
+        qaac_custom_cmd.set("")
+        # ----------------------------------------------------------------------------------------- Custom Command Line
+
+        # Entry Box for Track Title -----------------------------------------------------------------------------------
+        def qaac_title_check(*args):
+            global qaac_title_input
+            if qaac_title.get() == (""):
+                qaac_title_input = ("")
+            else:
+                title_cmd = qaac_title.get()
+                qaac_title_input = "--title " + '"' + title_cmd + '"' + " "
+
+        qaac_title = StringVar()
+        qaac_title_entrybox_label = Label(audio_window, text="Track Name :", anchor=W, background="#434547", \
+                                            foreground="white")
+        qaac_title_entrybox_label.grid(row=12, column=0, columnspan=2, padx=10, pady=(5, 0), sticky=N + S + W + E)
+        qaac_title_entrybox = Entry(audio_window, textvariable=qaac_title, borderwidth=4, background="#CACACA")
+        qaac_title_entrybox.grid(row=13, column=0, columnspan=3, padx=10, pady=(0, 10), sticky=W + E)
+        qaac_title.trace('w', qaac_title_check)
+        qaac_title.set("")
+        # ------------------------------------------------------------------------------------------------- Track Title
+
+        # Audio Sample Rate Selection ---------------------------------------------------------------------------------
         acodec_samplerate = StringVar(audio_window)
         acodec_samplerate_choices = {'Original': "",
                                      '11025 Hz': "-ar 11025 ",
@@ -2857,17 +2893,16 @@ def openaudiowindow():
                                      '96000 Hz': "-ar 96000 "}
         acodec_samplerate.set('Original')  # set the default option
         acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547", foreground="white")
-        acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_samplerate_label.grid(row=4, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate, *acodec_samplerate_choices.keys())
         acodec_samplerate_menu.config(background="#23272A", foreground="white", highlightthickness=1)
-        acodec_samplerate_menu.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_samplerate_menu.grid(row=5, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
         acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
         acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
+        # -------------------------------------------------------------------------------------------------- Samplerate
 
-        # Advanced Section ---------
-
-        # Audio Quality Selection
+        # Audio Quality Selection -------------------------------------------------------------------------------------
         global q_acodec_quality
         global q_acodec_quality_choices
         q_acodec_quality = StringVar(audio_window)
@@ -2876,86 +2911,157 @@ def openaudiowindow():
                                     'Low': "--quality 0 "}
         q_acodec_quality.set('High (Default)')  # set the default option
         q_acodec_quality_label = Label(audio_window, text="Quality :", background="#434547", foreground="white")
-        q_acodec_quality_label.grid(row=5, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        q_acodec_quality_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         q_acodec_quality_menu = OptionMenu(audio_window, q_acodec_quality, *q_acodec_quality_choices.keys())
         q_acodec_quality_menu.config(background="#23272A", foreground="white", highlightthickness=1)
-        q_acodec_quality_menu.grid(row=6, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        q_acodec_quality_menu.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         q_acodec_quality_menu["menu"].configure(activebackground="dim grey")
         q_acodec_quality_menu.bind("<Enter>", q_acodec_quality_menu_hover)
         q_acodec_quality_menu.bind("<Leave>", q_acodec_quality_menu_hover_leave)
+        # -------------------------------------------------------------------------------------------------------------
 
-        # Audio Lowdelay Spinbox
-        global q_acodec_lowpass
-        q_acodec_lowpass = StringVar(audio_window)
-        q_acodec_lowpass.set(0)  # set the default option
-        q_acodec_lowpass_label = Label(audio_window, text="Lowpass :", background="#434547", foreground="white")
-        q_acodec_lowpass_label.grid(row=5, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        q_acodec_lowpass_spinbox = Spinbox(audio_window, from_=0, to=100, justify=CENTER, wrap=True,
-                                           textvariable=q_acodec_lowpass)
-        q_acodec_lowpass_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
-                                        buttonbackground="black")
-        q_acodec_lowpass_spinbox.grid(row=6, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-
-        # Audio Quality Spinbox
+        # Audio Quality Spinbox ---------------------------------------------------------------------------------------
         global q_acodec_quality_amnt
         q_acodec_quality_amnt = StringVar(audio_window)
         q_acodec_quality_amnt.set(50)  # set the default option
         q_acodec_quality_spinbox_label = Label(audio_window, text="T-VBR Quality :", background="#434547",
                                                foreground="white")
-        q_acodec_quality_spinbox_label.grid(row=5, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        q_acodec_quality_spinbox_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         q_acodec_quality_spinbox = Spinbox(audio_window, from_=0, to=127, justify=CENTER, wrap=True,
-                                           textvariable=q_acodec_quality_amnt)
+                                           textvariable=q_acodec_quality_amnt, width=13)
         q_acodec_quality_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
-                                        buttonbackground="black")
-        q_acodec_quality_spinbox.grid(row=6, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+                                        buttonbackground="black", disabledbackground='grey')
+        q_acodec_quality_spinbox.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        # ----------------------------------------------------------------------------------------------------- Quality
 
-        # Audio Bitrate
+        # Audio Bitrate -----------------------------------------------------------------------------------------------
         global q_acodec_bitrate
         q_acodec_bitrate = StringVar(audio_window)
         q_acodec_bitrate.set(256)  # set the default option
         q_acodec_bitrate_label = Label(audio_window, text="Bitrate :", background="#434547", foreground="white")
-        q_acodec_bitrate_label.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        q_acodec_bitrate_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         q_acodec_bitrate_spinbox = Spinbox(audio_window, from_=1, to=1280, justify=CENTER, wrap=True,
-                                           textvariable=q_acodec_bitrate, state=DISABLED)
+                                           textvariable=q_acodec_bitrate, width=13, state=DISABLED)
         q_acodec_bitrate_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
-                                        buttonbackground="black")
-        q_acodec_bitrate_spinbox.grid(row=8, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+                                        buttonbackground="black", disabledbackground='grey')
+        q_acodec_bitrate_spinbox.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        # ----------------------------------------------------------------------------------------------------- Bitrate
 
-        # Misc Checkboxes - Normalize
+        # QAAC Gain ---------------------------------------------------------------------------------------------------
+        global q_acodec_gain
+        q_acodec_gain = StringVar(audio_window)
+        q_acodec_gain_label = Label(audio_window, text="Gain :", background="#434547", foreground="white")
+        q_acodec_gain_label.grid(row=4, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        q_acodec_gain_spinbox = Spinbox(audio_window, from_=-100, to=100, justify=CENTER, wrap=True,
+                                           textvariable=q_acodec_gain, width=13)
+        q_acodec_gain_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
+                                        buttonbackground="black", disabledbackground='grey')
+        q_acodec_gain_spinbox.grid(row=5, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        q_acodec_gain.set(0)
+        # -------------------------------------------------------------------------------------------------------- Gain
+
+        # Misc Checkboxes - Normalize ---------------------------------------------------------------------------------
         global qaac_normalize
         qaac_normalize = StringVar()
         qaac_normalize.set("")
         qaac_normalize_checkbox = Checkbutton(audio_window, text='Normalize', variable=qaac_normalize,
                                               onvalue="--normalize ",
                                               offvalue="")
-        qaac_normalize_checkbox.grid(row=8, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        qaac_normalize_checkbox.grid(row=5, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         qaac_normalize_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                           activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+        # --------------------------------------------------------------------------------------------------- Normalize
 
-        # Misc Checkboxes - High Efficiency
+        # Misc Checkboxes - High Efficiency ---------------------------------------------------------------------------
         global qaac_high_efficiency
         qaac_high_efficiency = StringVar()
         qaac_high_efficiency.set("")
         qaac_high_efficiency_checkbox = Checkbutton(audio_window, text='High Efficiency', variable=qaac_high_efficiency,
                                                     onvalue="--he ",
                                                     offvalue="", state=DISABLED)
-        qaac_high_efficiency_checkbox.grid(row=8, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        qaac_high_efficiency_checkbox.grid(row=8, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         qaac_high_efficiency_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                                 activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+        # --------------------------------------------------------------------------------------------- High Effeciency
 
-        # Misc Checkboxes - No Dither When Quantizing to Lower Bit Depth
+        # Misc Checkboxes - No Dither When Quantizing to Lower Bit Depth ----------------------------------------------
         global qaac_nodither
         qaac_nodither = StringVar()
         qaac_nodither.set("")
-        qaac_nodither_checkbox = Checkbutton(audio_window, text='No Dither When Quantizing to Lower Bit Depth',
+        qaac_nodither_checkbox = Checkbutton(audio_window, text='No Dither',
                                              variable=qaac_nodither, onvalue="--no-dither ",
                                              offvalue="")
-        qaac_nodither_checkbox.grid(row=9, column=0, columnspan=2, padx=10, pady=3, sticky=N + S + E + W)
+        qaac_nodither_checkbox.grid(row=7, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         qaac_nodither_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                          activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+        # --------------------------------------------------------------------------------------------------- No Dither
 
+        # Misc Checkboxes - No Delay ----------------------------------------------------------------------------------
+        global qaac_nodelay
+        qaac_nodelay = StringVar()
+        qaac_nodelay.set("")
+        qaac_nodelay_checkbox = Checkbutton(audio_window, text='No Delay',
+                                             variable=qaac_nodelay, onvalue="--no-delay ",
+                                             offvalue="")
+        qaac_nodelay_checkbox.grid(row=7, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        qaac_nodelay_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                         activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+        # ---------------------------------------------------------------------------------------------------- No Delay
 
-# Code------------------------------------------------------------------------
+        # Gapless Mode ------------------------------------------------------------------------------------------------
+        global q_gapless_mode
+        global q_gapless_mode_choices
+        q_gapless_mode = StringVar(audio_window)
+        q_gapless_mode_choices = {'iTunSMPB (default)': "",
+                                    'ISO standard': "--gapless-mode 1 ",
+                                    'Both': "--gapless-mode 2 "}
+        q_gapless_mode.set('iTunSMPB (default)')  # set the default option
+        q_gapless_mode_label = Label(audio_window, text="Gapless Mode :", background="#434547", foreground="white")
+        q_gapless_mode_label.grid(row=8, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        q_gapless_mode_menu = OptionMenu(audio_window, q_gapless_mode, *q_gapless_mode_choices.keys())
+        q_gapless_mode_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        q_gapless_mode_menu.grid(row=9, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        q_gapless_mode_menu["menu"].configure(activebackground="dim grey")
+        q_gapless_mode_menu.bind("<Enter>", q_gapless_mode_menu_hover)
+        q_gapless_mode_menu.bind("<Leave>", q_gapless_mode_menu_hover_leave)
+        # ------------------------------------------------------------------------------------------------ Gapless Mode
+
+        # Misc Checkboxes - No Optimize -------------------------------------------------------------------------------
+        global qaac_nooptimize
+        qaac_nooptimize = StringVar()
+        qaac_nooptimize.set("")
+        qaac_nooptimize_checkbox = Checkbutton(audio_window, text='No Optimize',
+                                             variable=qaac_nooptimize, onvalue="--no-optimize ",
+                                             offvalue="")
+        qaac_nooptimize_checkbox.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        qaac_nooptimize_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                         activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+        # ------------------------------------------------------------------------------------------------- No Optimize
+
+        # Misc Checkboxes - Threading ---------------------------------------------------------------------------------
+        global qaac_threading
+        qaac_threading = StringVar()
+        qaac_threading.set("")
+        qaac_threading_checkbox = Checkbutton(audio_window, text='Threading',
+                                             variable=qaac_threading, onvalue="--no-optimize ",
+                                             offvalue="")
+        qaac_threading_checkbox.grid(row=8, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        qaac_threading_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                         activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+        # --------------------------------------------------------------------------------------------------- Threading
+
+        # Misc Checkboxes - Limiter -----------------------------------------------------------------------------------
+        global qaac_limiter
+        qaac_limiter = StringVar()
+        qaac_limiter.set("")
+        qaac_limiter_checkbox = Checkbutton(audio_window, text='Limiter',
+                                             variable=qaac_limiter, onvalue="--limiter ",
+                                             offvalue="")
+        qaac_limiter_checkbox.grid(row=9, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        qaac_limiter_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                         activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+        # ----------------------------------------------------------------------------------------------------- Limiter
+    # ----------------------------------------------------------------------------------------------------------- QAAC
 
 def file_input():
     global VideoInput
@@ -3158,21 +3264,38 @@ def print_command_line():
                              acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " + "\n \n" + VideoOutputQuoted
     # ---------------------------------------------------------------------------------------------------- FDK CMD LINE
 
+    # QAAC View Command Line ------------------------------------------------------------------------------------------
     elif encoder.get() == "QAAC":
         if q_acodec_profile.get() == "True VBR":
-            example_cmd_output = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted + "\n \n" + \
+            example_cmd_output = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + "\n \n" \
+                                 + VideoInputQuoted + "\n \n" + \
                                  acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[
-                                     acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + \
-                                 acodec_gain_choices[acodec_gain.get()] + "-f wav - | " + "\n \n" + "qaac.exe " + \
-                                 q_acodec_profile_choices[
-                                     q_acodec_profile.get()] + q_acodec_quality_amnt.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() + "--lowpass " + q_acodec_lowpass.get() + " " + qaac_nodither.get() + "- -o " + "\n \n" + VideoOutputQuoted
+                                     acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] \
+                                 + "\n \n" + "-f wav - | " + qaac + " " + "\n \n" \
+                                 + q_acodec_profile_choices[q_acodec_profile.get()] + q_acodec_quality_amnt.get() \
+                                 + " " + qaac_high_efficiency.get() + qaac_normalize.get() + qaac_nodither.get() \
+                                 + "--gain " + q_acodec_gain.get() + " " + \
+                                 q_acodec_quality_choices[q_acodec_quality.get()] + qaac_normalize.get() \
+                                 + qaac_nodelay.get() + q_gapless_mode_choices[q_gapless_mode.get()] \
+                                 + qaac_nooptimize.get() + qaac_threading.get() + qaac_limiter.get() \
+                                 + qaac_title_input + qaac_custom_cmd_input + "- -o " + "\n \n" + VideoOutputQuoted
         else:
-            example_cmd_output = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted + "\n \n" + \
-                                 acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[
-                                     acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + \
-                                 acodec_gain_choices[acodec_gain.get()] + "-f wav - | " + "\n \n" + "qaac.exe " + \
-                                 q_acodec_profile_choices[
-                                     q_acodec_profile.get()] + q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() + "--lowpass " + q_acodec_lowpass.get() + " " + qaac_nodither.get() + "- -o " + "\n \n" + VideoOutputQuoted
+            example_cmd_output = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + "\n \n" \
+                                 + VideoInputQuoted + "\n \n" + \
+                                 acodec_stream_choices[acodec_stream.get()] + \
+                                 acodec_channel_choices[acodec_channel.get()] + \
+                                 acodec_samplerate_choices[acodec_samplerate.get()] \
+                                 + "\n \n" + "-f wav - | " + qaac + " " + "\n \n" \
+                                 + q_acodec_profile_choices[q_acodec_profile.get()] + \
+                                 q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() \
+                                 + qaac_nodither.get() + "--gain " + q_acodec_gain.get() + " " \
+                                 + q_acodec_quality_choices[q_acodec_quality.get()] + qaac_normalize.get() \
+                                 + qaac_nodelay.get() \
+                                 + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
+                                 + qaac_threading.get() + qaac_limiter.get() + qaac_title_input \
+                                 + qaac_custom_cmd_input + "- -o " + "\n \n" + VideoOutputQuoted
+    # ------------------------------------------------------------------------------------------------------------ QAAC
+
     # AAC Command Line ------------------------------------------------------------------------------------------------
     elif encoder.get() == "AAC":
         if aac_vbr_toggle.get() == "-c:a ":
@@ -3264,283 +3387,190 @@ def print_command_line():
     cmd_label.pack()
 
 
-# Job Buttons ---------------------------------------------------------------------------------------------------------
-
+# Start Audio Job -----------------------------------------------------------------------------------------------------
 def startaudiojob():
     global example_cmd_output
     # Quote File Input/Output Paths--------------
     VideoInputQuoted = '"' + VideoInput + '"'
     VideoOutputQuoted = '"' + VideoOutput + '"'
-    # Commands---------------------------------------------------------------------------------------------------------
+    # -------------------------- Quote File Paths
     # AC3 Start Job ---------------------------------------------------------------------------------------------------
     if encoder.get() == "AC3":
+        finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+                       acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
+                       acodec_bitrate_choices[acodec_bitrate.get()] + \
+                       acodec_channel_choices[acodec_channel.get()] + \
+                       acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] \
+                       + "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input + ac3_title_input + \
+                       VideoOutputQuoted + " -hide_banner" + '"'
         if shell_options.get() == "Default":
-            finalcommand = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                           acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
-                           acodec_bitrate_choices[acodec_bitrate.get()] + \
-                           acodec_channel_choices[acodec_channel.get()] + \
-                           acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] \
-                           + "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input + ac3_title_input + \
-                           VideoOutputQuoted + " -hide_banner -v error -stats"
-            print(finalcommand)
-            subprocess.Popen(finalcommand)
+            subprocess.Popen('cmd /c ' + finalcommand)
         elif shell_options.get() == "Debug":
-            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                           acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
-                           acodec_bitrate_choices[acodec_bitrate.get()] + \
-                           acodec_channel_choices[acodec_channel.get()] + \
-                           acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] \
-                           + "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input + ac3_title_input + \
-                           VideoOutputQuoted + " -hide_banner" + '"'
-            print(finalcommand)
             subprocess.Popen('cmd /k ' + finalcommand)
-            # ------------------------------------------------------------------------------------------------- AC3 Job
+    # --------------------------------------------------------------------------------------------------------- AC3 Job
     # AAC Start Job ---------------------------------------------------------------------------------------------------
     elif encoder.get() == "AAC":
         if aac_vbr_toggle.get() == "-c:a ":
             bitrate_or_quality = f"-b:a {aac_bitrate_spinbox.get()}k "
         elif aac_vbr_toggle.get() == "-q:a ":
             bitrate_or_quality = f"-q:a {aac_quality_spinbox.get()} "
+        finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+                       acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
+                       bitrate_or_quality + acodec_channel_choices[acodec_channel.get()] + \
+                       acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[
+                           acodec_gain.get()] + "-sn -vn -map_chapters -1 -map_metadata -1 " \
+                       + aac_custom_cmd_input \
+                       + aac_title_input + VideoOutputQuoted + " -hide_banner" + '"'
         if shell_options.get() == "Default":
-            finalcommand = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                           acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
-                           bitrate_or_quality + acodec_channel_choices[acodec_channel.get()] + \
-                           acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[
-                               acodec_gain.get()] + "-sn -vn -map_chapters -1 -map_metadata -1 " \
-                           + aac_custom_cmd_input \
-                           + aac_title_input + VideoOutputQuoted + " -hide_banner -v error -stats"
-            subprocess.Popen(finalcommand)
-            print(finalcommand)
+            subprocess.Popen('cmd /c' + finalcommand)
         elif shell_options.get() == "Debug":
-            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                           acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
-                           bitrate_or_quality + acodec_channel_choices[acodec_channel.get()] + \
-                           acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[
-                               acodec_gain.get()] + "-sn -vn -map_chapters -1 -map_metadata -1 " \
-                           + aac_custom_cmd_input \
-                           + aac_title_input + VideoOutputQuoted + " -hide_banner" + '"'
             subprocess.Popen('cmd /k ' + finalcommand)
             # ------------------------------------------------------------------------------------------------- AAC Job
     # DTS Start Job ---------------------------------------------------------------------------------------------------
     elif encoder.get() == 'DTS':
+        if dts_settings.get() == 'DTS Encoder':
+            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+                           acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
+                           + "-b:a " + dts_bitrate_spinbox.get() + "k " \
+                           + acodec_channel_choices[acodec_channel.get()] \
+                           + acodec_samplerate_choices[acodec_samplerate.get()] \
+                           + acodec_gain_choices[acodec_gain.get()] + dts_custom_cmd_input \
+                           + "-sn -vn -map_chapters -1 " \
+                           + VideoOutputQuoted + " -hide_banner" + '"'
+        else:
+            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted \
+                           + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
+                           + dts_custom_cmd_input + "-sn -vn -map_chapters -1 " \
+                           + VideoOutputQuoted + " -hide_banner" + '"'
         if shell_options.get() == "Default":
-            if dts_settings.get() == 'DTS Encoder':
-                finalcommand = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                               acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
-                               + "-b:a " + dts_bitrate_spinbox.get() + "k " \
-                               + acodec_channel_choices[acodec_channel.get()] \
-                               + acodec_samplerate_choices[acodec_samplerate.get()] \
-                               + acodec_gain_choices[acodec_gain.get()] + dts_custom_cmd_input \
-                               + "-sn -vn -map_chapters -1 " \
-                               + VideoOutputQuoted + " -hide_banner -v error -stats"
-            else:
-                finalcommand = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted \
-                               + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
-                               + dts_custom_cmd_input + "-sn -vn -map_chapters -1 " \
-                               + VideoOutputQuoted + " -hide_banner -v error -stats"
-            subprocess.Popen(finalcommand)
+            subprocess.Popen('cmd /c' + finalcommand)
         elif shell_options.get() == "Debug":
-            if dts_settings.get() == 'DTS Encoder':
-                finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                               acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
-                               + "-b:a " + dts_bitrate_spinbox.get() + "k " \
-                               + acodec_channel_choices[acodec_channel.get()] \
-                               + acodec_samplerate_choices[acodec_samplerate.get()] \
-                               + acodec_gain_choices[acodec_gain.get()] + dts_custom_cmd_input \
-                               + "-sn -vn -map_chapters -1 " \
-                               + VideoOutputQuoted + " -hide_banner" + '"'
-            else:
-                finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted \
-                               + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
-                               + dts_custom_cmd_input + "-sn -vn -map_chapters -1 " \
-                               + VideoOutputQuoted + " -hide_banner" + '"'
             subprocess.Popen('cmd /k ' + finalcommand)
     # ------------------------------------------------------------------------------------------------------------- DTS
     # Opus Start Job --------------------------------------------------------------------------------------------------
     elif encoder.get() == "Opus":
+        finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+                       acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
+                       acodec_vbr_choices[acodec_vbr.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + \
+                       acodec_channel_choices[acodec_channel.get()] + acodec_gain_choices[acodec_gain.get()] + \
+                       acodec_application_choices[acodec_application.get()] + "-packet_loss " + \
+                       packet_loss.get() + " -frame_duration " + frame_duration.get() + " " + \
+                       acodec_samplerate_choices[acodec_samplerate.get()] + \
+                       acodec_gain_choices[acodec_gain.get()] + "-sn -vn -map_chapters -1 -map_metadata -1 " \
+                       + opus_custom_cmd_input + VideoOutputQuoted + " -hide_banner" + '"'
         if shell_options.get() == "Default":
-            finalcommand = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                           acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
-                           acodec_vbr_choices[acodec_vbr.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + \
-                           acodec_channel_choices[acodec_channel.get()] + acodec_gain_choices[acodec_gain.get()] + \
-                           acodec_application_choices[acodec_application.get()] + "-packet_loss " + \
-                           packet_loss.get() + " -frame_duration " + frame_duration.get() + " " + \
-                           acodec_samplerate_choices[acodec_samplerate.get()] + \
-                           acodec_gain_choices[acodec_gain.get()] + "-sn -vn -map_chapters -1 -map_metadata -1 " \
-                           + opus_custom_cmd_input + VideoOutputQuoted + " -hide_banner -v error -stats"
-            subprocess.Popen(finalcommand)
+            subprocess.Popen('cmd /c ' + finalcommand)
         elif shell_options.get() == "Debug":
-            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                           acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
-                           acodec_vbr_choices[acodec_vbr.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + \
-                           acodec_channel_choices[acodec_channel.get()] + acodec_gain_choices[acodec_gain.get()] + \
-                           acodec_application_choices[acodec_application.get()] + "-packet_loss " + \
-                           packet_loss.get() + " -frame_duration " + frame_duration.get() + " " + \
-                           acodec_samplerate_choices[acodec_samplerate.get()] + \
-                           acodec_gain_choices[acodec_gain.get()] + "-sn -vn -map_chapters -1 -map_metadata -1 " \
-                           + opus_custom_cmd_input + VideoOutputQuoted + " -hide_banner" + '"'
             subprocess.Popen('cmd /k ' + finalcommand)
     # ------------------------------------------------------------------------------------------------------------ Opus
     # MP3 Start Job ---------------------------------------------------------------------------------------------------
     elif encoder.get() == "MP3":
+        finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+                       acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
+                       acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] \
+                       + mp3_abr.get() + acodec_samplerate_choices[acodec_samplerate.get()] \
+                       + acodec_gain_choices[acodec_gain.get()] + "-sn -vn -map_chapters -1 -map_metadata -1 " \
+                       + mp3_custom_cmd_input + VideoOutputQuoted + " -hide_banner" + '"'
         if shell_options.get() == "Default":
-            finalcommand = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                           acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
-                           acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] \
-                           + mp3_abr.get() + acodec_samplerate_choices[acodec_samplerate.get()] \
-                           + acodec_gain_choices[acodec_gain.get()] + "-sn -vn -map_chapters -1 -map_metadata -1 " \
-                           + mp3_custom_cmd_input + VideoOutputQuoted + " -hide_banner -v error -stats"
-            subprocess.Popen(finalcommand)
-        elif shell_options.get() == "Debug":
-            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                           acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
-                           acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] \
-                           + mp3_abr.get() + acodec_samplerate_choices[acodec_samplerate.get()] \
-                           + acodec_gain_choices[acodec_gain.get()] + "-sn -vn -map_chapters -1 -map_metadata -1 " \
-                           + mp3_custom_cmd_input + VideoOutputQuoted + " -hide_banner" + '"'
-            subprocess.Popen('cmd /k ' + finalcommand)
-    # ------------------------------------------------------------------------------------------------------------- MP3
-
-    # E-AC3 Start Job -------------------------------------------------------------------------------------------------
-    elif encoder.get() == "E-AC3":
-        if shell_options.get() == "Default":
-            finalcommand = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                           acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] \
-                           + "-b:a " + eac3_spinbox.get() + acodec_channel_choices[acodec_channel.get()] \
-                           + acodec_samplerate_choices[acodec_samplerate.get()] \
-                           + acodec_gain_choices[acodec_gain.get()] + "-sn -vn -map_chapters -1 -map_metadata -1 " \
-                           + eac3_custom_cmd_input \
-                           + per_frame_metadata_choices[per_frame_metadata.get()] \
-                           + "-mixing_level " + eac3_mixing_level.get() + " " \
-                           + room_type_choices[room_type.get()] \
-                           + "-copyright " + copyright_bit.get() + " " \
-                           + "-dialnorm " + dialogue_level.get() + " " \
-                           + dolby_surround_mode_choices[dolby_surround_mode.get()] \
-                           + "-original " + original_bit_stream.get() + " " \
-                           + downmix_mode_choices[downmix_mode.get()] \
-                           + "-ltrt_cmixlev " + lt_rt_center_mix.get() + " " \
-                           + "-ltrt_surmixlev " + lt_rt_surround_mix.get() + " " \
-                           + "-loro_cmixlev " + lo_ro_center_mix.get() + " " \
-                           + "-loro_surmixlev " + lo_ro_surround_mix.get() + " " \
-                           + dolby_surround_ex_mode_choices[dolby_surround_ex_mode.get()] \
-                           + dolby_headphone_mode_choices[dolby_headphone_mode.get()] \
-                           + a_d_converter_type_choices[a_d_converter_type.get()] \
-                           + stereo_rematrixing_choices[stereo_rematrixing.get()] \
-                           + "-channel_coupling " + channel_coupling.get() + " " \
-                           + "-cpl_start_band " + cpl_start_band.get() + " " + \
-                           VideoOutputQuoted + " -hide_banner -v error -stats"
-            subprocess.Popen(finalcommand)
-        elif shell_options.get() == "Debug":
-            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                           acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] \
-                           + "-b:a " + eac3_spinbox.get() + acodec_channel_choices[acodec_channel.get()] \
-                           + acodec_samplerate_choices[acodec_samplerate.get()] \
-                           + acodec_gain_choices[acodec_gain.get()] + "-sn -vn -map_chapters -1 -map_metadata -1 " \
-                           + eac3_custom_cmd_input \
-                           + per_frame_metadata_choices[per_frame_metadata.get()] \
-                           + "-mixing_level " + eac3_mixing_level.get() + " " \
-                           + room_type_choices[room_type.get()] \
-                           + "-copyright " + copyright_bit.get() + " " \
-                           + "-dialnorm " + dialogue_level.get() + " " \
-                           + dolby_surround_mode_choices[dolby_surround_mode.get()] \
-                           + "-original " + original_bit_stream.get() + " " \
-                           + downmix_mode_choices[downmix_mode.get()] \
-                           + "-ltrt_cmixlev " + lt_rt_center_mix.get() + " " \
-                           + "-ltrt_surmixlev " + lt_rt_surround_mix.get() + " " \
-                           + "-loro_cmixlev " + lo_ro_center_mix.get() + " " \
-                           + "-loro_surmixlev " + lo_ro_surround_mix.get() + " " \
-                           + dolby_surround_ex_mode_choices[dolby_surround_ex_mode.get()] \
-                           + dolby_headphone_mode_choices[dolby_headphone_mode.get()] \
-                           + a_d_converter_type_choices[a_d_converter_type.get()] \
-                           + stereo_rematrixing_choices[stereo_rematrixing.get()] \
-                           + "-channel_coupling " + channel_coupling.get() + " " \
-                           + "-cpl_start_band " + cpl_start_band.get() + " " + \
-                           VideoOutputQuoted + " -hide_banner" + '"'
-            subprocess.Popen('cmd /k ' + finalcommand)
-    # ----------------------------------------------------------------------------------------------------------- E-AC3
-
-    # FDK_AAC Start Job -----------------------------------------------------------------------------------------------
-    elif encoder.get() == "FDK-AAC":
-        if shell_options.get() == "Default":
-            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                           acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + \
-                           acodec_samplerate_choices[acodec_samplerate.get()] + \
-                           acodec_gain_choices[acodec_gain.get()] + \
-                           "-f caf - | " + fdkaac + " " + acodec_profile_choices[acodec_profile.get()] + \
-                           fdkaac_title_input + fdkaac_custom_cmd_input + \
-                           afterburnervar.get() + crccheck.get() + moovbox.get() \
-                           + sbrdelay.get() + headerperiod.get() + \
-                           acodec_lowdelay_choices[acodec_lowdelay.get()] + \
-                           acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] + \
-                           acodec_transport_format_choices[acodec_transport_format.get()] + \
-                           acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " + VideoOutputQuoted + '"'
             subprocess.Popen('cmd /c ' + finalcommand)
         elif shell_options.get() == "Debug":
-            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                           acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + \
-                           acodec_samplerate_choices[acodec_samplerate.get()] + \
-                           acodec_gain_choices[acodec_gain.get()] + \
-                           "-f caf - | " + fdkaac + " " + acodec_profile_choices[acodec_profile.get()] + \
-                           fdkaac_title_input + fdkaac_custom_cmd_input + \
-                           afterburnervar.get() + crccheck.get() + moovbox.get() \
-                           + sbrdelay.get() + headerperiod.get() + \
-                           acodec_lowdelay_choices[acodec_lowdelay.get()] + \
-                           acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] + \
-                           acodec_transport_format_choices[acodec_transport_format.get()] + \
-                           acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " + VideoOutputQuoted + '"'
+            subprocess.Popen('cmd /k ' + finalcommand)
+    # ------------------------------------------------------------------------------------------------------------- MP3
+    # E-AC3 Start Job -------------------------------------------------------------------------------------------------
+    elif encoder.get() == "E-AC3":
+        finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+                       acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] \
+                       + "-b:a " + eac3_spinbox.get() + acodec_channel_choices[acodec_channel.get()] \
+                       + acodec_samplerate_choices[acodec_samplerate.get()] \
+                       + acodec_gain_choices[acodec_gain.get()] + "-sn -vn -map_chapters -1 -map_metadata -1 " \
+                       + eac3_custom_cmd_input \
+                       + per_frame_metadata_choices[per_frame_metadata.get()] \
+                       + "-mixing_level " + eac3_mixing_level.get() + " " \
+                       + room_type_choices[room_type.get()] \
+                       + "-copyright " + copyright_bit.get() + " " \
+                       + "-dialnorm " + dialogue_level.get() + " " \
+                       + dolby_surround_mode_choices[dolby_surround_mode.get()] \
+                       + "-original " + original_bit_stream.get() + " " \
+                       + downmix_mode_choices[downmix_mode.get()] \
+                       + "-ltrt_cmixlev " + lt_rt_center_mix.get() + " " \
+                       + "-ltrt_surmixlev " + lt_rt_surround_mix.get() + " " \
+                       + "-loro_cmixlev " + lo_ro_center_mix.get() + " " \
+                       + "-loro_surmixlev " + lo_ro_surround_mix.get() + " " \
+                       + dolby_surround_ex_mode_choices[dolby_surround_ex_mode.get()] \
+                       + dolby_headphone_mode_choices[dolby_headphone_mode.get()] \
+                       + a_d_converter_type_choices[a_d_converter_type.get()] \
+                       + stereo_rematrixing_choices[stereo_rematrixing.get()] \
+                       + "-channel_coupling " + channel_coupling.get() + " " \
+                       + "-cpl_start_band " + cpl_start_band.get() + " " + \
+                       VideoOutputQuoted + " -hide_banner" + '"'
+        if shell_options.get() == "Default":
+            subprocess.Popen('cmd /c ' +  finalcommand)
+        elif shell_options.get() == "Debug":
+            subprocess.Popen('cmd /k ' + finalcommand)
+    # ----------------------------------------------------------------------------------------------------------- E-AC3
+    # FDK_AAC Start Job -----------------------------------------------------------------------------------------------
+    elif encoder.get() == "FDK-AAC":
+        finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+                       acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + \
+                       acodec_samplerate_choices[acodec_samplerate.get()] + \
+                       acodec_gain_choices[acodec_gain.get()] + \
+                       "-f caf - | " + fdkaac + " " + acodec_profile_choices[acodec_profile.get()] + \
+                       fdkaac_title_input + fdkaac_custom_cmd_input + \
+                       afterburnervar.get() + crccheck.get() + moovbox.get() \
+                       + sbrdelay.get() + headerperiod.get() + \
+                       acodec_lowdelay_choices[acodec_lowdelay.get()] + \
+                       acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] + \
+                       acodec_transport_format_choices[acodec_transport_format.get()] + \
+                       acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " + VideoOutputQuoted + '"'
+        if shell_options.get() == "Default":
+            subprocess.Popen('cmd /c ' + finalcommand)
+        elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand)
     # ------------------------------------------------------------------------------------------------------------- FDK
-
+    # QAAC Start Job --------------------------------------------------------------------------------------------------
     elif encoder.get() == "QAAC":
+        if q_acodec_profile.get() == "True VBR":
+            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " \
+                           + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] \
+                           + acodec_channel_choices[acodec_channel.get()] \
+                           + acodec_samplerate_choices[acodec_samplerate.get()] \
+                           + "-f wav - | " + qaac + " " + q_acodec_profile_choices[q_acodec_profile.get()] \
+                           + q_acodec_quality_amnt.get() + " " + qaac_high_efficiency.get() \
+                           + qaac_normalize.get() + qaac_nodither.get() + "--gain " \
+                           + q_acodec_gain.get() + " " + q_acodec_quality_choices[q_acodec_quality.get()] \
+                           + qaac_normalize.get() + qaac_nodelay.get() \
+                           + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
+                           + qaac_threading.get() + qaac_limiter.get() + qaac_title_input + qaac_custom_cmd_input \
+                           + "- -o " + VideoOutputQuoted + '"'
+        else:
+            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted \
+                           + acodec_stream_choices[acodec_stream.get()] + \
+                           acodec_channel_choices[acodec_channel.get()] + \
+                           acodec_samplerate_choices[acodec_samplerate.get()] \
+                           + "-f wav - | " + qaac + " " + q_acodec_profile_choices[q_acodec_profile.get()] + \
+                           q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() \
+                           + qaac_nodither.get() + "--gain " + q_acodec_gain.get() + " " \
+                           + q_acodec_quality_choices[q_acodec_quality.get()] + qaac_normalize.get() \
+                           + qaac_nodelay.get() \
+                           + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
+                           + qaac_threading.get() + qaac_limiter.get() + qaac_title_input \
+                           + qaac_custom_cmd_input + "- -o " + VideoOutputQuoted + '"'
         if shell_options.get() == "Default":
-            if q_acodec_profile.get() == "True VBR":
-                finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                               acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[
-                                   acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + \
-                               acodec_gain_choices[acodec_gain.get()] + "-f wav - | " + qaac + " " + \
-                               q_acodec_profile_choices[
-                                   q_acodec_profile.get()] + q_acodec_quality_amnt.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() + "--lowpass " + q_acodec_lowpass.get() + " " + qaac_nodither.get() + "- -o " + VideoOutputQuoted + '"'
-                print(finalcommand)
-                subprocess.Popen('cmd /c ' + finalcommand)
-            else:
-                finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                               acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[
-                                   acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + \
-                               acodec_gain_choices[acodec_gain.get()] + "-f wav - | " + qaac + " " + \
-                               q_acodec_profile_choices[
-                                   q_acodec_profile.get()] + q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() + "--lowpass " + q_acodec_lowpass.get() + " " + qaac_nodither.get() + "- -o " + VideoOutputQuoted + '"'
-                print(finalcommand)
-                subprocess.Popen('cmd /c ' + finalcommand)
+            subprocess.Popen('cmd /c ' + finalcommand)
         elif shell_options.get() == "Debug":
-            if q_acodec_profile.get() == "True VBR":
-                finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                               acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[
-                                   acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + \
-                               acodec_gain_choices[acodec_gain.get()] + "-f wav - | " + qaac + " " + \
-                               q_acodec_profile_choices[
-                                   q_acodec_profile.get()] + q_acodec_quality_amnt.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() + "--lowpass " + q_acodec_lowpass.get() + " " + qaac_nodither.get() + "- -o " + VideoOutputQuoted + '"'
-                print(finalcommand)
-                subprocess.Popen('cmd /k ' + finalcommand)
-            else:
-                finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
-                               acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[
-                                   acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] + \
-                               acodec_gain_choices[acodec_gain.get()] + "-f wav - | " + qaac + " " + \
-                               q_acodec_profile_choices[
-                                   q_acodec_profile.get()] + q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() + "--lowpass " + q_acodec_lowpass.get() + " " + qaac_nodither.get() + "- -o " + VideoOutputQuoted + '"'
-                print(finalcommand)
-                subprocess.Popen('cmd /k ' + finalcommand)
+            subprocess.Popen('cmd /k ' + finalcommand)
+    # ------------------------------------------------------------------------------------------------------------ QAAC
 
-
-def mediainfogui():  # Opens file via included portable MediaInfo
+# Open InputFile with portable MediaInfo ------------------------------
+def mediainfogui():
     VideoInputQuoted = '"' + VideoInput + '"'
     MediaInfoQuoted = '"' + mediainfo + '"'
     commands = MediaInfoQuoted + " " + VideoInputQuoted
     subprocess.Popen(commands)
+# ------------------------------------------------------------ MediaInfo
 
 
-# Buttons Main Gui -------------------------------------------------
-
+# Buttons Main Gui -----------------------------------------------------
 encoder_menu.bind("<Enter>", encoder_menu_hover)
 encoder_menu.bind("<Leave>", encoder_menu_hover_leave)
 
