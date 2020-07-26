@@ -2937,7 +2937,7 @@ def openaudiowindow():
         q_acodec_bitrate.set(256)  # set the default option
         q_acodec_bitrate_label = Label(audio_window, text="Bitrate :", background="#434547", foreground="white")
         q_acodec_bitrate_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        q_acodec_bitrate_spinbox = Spinbox(audio_window, from_=1, to=1280, justify=CENTER, wrap=True,
+        q_acodec_bitrate_spinbox = Spinbox(audio_window, from_=0, to=1280, justify=CENTER, wrap=True,
                                            textvariable=q_acodec_bitrate, width=13, state=DISABLED)
         q_acodec_bitrate_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", disabledbackground='grey')
