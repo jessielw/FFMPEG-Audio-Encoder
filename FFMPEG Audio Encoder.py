@@ -864,7 +864,7 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('DTS Settings')
         audio_window.configure(background="#434547")
-        window_height = 280
+        window_height = 350
         window_width = 470
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
@@ -884,27 +884,30 @@ def openaudiowindow():
         audio_window.grid_rowconfigure(1, weight=1)
         audio_window.grid_rowconfigure(2, weight=1)
         audio_window.grid_rowconfigure(3, weight=1)
-        audio_window.grid_rowconfigure(6, weight=1)
+        audio_window.grid_rowconfigure(4, weight=1)
+        audio_window.grid_rowconfigure(7, weight=1)
 
         def dts_setting_choice_trace(*args):
             if dts_settings.get() == 'DTS Encoder':
                 achannel_menu.config(state=NORMAL)
-                acodec_channel.set('2.0 (Stereo)')
-                acodec_gain_menu.config(state=NORMAL)
-                acodec_gain.set('Default (0)')
+                acodec_channel.set('2 (Stereo)')
+                ffmpeg_gain_spinbox.config(state=NORMAL)
+                ffmpeg_gain.set(0)
                 acodec_samplerate_menu.config(state=NORMAL)
                 acodec_samplerate.set('Original')
                 dts_acodec_bitrate_spinbox.config(state=NORMAL)
                 dts_bitrate_spinbox.set(448)
             else:
-                acodec_channel.set('2.0 (Stereo)')
+                acodec_channel.set('2 (Stereo)')
                 achannel_menu.config(state=DISABLED)
-                acodec_gain.set('Default (0)')
-                acodec_gain_menu.config(state=DISABLED)
+                ffmpeg_gain.set(0)
+                ffmpeg_gain_spinbox.config(state=DISABLED)
                 acodec_samplerate.set('Original')
                 acodec_samplerate_menu.config(state=DISABLED)
-                dts_bitrate_spinbox.set("")
+                dts_bitrate_spinbox.set('')
                 dts_acodec_bitrate_spinbox.config(state=DISABLED)
+                dolby_pro_logic_ii.set('')
+                dolby_pro_logic_ii_checkbox.config(state=DISABLED)
 
         # Views Command -----------------------------------------------------------------------------------------------
         def view_command():
@@ -916,7 +919,7 @@ def openaudiowindow():
                                      "-b:a " + dts_bitrate_spinbox.get() + "k " + \
                                      acodec_channel_choices[acodec_channel.get()] + \
                                      acodec_samplerate_choices[acodec_samplerate.get()] + \
-                                     acodec_gain_choices[acodec_gain.get()] + dts_custom_cmd_input
+                                     audio_filter_setting + dts_custom_cmd_input
             else:
                 example_cmd_output = acodec_stream_choices[acodec_stream.get()] \
                                      + dts_settings_choices[dts_settings.get()] + \
@@ -943,13 +946,13 @@ def openaudiowindow():
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                               command=gotosavefile)
-        apply_button.grid(row=8, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        apply_button.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         apply_button.bind("<Enter>", apply_button_hover)
         apply_button.bind("<Leave>", apply_button_hover_leave)
 
         show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A", \
                           command=view_command)
-        show_cmd.grid(row=8, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        show_cmd.grid(row=7, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
 
@@ -967,9 +970,9 @@ def openaudiowindow():
         dts_custom_cmd = StringVar()
         dts_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547", \
                                        foreground="white")
-        dts_cmd_entrybox_label.grid(row=4, column=0, columnspan=2, padx=10, pady=(0, 0), sticky=N + S + W + E)
+        dts_cmd_entrybox_label.grid(row=5, column=0, columnspan=2, padx=10, pady=(15, 0), sticky=N + S + W + E)
         dts_cmd_entrybox = Entry(audio_window, textvariable=dts_custom_cmd, borderwidth=4, background="#CACACA")
-        dts_cmd_entrybox.grid(row=5, column=0, columnspan=3, padx=10, pady=(0, 0), sticky=W + E)
+        dts_cmd_entrybox.grid(row=6, column=0, columnspan=3, padx=10, pady=(0, 10), sticky=W + E)
         dts_custom_cmd.trace('w', dts_cmd)
         dts_custom_cmd.set("")
 
@@ -991,39 +994,34 @@ def openaudiowindow():
         dts_bitrate_spinbox.set("")
         # --------------------------------------------------------------------------------------- Audio Bitrate Spinbox
 
+        # Dolby Pro Logic II ------------------------------------------------------------------------------------------
+        dolby_pro_logic_ii = StringVar()
+        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II', \
+                                                  variable=dolby_pro_logic_ii, state=DISABLED, \
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue='', \
+                                                  command=audio_filter_function)
+        dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=1, padx=10, pady=(10, 3), \
+                                         sticky=N + S + E + W)
+        dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                              activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
+        dolby_pro_logic_ii.set("")
+        # ------------------------------------------------------------------------------------------------------ DPL II
+
         # Audio Gain Selection ----------------------------------------------------------------------------------------
-        acodec_gain = StringVar(audio_window)
-        acodec_gain_choices = {'Default (0)': "",
-                               '+10 dB': "-af volume=10dB ",
-                               '+9 dB': "-af volume=9dB ",
-                               '+8 dB': "-af volume=8dB ",
-                               '+7 dB': "-af volume=7dB ",
-                               '+6 dB': "-af volume=6dB ",
-                               '+5 dB': "-af volume=5dB ",
-                               '+4 dB': "-af volume=4dB ",
-                               '+3 dB': "-af volume=3dB ",
-                               '+2 dB': "-af volume=2dB ",
-                               '+1 dB': "-af volume=1dB ",
-                               '-1 dB': "-af volume=-1dB ",
-                               '-2 dB': "-af volume=-2dB ",
-                               '-3 dB': "-af volume=-3dB ",
-                               '-4 dB': "-af volume=-4dB ",
-                               '-5 dB': "-af volume=-5dB ",
-                               '-6 dB': "-af volume=-6dB ",
-                               '-7 dB': "-af volume=-7dB ",
-                               '-8 dB': "-af volume=-8dB ",
-                               '-9 dB': "-af volume=-9dB ",
-                               '-10 dB': "-af volume=-10dB "}
-        acodec_gain.set('Default (0)')  # set the default option
-        acodec_gain_label = Label(audio_window, text="Gain :", background="#434547", foreground="white")
-        acodec_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        acodec_gain_menu = OptionMenu(audio_window, acodec_gain, *acodec_gain_choices.keys())
-        acodec_gain_menu.config(background="#23272A", foreground="white", highlightthickness=1, state=DISABLED)
-        acodec_gain_menu.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        acodec_gain_menu["menu"].configure(activebackground="dim grey")
-        acodec_gain_menu.bind("<Enter>", acodec_gain_menu_hover)
-        acodec_gain_menu.bind("<Leave>", acodec_gain_menu_hover_leave)
-        # ---------------------------------------------------------------------------------------- Audio Gain Selection
+        ffmpeg_gain = StringVar()
+        ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
+                                  foreground="white")
+        ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
+                               sticky=N + S + E + W)
+        ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
+                                      wrap=True, textvariable=ffmpeg_gain, state=DISABLED)
+        ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+                                      buttonbackground="black", width=15, readonlybackground="#23272A", \
+                                      disabledbackground='grey')
+        ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_gain.trace('w', audio_filter_function)
+        ffmpeg_gain.set(0)
+        # -------------------------------------------------------------------------------------------------------- Gain
 
         # Audio Sample Rate Selection ---------------------------------------------------------------------------------
         acodec_samplerate = StringVar(audio_window)
@@ -1062,9 +1060,9 @@ def openaudiowindow():
         # Audio Channel Selection -------------------------------------------------------------------------------------
         acodec_channel = StringVar(audio_window)
         acodec_channel_choices = {'(Mono)': "-ac 1 ",
-                                  '2.0 (Stereo)': "-ac 2 ",
+                                  '2 (Stereo)': "-ac 2 ",
                                   'Original': ""}
-        acodec_channel.set('2.0 (Stereo)')  # set the default option
+        acodec_channel.set('2 (Stereo)')  # set the default option
         achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
         achannel_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W + E + N + S)
         achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
@@ -1073,6 +1071,7 @@ def openaudiowindow():
         achannel_menu["menu"].configure(activebackground="dim grey")
         achannel_menu.bind("<Enter>", achannel_menu_hover)
         achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
+        acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
         # ------------------------------------------------------------------------------------- Audio Channel Selection
 
         # DTS Encoder(s) ----------------------------------------------------------------------------------------------
@@ -3204,7 +3203,7 @@ def print_command_line():
                                  + dts_settings_choices[dts_settings.get()] + "-b:a " + dts_bitrate_spinbox.get() \
                                  + "k " + acodec_channel_choices[acodec_channel.get()] \
                                  + acodec_samplerate_choices[acodec_samplerate.get()] \
-                                 + acodec_gain_choices[acodec_gain.get()] + dts_custom_cmd_input \
+                                 + audio_filter_setting + dts_custom_cmd_input \
                                  + "\n \n" + VideoOutputQuoted
         else:
             example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted \
@@ -3390,7 +3389,7 @@ def startaudiojob():
                            + "-b:a " + dts_bitrate_spinbox.get() + "k " \
                            + acodec_channel_choices[acodec_channel.get()] \
                            + acodec_samplerate_choices[acodec_samplerate.get()] \
-                           + acodec_gain_choices[acodec_gain.get()] + dts_custom_cmd_input \
+                           + audio_filter_setting + dts_custom_cmd_input \
                            + "-sn -vn -map_chapters -1 " \
                            + VideoOutputQuoted + " -hide_banner"
         else:
