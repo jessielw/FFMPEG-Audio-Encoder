@@ -337,17 +337,23 @@ def openaudiowindow():
         global audio_filter_setting
         audio_filter_setting = ''
         ffmpeg_gain_cmd = '"volume=' + ffmpeg_gain.get() + 'dB"'
-        if dolby_pro_logic_ii.get() == '' and ffmpeg_gain.get() == '0':
-            audio_filter_setting = ''
-        elif dolby_pro_logic_ii.get() == '"aresample=matrix_encoding=dplii"' and \
-                ffmpeg_gain.get() == '0':
-            audio_filter_setting = '-af ' + dolby_pro_logic_ii.get()
-        elif dolby_pro_logic_ii.get() == '"aresample=matrix_encoding=dplii"' \
-                and ffmpeg_gain.get() != '0':
-            audio_filter_setting = '-af ' + dolby_pro_logic_ii.get() + ',' + \
-                                   ffmpeg_gain_cmd + ' '
-        elif dolby_pro_logic_ii.get() == '' and ffmpeg_gain.get() != '0':
-            audio_filter_setting = '-af ' + ffmpeg_gain_cmd + ' '
+        if encoder.get() == 'E-AC3':
+            if ffmpeg_gain.get() == '0':
+                audio_filter_setting = ''
+            else:
+                audio_filter_setting = '-af ' + ffmpeg_gain_cmd + ' '
+        else:
+            if dolby_pro_logic_ii.get() == '' and ffmpeg_gain.get() == '0':
+                audio_filter_setting = ''
+            elif dolby_pro_logic_ii.get() == '"aresample=matrix_encoding=dplii"' and \
+                    ffmpeg_gain.get() == '0':
+                audio_filter_setting = '-af ' + dolby_pro_logic_ii.get()
+            elif dolby_pro_logic_ii.get() == '"aresample=matrix_encoding=dplii"' \
+                    and ffmpeg_gain.get() != '0':
+                audio_filter_setting = '-af ' + dolby_pro_logic_ii.get() + ',' + \
+                                       ffmpeg_gain_cmd + ' '
+            elif dolby_pro_logic_ii.get() == '' and ffmpeg_gain.get() != '0':
+                audio_filter_setting = '-af ' + ffmpeg_gain_cmd + ' '
     # ---------------------------------------------------------------------------------------------------- combines -af
 
     def gotosavefile():
@@ -1715,7 +1721,7 @@ def openaudiowindow():
                                  + encoder_dropdownmenu_choices[encoder.get()] + "-b:a " + eac3_spinbox.get() + " " \
                                  + acodec_channel_choices[acodec_channel.get()] \
                                  + acodec_samplerate_choices[acodec_samplerate.get()] \
-                                 + acodec_gain_choices[acodec_gain.get()] + eac3_custom_cmd_input \
+                                 + audio_filter_setting + eac3_custom_cmd_input \
                                  + "\n\n- - - - - - - -Advanced Settings- - - - - - - -\n\n" \
                                  + per_frame_metadata_choices[per_frame_metadata.get()] \
                                  + "-mixing_level " + eac3_mixing_level.get() + " " \
@@ -1846,37 +1852,18 @@ def openaudiowindow():
         # ------------------------------------------------------------------------------------------------------ Stream
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
-        acodec_gain = StringVar(audio_window)
-        acodec_gain_choices = {'Default (0)': "",
-                               '+10 dB': "-af volume=10dB ",
-                               '+9 dB': "-af volume=9dB ",
-                               '+8 dB': "-af volume=8dB ",
-                               '+7 dB': "-af volume=7dB ",
-                               '+6 dB': "-af volume=6dB ",
-                               '+5 dB': "-af volume=5dB ",
-                               '+4 dB': "-af volume=4dB ",
-                               '+3 dB': "-af volume=3dB ",
-                               '+2 dB': "-af volume=2dB ",
-                               '+1 dB': "-af volume=1dB ",
-                               '-1 dB': "-af volume=-1dB ",
-                               '-2 dB': "-af volume=-2dB ",
-                               '-3 dB': "-af volume=-3dB ",
-                               '-4 dB': "-af volume=-4dB ",
-                               '-5 dB': "-af volume=-5dB ",
-                               '-6 dB': "-af volume=-6dB ",
-                               '-7 dB': "-af volume=-7dB ",
-                               '-8 dB': "-af volume=-8dB ",
-                               '-9 dB': "-af volume=-9dB ",
-                               '-10 dB': "-af volume=-10dB "}
-        acodec_gain.set('Default (0)')  # set the default option
-        acodec_gain_label = Label(audio_window, text="Gain :", background="#434547", foreground="white")
-        acodec_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        acodec_gain_menu = OptionMenu(audio_window, acodec_gain, *acodec_gain_choices.keys())
-        acodec_gain_menu.config(background="#23272A", foreground="white", highlightthickness=1)
-        acodec_gain_menu.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        acodec_gain_menu["menu"].configure(activebackground="dim grey")
-        acodec_gain_menu.bind("<Enter>", acodec_gain_menu_hover)
-        acodec_gain_menu.bind("<Leave>", acodec_gain_menu_hover_leave)
+        ffmpeg_gain = StringVar()
+        ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
+                                                 foreground="white")
+        ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
+                                              sticky=N + S + E + W)
+        ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
+                                             wrap=True, textvariable=ffmpeg_gain)
+        ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+                                             buttonbackground="black", width=15, readonlybackground="#23272A")
+        ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_gain.trace('w', audio_filter_function)
+        ffmpeg_gain.set(0)
         # -------------------------------------------------------------------------------------------------------- Gain
 
         # Audio Sample Rate Selection ---------------------------------------------------------------------------------
@@ -3330,7 +3317,7 @@ def print_command_line():
                              + encoder_dropdownmenu_choices[encoder.get()] \
                              + "-b:a " + eac3_spinbox.get() + acodec_channel_choices[acodec_channel.get()] \
                              + acodec_samplerate_choices[acodec_samplerate.get()] \
-                             + acodec_gain_choices[acodec_gain.get()] + eac3_custom_cmd_input + "\n \n" \
+                             + audio_filter_setting + eac3_custom_cmd_input + "\n \n" \
                              + per_frame_metadata_choices[per_frame_metadata.get()] \
                              + "-mixing_level " + eac3_mixing_level.get() + " " \
                              + room_type_choices[room_type.get()] \
@@ -3451,7 +3438,7 @@ def startaudiojob():
                        acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] \
                        + "-b:a " + eac3_spinbox.get() + acodec_channel_choices[acodec_channel.get()] \
                        + acodec_samplerate_choices[acodec_samplerate.get()] \
-                       + acodec_gain_choices[acodec_gain.get()] + "-sn -vn -map_chapters -1 -map_metadata -1 " \
+                       + audio_filter_setting + "-sn -vn -map_chapters -1 -map_metadata -1 " \
                        + eac3_custom_cmd_input \
                        + per_frame_metadata_choices[per_frame_metadata.get()] \
                        + "-mixing_level " + eac3_mixing_level.get() + " " \
