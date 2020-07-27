@@ -170,6 +170,7 @@ def openaudiowindow():
     global acodec_application_choices
     global acodec_profile
     global acodec_profile_choices
+    global dolby_pro_logic_ii
 
     def apply_button_hover(e):
         apply_button["bg"] = "grey"
@@ -323,6 +324,13 @@ def openaudiowindow():
     def q_gapless_mode_menu_hover_leave(e):
         q_gapless_mode_menu["bg"] = "#23272A"
 
+    def dolby_pro_logic_ii_enable_disable(*args):
+        if acodec_channel.get() == '2 (Stereo)':
+            dolby_pro_logic_ii_checkbox.config(state=NORMAL)
+        else:
+            dolby_pro_logic_ii.set("")
+            dolby_pro_logic_ii_checkbox.config(state=DISABLED)
+
     def gotosavefile():
         audio_window.destroy()
         output_button.config(state=NORMAL)
@@ -404,7 +412,8 @@ def openaudiowindow():
                                  acodec_bitrate_choices[acodec_bitrate.get()] + \
                                  acodec_channel_choices[acodec_channel.get()] + \
                                  acodec_samplerate_choices[acodec_samplerate.get()] + \
-                                 acodec_gain_choices[acodec_gain.get()] + ac3_custom_cmd_input + ac3_title_input
+                                 acodec_gain_choices[acodec_gain.get()] + dolby_pro_logic_ii.get() + \
+                                 ac3_custom_cmd_input + ac3_title_input
             try:
                 cmd_label.config(text=example_cmd_output)
                 cmd_line_window.deiconify()
@@ -496,7 +505,19 @@ def openaudiowindow():
         achannel_menu["menu"].configure(activebackground="dim grey")
         achannel_menu.bind("<Enter>", achannel_menu_hover)
         achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
+        acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
         # ----------------------------------------------------------------------------------------------- Audio Channel
+
+        # Dolby Pro Logic II ------------------------------------------------------------------------------------------
+        dolby_pro_logic_ii = StringVar()
+        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II', \
+                                                  variable=dolby_pro_logic_ii, state=DISABLED, \
+                                                  onvalue='-af "aresample=matrix_encoding=dplii" ', offvalue="")
+        dolby_pro_logic_ii_checkbox.grid(row=3, column=2, columnspan=1, rowspan=1, padx=10, pady=3, \
+                                         sticky=N + S + E + W)
+        dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                          activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
+        # ------------------------------------------------------------------------------------------------------ DPL II
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
         acodec_gain = StringVar(audio_window)
@@ -3302,7 +3323,8 @@ def print_command_line():
                              acodec_bitrate_choices[acodec_bitrate.get()] + \
                              acodec_channel_choices[acodec_channel.get()] + \
                              acodec_samplerate_choices[acodec_samplerate.get()] + \
-                             acodec_gain_choices[acodec_gain.get()] + ac3_custom_cmd_input + ac3_title_input + "\n \n" \
+                             acodec_gain_choices[acodec_gain.get()] + dolby_pro_logic_ii.get() \
+                             + ac3_custom_cmd_input + ac3_title_input + "\n \n" \
                              + VideoOutputQuoted
     # ------------------------------------------------------------------------------------------------ AC3 Command Line
     # Opus Command Line -----------------------------------------------------------------------------------------------
@@ -3358,6 +3380,9 @@ def print_command_line():
                              + "-cpl_start_band " + cpl_start_band.get() + " " \
                              + "\n \n" + VideoOutputQuoted
     # ---------------------------------------------------------------------------------------------- E-AC3 Command Line
+    cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
+    cmd_label.config(font=("Helvetica", 16))
+    cmd_label.pack()
 # ---------------------------------------------------------------------------------------- Print Command Line from ROOT
 
 # Start Audio Job -----------------------------------------------------------------------------------------------------
@@ -3374,7 +3399,8 @@ def startaudiojob():
                        acodec_bitrate_choices[acodec_bitrate.get()] + \
                        acodec_channel_choices[acodec_channel.get()] + \
                        acodec_samplerate_choices[acodec_samplerate.get()] + acodec_gain_choices[acodec_gain.get()] \
-                       + "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input + ac3_title_input + \
+                       + "-sn -vn -map_chapters -1 -map_metadata -1 " + dolby_pro_logic_ii.get() \
+                       + ac3_custom_cmd_input + ac3_title_input + \
                        VideoOutputQuoted + " -hide_banner"
         if shell_options.get() == "Default":
             subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
