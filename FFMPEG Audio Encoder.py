@@ -3073,32 +3073,33 @@ def file_input():
     file_extension = pathlib.Path(VideoInput).suffix
     supported_extensions = ['.wav', '.mt2s', '.ac3', '.mka', '.mp3', '.aac', '.ogg', '.ogv', '.m4v', '.mpeg', '.avi',
                             '.vob', '.webm', '.mp4', '.mkv', '.dts', '.m4a', '.mov']
-    if VideoInput and file_extension in supported_extensions:
-        autofilesave_file_path = pathlib.PureWindowsPath(VideoInput)  # Command to get file input location
-        # Final command to get only the directory of fileinput
-        autofilesave_dir_path = autofilesave_file_path.parents[0]
-        VideoInputQuoted = '"' + VideoInput + '"'
-        show_streams_button.config(state=NORMAL)
-        encoder_menu.config(state=NORMAL)
-        # This gets the total amount of audio streams
-        mediainfocli_cmd = '"' + mediainfocli + " " + '--Output="General;%AudioCount%"' \
-                           + " " + VideoInputQuoted + '"'
-        mediainfo_count = subprocess.Popen('cmd /c ' + mediainfocli_cmd, creationflags=subprocess.CREATE_NO_WINDOW,
-                                           universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                           stdin=subprocess.PIPE)
-        stdout, stderr = mediainfo_count.communicate()
-        track_count = stdout
-        show_streams_button.configure(state=NORMAL)
-        input_entry.configure(state=NORMAL)
-        input_entry.insert(0, VideoInput)
-        input_entry.configure(state=DISABLED)
-        output_entry.configure(state=NORMAL)
-        output_entry.delete(0, END)
-        output_entry.configure(state=DISABLED)
-    else:
-        messagebox.showinfo(title="Wrong File Type",
-                            message="Try Again With a Supported File Type!\n\nIf this is a "
-                                    "file that should be supported, please let me know.")
+    if VideoInput:
+        if file_extension in supported_extensions:
+            autofilesave_file_path = pathlib.PureWindowsPath(VideoInput)  # Command to get file input location
+            # Final command to get only the directory of fileinput
+            autofilesave_dir_path = autofilesave_file_path.parents[0]
+            VideoInputQuoted = '"' + VideoInput + '"'
+            show_streams_button.config(state=NORMAL)
+            encoder_menu.config(state=NORMAL)
+            # This gets the total amount of audio streams
+            mediainfocli_cmd = '"' + mediainfocli + " " + '--Output="General;%AudioCount%"' \
+                               + " " + VideoInputQuoted + '"'
+            mediainfo_count = subprocess.Popen('cmd /c ' + mediainfocli_cmd, creationflags=subprocess.CREATE_NO_WINDOW,
+                                               universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                               stdin=subprocess.PIPE)
+            stdout, stderr = mediainfo_count.communicate()
+            track_count = stdout
+            show_streams_button.configure(state=NORMAL)
+            input_entry.configure(state=NORMAL)
+            input_entry.insert(0, VideoInput)
+            input_entry.configure(state=DISABLED)
+            output_entry.configure(state=NORMAL)
+            output_entry.delete(0, END)
+            output_entry.configure(state=DISABLED)
+        else:
+            messagebox.showinfo(title="Wrong File Type",
+                                message="Try Again With a Supported File Type!\n\nIf this is a "
+                                        "file that should be supported, please let me know.")
     if not VideoInput:
         input_entry.configure(state=NORMAL)
         input_entry.delete(0, END)
