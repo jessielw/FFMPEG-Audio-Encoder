@@ -2650,6 +2650,14 @@ def openaudiowindow():
         audio_window.grid_rowconfigure(9, weight=1)
         audio_window.grid_rowconfigure(14, weight=1)
 
+        # Gets gain information for QAAC ------------------------------------------------------------------------------
+        def qaac_gain_trace(*args):
+            global set_qaac_gain
+            if q_acodec_gain.get() == '0':
+                set_qaac_gain = ''
+            elif q_acodec_gain.get() != '0':
+                set_qaac_gain = '--gain ' + q_acodec_gain.get() + ' '
+        # ----------------------------------------------------------------------------------------------- QAAC Get Gain
 
         # Help --------------------------------------------------------------------------------------------------------
         def gotoqaachelp():
@@ -2678,8 +2686,8 @@ def openaudiowindow():
                                      + audio_filter_setting \
                                      + "\n \n" + "-f wav - | " + qaac + " " + "\n \n" \
                                      + q_acodec_profile_choices[q_acodec_profile.get()] + q_acodec_quality_amnt.get() \
-                                     + " " + qaac_high_efficiency.get() + qaac_normalize.get() + qaac_nodither.get() \
-                                     + "--gain " + q_acodec_gain.get() + " " + \
+                                     + " " + qaac_high_efficiency.get() + qaac_nodither.get() \
+                                     + set_qaac_gain + \
                                      q_acodec_quality_choices[q_acodec_quality.get()] + qaac_normalize.get() \
                                      + qaac_nodelay.get() + q_gapless_mode_choices[q_gapless_mode.get()] \
                                      + qaac_nooptimize.get() + qaac_threading.get() + qaac_limiter.get() \
@@ -2690,8 +2698,8 @@ def openaudiowindow():
                                      acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
                                      + "\n \n" + "-f wav - | " + qaac + " " + "\n \n" \
                                      + q_acodec_profile_choices[q_acodec_profile.get()] + \
-                                     q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() \
-                                     + qaac_nodither.get() + "--gain " + q_acodec_gain.get() + " " \
+                                     q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() \
+                                     + qaac_nodither.get() + set_qaac_gain + \
                                      + q_acodec_quality_choices[q_acodec_quality.get()] + qaac_normalize.get() \
                                      + qaac_nodelay.get() \
                                      + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
@@ -2936,6 +2944,7 @@ def openaudiowindow():
         q_acodec_gain_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", disabledbackground='grey')
         q_acodec_gain_spinbox.grid(row=5, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        q_acodec_gain.trace('w', qaac_gain_trace)
         q_acodec_gain.set(0)
         # -------------------------------------------------------------------------------------------------------- Gain
 
@@ -3242,8 +3251,7 @@ def print_command_line():
                                  + "\n \n" + "-f wav - | " + qaac + " " + "\n \n" \
                                  + q_acodec_profile_choices[q_acodec_profile.get()] + q_acodec_quality_amnt.get() \
                                  + " " + qaac_high_efficiency.get() + qaac_normalize.get() + qaac_nodither.get() \
-                                 + "--gain " + q_acodec_gain.get() + " " + \
-                                 q_acodec_quality_choices[q_acodec_quality.get()] + qaac_normalize.get() \
+                                 + set_qaac_gain + q_acodec_quality_choices[q_acodec_quality.get()] \
                                  + qaac_nodelay.get() + q_gapless_mode_choices[q_gapless_mode.get()] \
                                  + qaac_nooptimize.get() + qaac_threading.get() + qaac_limiter.get() \
                                  + qaac_title_input + qaac_custom_cmd_input + "- -o " + "\n \n" + VideoOutputQuoted
@@ -3255,10 +3263,9 @@ def print_command_line():
                                  acodec_samplerate_choices[acodec_samplerate.get()] \
                                  + "\n \n" + "-f wav - | " + qaac + " " + "\n \n" \
                                  + q_acodec_profile_choices[q_acodec_profile.get()] + \
-                                 q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() \
-                                 + qaac_nodither.get() + "--gain " + q_acodec_gain.get() + " " \
-                                 + q_acodec_quality_choices[q_acodec_quality.get()] + qaac_normalize.get() \
-                                 + qaac_nodelay.get() \
+                                 q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_nodither.get() \
+                                 + set_qaac_gain + q_acodec_quality_choices[q_acodec_quality.get()] \
+                                 + qaac_normalize.get() + qaac_nodelay.get() \
                                  + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
                                  + qaac_threading.get() + qaac_limiter.get() + qaac_title_input \
                                  + qaac_custom_cmd_input + "- -o " + "\n \n" + VideoOutputQuoted
@@ -3494,7 +3501,7 @@ def startaudiojob():
                            + q_acodec_quality_amnt.get() + " " + qaac_high_efficiency.get() \
                            + qaac_normalize.get() + qaac_nodither.get() + "--gain " \
                            + q_acodec_gain.get() + " " + q_acodec_quality_choices[q_acodec_quality.get()] \
-                           + qaac_normalize.get() + qaac_nodelay.get() \
+                           + qaac_nodelay.get() \
                            + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
                            + qaac_threading.get() + qaac_limiter.get() + qaac_title_input + qaac_custom_cmd_input \
                            + "- -o " + VideoOutputQuoted + '"'
@@ -3506,8 +3513,7 @@ def startaudiojob():
                            + "-f wav - | " + qaac + " " + q_acodec_profile_choices[q_acodec_profile.get()] + \
                            q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() \
                            + qaac_nodither.get() + "--gain " + q_acodec_gain.get() + " " \
-                           + q_acodec_quality_choices[q_acodec_quality.get()] + qaac_normalize.get() \
-                           + qaac_nodelay.get() \
+                           + q_acodec_quality_choices[q_acodec_quality.get()] + qaac_nodelay.get() \
                            + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
                            + qaac_threading.get() + qaac_limiter.get() + qaac_title_input \
                            + qaac_custom_cmd_input + "- -o " + VideoOutputQuoted + '"'
