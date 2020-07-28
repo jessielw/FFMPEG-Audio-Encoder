@@ -1378,7 +1378,7 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('MP3 Settings')
         audio_window.configure(background="#434547")
-        window_height = 310
+        window_height = 360
         window_width = 550
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
@@ -1398,7 +1398,8 @@ def openaudiowindow():
         audio_window.grid_rowconfigure(1, weight=1)
         audio_window.grid_rowconfigure(2, weight=1)
         audio_window.grid_rowconfigure(3, weight=1)
-        audio_window.grid_rowconfigure(6, weight=1)
+        audio_window.grid_rowconfigure(4, weight=1)
+        audio_window.grid_rowconfigure(7, weight=1)
 
         # Using VBR or CBR/ABR ----------------------------------------------------------------------------------------
         def mp3_bitrate_type(*args):
@@ -1475,7 +1476,7 @@ def openaudiowindow():
                                  + acodec_bitrate_choices[acodec_bitrate.get()] \
                                  + acodec_channel_choices[acodec_channel.get()] + mp3_abr.get() \
                                  + acodec_samplerate_choices[acodec_samplerate.get()] \
-                                 + acodec_gain_choices[acodec_gain.get()] + mp3_custom_cmd_input
+                                 + audio_filter_setting + mp3_custom_cmd_input
             try:
                 cmd_label.config(text=example_cmd_output)
                 cmd_line_window.deiconify()
@@ -1498,13 +1499,13 @@ def openaudiowindow():
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                               command=gotosavefile)
-        apply_button.grid(row=6, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        apply_button.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         apply_button.bind("<Enter>", apply_button_hover)
         apply_button.bind("<Leave>", apply_button_hover_leave)
 
         show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A", \
                           command=view_command)
-        show_cmd.grid(row=6, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        show_cmd.grid(row=7, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
         # ----------------------------------------------------------------------------------------------------- Buttons
@@ -1544,6 +1545,7 @@ def openaudiowindow():
         achannel_menu["menu"].configure(activebackground="dim grey")
         achannel_menu.bind("<Enter>", achannel_menu_hover)
         achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
+        acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
         # ----------------------------------------------------------------------------------------------- Audio Channel
 
         # VBR ---------------------------------------------------------------------------------------------------------
@@ -1582,9 +1584,9 @@ def openaudiowindow():
         mp3_custom_cmd = StringVar()
         mp3_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547", \
                                        foreground="white")
-        mp3_cmd_entrybox_label.grid(row=4, column=0, columnspan=2, padx=10, pady=(10, 0), sticky=N + S + W + E)
+        mp3_cmd_entrybox_label.grid(row=5, column=0, columnspan=2, padx=10, pady=(10, 0), sticky=N + S + W + E)
         mp3_cmd_entrybox = Entry(audio_window, textvariable=mp3_custom_cmd, borderwidth=4, background="#CACACA")
-        mp3_cmd_entrybox.grid(row=5, column=0, columnspan=3, padx=10, pady=(0, 15), sticky=W + E)
+        mp3_cmd_entrybox.grid(row=6, column=0, columnspan=3, padx=10, pady=(0, 15), sticky=W + E)
         mp3_custom_cmd.trace('w', mp3_cmd)
         mp3_custom_cmd.set("")
         # ----------------------------------------------------------------------------------------- Custom Command Line
@@ -1603,38 +1605,32 @@ def openaudiowindow():
         acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
         # ------------------------------------------------------------------------------------------------ Audio Stream
 
+        # Dolby Pro Logic II ------------------------------------------------------------------------------------------
+        dolby_pro_logic_ii = StringVar()
+        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II', \
+                                                  variable=dolby_pro_logic_ii, state=DISABLED, \
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="", \
+                                                  command=audio_filter_function)
+        dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=1, padx=10, pady=(15, 3), \
+                                         sticky=N + S + E + W)
+        dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                              activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
+        dolby_pro_logic_ii.set("")
+        # ------------------------------------------------------------------------------------------------------ DPL II
+
         # Audio Gain Selection ----------------------------------------------------------------------------------------
-        acodec_gain = StringVar(audio_window)
-        acodec_gain_choices = {'Default (0)': "",
-                               '+10 dB': "-af volume=10dB ",
-                               '+9 dB': "-af volume=9dB ",
-                               '+8 dB': "-af volume=8dB ",
-                               '+7 dB': "-af volume=7dB ",
-                               '+6 dB': "-af volume=6dB ",
-                               '+5 dB': "-af volume=5dB ",
-                               '+4 dB': "-af volume=4dB ",
-                               '+3 dB': "-af volume=3dB ",
-                               '+2 dB': "-af volume=2dB ",
-                               '+1 dB': "-af volume=1dB ",
-                               '-1 dB': "-af volume=-1dB ",
-                               '-2 dB': "-af volume=-2dB ",
-                               '-3 dB': "-af volume=-3dB ",
-                               '-4 dB': "-af volume=-4dB ",
-                               '-5 dB': "-af volume=-5dB ",
-                               '-6 dB': "-af volume=-6dB ",
-                               '-7 dB': "-af volume=-7dB ",
-                               '-8 dB': "-af volume=-8dB ",
-                               '-9 dB': "-af volume=-9dB ",
-                               '-10 dB': "-af volume=-10dB "}
-        acodec_gain.set('Default (0)')  # set the default option
-        acodec_gain_label = Label(audio_window, text="Gain :", background="#434547", foreground="white")
-        acodec_gain_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        acodec_gain_menu = OptionMenu(audio_window, acodec_gain, *acodec_gain_choices.keys())
-        acodec_gain_menu.config(background="#23272A", foreground="white", highlightthickness=1)
-        acodec_gain_menu.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        acodec_gain_menu["menu"].configure(activebackground="dim grey")
-        acodec_gain_menu.bind("<Enter>", acodec_gain_menu_hover)
-        acodec_gain_menu.bind("<Leave>", acodec_gain_menu_hover_leave)
+        ffmpeg_gain = StringVar()
+        ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
+                                  foreground="white")
+        ffmpeg_gain_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3,
+                               sticky=N + S + E + W)
+        ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
+                                      wrap=True, textvariable=ffmpeg_gain)
+        ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+                                      buttonbackground="black", width=15, readonlybackground="#23272A")
+        ffmpeg_gain_spinbox.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_gain.trace('w', audio_filter_function)
+        ffmpeg_gain.set(0)
         # -------------------------------------------------------------------------------------------------------- Gain
 
         # Audio Sample Rate Selection ---------------------------------------------------------------------------------
@@ -3299,9 +3295,8 @@ def print_command_line():
                              encoder_dropdownmenu_choices[encoder.get()] + \
                              acodec_bitrate_choices[acodec_bitrate.get()] + \
                              acodec_channel_choices[acodec_channel.get()] + mp3_abr.get() + \
-                             acodec_gain_choices[acodec_gain.get()] + \
                              acodec_samplerate_choices[acodec_samplerate.get()] + \
-                             acodec_gain_choices[acodec_gain.get()] + mp3_custom_cmd_input \
+                             audio_filter_setting + mp3_custom_cmd_input \
                              + "\n \n" + VideoOutputQuoted
     # ------------------------------------------------------------------------------------------------ MP3 Command Line
     # E-AC3 Command Line ----------------------------------------------------------------------------------------------
@@ -3419,7 +3414,7 @@ def startaudiojob():
                        acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
                        acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] \
                        + mp3_abr.get() + acodec_samplerate_choices[acodec_samplerate.get()] \
-                       + acodec_gain_choices[acodec_gain.get()] + "-sn -vn -map_chapters -1 -map_metadata -1 " \
+                       + audio_filter_setting + "-sn -vn -map_chapters -1 -map_metadata -1 " \
                        + mp3_custom_cmd_input + VideoOutputQuoted + " -hide_banner"
         if shell_options.get() == "Default":
             subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
