@@ -346,7 +346,7 @@ def openaudiowindow():
                 audio_filter_setting = ''
             elif dolby_pro_logic_ii.get() == '"aresample=matrix_encoding=dplii"' and \
                     ffmpeg_gain.get() == '0':
-                audio_filter_setting = '-af ' + dolby_pro_logic_ii.get()
+                audio_filter_setting = '-af ' + dolby_pro_logic_ii.get() + ' '
             elif dolby_pro_logic_ii.get() == '"aresample=matrix_encoding=dplii"' \
                     and ffmpeg_gain.get() != '0':
                 audio_filter_setting = '-af ' + dolby_pro_logic_ii.get() + ',' + \
@@ -3022,7 +3022,7 @@ def openaudiowindow():
         qaac_threading = StringVar()
         qaac_threading.set("")
         qaac_threading_checkbox = Checkbutton(audio_window, text='Threading',
-                                             variable=qaac_threading, onvalue="--no-optimize ",
+                                             variable=qaac_threading, onvalue="--threading ",
                                              offvalue="")
         qaac_threading_checkbox.grid(row=8, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         qaac_threading_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
