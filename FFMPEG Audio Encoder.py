@@ -1312,12 +1312,13 @@ def openaudiowindow():
 
         # Audio Channel Selection -------------------------------------------------------------------------------------
         acodec_channel = StringVar(audio_window)
-        acodec_channel_choices = {'2 (Stereo)': "-ac 2 ",
+        acodec_channel_choices = {'Original': "",
+                                  '2 (Stereo)': "-ac 2 ",
                                   '5.0 (Surround)': "-ac 5 ",
                                   '5.1 (Surround)': "-ac 6 ",
                                   '6.1 (Surround)': "-ac 7 ",
                                   '7.1 (Surround)': "-ac 8 "}
-        acodec_channel.set('2 (Stereo)')
+        acodec_channel.set('Original')
         achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
         achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
         achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
@@ -3070,39 +3071,34 @@ def file_input():
     input_entry.configure(state=NORMAL)
     input_entry.delete(0, END)
     file_extension = pathlib.Path(VideoInput).suffix
-    if VideoInput:
-        if file_extension == '.wav' or file_extension == '.mt2s' or file_extension == '.ac3' or \
-                file_extension == '.mka' or \
-                file_extension == '.wav' or file_extension == '.mp3' or file_extension == '.aac' or \
-                file_extension == '.ogg' or file_extension == '.ogv' or file_extension == '.m4v' or \
-                file_extension == '.mpeg' or file_extension == '.avi' or file_extension == '.vob' or \
-                file_extension == '.webm' or file_extension == '.mp4' or file_extension == '.mkv' or \
-                file_extension == '.dts' or file_extension == '.m4a' or file_extension == '.mov':
-            autofilesave_file_path = pathlib.PureWindowsPath(VideoInput)  # Command to get file input location
-            # Final command to get only the directory of fileinput
-            autofilesave_dir_path = autofilesave_file_path.parents[0]
-            VideoInputQuoted = '"' + VideoInput + '"'
-            show_streams_button.config(state=NORMAL)
-            encoder_menu.config(state=NORMAL)
-            # This gets the total amount of audio streams
-            mediainfocli_cmd = '"' + mediainfocli + " " + '--Output="General;%AudioCount%"' \
-                               + " " + VideoInputQuoted + '"'
-            mediainfo_count = subprocess.Popen('cmd /c ' + mediainfocli_cmd, creationflags=subprocess.CREATE_NO_WINDOW,
-                                               universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                               stdin=subprocess.PIPE)
-            stdout, stderr = mediainfo_count.communicate()
-            track_count = stdout
-            show_streams_button.configure(state=NORMAL)
-            input_entry.configure(state=NORMAL)
-            input_entry.insert(0, VideoInput)
-            input_entry.configure(state=DISABLED)
-            output_entry.configure(state=NORMAL)
-            output_entry.delete(0, END)
-            output_entry.configure(state=DISABLED)
-        else:
-            messagebox.showinfo(title="Wrong File Type",
-                                message="Try Again With a Supported File Type!\n\nIf this is a "
-                                        "file that should be supported, please let me know.")
+    supported_extensions = ['.wav', '.mt2s', '.ac3', '.mka', '.mp3', '.aac', '.ogg', '.ogv', '.m4v', '.mpeg', '.avi',
+                            '.vob', '.webm', '.mp4', '.mkv', '.dts', '.m4a', '.mov']
+    if VideoInput and file_extension in supported_extensions:
+        autofilesave_file_path = pathlib.PureWindowsPath(VideoInput)  # Command to get file input location
+        # Final command to get only the directory of fileinput
+        autofilesave_dir_path = autofilesave_file_path.parents[0]
+        VideoInputQuoted = '"' + VideoInput + '"'
+        show_streams_button.config(state=NORMAL)
+        encoder_menu.config(state=NORMAL)
+        # This gets the total amount of audio streams
+        mediainfocli_cmd = '"' + mediainfocli + " " + '--Output="General;%AudioCount%"' \
+                           + " " + VideoInputQuoted + '"'
+        mediainfo_count = subprocess.Popen('cmd /c ' + mediainfocli_cmd, creationflags=subprocess.CREATE_NO_WINDOW,
+                                           universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                           stdin=subprocess.PIPE)
+        stdout, stderr = mediainfo_count.communicate()
+        track_count = stdout
+        show_streams_button.configure(state=NORMAL)
+        input_entry.configure(state=NORMAL)
+        input_entry.insert(0, VideoInput)
+        input_entry.configure(state=DISABLED)
+        output_entry.configure(state=NORMAL)
+        output_entry.delete(0, END)
+        output_entry.configure(state=DISABLED)
+    else:
+        messagebox.showinfo(title="Wrong File Type",
+                            message="Try Again With a Supported File Type!\n\nIf this is a "
+                                    "file that should be supported, please let me know.")
     if not VideoInput:
         input_entry.configure(state=NORMAL)
         input_entry.delete(0, END)
@@ -3154,8 +3150,6 @@ def file_save():
         output_entry.delete(0, END)  # Remove current text in entry
         output_entry.insert(0, VideoOutput)  # Insert the 'path'
         output_entry.configure(state=DISABLED)  # Disables Entry Box
-    if not VideoOutput:
-        pass
 # --------------------------------------------------------------------------------------------------------- File Output
 def input_button_hover(e):
     input_button["bg"] = "grey"
