@@ -1312,13 +1312,12 @@ def openaudiowindow():
 
         # Audio Channel Selection -------------------------------------------------------------------------------------
         acodec_channel = StringVar(audio_window)
-        acodec_channel_choices = {'Original': "",
-                                  '2 (Stereo)': "-ac 2 ",
+        acodec_channel_choices = {'2 (Stereo)': "-ac 2 ",
                                   '5.0 (Surround)': "-ac 5 ",
                                   '5.1 (Surround)': "-ac 6 ",
                                   '6.1 (Surround)': "-ac 7 ",
                                   '7.1 (Surround)': "-ac 8 "}
-        acodec_channel.set('Original')
+        acodec_channel.set('2 (Stereo)')
         achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
         achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
         achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
