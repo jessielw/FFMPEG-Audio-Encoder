@@ -16,7 +16,7 @@ if __name__ == "__main__":
         ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v2.0")
+root.title("FFMPEG Audio Encoder v2.1")
 root.iconphoto(True, PhotoImage(file="Runtime/topbar.png"))
 root.configure(background="#434547")
 window_height = 210
@@ -64,7 +64,7 @@ def openaboutwindow():
     about_window_text = Text(about_window, background="#434547", foreground="white", relief=SUNKEN)
     about_window_text.pack()
     about_window_text.configure(state=NORMAL)
-    about_window_text.insert(INSERT, "FFMPEG Audio Encoder v1.98 \n")
+    about_window_text.insert(INSERT, "FFMPEG Audio Encoder v1.21 \n")
     about_window_text.insert(INSERT, "\n")
     about_window_text.insert(INSERT, "Development: jlw4049\n\nContributors: BassThatHertz")
     about_window_text.insert(INSERT, "\n\n")
@@ -204,13 +204,6 @@ def openaudiowindow():
     def achannel_menu_hover_leave(e):
         achannel_menu["bg"] = "#23272A"
 
-    def acodec_gain_menu_hover(e):
-        acodec_gain_menu["bg"] = "grey"
-        acodec_gain_menu["activebackground"] = "grey"
-
-    def acodec_gain_menu_hover_leave(e):
-        acodec_gain_menu["bg"] = "#23272A"
-
     def acodec_samplerate_menu_hover(e):
         acodec_samplerate_menu["bg"] = "grey"
         acodec_samplerate_menu["activebackground"] = "grey"
@@ -336,13 +329,19 @@ def openaudiowindow():
     def audio_filter_function(*args):
         global audio_filter_setting
         audio_filter_setting = ''
-        ffmpeg_gain_cmd = '"volume=' + ffmpeg_gain.get() + 'dB"'
-        if encoder.get() == 'E-AC3':
+        if encoder.get() == "QAAC":
+            if dolby_pro_logic_ii.get() == '':
+                audio_filter_setting = ''
+            else:
+                audio_filter_setting = '-af ' + dolby_pro_logic_ii.get() + ' '
+        elif encoder.get() == 'E-AC3':
+            ffmpeg_gain_cmd = '"volume=' + ffmpeg_gain.get() + 'dB"'
             if ffmpeg_gain.get() == '0':
                 audio_filter_setting = ''
             else:
                 audio_filter_setting = '-af ' + ffmpeg_gain_cmd + ' '
         else:
+            ffmpeg_gain_cmd = '"volume=' + ffmpeg_gain.get() + 'dB"'
             if dolby_pro_logic_ii.get() == '' and ffmpeg_gain.get() == '0':
                 audio_filter_setting = ''
             elif dolby_pro_logic_ii.get() == '"aresample=matrix_encoding=dplii"' and \
@@ -2264,7 +2263,7 @@ def openaudiowindow():
             example_cmd_output = acodec_stream_choices[acodec_stream.get()] + \
                                  acodec_channel_choices[acodec_channel.get()] + \
                                  acodec_samplerate_choices[acodec_samplerate.get()] + \
-                                 acodec_gain_choices[acodec_gain.get()] + "-f caf - | " + \
+                                 audio_filter_setting + "-f caf - | " + \
                                  "\n \n" + "fdkaac.exe" + " " + \
                                  acodec_profile_choices[acodec_profile.get()] + afterburnervar.get() \
                                  + fdkaac_title_input + fdkaac_custom_cmd_input + \
@@ -2362,6 +2361,7 @@ def openaudiowindow():
         achannel_menu["menu"].configure(activebackground="dim grey")
         achannel_menu.bind("<Enter>", achannel_menu_hover)
         achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
+        acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
         # ----------------------------------------------------------------------------------------------------- Channel
 
         # Audio Stream Selection --------------------------------------------------------------------------------------
@@ -2378,38 +2378,32 @@ def openaudiowindow():
         acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
         # ------------------------------------------------------------------------------------------------------ Stream
 
+        # Dolby Pro Logic II ------------------------------------------------------------------------------------------
+        dolby_pro_logic_ii = StringVar()
+        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II', \
+                                                  variable=dolby_pro_logic_ii, state=DISABLED, \
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="", \
+                                                  command=audio_filter_function)
+        dolby_pro_logic_ii_checkbox.grid(row=3, column=2, columnspan=1, rowspan=1, padx=10, pady=3, \
+                                         sticky=N + S + E + W)
+        dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                          activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
+        dolby_pro_logic_ii.set("")
+        # ------------------------------------------------------------------------------------------------------ DPL II
+
         # Audio Gain Selection ----------------------------------------------------------------------------------------
-        acodec_gain = StringVar(audio_window)
-        acodec_gain_choices = {'Default (0)': "",
-                               '+10 dB': "-af volume=10dB ",
-                               '+9 dB': "-af volume=9dB ",
-                               '+8 dB': "-af volume=8dB ",
-                               '+7 dB': "-af volume=7dB ",
-                               '+6 dB': "-af volume=6dB ",
-                               '+5 dB': "-af volume=5dB ",
-                               '+4 dB': "-af volume=4dB ",
-                               '+3 dB': "-af volume=3dB ",
-                               '+2 dB': "-af volume=2dB ",
-                               '+1 dB': "-af volume=1dB ",
-                               '-1 dB': "-af volume=-1dB ",
-                               '-2 dB': "-af volume=-2dB ",
-                               '-3 dB': "-af volume=-3dB ",
-                               '-4 dB': "-af volume=-4dB ",
-                               '-5 dB': "-af volume=-5dB ",
-                               '-6 dB': "-af volume=-6dB ",
-                               '-7 dB': "-af volume=-7dB ",
-                               '-8 dB': "-af volume=-8dB ",
-                               '-9 dB': "-af volume=-9dB ",
-                               '-10 dB': "-af volume=-10dB "}
-        acodec_gain.set('Default (0)')  # set the default option
-        acodec_gain_label = Label(audio_window, text="Gain :", background="#434547", foreground="white")
-        acodec_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        acodec_gain_menu = OptionMenu(audio_window, acodec_gain, *acodec_gain_choices.keys())
-        acodec_gain_menu.config(background="#23272A", foreground="white", highlightthickness=1)
-        acodec_gain_menu.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        acodec_gain_menu["menu"].configure(activebackground="dim grey")
-        acodec_gain_menu.bind("<Enter>", acodec_gain_menu_hover)
-        acodec_gain_menu.bind("<Leave>", acodec_gain_menu_hover_leave)
+        ffmpeg_gain = StringVar()
+        ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
+                                                 foreground="white")
+        ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
+                                              sticky=N + S + E + W)
+        ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
+                                             wrap=True, textvariable=ffmpeg_gain)
+        ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+                                             buttonbackground="black", width=15, readonlybackground="#23272A")
+        ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_gain.trace('w', audio_filter_function)
+        ffmpeg_gain.set(0)
         # -------------------------------------------------------------------------------------------------------- Gain
 
         # Audio Sample Rate Selection ---------------------------------------------------------------------------------
@@ -2681,6 +2675,7 @@ def openaudiowindow():
             if q_acodec_profile.get() == "True VBR":
                 example_cmd_output = acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[
                                      acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] \
+                                     + audio_filter_setting \
                                      + "\n \n" + "-f wav - | " + qaac + " " + "\n \n" \
                                      + q_acodec_profile_choices[q_acodec_profile.get()] + q_acodec_quality_amnt.get() \
                                      + " " + qaac_high_efficiency.get() + qaac_normalize.get() + qaac_nodither.get() \
@@ -2692,7 +2687,7 @@ def openaudiowindow():
             else:
                 example_cmd_output = acodec_stream_choices[acodec_stream.get()] + \
                                      acodec_channel_choices[acodec_channel.get()] + \
-                                     acodec_samplerate_choices[acodec_samplerate.get()] \
+                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
                                      + "\n \n" + "-f wav - | " + qaac + " " + "\n \n" \
                                      + q_acodec_profile_choices[q_acodec_profile.get()] + \
                                      q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() \
@@ -2779,6 +2774,21 @@ def openaudiowindow():
         q_acodec_profile_menu.bind("<Leave>", q_acodec_profile_hover_leave)
         # ------------------------------------------------------------------------------------------ Audio Profile Menu
 
+
+        # Dolby Pro Logic II ------------------------------------------------------------------------------------------
+        dolby_pro_logic_ii = StringVar()
+        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II', \
+                                                  variable=dolby_pro_logic_ii, state=DISABLED, \
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="", \
+                                                  command=audio_filter_function)
+        dolby_pro_logic_ii_checkbox.grid(row=5, column=2, columnspan=1, rowspan=1, padx=10, pady=3, \
+                                         sticky=N + S + E + W)
+        dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                          activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
+        dolby_pro_logic_ii.trace('w', audio_filter_function)
+        dolby_pro_logic_ii.set("")
+        # ------------------------------------------------------------------------------------------------------ DPL II
+
         # Audio Channel Selection -------------------------------------------------------------------------------------
         acodec_channel = StringVar(audio_window)
         acodec_channel_choices = {'Original': "",
@@ -2787,7 +2797,6 @@ def openaudiowindow():
                                   '5.1 (Surround)': "-ac 6 ",
                                   '6.1 (Surround)': "-ac 7 ",
                                   '7.1 (Surround)': "-ac 8 "}
-        acodec_channel.set('Original')  # set the default option
         achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
         achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
         achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
@@ -2796,6 +2805,8 @@ def openaudiowindow():
         achannel_menu["menu"].configure(activebackground="dim grey")
         achannel_menu.bind("<Enter>", achannel_menu_hover)
         achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
+        acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
+        acodec_channel.set('Original')
         # ----------------------------------------------------------------------------------------------- Audio Channel
 
         # Audio Stream Selection --------------------------------------------------------------------------------------
@@ -2935,7 +2946,7 @@ def openaudiowindow():
         qaac_normalize_checkbox = Checkbutton(audio_window, text='Normalize', variable=qaac_normalize,
                                               onvalue="--normalize ",
                                               offvalue="")
-        qaac_normalize_checkbox.grid(row=5, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        qaac_normalize_checkbox.grid(row=9, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         qaac_normalize_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                           activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
         # --------------------------------------------------------------------------------------------------- Normalize
@@ -3210,7 +3221,7 @@ def print_command_line():
                              acodec_stream_choices[acodec_stream.get()] + \
                              acodec_channel_choices[acodec_channel.get()] + \
                              acodec_samplerate_choices[acodec_samplerate.get()] + \
-                             acodec_gain_choices[acodec_gain.get()] + \
+                             audio_filter_setting + \
                              "-f caf - | " + "\n \n" + "fdkaac.exe" + " " + \
                              acodec_profile_choices[acodec_profile.get()] + afterburnervar.get() + fdkaac_title_input \
                              + fdkaac_custom_cmd_input + \
@@ -3226,7 +3237,8 @@ def print_command_line():
             example_cmd_output = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + "\n \n" \
                                  + VideoInputQuoted + "\n \n" + \
                                  acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[
-                                     acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] \
+                                     acodec_channel.get()] + audio_filter_setting + \
+                                 acodec_samplerate_choices[acodec_samplerate.get()] \
                                  + "\n \n" + "-f wav - | " + qaac + " " + "\n \n" \
                                  + q_acodec_profile_choices[q_acodec_profile.get()] + q_acodec_quality_amnt.get() \
                                  + " " + qaac_high_efficiency.get() + qaac_normalize.get() + qaac_nodither.get() \
@@ -3239,7 +3251,7 @@ def print_command_line():
             example_cmd_output = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + "\n \n" \
                                  + VideoInputQuoted + "\n \n" + \
                                  acodec_stream_choices[acodec_stream.get()] + \
-                                 acodec_channel_choices[acodec_channel.get()] + \
+                                 acodec_channel_choices[acodec_channel.get()] + audio_filter_setting + \
                                  acodec_samplerate_choices[acodec_samplerate.get()] \
                                  + "\n \n" + "-f wav - | " + qaac + " " + "\n \n" \
                                  + q_acodec_profile_choices[q_acodec_profile.get()] + \
@@ -3457,8 +3469,7 @@ def startaudiojob():
     elif encoder.get() == "FDK-AAC":
         finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
                        acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + \
-                       acodec_samplerate_choices[acodec_samplerate.get()] + \
-                       acodec_gain_choices[acodec_gain.get()] + \
+                       acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting + \
                        "-f caf - | " + fdkaac + " " + acodec_profile_choices[acodec_profile.get()] + \
                        fdkaac_title_input + fdkaac_custom_cmd_input + \
                        afterburnervar.get() + crccheck.get() + moovbox.get() \
@@ -3477,7 +3488,7 @@ def startaudiojob():
         if q_acodec_profile.get() == "True VBR":
             finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " \
                            + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] \
-                           + acodec_channel_choices[acodec_channel.get()] \
+                           + acodec_channel_choices[acodec_channel.get()] + audio_filter_setting \
                            + acodec_samplerate_choices[acodec_samplerate.get()] \
                            + "-f wav - | " + qaac + " " + q_acodec_profile_choices[q_acodec_profile.get()] \
                            + q_acodec_quality_amnt.get() + " " + qaac_high_efficiency.get() \
@@ -3490,7 +3501,7 @@ def startaudiojob():
         else:
             finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted \
                            + acodec_stream_choices[acodec_stream.get()] + \
-                           acodec_channel_choices[acodec_channel.get()] + \
+                           acodec_channel_choices[acodec_channel.get()] + audio_filter_setting + \
                            acodec_samplerate_choices[acodec_samplerate.get()] \
                            + "-f wav - | " + qaac + " " + q_acodec_profile_choices[q_acodec_profile.get()] + \
                            q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() \
