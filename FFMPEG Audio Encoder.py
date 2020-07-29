@@ -3070,14 +3070,10 @@ def file_input():
     input_entry.configure(state=NORMAL)
     input_entry.delete(0, END)
     file_extension = pathlib.Path(VideoInput).suffix
+    supported_extensions = ['.wav', '.mt2s', '.ac3', '.mka', '.mp3', '.aac', '.ogg', '.ogv', '.m4v', '.mpeg', '.avi',
+                            '.vob', '.webm', '.mp4', '.mkv', '.dts', '.m4a', '.mov']
     if VideoInput:
-        if file_extension == '.wav' or file_extension == '.mt2s' or file_extension == '.ac3' or \
-                file_extension == '.mka' or \
-                file_extension == '.wav' or file_extension == '.mp3' or file_extension == '.aac' or \
-                file_extension == '.ogg' or file_extension == '.ogv' or file_extension == '.m4v' or \
-                file_extension == '.mpeg' or file_extension == '.avi' or file_extension == '.vob' or \
-                file_extension == '.webm' or file_extension == '.mp4' or file_extension == '.mkv' or \
-                file_extension == '.dts' or file_extension == '.m4a' or file_extension == '.mov':
+        if file_extension in supported_extensions:
             autofilesave_file_path = pathlib.PureWindowsPath(VideoInput)  # Command to get file input location
             # Final command to get only the directory of fileinput
             autofilesave_dir_path = autofilesave_file_path.parents[0]
@@ -3154,8 +3150,6 @@ def file_save():
         output_entry.delete(0, END)  # Remove current text in entry
         output_entry.insert(0, VideoOutput)  # Insert the 'path'
         output_entry.configure(state=DISABLED)  # Disables Entry Box
-    if not VideoOutput:
-        pass
 # --------------------------------------------------------------------------------------------------------- File Output
 def input_button_hover(e):
     input_button["bg"] = "grey"
