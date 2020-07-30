@@ -1,8 +1,8 @@
 # Imports--------------------------------------------------------------------
+
 from tkinter import *
 from tkinter import filedialog, StringVar
 import subprocess
-import ctypes
 import tkinter as tk
 import pathlib
 import tkinter.scrolledtext as scrolledtextwidget
@@ -10,10 +10,6 @@ from TkinterDnD2 import *
 from tkinter import messagebox
 
 # Main Gui & Windows --------------------------------------------------------
-
-if __name__ == "__main__":
-    if 'win' in sys.platform:
-        ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 root = TkinterDnD.Tk()
 root.title("FFMPEG Audio Encoder v2.1")
@@ -70,25 +66,29 @@ def openaboutwindow():
     about_window_text.insert(INSERT, "\n\n")
     about_window_text.insert(INSERT, "A lightweight audio encoder based off of FFMPEG. \n")
     about_window_text.configure(state=DISABLED)
+
+
 # -------------------------------------------------------------------------------------------------------- About Window
 
 # Menu Items and Sub-Bars ---------------------------------------------------------------------------------------------
-file_menu = Menu(my_menu_bar, tearoff=0, activebackground="dim grey")
-my_menu_bar.add_cascade(label="File", menu=file_menu)
-file_menu.add_command(label="Exit", command=root.quit)
+file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+my_menu_bar.add_cascade(label='File', menu=file_menu)
+file_menu.add_command(label='Exit', command=root.quit)
 
 shell_options = StringVar()
-shell_options.set("Default")
-options_menu = Menu(my_menu_bar, tearoff=0, activebackground="dim grey")
-my_menu_bar.add_cascade(label="Options", menu=options_menu)
-options_submenu = Menu(root, tearoff=0, activebackground="dim grey")
-options_menu.add_cascade(label="Shell Options", menu=options_submenu)
-options_submenu.add_radiobutton(label="Shell Closes Automatically", variable=shell_options, value="Default")
-options_submenu.add_radiobutton(label="Shell Stays Open (Debug)", variable=shell_options, value="Debug")
+shell_options.set('Default')
+options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+my_menu_bar.add_cascade(label='Options', menu=options_menu)
+options_submenu = Menu(root, tearoff=0, activebackground='dim grey')
+options_menu.add_cascade(label='Shell Options', menu=options_submenu)
+options_submenu.add_radiobutton(label='Shell Closes Automatically', variable=shell_options, value="Default")
+options_submenu.add_radiobutton(label='Shell Stays Open (Debug)', variable=shell_options, value="Debug")
 
 help_menu = Menu(my_menu_bar, tearoff=0, activebackground="dim grey")
 my_menu_bar.add_cascade(label="Help", menu=help_menu)
 help_menu.add_command(label="About", command=openaboutwindow)
+
+
 # --------------------------------------------------------------------------------------------- Menu Items and Sub-Bars
 
 # File Auto Save Function ---------------------------------------------------------------------------------------------
@@ -119,6 +119,8 @@ def encoder_changed(*args):
         audiosettings_button.configure(state=NORMAL)
         command_line_button.config(state=DISABLED)
         autosavefilename = VideoOut.name
+
+
 # --------------------------------------------------------------------------------------------- File Auto Save Function
 
 # Uses MediaInfo CLI to get total audio track count and gives us a total track count ----------------------------------
@@ -127,6 +129,8 @@ def track_count(*args):  # Thanks for helping me shorten this 'gmes78'
     acodec_stream_track_counter = {}
     for i in range(int(str.split(track_count)[-1])):
         acodec_stream_track_counter[f'Track {i + 1}'] = f' -map 0:a:{i} '
+
+
 # ---------------------------------------------------------------------------------------------------------------------
 
 # Encoder Codec Drop Down ---------------------------------------------------------------------------------------------
@@ -148,6 +152,8 @@ encoder_menu.config(state=DISABLED, background="#23272A", foreground="white", hi
 encoder_menu["menu"].configure(activebackground="dim grey")
 codec_label = Label(root, text="Codec ->", background="#434547", foreground="White")
 codec_label.grid(row=1, column=1, columnspan=1, padx=5, pady=5, sticky=N + S + W + E)
+
+
 # -------------------------------------------------------------------------------------------------------- Encoder Menu
 
 # Audio Codec Window --------------------------------------------------------------------------------------------------
@@ -323,6 +329,7 @@ def openaudiowindow():
         else:
             dolby_pro_logic_ii.set("")
             dolby_pro_logic_ii_checkbox.config(state=DISABLED)
+
     # --------------------------------------------------------------------------------------------- dplII channel check
 
     # Combines -af filter settings ------------------------------------------------------------------------------------
@@ -353,6 +360,7 @@ def openaudiowindow():
                                        ffmpeg_gain_cmd + ' '
             elif dolby_pro_logic_ii.get() == '' and ffmpeg_gain.get() != '0':
                 audio_filter_setting = '-af ' + ffmpeg_gain_cmd + ' '
+
     # ---------------------------------------------------------------------------------------------------- combines -af
 
     def gotosavefile():
@@ -452,6 +460,7 @@ def openaudiowindow():
                     cmd_line_window.withdraw()
 
                 cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
+
         # ----------------------------------------------------------------------------------------------- Views Command
 
         # Buttons -----------------------------------------------------------------------------------------------------
@@ -461,7 +470,7 @@ def openaudiowindow():
         apply_button.bind("<Enter>", apply_button_hover)
         apply_button.bind("<Leave>", apply_button_hover_leave)
 
-        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A", \
+        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
                           command=view_command)
         show_cmd.grid(row=8, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
@@ -532,27 +541,27 @@ def openaudiowindow():
 
         # Dolby Pro Logic II ------------------------------------------------------------------------------------------
         dolby_pro_logic_ii = StringVar()
-        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II', \
-                                                  variable=dolby_pro_logic_ii, state=DISABLED, \
-                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="", \
+        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
+                                                  variable=dolby_pro_logic_ii, state=DISABLED,
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="",
                                                   command=audio_filter_function)
-        dolby_pro_logic_ii_checkbox.grid(row=3, column=2, columnspan=1, rowspan=1, padx=10, pady=3, \
+        dolby_pro_logic_ii_checkbox.grid(row=3, column=2, columnspan=1, rowspan=1, padx=10, pady=3,
                                          sticky=N + S + E + W)
         dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
-                                          activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
+                                              activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
         dolby_pro_logic_ii.set("")
         # ------------------------------------------------------------------------------------------------------ DPL II
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
         ffmpeg_gain = StringVar()
         ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
-                                                 foreground="white")
+                                  foreground="white")
         ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
-                                              sticky=N + S + E + W)
+                               sticky=N + S + E + W)
         ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                             wrap=True, textvariable=ffmpeg_gain)
+                                      wrap=True, textvariable=ffmpeg_gain)
         ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
-                                             buttonbackground="black", width=15, readonlybackground="#23272A")
+                                      buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         ffmpeg_gain.trace('w', audio_filter_function)
         ffmpeg_gain.set(0)
@@ -586,7 +595,7 @@ def openaudiowindow():
                 ac3_custom_cmd_input = cstmcmd + " "
 
         ac3_custom_cmd = StringVar()
-        ac3_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547", \
+        ac3_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547",
                                        foreground="white")
         ac3_cmd_entrybox_label.grid(row=4, column=0, columnspan=2, padx=10, pady=(15, 0), sticky=N + S + W + E)
         ac3_cmd_entrybox = Entry(audio_window, textvariable=ac3_custom_cmd, borderwidth=4, background="#CACACA")
@@ -660,13 +669,13 @@ def openaudiowindow():
         # ----------------------------------------------------------------------------------------------- Views Command
 
         # Buttons -----------------------------------------------------------------------------------------------------
-        apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A", \
+        apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                               command=gotosavefile)
         apply_button.grid(row=9, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         apply_button.bind("<Enter>", apply_button_hover)
         apply_button.bind("<Leave>", apply_button_hover_leave)
 
-        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A", \
+        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
                           command=view_command)
         show_cmd.grid(row=9, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
@@ -684,7 +693,7 @@ def openaudiowindow():
                 aac_custom_cmd_input = cstmcmd + " "
 
         aac_custom_cmd = StringVar()
-        aac_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547", \
+        aac_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547",
                                        foreground="white")
         aac_cmd_entrybox_label.grid(row=5, column=0, columnspan=2, padx=10, pady=(0, 0), sticky=N + S + W + E)
         aac_cmd_entrybox = Entry(audio_window, textvariable=aac_custom_cmd, borderwidth=4, background="#CACACA")
@@ -704,7 +713,7 @@ def openaudiowindow():
                 aac_title_input = "-metadata:s:a:0 title=" + '"' + title_cmd + '"' + " "
 
         aac_title = StringVar()
-        aac_title_entrybox_label = Label(audio_window, text="Track Name :", anchor=W, background="#434547", \
+        aac_title_entrybox_label = Label(audio_window, text="Track Name :", anchor=W, background="#434547",
                                          foreground="white")
         aac_title_entrybox_label.grid(row=7, column=0, columnspan=2, padx=10, pady=(5, 0), sticky=N + S + W + E)
         aac_title_entrybox = Entry(audio_window, textvariable=aac_title, borderwidth=4, background="#CACACA")
@@ -715,27 +724,27 @@ def openaudiowindow():
 
         # Dolby Pro Logic II ------------------------------------------------------------------------------------------
         dolby_pro_logic_ii = StringVar()
-        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II', \
-                                                  variable=dolby_pro_logic_ii, state=DISABLED, \
-                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="", \
+        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
+                                                  variable=dolby_pro_logic_ii, state=DISABLED,
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="",
                                                   command=audio_filter_function)
-        dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=1, padx=10, pady=(15,15), \
+        dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=1, padx=10, pady=(15, 15),
                                          sticky=N + S + E + W)
         dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
-                                          activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
+                                              activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
         dolby_pro_logic_ii.set("")
         # ------------------------------------------------------------------------------------------------------ DPL II
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
         ffmpeg_gain = StringVar()
         ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
-                                                 foreground="white")
+                                  foreground="white")
         ffmpeg_gain_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3,
-                                              sticky=N + S + E + W)
+                               sticky=N + S + E + W)
         ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                             wrap=True, textvariable=ffmpeg_gain)
+                                      wrap=True, textvariable=ffmpeg_gain)
         ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
-                                             buttonbackground="black", width=15, readonlybackground="#23272A")
+                                      buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_gain_spinbox.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         ffmpeg_gain.trace('w', audio_filter_function)
         ffmpeg_gain.set(0)
@@ -949,7 +958,7 @@ def openaudiowindow():
         apply_button.bind("<Enter>", apply_button_hover)
         apply_button.bind("<Leave>", apply_button_hover_leave)
 
-        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A", \
+        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
                           command=view_command)
         show_cmd.grid(row=7, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
@@ -967,7 +976,7 @@ def openaudiowindow():
                 dts_custom_cmd_input = cstmcmd + " "
 
         dts_custom_cmd = StringVar()
-        dts_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547", \
+        dts_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547",
                                        foreground="white")
         dts_cmd_entrybox_label.grid(row=5, column=0, columnspan=2, padx=10, pady=(15, 0), sticky=N + S + W + E)
         dts_cmd_entrybox = Entry(audio_window, textvariable=dts_custom_cmd, borderwidth=4, background="#CACACA")
@@ -985,7 +994,7 @@ def openaudiowindow():
         dts_acodec_bitrate_spinbox_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3,
                                               sticky=N + S + E + W)
         dts_acodec_bitrate_spinbox = Spinbox(audio_window, from_=250, to=3840, increment=1.0, justify=CENTER,
-                                             wrap=True, textvariable=dts_bitrate_spinbox, state=DISABLED, \
+                                             wrap=True, textvariable=dts_bitrate_spinbox, state=DISABLED,
                                              disabledbackground='grey')
         dts_acodec_bitrate_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                              buttonbackground="black", width=15, readonlybackground="#23272A")
@@ -995,11 +1004,11 @@ def openaudiowindow():
 
         # Dolby Pro Logic II ------------------------------------------------------------------------------------------
         dolby_pro_logic_ii = StringVar()
-        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II', \
-                                                  variable=dolby_pro_logic_ii, state=DISABLED, \
-                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue='', \
+        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
+                                                  variable=dolby_pro_logic_ii, state=DISABLED,
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue='',
                                                   command=audio_filter_function)
-        dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=1, padx=10, pady=(10, 3), \
+        dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=1, padx=10, pady=(10, 3),
                                          sticky=N + S + E + W)
         dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                               activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
@@ -1015,7 +1024,7 @@ def openaudiowindow():
         ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
                                       wrap=True, textvariable=ffmpeg_gain, state=DISABLED)
         ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
-                                      buttonbackground="black", width=15, readonlybackground="#23272A", \
+                                      buttonbackground="black", width=15, readonlybackground="#23272A",
                                       disabledbackground='grey')
         ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         ffmpeg_gain.trace('w', audio_filter_function)
@@ -1172,7 +1181,7 @@ def openaudiowindow():
         apply_button.bind("<Enter>", apply_button_hover)
         apply_button.bind("<Leave>", apply_button_hover_leave)
 
-        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A", \
+        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
                           command=view_command)
         show_cmd.grid(row=11, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
@@ -1238,7 +1247,7 @@ def openaudiowindow():
                 opus_custom_cmd_input = cstmcmd + " "
 
         opus_custom_cmd = StringVar()
-        opus_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547", \
+        opus_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547",
                                         foreground="white")
         opus_cmd_entrybox_label.grid(row=9, column=0, columnspan=2, padx=10, pady=(10, 0), sticky=N + S + W + E)
         opus_cmd_entrybox = Entry(audio_window, textvariable=opus_custom_cmd, borderwidth=4, background="#CACACA")
@@ -1285,7 +1294,7 @@ def openaudiowindow():
         global frame_duration
         frame_duration_values = (2.5, 5, 10, 20, 40, 60, 80, 100, 120)
         frame_duration = StringVar(audio_window)
-        frame_duration_label = Label(audio_window, text="Frame Duration:\n*Default is '20'*", background="#434547", \
+        frame_duration_label = Label(audio_window, text="Frame Duration:\n*Default is '20'*", background="#434547",
                                      foreground="white")
         frame_duration_label.grid(row=6, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         frame_duration_spinbox = Spinbox(audio_window, values=frame_duration_values, justify=CENTER, wrap=True,
@@ -1299,7 +1308,7 @@ def openaudiowindow():
         # Audio Packet Loss Spinbox --------------------------------------------------------------------------------
         global packet_loss
         packet_loss = StringVar(audio_window)
-        packet_loss_label = Label(audio_window, text="Packet Loss:\n*Default is '0'*", background="#434547", \
+        packet_loss_label = Label(audio_window, text="Packet Loss:\n*Default is '0'*", background="#434547",
                                   foreground="white")
         packet_loss_label.grid(row=6, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         packet_loss_spinbox = Spinbox(audio_window, from_=0, to=100, justify=CENTER, wrap=True,
@@ -1345,11 +1354,11 @@ def openaudiowindow():
 
         # Dolby Pro Logic II ------------------------------------------------------------------------------------------
         dolby_pro_logic_ii = StringVar()
-        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II', \
-                                                  variable=dolby_pro_logic_ii, \
-                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="", \
+        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
+                                                  variable=dolby_pro_logic_ii,
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="",
                                                   command=audio_filter_function)
-        dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=1, padx=10, pady=(15,5), \
+        dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=1, padx=10, pady=(15, 5),
                                          sticky=N + S + E + W)
         dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                               activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
@@ -1502,7 +1511,7 @@ def openaudiowindow():
         apply_button.bind("<Enter>", apply_button_hover)
         apply_button.bind("<Leave>", apply_button_hover_leave)
 
-        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A", \
+        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
                           command=view_command)
         show_cmd.grid(row=7, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
@@ -1581,7 +1590,7 @@ def openaudiowindow():
                 mp3_custom_cmd_input = cstmcmd + " "
 
         mp3_custom_cmd = StringVar()
-        mp3_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547", \
+        mp3_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547",
                                        foreground="white")
         mp3_cmd_entrybox_label.grid(row=5, column=0, columnspan=2, padx=10, pady=(10, 0), sticky=N + S + W + E)
         mp3_cmd_entrybox = Entry(audio_window, textvariable=mp3_custom_cmd, borderwidth=4, background="#CACACA")
@@ -1606,11 +1615,11 @@ def openaudiowindow():
 
         # Dolby Pro Logic II ------------------------------------------------------------------------------------------
         dolby_pro_logic_ii = StringVar()
-        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II', \
-                                                  variable=dolby_pro_logic_ii, state=DISABLED, \
-                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="", \
+        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
+                                                  variable=dolby_pro_logic_ii, state=DISABLED,
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="",
                                                   command=audio_filter_function)
-        dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=1, padx=10, pady=(15, 3), \
+        dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=1, padx=10, pady=(15, 3),
                                          sticky=N + S + E + W)
         dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                               activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
@@ -1757,7 +1766,7 @@ def openaudiowindow():
         apply_button.bind("<Enter>", apply_button_hover)
         apply_button.bind("<Leave>", apply_button_hover_leave)
 
-        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A", \
+        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
                           command=view_command)
         show_cmd.grid(row=22, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
@@ -1775,7 +1784,7 @@ def openaudiowindow():
                 eac3_custom_cmd_input = cstmcmd + " "
 
         eac3_custom_cmd = StringVar()
-        eac3_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547", \
+        eac3_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547",
                                         foreground="white")
         eac3_cmd_entrybox_label.grid(row=20, column=0, columnspan=2, padx=10, pady=(10, 0), sticky=N + S + W + E)
         eac3_cmd_entrybox = Entry(audio_window, textvariable=eac3_custom_cmd, borderwidth=4, background="#CACACA")
@@ -1844,13 +1853,13 @@ def openaudiowindow():
         # Audio Gain Selection ----------------------------------------------------------------------------------------
         ffmpeg_gain = StringVar()
         ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
-                                                 foreground="white")
+                                  foreground="white")
         ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
-                                              sticky=N + S + E + W)
+                               sticky=N + S + E + W)
         ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                             wrap=True, textvariable=ffmpeg_gain)
+                                      wrap=True, textvariable=ffmpeg_gain)
         ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
-                                             buttonbackground="black", width=15, readonlybackground="#23272A")
+                                      buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         ffmpeg_gain.trace('w', audio_filter_function)
         ffmpeg_gain.set(0)
@@ -1938,7 +1947,7 @@ def openaudiowindow():
         # Dialogue Level Spinbox --------------------------------------------------------------------------------------
         global dialogue_level
         dialogue_level = StringVar()
-        dialogue_level_label = Label(audio_window, text="Dialogue Level (dB) :", background="#434547", \
+        dialogue_level_label = Label(audio_window, text="Dialogue Level (dB) :", background="#434547",
                                      foreground="white")
         dialogue_level_label.grid(row=7, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         dialogue_level_spinbox = Spinbox(audio_window, from_=-31, to=-1, justify=CENTER, wrap=True,
@@ -1957,7 +1966,7 @@ def openaudiowindow():
                                        'On': "-dsur_mode 1 ",
                                        'Off': "-dsur_mode 2 "}
         dolby_surround_mode.set('Default')  # set the default option
-        dolby_surround_mode_label = Label(audio_window, text="Dolby Surround Mode :", background="#434547", \
+        dolby_surround_mode_label = Label(audio_window, text="Dolby Surround Mode :", background="#434547",
                                           foreground="white")
         dolby_surround_mode_label.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         dolby_surround_mode_menu = OptionMenu(audio_window, dolby_surround_mode, *dolby_surround_mode_choices.keys())
@@ -1971,7 +1980,7 @@ def openaudiowindow():
         # Original Bit Stream Spinbox ---------------------------------------------------------------------------------
         global original_bit_stream
         original_bit_stream = StringVar()
-        original_bit_stream_label = Label(audio_window, text="Original Bit Stream :", background="#434547", \
+        original_bit_stream_label = Label(audio_window, text="Original Bit Stream :", background="#434547",
                                           foreground="white")
         original_bit_stream_label.grid(row=9, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         original_bit_stream_spinbox = Spinbox(audio_window, from_=-1, to=1, justify=CENTER, wrap=True,
@@ -1991,7 +2000,7 @@ def openaudiowindow():
                                 'Lo/Ro Downmix': "-dmix_mode 2 ",
                                 'Dolby Pro Logic II': "-dmix_mode 3 "}
         downmix_mode.set('Default')  # set the default option
-        downmix_mode_label = Label(audio_window, text="Stereo Downmix Mode :", background="#434547", \
+        downmix_mode_label = Label(audio_window, text="Stereo Downmix Mode :", background="#434547",
                                    foreground="white")
         downmix_mode_label.grid(row=9, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         downmix_mode_menu = OptionMenu(audio_window, downmix_mode, *downmix_mode_choices.keys())
@@ -2005,7 +2014,7 @@ def openaudiowindow():
         # Lt/Rt Center Mix Level Spinbox ------------------------------------------------------------------------------
         global lt_rt_center_mix
         lt_rt_center_mix = StringVar()
-        lt_rt_center_mix_label = Label(audio_window, text="Lt/Rt Center\nMix Level :", background="#434547", \
+        lt_rt_center_mix_label = Label(audio_window, text="Lt/Rt Center\nMix Level :", background="#434547",
                                        foreground="white")
         lt_rt_center_mix_label.grid(row=9, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         lt_rt_center_mix_spinbox = Spinbox(audio_window, from_=-1, to=1, justify=CENTER, wrap=True,
@@ -2019,7 +2028,7 @@ def openaudiowindow():
         # Lt/Rt Surround Mix Level Spinbox ----------------------------------------------------------------------------
         global lt_rt_surround_mix
         lt_rt_surround_mix = StringVar()
-        lt_rt_surround_mix_label = Label(audio_window, text="Lt/Rt Surround\nMix Level :", background="#434547", \
+        lt_rt_surround_mix_label = Label(audio_window, text="Lt/Rt Surround\nMix Level :", background="#434547",
                                          foreground="white")
         lt_rt_surround_mix_label.grid(row=11, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         lt_rt_surround_mix_spinbox = Spinbox(audio_window, from_=-1, to=1, justify=CENTER, wrap=True,
@@ -2033,7 +2042,7 @@ def openaudiowindow():
         # Lo/Ro Center Mix Level Spinbox ------------------------------------------------------------------------------
         global lo_ro_center_mix
         lo_ro_center_mix = StringVar()
-        lo_ro_center_mix_label = Label(audio_window, text="Lo/Ro Center\nMix Level :", background="#434547", \
+        lo_ro_center_mix_label = Label(audio_window, text="Lo/Ro Center\nMix Level :", background="#434547",
                                        foreground="white")
         lo_ro_center_mix_label.grid(row=11, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         lo_ro_center_mix_spinbox = Spinbox(audio_window, from_=-1, to=1, justify=CENTER, wrap=True,
@@ -2047,7 +2056,7 @@ def openaudiowindow():
         # Lo/Ro Surround Mix Level Spinbox ----------------------------------------------------------------------------
         global lo_ro_surround_mix
         lo_ro_surround_mix = StringVar()
-        lo_ro_surround_mix_label = Label(audio_window, text="Lo/Ro Surround\nMix Level :", background="#434547", \
+        lo_ro_surround_mix_label = Label(audio_window, text="Lo/Ro Surround\nMix Level :", background="#434547",
                                          foreground="white")
         lo_ro_surround_mix_label.grid(row=11, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         lo_ro_surround_mix_spinbox = Spinbox(audio_window, from_=-1, to=1, justify=CENTER, wrap=True,
@@ -2067,10 +2076,10 @@ def openaudiowindow():
                                           'Off': "-dsurex_mode 1 ",
                                           'Dolby Pro Login IIz': "-dsurex_mode 3 "}
         dolby_surround_ex_mode.set('Default')  # set the default option
-        dolby_surround_ex_mode_label = Label(audio_window, text="Dolby Surround EX Mode :", background="#434547", \
+        dolby_surround_ex_mode_label = Label(audio_window, text="Dolby Surround EX Mode :", background="#434547",
                                              foreground="white")
         dolby_surround_ex_mode_label.grid(row=13, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        dolby_surround_ex_mode_menu = OptionMenu(audio_window, dolby_surround_ex_mode, \
+        dolby_surround_ex_mode_menu = OptionMenu(audio_window, dolby_surround_ex_mode,
                                                  *dolby_surround_ex_mode_choices.keys())
         dolby_surround_ex_mode_menu.config(background="#23272A", foreground="white", highlightthickness=1)
         dolby_surround_ex_mode_menu.grid(row=14, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -2087,7 +2096,7 @@ def openaudiowindow():
                                         'On': "-dheadphone_mode 2 ",
                                         'Off': "-dheadphone_mode 1 "}
         dolby_headphone_mode.set('Default')  # set the default option
-        dolby_headphone_mode_label = Label(audio_window, text="Dolby Headphone Mode :", background="#434547", \
+        dolby_headphone_mode_label = Label(audio_window, text="Dolby Headphone Mode :", background="#434547",
                                            foreground="white")
         dolby_headphone_mode_label.grid(row=13, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         dolby_headphone_mode_menu = OptionMenu(audio_window, dolby_headphone_mode, *dolby_headphone_mode_choices.keys())
@@ -2105,7 +2114,7 @@ def openaudiowindow():
                                       'Standard': "-ad_conv_type 0 ",
                                       'HDCD': "-ad_conv_type 1 "}
         a_d_converter_type.set('Default')  # set the default option
-        a_d_converter_type_label = Label(audio_window, text="A/D Converter Type :", background="#434547", \
+        a_d_converter_type_label = Label(audio_window, text="A/D Converter Type :", background="#434547",
                                          foreground="white")
         a_d_converter_type_label.grid(row=13, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         a_d_converter_type_menu = OptionMenu(audio_window, a_d_converter_type, *a_d_converter_type_choices.keys())
@@ -2123,7 +2132,7 @@ def openaudiowindow():
                                       'True': "-stereo_rematrixing true ",
                                       'False': "-stereo_rematrixing false "}
         stereo_rematrixing.set('Default')  # set the default option
-        stereo_rematrixing_label = Label(audio_window, text="Stereo Rematrixing :", background="#434547", \
+        stereo_rematrixing_label = Label(audio_window, text="Stereo Rematrixing :", background="#434547",
                                          foreground="white")
         stereo_rematrixing_label.grid(row=15, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         stereo_rematrixing_menu = OptionMenu(audio_window, stereo_rematrixing, *stereo_rematrixing_choices.keys())
@@ -2137,7 +2146,7 @@ def openaudiowindow():
         # Channel Coupling Spinbox ------------------------------------------------------------------------------------
         global channel_coupling
         channel_coupling = StringVar()
-        channel_coupling_label = Label(audio_window, text="Channel Coupling :", background="#434547", \
+        channel_coupling_label = Label(audio_window, text="Channel Coupling :", background="#434547",
                                        foreground="white")
         channel_coupling_label.grid(row=15, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         channel_coupling_spinbox = Spinbox(audio_window, from_=-1, to=1, justify=CENTER, wrap=True,
@@ -2151,7 +2160,7 @@ def openaudiowindow():
         # Channel CPL Band Spinbox ------------------------------------------------------------------------------------
         global cpl_start_band
         cpl_start_band = StringVar()
-        cpl_start_band_label = Label(audio_window, text="Coupling Start Band :", background="#434547", \
+        cpl_start_band_label = Label(audio_window, text="Coupling Start Band :", background="#434547",
                                      foreground="white")
         cpl_start_band_label.grid(row=15, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         cpl_start_band_spinbox = Spinbox(audio_window, from_=-1, to=15, justify=CENTER, wrap=True,
@@ -2298,7 +2307,7 @@ def openaudiowindow():
         apply_button.bind("<Enter>", apply_button_hover)
         apply_button.bind("<Leave>", apply_button_hover_leave)
 
-        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A", \
+        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
                           command=view_command)
         show_cmd.grid(row=15, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
@@ -2380,27 +2389,27 @@ def openaudiowindow():
 
         # Dolby Pro Logic II ------------------------------------------------------------------------------------------
         dolby_pro_logic_ii = StringVar()
-        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II', \
-                                                  variable=dolby_pro_logic_ii, state=DISABLED, \
-                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="", \
+        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
+                                                  variable=dolby_pro_logic_ii, state=DISABLED,
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="",
                                                   command=audio_filter_function)
-        dolby_pro_logic_ii_checkbox.grid(row=3, column=2, columnspan=1, rowspan=1, padx=10, pady=3, \
+        dolby_pro_logic_ii_checkbox.grid(row=3, column=2, columnspan=1, rowspan=1, padx=10, pady=3,
                                          sticky=N + S + E + W)
         dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
-                                          activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
+                                              activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
         dolby_pro_logic_ii.set("")
         # ------------------------------------------------------------------------------------------------------ DPL II
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
         ffmpeg_gain = StringVar()
         ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
-                                                 foreground="white")
+                                  foreground="white")
         ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
-                                              sticky=N + S + E + W)
+                               sticky=N + S + E + W)
         ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                             wrap=True, textvariable=ffmpeg_gain)
+                                      wrap=True, textvariable=ffmpeg_gain)
         ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
-                                             buttonbackground="black", width=15, readonlybackground="#23272A")
+                                      buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         ffmpeg_gain.trace('w', audio_filter_function)
         ffmpeg_gain.set(0)
@@ -2437,7 +2446,7 @@ def openaudiowindow():
                 fdkaac_custom_cmd_input = cstmcmd + " "
 
         fdkaac_custom_cmd = StringVar()
-        fdkaac_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547", \
+        fdkaac_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547",
                                           foreground="white")
         fdkaac_cmd_entrybox_label.grid(row=11, column=0, columnspan=2, padx=10, pady=(0, 0), sticky=N + S + W + E)
         fdkaac_cmd_entrybox = Entry(audio_window, textvariable=fdkaac_custom_cmd, borderwidth=4, background="#CACACA")
@@ -2457,7 +2466,7 @@ def openaudiowindow():
                 fdkaac_title_input = "--title " + '"' + title_cmd + '"' + " "
 
         fdkaac_title = StringVar()
-        fdkaac_title_entrybox_label = Label(audio_window, text="Track Name :", anchor=W, background="#434547", \
+        fdkaac_title_entrybox_label = Label(audio_window, text="Track Name :", anchor=W, background="#434547",
                                             foreground="white")
         fdkaac_title_entrybox_label.grid(row=13, column=0, columnspan=2, padx=10, pady=(5, 0), sticky=N + S + W + E)
         fdkaac_title_entrybox = Entry(audio_window, textvariable=fdkaac_title, borderwidth=4, background="#CACACA")
@@ -2657,6 +2666,7 @@ def openaudiowindow():
                 set_qaac_gain = ''
             elif q_acodec_gain.get() != '0':
                 set_qaac_gain = '--gain ' + q_acodec_gain.get() + ' '
+
         # ----------------------------------------------------------------------------------------------- QAAC Get Gain
 
         # Help --------------------------------------------------------------------------------------------------------
@@ -2674,6 +2684,7 @@ def openaudiowindow():
                 text_area.insert(INSERT, helpfile.read())
                 text_area.configure(font=("Helvetica", 14))
                 text_area.configure(state=DISABLED)
+
         # -------------------------------------------------------------------------------------------------------- Help
 
         # Views Command -----------------------------------------------------------------------------------------------
@@ -2682,7 +2693,7 @@ def openaudiowindow():
             global cmd_line_window
             if q_acodec_profile.get() == "True VBR":
                 example_cmd_output = acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[
-                                     acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] \
+                    acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] \
                                      + audio_filter_setting \
                                      + "\n \n" + "-f wav - | " + qaac + " " + "\n \n" \
                                      + q_acodec_profile_choices[q_acodec_profile.get()] + q_acodec_quality_amnt.get() \
@@ -2721,6 +2732,7 @@ def openaudiowindow():
                     cmd_line_window.withdraw()
 
                 cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
+
         # ----------------------------------------------------------------------------------------------- Views Command
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
@@ -2729,7 +2741,7 @@ def openaudiowindow():
         apply_button.bind("<Enter>", apply_button_hover)
         apply_button.bind("<Leave>", apply_button_hover_leave)
 
-        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A", \
+        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
                           command=view_command)
         show_cmd.grid(row=14, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
@@ -2760,6 +2772,7 @@ def openaudiowindow():
                 q_acodec_quality_spinbox.configure(state=DISABLED)
                 q_acodec_bitrate_spinbox.configure(state=NORMAL)
                 qaac_high_efficiency_checkbox.configure(state=NORMAL)
+
         # ------------------------------------------------------------------------------------------ Quality or Bitrate
 
         # Audio Profile Menu ------------------------------------------------------------------------------------------
@@ -2782,17 +2795,16 @@ def openaudiowindow():
         q_acodec_profile_menu.bind("<Leave>", q_acodec_profile_hover_leave)
         # ------------------------------------------------------------------------------------------ Audio Profile Menu
 
-
         # Dolby Pro Logic II ------------------------------------------------------------------------------------------
         dolby_pro_logic_ii = StringVar()
-        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II', \
-                                                  variable=dolby_pro_logic_ii, state=DISABLED, \
-                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="", \
+        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
+                                                  variable=dolby_pro_logic_ii, state=DISABLED,
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="",
                                                   command=audio_filter_function)
-        dolby_pro_logic_ii_checkbox.grid(row=5, column=2, columnspan=1, rowspan=1, padx=10, pady=3, \
+        dolby_pro_logic_ii_checkbox.grid(row=5, column=2, columnspan=1, rowspan=1, padx=10, pady=3,
                                          sticky=N + S + E + W)
         dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
-                                          activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
+                                              activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
         dolby_pro_logic_ii.trace('w', audio_filter_function)
         dolby_pro_logic_ii.set("")
         # ------------------------------------------------------------------------------------------------------ DPL II
@@ -2829,6 +2841,7 @@ def openaudiowindow():
         acodec_stream_menu["menu"].configure(activebackground="dim grey")
         acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
         acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+
         # ------------------------------------------------------------------------------------------------ Audio Stream
 
         # Entry Box for Custom Command Line ---------------------------------------------------------------------------
@@ -2841,13 +2854,14 @@ def openaudiowindow():
                 qaac_custom_cmd_input = cstmcmd + " "
 
         qaac_custom_cmd = StringVar()
-        qaac_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547", \
-                                          foreground="white")
+        qaac_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547",
+                                        foreground="white")
         qaac_cmd_entrybox_label.grid(row=10, column=0, columnspan=2, padx=10, pady=(0, 0), sticky=N + S + W + E)
         qaac_cmd_entrybox = Entry(audio_window, textvariable=qaac_custom_cmd, borderwidth=4, background="#CACACA")
         qaac_cmd_entrybox.grid(row=11, column=0, columnspan=3, padx=10, pady=(0, 0), sticky=W + E)
         qaac_custom_cmd.trace('w', qaac_cmd)
         qaac_custom_cmd.set("")
+
         # ----------------------------------------------------------------------------------------- Custom Command Line
 
         # Entry Box for Track Title -----------------------------------------------------------------------------------
@@ -2860,8 +2874,8 @@ def openaudiowindow():
                 qaac_title_input = "--title " + '"' + title_cmd + '"' + " "
 
         qaac_title = StringVar()
-        qaac_title_entrybox_label = Label(audio_window, text="Track Name :", anchor=W, background="#434547", \
-                                            foreground="white")
+        qaac_title_entrybox_label = Label(audio_window, text="Track Name :", anchor=W, background="#434547",
+                                          foreground="white")
         qaac_title_entrybox_label.grid(row=12, column=0, columnspan=2, padx=10, pady=(5, 0), sticky=N + S + W + E)
         qaac_title_entrybox = Entry(audio_window, textvariable=qaac_title, borderwidth=4, background="#CACACA")
         qaac_title_entrybox.grid(row=13, column=0, columnspan=3, padx=10, pady=(0, 10), sticky=W + E)
@@ -2910,15 +2924,18 @@ def openaudiowindow():
         # Audio Quality Spinbox ---------------------------------------------------------------------------------------
         global q_acodec_quality_amnt
         q_acodec_quality_amnt = StringVar(audio_window)
-        q_acodec_quality_amnt.set(50)  # set the default option
+        q_acodec_quality_amnt_choices = ('0', '9', '18', '27', '36', '45', '54', '63', '73',
+                                        '82', '91', '100', '109', '118', '127')
         q_acodec_quality_spinbox_label = Label(audio_window, text="T-VBR Quality :", background="#434547",
                                                foreground="white")
         q_acodec_quality_spinbox_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        q_acodec_quality_spinbox = Spinbox(audio_window, from_=0, to=127, justify=CENTER, wrap=True,
-                                           textvariable=q_acodec_quality_amnt, width=13)
+        q_acodec_quality_spinbox = Spinbox(audio_window, values=q_acodec_quality_amnt_choices, justify=CENTER,
+                                           wrap=True, textvariable=q_acodec_quality_amnt, width=13, state='readonly')
         q_acodec_quality_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
-                                        buttonbackground="black", disabledbackground='grey')
+                                        buttonbackground="black", disabledbackground='grey',
+                                        readonlybackground="#23272A")
         q_acodec_quality_spinbox.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        q_acodec_quality_amnt.set('109')
         # ----------------------------------------------------------------------------------------------------- Quality
 
         # Audio Bitrate -----------------------------------------------------------------------------------------------
@@ -2940,9 +2957,9 @@ def openaudiowindow():
         q_acodec_gain_label = Label(audio_window, text="Gain :", background="#434547", foreground="white")
         q_acodec_gain_label.grid(row=4, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         q_acodec_gain_spinbox = Spinbox(audio_window, from_=-100, to=100, justify=CENTER, wrap=True,
-                                           textvariable=q_acodec_gain, width=13)
+                                        textvariable=q_acodec_gain, width=13)
         q_acodec_gain_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
-                                        buttonbackground="black", disabledbackground='grey')
+                                     buttonbackground="black", disabledbackground='grey')
         q_acodec_gain_spinbox.grid(row=5, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         q_acodec_gain.trace('w', qaac_gain_trace)
         q_acodec_gain.set(0)
@@ -2989,11 +3006,11 @@ def openaudiowindow():
         qaac_nodelay = StringVar()
         qaac_nodelay.set("")
         qaac_nodelay_checkbox = Checkbutton(audio_window, text='No Delay',
-                                             variable=qaac_nodelay, onvalue="--no-delay ",
-                                             offvalue="")
+                                            variable=qaac_nodelay, onvalue="--no-delay ",
+                                            offvalue="")
         qaac_nodelay_checkbox.grid(row=7, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         qaac_nodelay_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
-                                         activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+                                        activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
         # ---------------------------------------------------------------------------------------------------- No Delay
 
         # Gapless Mode ------------------------------------------------------------------------------------------------
@@ -3001,8 +3018,8 @@ def openaudiowindow():
         global q_gapless_mode_choices
         q_gapless_mode = StringVar(audio_window)
         q_gapless_mode_choices = {'iTunSMPB (default)': "",
-                                    'ISO standard': "--gapless-mode 1 ",
-                                    'Both': "--gapless-mode 2 "}
+                                  'ISO standard': "--gapless-mode 1 ",
+                                  'Both': "--gapless-mode 2 "}
         q_gapless_mode.set('iTunSMPB (default)')  # set the default option
         q_gapless_mode_label = Label(audio_window, text="Gapless Mode :", background="#434547", foreground="white")
         q_gapless_mode_label.grid(row=8, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -3019,11 +3036,11 @@ def openaudiowindow():
         qaac_nooptimize = StringVar()
         qaac_nooptimize.set("")
         qaac_nooptimize_checkbox = Checkbutton(audio_window, text='No Optimize',
-                                             variable=qaac_nooptimize, onvalue="--no-optimize ",
-                                             offvalue="")
+                                               variable=qaac_nooptimize, onvalue="--no-optimize ",
+                                               offvalue="")
         qaac_nooptimize_checkbox.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         qaac_nooptimize_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
-                                         activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+                                           activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
         # ------------------------------------------------------------------------------------------------- No Optimize
 
         # Misc Checkboxes - Threading ---------------------------------------------------------------------------------
@@ -3031,11 +3048,11 @@ def openaudiowindow():
         qaac_threading = StringVar()
         qaac_threading.set("")
         qaac_threading_checkbox = Checkbutton(audio_window, text='Threading',
-                                             variable=qaac_threading, onvalue="--threading ",
-                                             offvalue="")
+                                              variable=qaac_threading, onvalue="--threading ",
+                                              offvalue="")
         qaac_threading_checkbox.grid(row=8, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         qaac_threading_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
-                                         activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+                                          activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
         # --------------------------------------------------------------------------------------------------- Threading
 
         # Misc Checkboxes - Limiter -----------------------------------------------------------------------------------
@@ -3043,13 +3060,15 @@ def openaudiowindow():
         qaac_limiter = StringVar()
         qaac_limiter.set("")
         qaac_limiter_checkbox = Checkbutton(audio_window, text='Limiter',
-                                             variable=qaac_limiter, onvalue="--limiter ",
-                                             offvalue="")
+                                            variable=qaac_limiter, onvalue="--limiter ",
+                                            offvalue="")
         qaac_limiter_checkbox.grid(row=9, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         qaac_limiter_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
-                                         activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+                                        activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
         # ----------------------------------------------------------------------------------------------------- Limiter
     # ----------------------------------------------------------------------------------------------------------- QAAC
+
+
 # ---------------------------------------------------------------------------------------------- End Audio Codec Window
 
 # File Input ----------------------------------------------------------------------------------------------------------
@@ -3107,6 +3126,8 @@ def file_input():
         show_streams_button.config(state=DISABLED)
         encoder_menu.config(state=DISABLED)
         audiosettings_button.configure(state=DISABLED)
+
+
 # ---------------------------------------------------------------------------------------------------------- File Input
 
 # File Output ---------------------------------------------------------------------------------------------------------
@@ -3150,49 +3171,65 @@ def file_save():
         output_entry.delete(0, END)  # Remove current text in entry
         output_entry.insert(0, VideoOutput)  # Insert the 'path'
         output_entry.configure(state=DISABLED)  # Disables Entry Box
+
+
 # --------------------------------------------------------------------------------------------------------- File Output
 def input_button_hover(e):
     input_button["bg"] = "grey"
 
+
 def input_button_hover_leave(e):
     input_button["bg"] = "#23272A"
+
 
 def output_button_hover(e):
     output_button["bg"] = "grey"
 
+
 def output_button_hover_leave(e):
     output_button["bg"] = "#23272A"
+
 
 def audiosettings_button_hover(e):
     audiosettings_button["bg"] = "grey"
 
+
 def audiosettings_button_hover_leave(e):
     audiosettings_button["bg"] = "#23272A"
+
 
 def show_streams_button_hover(e):
     show_streams_button["bg"] = "grey"
 
+
 def show_streams_button_hover_leave(e):
     show_streams_button["bg"] = "#23272A"
+
 
 def start_audio_button_hover(e):
     start_audio_button["bg"] = "grey"
 
+
 def start_audio_button_hover_leave(e):
     start_audio_button["bg"] = "#23272A"
+
 
 def command_line_button_hover(e):
     command_line_button["bg"] = "grey"
 
+
 def command_line_button_hover_leave(e):
     command_line_button["bg"] = "#23272A"
+
 
 def encoder_menu_hover(e):
     encoder_menu["bg"] = "grey"
     encoder_menu["activebackground"] = "grey"
 
+
 def encoder_menu_hover_leave(e):
     encoder_menu["bg"] = "#23272A"
+
 
 # Print Command Line from ROOT ----------------------------------------------------------------------------------------
 def print_command_line():
@@ -3343,6 +3380,8 @@ def print_command_line():
     cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
     cmd_label.config(font=("Helvetica", 16))
     cmd_label.pack()
+
+
 # ---------------------------------------------------------------------------------------- Print Command Line from ROOT
 
 # Start Audio Job -----------------------------------------------------------------------------------------------------
@@ -3517,12 +3556,15 @@ def startaudiojob():
             subprocess.Popen('cmd /k ' + finalcommand)
     # ------------------------------------------------------------------------------------------------------------ QAAC
 
+
 # Open InputFile with portable MediaInfo ------------------------------
 def mediainfogui():
     VideoInputQuoted = '"' + VideoInput + '"'
     MediaInfoQuoted = '"' + mediainfo + '"'
     commands = MediaInfoQuoted + " " + VideoInputQuoted
     subprocess.Popen(commands)
+
+
 # ------------------------------------------------------------ MediaInfo
 
 
@@ -3542,6 +3584,7 @@ audiosettings_button.grid(row=1, column=3, columnspan=2, padx=5, pady=5, sticky=
 audiosettings_button.bind("<Enter>", audiosettings_button_hover)
 audiosettings_button.bind("<Leave>", audiosettings_button_hover_leave)
 
+
 def input_button_commands():
     encoder.set('Set Codec')
     audiosettings_button.configure(state=DISABLED)
@@ -3557,8 +3600,10 @@ def input_button_commands():
     command_line_button.configure(state=DISABLED)
     file_input()
 
+
 def drop_input(event):
     input_dnd.set(event.data)
+
 
 def update_file_input(*args):
     global VideoInput
@@ -3600,6 +3645,7 @@ def update_file_input(*args):
     else:
         messagebox.showinfo(title="Wrong File Type", message="Try Again With a Supported File Type!\n\nIf this is a "
                                                              "file that should be supported, please let me know.")
+
 
 input_dnd = StringVar()
 input_dnd.trace('w', update_file_input)
