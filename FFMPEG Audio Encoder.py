@@ -6881,9 +6881,10 @@ def batch_processing():
                            acodec_lowdelay_choices[acodec_lowdelay.get()] + \
                            acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] + \
                            acodec_transport_format_choices[acodec_transport_format.get()] + \
-                           acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " + automatic_batch_save_dir \
-                           + '/NEW_%~na.m4a"' + '"'
+                           acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " + '"' + automatic_batch_save_dir \
+                           + '/%~na.m4a"' + '"'
             if shell_options.get() == "Default":
+                print(finalcommand)
                 subprocess.Popen('cmd /c ' + finalcommand)
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand)
@@ -6907,7 +6908,7 @@ def batch_processing():
                                + qaac_nodelay.get() \
                                + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
                                + qaac_threading.get() + qaac_limiter.get() + qaac_title_input + qaac_custom_cmd_input \
-                               + "- -o " + automatic_batch_save_dir + '/NEW_%~na.m4a"' + '"'
+                               + "- -o " + '"' + automatic_batch_save_dir + '/%~na.m4a"' + '"'
             else:
                 finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                                + automatic_batch_save_dir + '"' \
@@ -6924,7 +6925,7 @@ def batch_processing():
                                + q_acodec_quality_choices[q_acodec_quality.get()] + qaac_nodelay.get() \
                                + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
                                + qaac_threading.get() + qaac_limiter.get() + qaac_title_input \
-                               + qaac_custom_cmd_input + "- -o " + VideoOutputQuoted + '"'
+                               + qaac_custom_cmd_input + "- -o " + '"' + automatic_batch_save_dir + '/%~na.m4a"' + '"'
             if shell_options.get() == "Default":
                 subprocess.Popen('cmd /c ' + finalcommand)
             elif shell_options.get() == "Debug":
