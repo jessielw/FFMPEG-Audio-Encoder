@@ -3736,7 +3736,11 @@ def batch_processing():
 
     # Encoder Codec Drop Down -----------------------------------------------------------------------------------------
     extension_dropdownmenu_choices = {
-        "Common Extensions": '("*.*")',
+        "Common Extensions": '("*.mov", "*.wav", "*.mt2s", "*.ac3", "*.mka", "*.wav", "*.mp3", "*.aac", "*.ogg", '
+                             '"*.ogv", "*.m4v", "*.mpeg", "*.avi", "*.vob", "*.webm", "*.mp4", "*.mkv", "*.dts")',
+        "MKV": '("*.mkv")',
+        "MP4": '("*.mp4")',
+        "M4V": '("*.m4v")',
         "All Files": '("*.*")'}
     extension = StringVar()
     extension.set("Common Extensions")
@@ -6884,7 +6888,6 @@ def batch_processing():
                            acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " + '"' + automatic_batch_save_dir \
                            + '/%~na.m4a"' + '"'
             if shell_options.get() == "Default":
-                print(finalcommand)
                 subprocess.Popen('cmd /c ' + finalcommand)
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand)
