@@ -3665,6 +3665,15 @@ start_audio_button.bind("<Leave>", start_audio_button_hover_leave)
 
 
 
+
+
+
+
+
+
+
+
+# Batch Processing Window ---------------------------------------------------------------------------------------------
 def batch_processing():
     batch_processing_window = Toplevel()
     batch_processing_window.title('Batch Processing Window')
@@ -3699,7 +3708,7 @@ def batch_processing():
     def save_batch_dir_hover_leave(e):
         save_batch_dir["bg"] = "#23272A"
 
-    # Encoder Codec Drop Down ---------------------------------------------------------------------------------------------
+    # Encoder Codec Drop Down -----------------------------------------------------------------------------------------
     def encoder_changed_batch(*args):
         if encoder.get() == "Set Codec":
             audiosettings_button.configure(state=DISABLED)
@@ -3711,9 +3720,12 @@ def batch_processing():
             batch_output_entry.delete(0, END)
             batch_output_entry.configure(state=DISABLED)
             command_line_button.config(state=DISABLED)
+            start_audio_button.config(state=DISABLED)
         else:
             save_batch_dir.config(state=NORMAL)
             audiosettings_button.configure(state=NORMAL)
+            command_line_button.config(state=DISABLED)
+            start_audio_button.config(state=DISABLED)
 
     encoder_dropdownmenu_choices = {
         "AAC": "-c:a aac ",
@@ -3732,15 +3744,19 @@ def batch_processing():
     encoder_menu.config( background="#23272A", foreground="white", highlightthickness=1, width=15, state=DISABLED)
     encoder_menu["menu"].configure(activebackground="dim grey")
 
-    # -------------------------------------------------------------------------------------------------------- Encoder Menu
+    # ---------------------------------------------------------------------------------------------------- Encoder Menu
 
     # Encoder Codec Drop Down -----------------------------------------------------------------------------------------
     extension_dropdownmenu_choices = {
         "Common Extensions": '("*.mov", "*.wav", "*.mt2s", "*.ac3", "*.mka", "*.wav", "*.mp3", "*.aac", "*.ogg", '
-                             '"*.ogv", "*.m4v", "*.mpeg", "*.avi", "*.vob", "*.webm", "*.mp4", "*.mkv", "*.dts")',
+                             '"*.ogv", "*.m4v", "*.mpeg", "*.avi", "*.vob", "*.webm", "*.mp4", "*.mkv", "*.dts", '
+                             '"*.flac", "*.alac", "*.mpg")',
         "MKV": '("*.mkv")',
         "MP4": '("*.mp4")',
         "M4V": '("*.m4v")',
+        "AVI": '("*.avi")',
+        "FLAC/ALAC": '("*.flac", "*.alac")',
+        "WAV": '("*.wav")',
         "All Files": '("*.*")'}
     extension = StringVar()
     extension.set("Common Extensions")
@@ -3750,9 +3766,9 @@ def batch_processing():
     extension_menu["menu"].configure(activebackground="dim grey")
 
 
-    # -------------------------------------------------------------------------------------------------------- Encoder Menu
+    # ---------------------------------------------------------------------------------------------------- Encoder Menu
 
-    # Audio Codec Window --------------------------------------------------------------------------------------------------
+    # Audio Codec Window ----------------------------------------------------------------------------------------------
     def openaudiowindow2():
         global acodec_bitrate, acodec_channel, acodec_channel_choices, acodec_bitrate_choices, acodec_stream, \
             acodec_stream_choices, acodec_gain, acodec_gain_choices, dts_settings, dts_settings_choices, \
@@ -3920,7 +3936,7 @@ def batch_processing():
                                        'Track 14': '-map 0:a:13 ',
                                        'Track 15': '-map 0:a:14 '}
 
-        # Checks channel for dolby pro logic II checkbox ------------------------------------------------------------------
+        # Checks channel for dolby pro logic II checkbox --------------------------------------------------------------
         def dolby_pro_logic_ii_enable_disable(*args):
             if acodec_channel.get() == '2 (Stereo)':
                 dolby_pro_logic_ii_checkbox.config(state=NORMAL)
@@ -3928,9 +3944,9 @@ def batch_processing():
                 dolby_pro_logic_ii.set("")
                 dolby_pro_logic_ii_checkbox.config(state=DISABLED)
 
-        # --------------------------------------------------------------------------------------------- dplII channel check
+        # ----------------------------------------------------------------------------------------- dplII channel check
 
-        # Combines -af filter settings ------------------------------------------------------------------------------------
+        # Combines -af filter settings --------------------------------------------------------------------------------
         def audio_filter_function(*args):
             global audio_filter_setting
             audio_filter_setting = ''
@@ -3959,7 +3975,7 @@ def batch_processing():
                 elif dolby_pro_logic_ii.get() == '' and ffmpeg_gain.get() != '0':
                     audio_filter_setting = '-af ' + ffmpeg_gain_cmd + ' '
 
-        # ---------------------------------------------------------------------------------------------------- combines -af
+        # ------------------------------------------------------------------------------------------------ combines -af
 
         def gotosavefile():
             audio_window.destroy()
@@ -3971,7 +3987,7 @@ def batch_processing():
             except:
                 pass
 
-        # AC3 Window ------------------------------------------------------------------------------------------------------
+        # AC3 Window --------------------------------------------------------------------------------------------------
         if encoder.get() == "AC3":
             audio_window = Toplevel()
             audio_window.title('AC3 Settings')
@@ -3993,7 +4009,7 @@ def batch_processing():
             audio_window.grid_rowconfigure(3, weight=1)
             audio_window.grid_rowconfigure(8, weight=1)
 
-            # Views Command -----------------------------------------------------------------------------------------------
+            # Views Command -------------------------------------------------------------------------------------------
             def view_command():
                 global cmd_line_window
                 global cmd_label
@@ -4020,9 +4036,9 @@ def batch_processing():
 
                     cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
 
-            # ----------------------------------------------------------------------------------------------- Views Command
+            # ------------------------------------------------------------------------------------------- Views Command
 
-            # Buttons -----------------------------------------------------------------------------------------------------
+            # Buttons -------------------------------------------------------------------------------------------------
             apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                                   command=gotosavefile)
             apply_button.grid(row=8, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
@@ -4034,9 +4050,9 @@ def batch_processing():
             show_cmd.grid(row=8, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
             show_cmd.bind("<Enter>", show_cmd_hover)
             show_cmd.bind("<Leave>", show_cmd_hover_leave)
-            # ----------------------------------------------------------------------------------------------------- Buttons
+            # ------------------------------------------------------------------------------------------------- Buttons
 
-            # Audio Bitrate Selection -------------------------------------------------------------------------------------
+            # Audio Bitrate Selection ---------------------------------------------------------------------------------
             acodec_bitrate = StringVar(audio_window)
             acodec_bitrate_choices = {'64k': "-b:a 64k ",
                                       '128k': "-b:a 128k ",
@@ -4061,9 +4077,9 @@ def batch_processing():
             acodec_bitrate_menu["menu"].configure(activebackground="dim grey")
             acodec_bitrate_menu.bind("<Enter>", acodec_bitrate_menu_hover)
             acodec_bitrate_menu.bind("<Leave>", acodec_bitrate_menu_hover_leave)
-            # ----------------------------------------------------------------------------------------------- Audio Bitrate
+            # ------------------------------------------------------------------------------------------- Audio Bitrate
 
-            # Audio Stream Selection --------------------------------------------------------------------------------------
+            # Audio Stream Selection ----------------------------------------------------------------------------------
             acodec_stream = StringVar(audio_window)
             acodec_stream_choices = acodec_stream_batch_choices
             acodec_stream.set('Track 1')
@@ -4075,9 +4091,9 @@ def batch_processing():
             acodec_stream_menu["menu"].configure(activebackground="dim grey")
             acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
             acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
-            # -------------------------------------------------------------------------------------------------------------
+            # ---------------------------------------------------------------------------------------------------------
 
-            # Audio Channel Selection -------------------------------------------------------------------------------------
+            # Audio Channel Selection ---------------------------------------------------------------------------------
             acodec_channel = StringVar(audio_window)
             acodec_channel_choices = {'Original': "",
                                       '1 (Mono)': "-ac 1 ",
@@ -4096,9 +4112,9 @@ def batch_processing():
             achannel_menu.bind("<Enter>", achannel_menu_hover)
             achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
             acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
-            # ----------------------------------------------------------------------------------------------- Audio Channel
+            # ------------------------------------------------------------------------------------------- Audio Channel
 
-            # Dolby Pro Logic II ------------------------------------------------------------------------------------------
+            # Dolby Pro Logic II --------------------------------------------------------------------------------------
             dolby_pro_logic_ii = StringVar()
             dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                       variable=dolby_pro_logic_ii, state=DISABLED,
@@ -4110,9 +4126,9 @@ def batch_processing():
                                                   activeforeground="white", selectcolor="#434547",
                                                   font=("Helvetica", 11))
             dolby_pro_logic_ii.set("")
-            # ------------------------------------------------------------------------------------------------------ DPL II
+            # -------------------------------------------------------------------------------------------------- DPL II
 
-            # Audio Gain Selection ----------------------------------------------------------------------------------------
+            # Audio Gain Selection ------------------------------------------------------------------------------------
             ffmpeg_gain = StringVar()
             ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
                                       foreground="white")
@@ -4125,9 +4141,9 @@ def batch_processing():
             ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             ffmpeg_gain.trace('w', audio_filter_function)
             ffmpeg_gain.set(0)
-            # -------------------------------------------------------------------------------------------------------- Gain
+            # ---------------------------------------------------------------------------------------------------- Gain
 
-            # Audio Sample Rate Selection ---------------------------------------------------------------------------------
+            # Audio Sample Rate Selection -----------------------------------------------------------------------------
             acodec_samplerate = StringVar(audio_window)
             acodec_samplerate_choices = {'Original': "",
                                          '32000 Hz': "-ar 32000 ",
@@ -4144,9 +4160,9 @@ def batch_processing():
             acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
             acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
 
-            # ------------------------------------------------------------------------------------------------- Sample Rate
+            # --------------------------------------------------------------------------------------------- Sample Rate
 
-            # Entry Box for Custom Command Line ---------------------------------------------------------------------------
+            # Entry Box for Custom Command Line -----------------------------------------------------------------------
             def ac3_cmd(*args):
                 global ac3_custom_cmd_input
                 if ac3_custom_cmd.get() == (""):
@@ -4163,10 +4179,10 @@ def batch_processing():
             ac3_cmd_entrybox.grid(row=5, column=0, columnspan=3, padx=10, pady=(0, 15), sticky=W + E)
             ac3_custom_cmd.trace('w', ac3_cmd)
             ac3_custom_cmd.set("")
-            # ----------------------------------------------------------------------------------------- Custom Command Line
-        # ------------------------------------------------------------------------------------------------------------- AC3
+            # ------------------------------------------------------------------------------------- Custom Command Line
+        # --------------------------------------------------------------------------------------------------------- AC3
 
-        # AAC Window ------------------------------------------------------------------------------------------------------
+        # AAC Window --------------------------------------------------------------------------------------------------
         elif encoder.get() == "AAC":
             audio_window = Toplevel()
             audio_window.title('AAC Settings')
@@ -4188,7 +4204,7 @@ def batch_processing():
             audio_window.grid_rowconfigure(3, weight=1)
             audio_window.grid_rowconfigure(9, weight=1)
 
-            def view_command():  # Views Command ---------------------------------------------------------------------------
+            def view_command():  # Views Command ----------------------------------------------------------------------
                 global cmd_label
                 global cmd_line_window
                 if aac_vbr_toggle.get() == "-c:a ":
@@ -4223,9 +4239,9 @@ def batch_processing():
 
                     cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
 
-            # ----------------------------------------------------------------------------------------------- Views Command
+            # ------------------------------------------------------------------------------------------- Views Command
 
-            # Buttons -----------------------------------------------------------------------------------------------------
+            # Buttons -------------------------------------------------------------------------------------------------
             apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                                   command=gotosavefile)
             apply_button.grid(row=9, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
@@ -4238,9 +4254,9 @@ def batch_processing():
             show_cmd.bind("<Enter>", show_cmd_hover)
             show_cmd.bind("<Leave>", show_cmd_hover_leave)
 
-            # ----------------------------------------------------------------------------------------------------- Buttons
+            # ------------------------------------------------------------------------------------------------- Buttons
 
-            # Entry Box for Custom Command Line ---------------------------------------------------------------------------
+            # Entry Box for Custom Command Line -----------------------------------------------------------------------
             def aac_cmd(*args):
                 global aac_custom_cmd_input
                 if aac_custom_cmd.get() == (""):
@@ -4258,9 +4274,9 @@ def batch_processing():
             aac_custom_cmd.trace('w', aac_cmd)
             aac_custom_cmd.set("")
 
-            # ----------------------------------------------------------------------------------------- Custom Command Line
+            # ------------------------------------------------------------------------------------- Custom Command Line
 
-            # Entry Box for Track Title -----------------------------------------------------------------------------------
+            # Entry Box for Track Title -------------------------------------------------------------------------------
             def aac_title_check(*args):
                 global aac_title_input
                 if aac_title.get() == (""):
@@ -4277,9 +4293,9 @@ def batch_processing():
             aac_title_entrybox.grid(row=8, column=0, columnspan=3, padx=10, pady=(0, 10), sticky=W + E)
             aac_title.trace('w', aac_title_check)
             aac_title.set("")
-            # ------------------------------------------------------------------------------------------------- Track Title
+            # --------------------------------------------------------------------------------------------- Track Title
 
-            # Dolby Pro Logic II ------------------------------------------------------------------------------------------
+            # Dolby Pro Logic II --------------------------------------------------------------------------------------
             dolby_pro_logic_ii = StringVar()
             dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                       variable=dolby_pro_logic_ii, state=DISABLED,
@@ -4291,9 +4307,9 @@ def batch_processing():
                                                   activeforeground="white", selectcolor="#434547",
                                                   font=("Helvetica", 11))
             dolby_pro_logic_ii.set("")
-            # ------------------------------------------------------------------------------------------------------ DPL II
+            # -------------------------------------------------------------------------------------------------- DPL II
 
-            # Audio Gain Selection ----------------------------------------------------------------------------------------
+            # Audio Gain Selection ------------------------------------------------------------------------------------
             ffmpeg_gain = StringVar()
             ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
                                       foreground="white")
@@ -4306,9 +4322,9 @@ def batch_processing():
             ffmpeg_gain_spinbox.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             ffmpeg_gain.trace('w', audio_filter_function)
             ffmpeg_gain.set(0)
-            # -------------------------------------------------------------------------------------------------------- Gain
+            # ---------------------------------------------------------------------------------------------------- Gain
 
-            # Audio Bitrate Spinbox ---------------------------------------------------------------------------------------
+            # Audio Bitrate Spinbox -----------------------------------------------------------------------------------
             global aac_bitrate_spinbox
             aac_bitrate_spinbox = StringVar()
             aac_acodec_bitrate_spinbox_label = Label(audio_window, text="Bitrate :", background="#434547",
@@ -4321,9 +4337,9 @@ def batch_processing():
                                                  buttonbackground="black", width=15, readonlybackground="#23272A")
             aac_acodec_bitrate_spinbox.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             aac_bitrate_spinbox.set(192)
-            # --------------------------------------------------------------------------------------- Audio Bitrate Spinbox
+            # ----------------------------------------------------------------------------------- Audio Bitrate Spinbox
 
-            # Vbr Toggle --------------------------------------------------------------------------------------------------
+            # Vbr Toggle ----------------------------------------------------------------------------------------------
             global aac_vbr_toggle
             aac_vbr_toggle = StringVar()
             aac_vbr_toggle.set("-c:a ")
@@ -4343,7 +4359,7 @@ def batch_processing():
                     aac_acodec_bitrate_spinbox.grid(row=3, column=1, columnspan=1, padx=10, pady=3,
                                                     sticky=N + S + E + W)
                     aac_bitrate_spinbox.set(192)
-                elif aac_vbr_toggle.get() == "-q:a ":  # This enables VBR Spinbox ------------------------------------------
+                elif aac_vbr_toggle.get() == "-q:a ":  # This enables VBR Spinbox -------------------------------------
                     global aac_quality_spinbox
                     aac_quality_spinbox = StringVar()
                     aac_acodec_quality_spinbox_label = Label(audio_window, text="VBR Quality :", background="#434547",
@@ -4358,7 +4374,7 @@ def batch_processing():
                     aac_acodec_quality_spinbox.grid(row=3, column=1, columnspan=1, padx=10, pady=3,
                                                     sticky=N + S + E + W)
                     aac_quality_spinbox.set(2)
-                    # ----------------------------------------------------------------------------------------- VBR Spinbox
+                    # ------------------------------------------------------------------------------------- VBR Spinbox
 
             aac_vbr_toggle_checkbox = Checkbutton(audio_window, text=' Variable\n Bit-Rate', variable=aac_vbr_toggle,
                                                   onvalue="-q:a ", offvalue="-c:a ", command=aac_vbr_trace)
@@ -4367,9 +4383,9 @@ def batch_processing():
             aac_vbr_toggle_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                               activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
             aac_vbr_toggle.trace('w', aac_vbr_trace)
-            # -------------------------------------------------------------------------------------------------- Vbr Toggle
+            # ---------------------------------------------------------------------------------------------- Vbr Toggle
 
-            # Audio Channel Selection -------------------------------------------------------------------------------------
+            # Audio Channel Selection ---------------------------------------------------------------------------------
             acodec_channel = StringVar(audio_window)
             acodec_channel_choices = {'Original': "",
                                       '1 (Mono)': "-ac 1 ",
@@ -4390,9 +4406,9 @@ def batch_processing():
             achannel_menu.bind("<Enter>", achannel_menu_hover)
             achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
             acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
-            # ------------------------------------------------------------------------------------- Audio Channel Selection
+            # --------------------------------------------------------------------------------- Audio Channel Selection
 
-            # Audio Stream Selection --------------------------------------------------------------------------------------
+            # Audio Stream Selection ----------------------------------------------------------------------------------
             acodec_stream = StringVar(audio_window)
             acodec_stream_choices = acodec_stream_batch_choices
             acodec_stream.set('Track 1')
@@ -4404,9 +4420,9 @@ def batch_processing():
             acodec_stream_menu["menu"].configure(activebackground="dim grey")
             acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
             acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
-            # -------------------------------------------------------------------------------------- Audio Stream Selection
+            # ---------------------------------------------------------------------------------- Audio Stream Selection
 
-            # Audio Sample Rate Selection ---------------------------------------------------------------------------------
+            # Audio Sample Rate Selection -----------------------------------------------------------------------------
             acodec_samplerate = StringVar(audio_window)
             acodec_samplerate_choices = {'Original': "",
                                          '8000 Hz': "-ar 8000 ",
@@ -4428,10 +4444,10 @@ def batch_processing():
             acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
             acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
             acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
-            # --------------------------------------------------------------------------------- Audio Sample Rate Selection
-            # -------------------------------------------------------------------------------------------------- AAC Window
+            # ----------------------------------------------------------------------------- Audio Sample Rate Selection
+            # ---------------------------------------------------------------------------------------------- AAC Window
 
-        # DTS Window ------------------------------------------------------------------------------------------------------
+        # DTS Window --------------------------------------------------------------------------------------------------
         elif encoder.get() == "DTS":
             audio_window = Toplevel()
             audio_window.title('DTS Settings')
@@ -4476,7 +4492,7 @@ def batch_processing():
                     dolby_pro_logic_ii.set('')
                     dolby_pro_logic_ii_checkbox.config(state=DISABLED)
 
-            # Views Command -----------------------------------------------------------------------------------------------
+            # Views Command -------------------------------------------------------------------------------------------
             def view_command():
                 global cmd_label
                 global cmd_line_window
@@ -4509,9 +4525,9 @@ def batch_processing():
 
                     cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
 
-            # ----------------------------------------------------------------------------------------------- Views Command
+            # ------------------------------------------------------------------------------------------- Views Command
 
-            # Buttons -----------------------------------------------------------------------------------------------------
+            # Buttons -------------------------------------------------------------------------------------------------
             apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                                   command=gotosavefile)
             apply_button.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -4524,9 +4540,9 @@ def batch_processing():
             show_cmd.bind("<Enter>", show_cmd_hover)
             show_cmd.bind("<Leave>", show_cmd_hover_leave)
 
-            # ----------------------------------------------------------------------------------------------------- Buttons
+            # ------------------------------------------------------------------------------------------------- Buttons
 
-            # Entry Box for Custom Command Line ---------------------------------------------------------------------------
+            # Entry Box for Custom Command Line -----------------------------------------------------------------------
             def dts_cmd(*args):
                 global dts_custom_cmd_input
                 if dts_custom_cmd.get() == (""):
@@ -4544,9 +4560,9 @@ def batch_processing():
             dts_custom_cmd.trace('w', dts_cmd)
             dts_custom_cmd.set("")
 
-            # ----------------------------------------------------------------------------------------- Custom Command Line
+            # ------------------------------------------------------------------------------------- Custom Command Line
 
-            # Audio Bitrate Spinbox ---------------------------------------------------------------------------------------
+            # Audio Bitrate Spinbox -----------------------------------------------------------------------------------
             global dts_bitrate_spinbox
             dts_bitrate_spinbox = StringVar()
             dts_acodec_bitrate_spinbox_label = Label(audio_window, text="Bitrate :", background="#434547",
@@ -4560,9 +4576,9 @@ def batch_processing():
                                                  buttonbackground="black", width=15, readonlybackground="#23272A")
             dts_acodec_bitrate_spinbox.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             dts_bitrate_spinbox.set("")
-            # --------------------------------------------------------------------------------------- Audio Bitrate Spinbox
+            # ----------------------------------------------------------------------------------- Audio Bitrate Spinbox
 
-            # Dolby Pro Logic II ------------------------------------------------------------------------------------------
+            # Dolby Pro Logic II --------------------------------------------------------------------------------------
             dolby_pro_logic_ii = StringVar()
             dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                       variable=dolby_pro_logic_ii, state=DISABLED,
@@ -4574,9 +4590,9 @@ def batch_processing():
                                                   activeforeground="white", selectcolor="#434547",
                                                   font=("Helvetica", 11))
             dolby_pro_logic_ii.set("")
-            # ------------------------------------------------------------------------------------------------------ DPL II
+            # -------------------------------------------------------------------------------------------------- DPL II
 
-            # Audio Gain Selection ----------------------------------------------------------------------------------------
+            # Audio Gain Selection ------------------------------------------------------------------------------------
             ffmpeg_gain = StringVar()
             ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
                                       foreground="white")
@@ -4590,9 +4606,9 @@ def batch_processing():
             ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             ffmpeg_gain.trace('w', audio_filter_function)
             ffmpeg_gain.set(0)
-            # -------------------------------------------------------------------------------------------------------- Gain
+            # ---------------------------------------------------------------------------------------------------- Gain
 
-            # Audio Sample Rate Selection ---------------------------------------------------------------------------------
+            # Audio Sample Rate Selection -----------------------------------------------------------------------------
             acodec_samplerate = StringVar(audio_window)
             acodec_samplerate_choices = {'Original': "",
                                          '16000 Hz': "-ar 16000 ",
@@ -4612,9 +4628,9 @@ def batch_processing():
             acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
             acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
             acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
-            # --------------------------------------------------------------------------------- Audio Sample Rate Selection
+            # ----------------------------------------------------------------------------- Audio Sample Rate Selection
 
-            # Audio Stream Selection --------------------------------------------------------------------------------------
+            # Audio Stream Selection ----------------------------------------------------------------------------------
             acodec_stream = StringVar(audio_window)
             acodec_stream_choices = acodec_stream_batch_choices
             acodec_stream.set('Track 1')
@@ -4626,9 +4642,9 @@ def batch_processing():
             acodec_stream_menu["menu"].configure(activebackground="dim grey")
             acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
             acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
-            # ------------------------------------------------------------------------------------------------ Audio Stream
+            # -------------------------------------------------------------------------------------------- Audio Stream
 
-            # Audio Channel Selection -------------------------------------------------------------------------------------
+            # Audio Channel Selection ---------------------------------------------------------------------------------
             acodec_channel = StringVar(audio_window)
             acodec_channel_choices = {'(Mono)': "-ac 1 ",
                                       '2 (Stereo)': "-ac 2 ",
@@ -4643,9 +4659,9 @@ def batch_processing():
             achannel_menu.bind("<Enter>", achannel_menu_hover)
             achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
             acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
-            # ------------------------------------------------------------------------------------- Audio Channel Selection
+            # --------------------------------------------------------------------------------- Audio Channel Selection
 
-            # DTS Encoder(s) ----------------------------------------------------------------------------------------------
+            # DTS Encoder(s) ------------------------------------------------------------------------------------------
             dts_settings = StringVar(audio_window)
             dts_settings_choices = {'Reduce to Core': "-bsf:a dca_core -c:a copy ",
                                     'Extract HD Track': "-c:a copy ",
@@ -4659,9 +4675,9 @@ def batch_processing():
             dts_settings_menu.bind("<Enter>", dts_settings_menu_hover)
             dts_settings_menu.bind("<Leave>", dts_settings_menu_hover_leave)
             dts_settings.trace('w', dts_setting_choice_trace)
-        # ------------------------------------------------------------------------------------------------------------- DTS
+        # --------------------------------------------------------------------------------------------------------- DTS
 
-        # Opus Window -----------------------------------------------------------------------------------------------------
+        # Opus Window -------------------------------------------------------------------------------------------------
         elif encoder.get() == "Opus":
             audio_window = Toplevel()
             audio_window.title('Opus Settings')
@@ -4675,14 +4691,14 @@ def batch_processing():
             audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
 
             advanced_label = Label(audio_window,
-                                   text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - - - - - - - - - - "
-                                        "- - - - - - - - -",
+                                   text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - - - - - - - - -"
+                                        "- - - - - - - - - -",
                                    background="#434547", foreground="white", relief=GROOVE)
             advanced_label.grid(row=5, column=0, columnspan=3, padx=10, pady=(5, 0), sticky=W + E)
 
             advanced_label_end = Label(audio_window,
-                                       text="- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
-                                            "- - - - - - - - -",
+                                       text="- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
+                                            "- - - - - - - - - - -",
                                        background="#434547", foreground="white", relief=GROOVE)
             advanced_label_end.grid(row=8, column=0, columnspan=3, padx=10, pady=(5, 0), sticky=W + E)
 
@@ -4700,7 +4716,7 @@ def batch_processing():
             audio_window.grid_rowconfigure(8, weight=1)
             audio_window.grid_rowconfigure(11, weight=1)
 
-            # Views Command -----------------------------------------------------------------------------------------------
+            # Views Command -------------------------------------------------------------------------------------------
             def view_command():
                 global cmd_label
                 global cmd_line_window
@@ -4731,9 +4747,9 @@ def batch_processing():
 
                     cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
 
-            # ----------------------------------------------------------------------------------------------- Views Command
+            # ------------------------------------------------------------------------------------------- Views Command
 
-            # Buttons -----------------------------------------------------------------------------------------------------
+            # Buttons -------------------------------------------------------------------------------------------------
             apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                                   command=gotosavefile)
             apply_button.grid(row=11, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -4745,9 +4761,9 @@ def batch_processing():
             show_cmd.grid(row=11, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
             show_cmd.bind("<Enter>", show_cmd_hover)
             show_cmd.bind("<Leave>", show_cmd_hover_leave)
-            # ----------------------------------------------------------------------------------------------------- Buttons
+            # ------------------------------------------------------------------------------------------------- Buttons
 
-            # Audio Bitrate Menu ------------------------------------------------------------------------------------------
+            # Audio Bitrate Menu --------------------------------------------------------------------------------------
             acodec_bitrate = StringVar(audio_window)
             acodec_bitrate_choices = {'6k': "-b:a 6k ",
                                       '8k': "-b:a 8k ",
@@ -4774,9 +4790,9 @@ def batch_processing():
             acodec_bitrate_menu["menu"].configure(activebackground="dim grey")
             acodec_bitrate_menu.bind("<Enter>", acodec_bitrate_menu_hover)
             acodec_bitrate_menu.bind("<Leave>", acodec_bitrate_menu_hover_leave)
-            # ----------------------------------------------------------------------------------------------- Audio Bitrate
+            # ------------------------------------------------------------------------------------------- Audio Bitrate
 
-            # Audio Sample Rate Selection ---------------------------------------------------------------------------------
+            # Audio Sample Rate Selection -----------------------------------------------------------------------------
             acodec_samplerate = StringVar(audio_window)
             acodec_samplerate_choices = {'Original': "",
                                          '8000 Hz': "-ar 8000 ",
@@ -4795,9 +4811,9 @@ def batch_processing():
             acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
             acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
 
-            # --------------------------------------------------------------------------------- Audio Sample Rate Selection
+            # ----------------------------------------------------------------------------- Audio Sample Rate Selection
 
-            # Entry Box for Custom Command Line ---------------------------------------------------------------------------
+            # Entry Box for Custom Command Line -----------------------------------------------------------------------
             def opus_cmd(*args):
                 global opus_custom_cmd_input
                 if opus_custom_cmd.get() == (""):
@@ -4815,9 +4831,9 @@ def batch_processing():
             opus_custom_cmd.trace('w', opus_cmd)
             opus_custom_cmd.set("")
 
-            # ----------------------------------------------------------------------------------------- Custom Command Line
+            # ------------------------------------------------------------------------------------- Custom Command Line
 
-            # Audio VBR Toggle --------------------------------------------------------------------------------------------
+            # Audio VBR Toggle ----------------------------------------------------------------------------------------
             acodec_vbr = StringVar(audio_window)
             acodec_vbr_choices = {'VBR: On': "",
                                   'VBR: Off': "-vbr 0 ",
@@ -4831,9 +4847,9 @@ def batch_processing():
             acodec_vbr_menu["menu"].configure(activebackground="dim grey")
             acodec_vbr_menu.bind("<Enter>", acodec_vbr_menu_hover)
             acodec_vbr_menu.bind("<Leave>", acodec_vbr_menu_hover_leave)
-            # -------------------------------------------------------------------------------------------------- VBR Toggle
+            # ---------------------------------------------------------------------------------------------- VBR Toggle
 
-            # Audio Application Selection ---------------------------------------------------------------------------------
+            # Audio Application Selection -----------------------------------------------------------------------------
             acodec_application = StringVar(audio_window)
             acodec_application_choices = {'Audio': "",
                                           'VoIP': "-application 2048 ",
@@ -4848,9 +4864,9 @@ def batch_processing():
             acodec_application_menu["menu"].configure(activebackground="dim grey")
             acodec_application_menu.bind("<Enter>", acodec_application_menu_hover)
             acodec_application_menu.bind("<Leave>", acodec_application_menu_hover_leave)
-            # ------------------------------------------------------------------------------------------------- Application
+            # --------------------------------------------------------------------------------------------- Application
 
-            # Audio Frame Duration Spinbox --------------------------------------------------------------------------------
+            # Audio Frame Duration Spinbox ----------------------------------------------------------------------------
             global frame_duration
             frame_duration_values = (2.5, 5, 10, 20, 40, 60, 80, 100, 120)
             frame_duration = StringVar(audio_window)
@@ -4863,9 +4879,9 @@ def batch_processing():
                                           buttonbackground="black")
             frame_duration_spinbox.grid(row=7, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             frame_duration.set(20)
-            # ---------------------------------------------------------------------------------------------- Frame Duration
+            # ------------------------------------------------------------------------------------------ Frame Duration
 
-            # Audio Packet Loss Spinbox --------------------------------------------------------------------------------
+            # Audio Packet Loss Spinbox -------------------------------------------------------------------------------
             global packet_loss
             packet_loss = StringVar(audio_window)
             packet_loss_label = Label(audio_window, text="Packet Loss:\n*Default is '0'*", background="#434547",
@@ -4877,9 +4893,9 @@ def batch_processing():
                                        buttonbackground="black")
             packet_loss_spinbox.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             packet_loss.set(0)
-            # ------------------------------------------------------------------------------------------------- Packet Loss
+            # --------------------------------------------------------------------------------------------- Packet Loss
 
-            # Audio Channel Selection -------------------------------------------------------------------------------------
+            # Audio Channel Selection ---------------------------------------------------------------------------------
             acodec_channel = StringVar(audio_window)
             acodec_channel_choices = {'2 (Stereo)': "-ac 2 ",
                                       '5.0 (Surround)': "-ac 5 ",
@@ -4896,9 +4912,9 @@ def batch_processing():
             achannel_menu.bind("<Enter>", achannel_menu_hover)
             achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
             acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
-            # ------------------------------------------------------------------------------------------- Channel Selection
+            # --------------------------------------------------------------------------------------- Channel Selection
 
-            # Audio Stream Selection --------------------------------------------------------------------------------------
+            # Audio Stream Selection ----------------------------------------------------------------------------------
             acodec_stream = StringVar(audio_window)
             acodec_stream_choices = acodec_stream_batch_choices
             acodec_stream.set('Track 1')
@@ -4910,9 +4926,9 @@ def batch_processing():
             acodec_stream_menu["menu"].configure(activebackground="dim grey")
             acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
             acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
-            # -------------------------------------------------------------------------------------- Audio Stream Selection
+            # ---------------------------------------------------------------------------------- Audio Stream Selection
 
-            # Dolby Pro Logic II ------------------------------------------------------------------------------------------
+            # Dolby Pro Logic II --------------------------------------------------------------------------------------
             dolby_pro_logic_ii = StringVar()
             dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                       variable=dolby_pro_logic_ii,
@@ -4924,9 +4940,9 @@ def batch_processing():
                                                   activeforeground="white", selectcolor="#434547",
                                                   font=("Helvetica", 11))
             dolby_pro_logic_ii.set("")
-            # ------------------------------------------------------------------------------------------------------ DPL II
+            # -------------------------------------------------------------------------------------------------- DPL II
 
-            # Audio Gain Selection ----------------------------------------------------------------------------------------
+            # Audio Gain Selection ------------------------------------------------------------------------------------
             ffmpeg_gain = StringVar()
             ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
                                       foreground="white")
@@ -4939,10 +4955,10 @@ def batch_processing():
             ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             ffmpeg_gain.trace('w', audio_filter_function)
             ffmpeg_gain.set(0)
-            # -------------------------------------------------------------------------------------------------------- Gain
-        # ----------------------------------------------------------------------------------------------------- Opus Window
+            # ---------------------------------------------------------------------------------------------------- Gain
+        # ------------------------------------------------------------------------------------------------- Opus Window
 
-        # MP3 Window ------------------------------------------------------------------------------------------------------
+        # MP3 Window --------------------------------------------------------------------------------------------------
         elif encoder.get() == "MP3":
             audio_window = Toplevel()
             audio_window.title('MP3 Settings')
@@ -4965,7 +4981,7 @@ def batch_processing():
             audio_window.grid_rowconfigure(4, weight=1)
             audio_window.grid_rowconfigure(7, weight=1)
 
-            # Using VBR or CBR/ABR ----------------------------------------------------------------------------------------
+            # Using VBR or CBR/ABR ------------------------------------------------------------------------------------
             def mp3_bitrate_type(*args):
                 global acodec_bitrate
                 global acodec_bitrate_choices
@@ -5029,9 +5045,9 @@ def batch_processing():
                     acodec_bitrate_menu["menu"].configure(activebackground="dim grey")
                     acodec_bitrate_menu.bind("<Enter>", acodec_bitrate_menu_hover)
                     acodec_bitrate_menu.bind("<Leave>", acodec_bitrate_menu_hover_leave)
-                # ------------------------------------------------------------------------------------------ VBR or CBR/ABR
+                # -------------------------------------------------------------------------------------- VBR or CBR/ABR
 
-            # Views Command -----------------------------------------------------------------------------------------------
+            # Views Command -------------------------------------------------------------------------------------------
             def view_command():
                 global cmd_label
                 global cmd_line_window
@@ -5059,9 +5075,9 @@ def batch_processing():
 
                     cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
 
-            # ----------------------------------------------------------------------------------------------- Views Command
+            # ------------------------------------------------------------------------------------------- Views Command
 
-            # Buttons -----------------------------------------------------------------------------------------------------
+            # Buttons -------------------------------------------------------------------------------------------------
             apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                                   command=gotosavefile)
             apply_button.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -5073,9 +5089,9 @@ def batch_processing():
             show_cmd.grid(row=7, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
             show_cmd.bind("<Enter>", show_cmd_hover)
             show_cmd.bind("<Leave>", show_cmd_hover_leave)
-            # ----------------------------------------------------------------------------------------------------- Buttons
+            # ------------------------------------------------------------------------------------------------- Buttons
 
-            # Audio VBR Menu ----------------------------------------------------------------------------------------------
+            # Audio VBR Menu ------------------------------------------------------------------------------------------
             acodec_bitrate = StringVar(audio_window)
             acodec_bitrate_choices = {'VBR: -V 0': '-q:a 0 ',
                                       'VBR: -V 1': '-q:a 1 ',
@@ -5094,9 +5110,9 @@ def batch_processing():
             acodec_bitrate_menu["menu"].configure(activebackground="dim grey")
             acodec_bitrate_menu.bind("<Enter>", acodec_bitrate_menu_hover)
             acodec_bitrate_menu.bind("<Leave>", acodec_bitrate_menu_hover_leave)
-            # --------------------------------------------------------------------------------------------------------- VBR
+            # ----------------------------------------------------------------------------------------------------- VBR
 
-            # Audio Channel Selection -------------------------------------------------------------------------------------
+            # Audio Channel Selection ---------------------------------------------------------------------------------
             acodec_channel = StringVar(audio_window)
             acodec_channel_choices = {'Original': "",
                                       '1 (Mono)': "-ac 1 ",
@@ -5111,9 +5127,9 @@ def batch_processing():
             achannel_menu.bind("<Enter>", achannel_menu_hover)
             achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
             acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
-            # ----------------------------------------------------------------------------------------------- Audio Channel
+            # ------------------------------------------------------------------------------------------- Audio Channel
 
-            # VBR ---------------------------------------------------------------------------------------------------------
+            # VBR -----------------------------------------------------------------------------------------------------
             global mp3_vbr
             mp3_vbr = StringVar()
             mp3_vbr.set("-q:a ")
@@ -5123,9 +5139,9 @@ def batch_processing():
             mp3_vbr_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                        activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
             mp3_vbr.trace('w', mp3_bitrate_type)
-            # --------------------------------------------------------------------------------------------------------- VBR
+            # ----------------------------------------------------------------------------------------------------- VBR
 
-            # ABR ---------------------------------------------------------------------------------------------------------
+            # ABR -----------------------------------------------------------------------------------------------------
             global mp3_abr
             mp3_abr = StringVar()
             mp3_abr.set("")
@@ -5135,9 +5151,9 @@ def batch_processing():
             mp3_abr_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                        activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
 
-            # --------------------------------------------------------------------------------------------------------- ABR
+            # ----------------------------------------------------------------------------------------------------- ABR
 
-            # Entry Box for Custom Command Line ---------------------------------------------------------------------------
+            # Entry Box for Custom Command Line -----------------------------------------------------------------------
             def mp3_cmd(*args):
                 global mp3_custom_cmd_input
                 if mp3_custom_cmd.get() == (""):
@@ -5154,9 +5170,9 @@ def batch_processing():
             mp3_cmd_entrybox.grid(row=6, column=0, columnspan=3, padx=10, pady=(0, 15), sticky=W + E)
             mp3_custom_cmd.trace('w', mp3_cmd)
             mp3_custom_cmd.set("")
-            # ----------------------------------------------------------------------------------------- Custom Command Line
+            # ------------------------------------------------------------------------------------- Custom Command Line
 
-            # Audio Stream Selection --------------------------------------------------------------------------------------
+            # Audio Stream Selection ----------------------------------------------------------------------------------
             acodec_stream = StringVar(audio_window)
             acodec_stream_choices = acodec_stream_batch_choices
             acodec_stream.set('Track 1')
@@ -5168,9 +5184,9 @@ def batch_processing():
             acodec_stream_menu["menu"].configure(activebackground="dim grey")
             acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
             acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
-            # ------------------------------------------------------------------------------------------------ Audio Stream
+            # -------------------------------------------------------------------------------------------- Audio Stream
 
-            # Dolby Pro Logic II ------------------------------------------------------------------------------------------
+            # Dolby Pro Logic II --------------------------------------------------------------------------------------
             dolby_pro_logic_ii = StringVar()
             dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                       variable=dolby_pro_logic_ii, state=DISABLED,
@@ -5182,9 +5198,9 @@ def batch_processing():
                                                   activeforeground="white", selectcolor="#434547",
                                                   font=("Helvetica", 11))
             dolby_pro_logic_ii.set("")
-            # ------------------------------------------------------------------------------------------------------ DPL II
+            # -------------------------------------------------------------------------------------------------- DPL II
 
-            # Audio Gain Selection ----------------------------------------------------------------------------------------
+            # Audio Gain Selection ------------------------------------------------------------------------------------
             ffmpeg_gain = StringVar()
             ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
                                       foreground="white")
@@ -5197,9 +5213,9 @@ def batch_processing():
             ffmpeg_gain_spinbox.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             ffmpeg_gain.trace('w', audio_filter_function)
             ffmpeg_gain.set(0)
-            # -------------------------------------------------------------------------------------------------------- Gain
+            # ---------------------------------------------------------------------------------------------------- Gain
 
-            # Audio Sample Rate Selection ---------------------------------------------------------------------------------
+            # Audio Sample Rate Selection -----------------------------------------------------------------------------
             acodec_samplerate = StringVar(audio_window)
             acodec_samplerate_choices = {'Original': "",
                                          '8000 Hz': "-ar 8000 ",
@@ -5221,10 +5237,10 @@ def batch_processing():
             acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
             acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
             acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
-            # ------------------------------------------------------------------------------------------------- Sample Rate
-        # ------------------------------------------------------------------------------------------------------------- MP3
+            # --------------------------------------------------------------------------------------------- Sample Rate
+        # --------------------------------------------------------------------------------------------------------- MP3
 
-        # E-AC3 Window ----------------------------------------------------------------------------------------------------
+        # E-AC3 Window ------------------------------------------------------------------------------------------------
         elif encoder.get() == "E-AC3":
             audio_window = Toplevel()
             audio_window.title('E-AC3 Settings')
@@ -5260,18 +5276,19 @@ def batch_processing():
             audio_window.grid_rowconfigure(19, weight=1)
 
             advanced_label = Label(audio_window,
-                                   text="- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - Advanced Settings - "
-                                        "- - - - - - - - - - - - - - - - - - - - "
+                                   text="- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+                                        " Advanced Settings - - - - - - - - - - - - - - - - - - - - - "
                                         "- - - - - - - - -\n *All settings are set to default below*",
                                    background="#434547", foreground="white", relief=GROOVE)
             advanced_label.grid(row=4, column=0, columnspan=3, padx=10, pady=10, sticky=W + E)
 
-            # Views Command -----------------------------------------------------------------------------------------------
+            # Views Command -------------------------------------------------------------------------------------------
             def view_command():
                 global cmd_label
                 global cmd_line_window
                 example_cmd_output = acodec_stream_choices[acodec_stream.get()] \
-                                     + encoder_dropdownmenu_choices[encoder.get()] + "-b:a " + eac3_spinbox.get() + " " \
+                                     + encoder_dropdownmenu_choices[encoder.get()] + "-b:a " \
+                                     + eac3_spinbox.get() + " " \
                                      + acodec_channel_choices[acodec_channel.get()] \
                                      + acodec_samplerate_choices[acodec_samplerate.get()] \
                                      + audio_filter_setting + eac3_custom_cmd_input \
@@ -5312,9 +5329,9 @@ def batch_processing():
 
                     cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
 
-            # ----------------------------------------------------------------------------------------------- Views Command
+            # ------------------------------------------------------------------------------------------- Views Command
 
-            # Buttons -----------------------------------------------------------------------------------------------------
+            # Buttons -------------------------------------------------------------------------------------------------
             apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                                   command=gotosavefile)
             apply_button.grid(row=22, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -5327,9 +5344,9 @@ def batch_processing():
             show_cmd.bind("<Enter>", show_cmd_hover)
             show_cmd.bind("<Leave>", show_cmd_hover_leave)
 
-            # ----------------------------------------------------------------------------------------------------- Buttons
+            # ------------------------------------------------------------------------------------------------- Buttons
 
-            # Entry Box for Custom Command Line ---------------------------------------------------------------------------
+            # Entry Box for Custom Command Line -----------------------------------------------------------------------
             def eac3_cmd(*args):
                 global eac3_custom_cmd_input
                 if eac3_custom_cmd.get() == (""):
@@ -5347,9 +5364,9 @@ def batch_processing():
             eac3_custom_cmd.trace('w', eac3_cmd)
             eac3_custom_cmd.set("")
 
-            # ----------------------------------------------------------------------------------------- Custom Command Line
+            # ------------------------------------------------------------------------------------- Custom Command Line
 
-            # Audio Bitrate Menu ------------------------------------------------------------------------------------------
+            # Audio Bitrate Menu --------------------------------------------------------------------------------------
             global eac3_spinbox
             acodec_spinbox_values = (
             '64k ', '96k ', '160k ', '128k ', '192k ', '224k ', '256k ', '288k ', '320k ', '352k ',
@@ -5371,9 +5388,9 @@ def batch_processing():
                                             buttonbackground="black", width=10, readonlybackground="#23272A")
             q_acodec_quality_spinbox.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             eac3_spinbox.set("448k ")
-            # ----------------------------------------------------------------------------------------------------- Bitrate
+            # ------------------------------------------------------------------------------------------------- Bitrate
 
-            # Audio Channel Selection -------------------------------------------------------------------------------------
+            # Audio Channel Selection ---------------------------------------------------------------------------------
             acodec_channel = StringVar(audio_window)
             acodec_channel_choices = {'Original': "",
                                       '1 (Mono)': "-ac 1 ",
@@ -5391,9 +5408,9 @@ def batch_processing():
             achannel_menu["menu"].configure(activebackground="dim grey")
             achannel_menu.bind("<Enter>", achannel_menu_hover)
             achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
-            # ---------------------------------------------------------------------------------------------------- Channels
+            # ------------------------------------------------------------------------------------------------ Channels
 
-            # Audio Stream Selection --------------------------------------------------------------------------------------
+            # Audio Stream Selection ----------------------------------------------------------------------------------
             acodec_stream = StringVar(audio_window)
             acodec_stream_choices = acodec_stream_batch_choices
             acodec_stream.set('Track 1')
@@ -5405,9 +5422,9 @@ def batch_processing():
             acodec_stream_menu["menu"].configure(activebackground="dim grey")
             acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
             acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
-            # ------------------------------------------------------------------------------------------------------ Stream
+            # -------------------------------------------------------------------------------------------------- Stream
 
-            # Audio Gain Selection ----------------------------------------------------------------------------------------
+            # Audio Gain Selection ------------------------------------------------------------------------------------
             ffmpeg_gain = StringVar()
             ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
                                       foreground="white")
@@ -5420,9 +5437,9 @@ def batch_processing():
             ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             ffmpeg_gain.trace('w', audio_filter_function)
             ffmpeg_gain.set(0)
-            # -------------------------------------------------------------------------------------------------------- Gain
+            # ---------------------------------------------------------------------------------------------------- Gain
 
-            # Audio Sample Rate Selection ---------------------------------------------------------------------------------
+            # Audio Sample Rate Selection -----------------------------------------------------------------------------
             acodec_samplerate = StringVar(audio_window)
             acodec_samplerate_choices = {'Original': "",
                                          '32000 Hz': "-ar 32000 ",
@@ -5438,9 +5455,9 @@ def batch_processing():
             acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
             acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
             acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
-            # ------------------------------------------------------------------------------------------------- Sample Rate
+            # --------------------------------------------------------------------------------------------- Sample Rate
 
-            # Audio Per Frame Metadata Selection --------------------------------------------------------------------------
+            # Audio Per Frame Metadata Selection ----------------------------------------------------------------------
             global per_frame_metadata, per_frame_metadata_choices
             per_frame_metadata = StringVar(audio_window)
             per_frame_metadata_choices = {'Default': "",
@@ -5456,9 +5473,9 @@ def batch_processing():
             per_frame_metadata_menu["menu"].configure(activebackground="dim grey")
             per_frame_metadata_menu.bind("<Enter>", per_frame_metadata_menu_hover)
             per_frame_metadata_menu.bind("<Leave>", per_frame_metadata_menu_hover_leave)
-            # ---------------------------------------------------------------------------------------------------- Metadata
+            # ------------------------------------------------------------------------------------------------ Metadata
 
-            # Mixing Level Spinbox ----------------------------------------------------------------------------------------
+            # Mixing Level Spinbox ------------------------------------------------------------------------------------
             global eac3_mixing_level
             eac3_mixing_level = StringVar()
             eac3_mixing_level_label = Label(audio_window, text="Mixing Level :", background="#434547",
@@ -5470,9 +5487,9 @@ def batch_processing():
                                              buttonbackground="black", width=10, readonlybackground="#23272A")
             eac3_mixing_level_spinbox.grid(row=6, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             eac3_mixing_level.set(-1)
-            # ------------------------------------------------------------------------------------------------ Mixing Level
+            # -------------------------------------------------------------------------------------------- Mixing Level
 
-            # Room Type Selection -----------------------------------------------------------------------------------------
+            # Room Type Selection -------------------------------------------------------------------------------------
             global room_type, room_type_choices
             room_type = StringVar(audio_window)
             room_type_choices = {'Default': "",
@@ -5488,9 +5505,9 @@ def batch_processing():
             room_type_menu["menu"].configure(activebackground="dim grey")
             room_type_menu.bind("<Enter>", room_type_menu_hover)
             room_type_menu.bind("<Leave>", room_type_menu_hover_leave)
-            # --------------------------------------------------------------------------------------------------- Room Type
+            # ----------------------------------------------------------------------------------------------- Room Type
 
-            # Copyright Bit Spinbox ---------------------------------------------------------------------------------------
+            # Copyright Bit Spinbox -----------------------------------------------------------------------------------
             global copyright_bit
             copyright_bit = StringVar()
             copyright_bit_label = Label(audio_window, text="Copyright Bit :", background="#434547", foreground="white")
@@ -5501,9 +5518,9 @@ def batch_processing():
                                          buttonbackground="black", width=10, readonlybackground="#23272A")
             copyright_bit_spinbox.grid(row=8, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             copyright_bit.set(-1)
-            # --------------------------------------------------------------------------------------------------- Copyright
+            # ----------------------------------------------------------------------------------------------- Copyright
 
-            # Dialogue Level Spinbox --------------------------------------------------------------------------------------
+            # Dialogue Level Spinbox ----------------------------------------------------------------------------------
             global dialogue_level
             dialogue_level = StringVar()
             dialogue_level_label = Label(audio_window, text="Dialogue Level (dB) :", background="#434547",
@@ -5515,9 +5532,9 @@ def batch_processing():
                                           buttonbackground="black", width=10, readonlybackground="#23272A")
             dialogue_level_spinbox.grid(row=8, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             dialogue_level.set(-31)
-            # ---------------------------------------------------------------------------------------------- Dialogue Level
+            # ------------------------------------------------------------------------------------------ Dialogue Level
 
-            # Dolby Surround Mode Selection -------------------------------------------------------------------------------
+            # Dolby Surround Mode Selection ---------------------------------------------------------------------------
             global dolby_surround_mode, dolby_surround_mode_choices
             dolby_surround_mode = StringVar(audio_window)
             dolby_surround_mode_choices = {'Default': "",
@@ -5535,9 +5552,9 @@ def batch_processing():
             dolby_surround_mode_menu["menu"].configure(activebackground="dim grey")
             dolby_surround_mode_menu.bind("<Enter>", dolby_surround_mode_menu_hover)
             dolby_surround_mode_menu.bind("<Leave>", dolby_surround_mode_menu_hover_leave)
-            # ---------------------------------------------------------------------------------------------- Dolby Surround
+            # ------------------------------------------------------------------------------------------ Dolby Surround
 
-            # Original Bit Stream Spinbox ---------------------------------------------------------------------------------
+            # Original Bit Stream Spinbox -----------------------------------------------------------------------------
             global original_bit_stream
             original_bit_stream = StringVar()
             original_bit_stream_label = Label(audio_window, text="Original Bit Stream :", background="#434547",
@@ -5549,9 +5566,9 @@ def batch_processing():
                                                buttonbackground="black", width=10, readonlybackground="#23272A")
             original_bit_stream_spinbox.grid(row=10, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             original_bit_stream.set(-1)
-            # -------------------------------------------------------------------------------------------------- Bit Stream
+            # ---------------------------------------------------------------------------------------------- Bit Stream
 
-            # Downmix Mode Selection --------------------------------------------------------------------------------------
+            # Downmix Mode Selection ----------------------------------------------------------------------------------
             global downmix_mode, downmix_mode_choices
             downmix_mode = StringVar(audio_window)
             downmix_mode_choices = {'Default': "",
@@ -5569,9 +5586,9 @@ def batch_processing():
             downmix_mode_menu["menu"].configure(activebackground="dim grey")
             downmix_mode_menu.bind("<Enter>", downmix_mode_menu_hover)
             downmix_mode_menu.bind("<Leave>", downmix_mode_menu_hover_leave)
-            # ------------------------------------------------------------------------------------------------ Downmix Mode
+            # -------------------------------------------------------------------------------------------- Downmix Mode
 
-            # Lt/Rt Center Mix Level Spinbox ------------------------------------------------------------------------------
+            # Lt/Rt Center Mix Level Spinbox --------------------------------------------------------------------------
             global lt_rt_center_mix
             lt_rt_center_mix = StringVar()
             lt_rt_center_mix_label = Label(audio_window, text="Lt/Rt Center\nMix Level :", background="#434547",
@@ -5583,9 +5600,9 @@ def batch_processing():
                                             buttonbackground="black", width=10, readonlybackground="#23272A")
             lt_rt_center_mix_spinbox.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             lt_rt_center_mix.set(-1)
-            # -------------------------------------------------------------------------------------- Lt/Rt Center Mix Level
+            # ---------------------------------------------------------------------------------- Lt/Rt Center Mix Level
 
-            # Lt/Rt Surround Mix Level Spinbox ----------------------------------------------------------------------------
+            # Lt/Rt Surround Mix Level Spinbox ------------------------------------------------------------------------
             global lt_rt_surround_mix
             lt_rt_surround_mix = StringVar()
             lt_rt_surround_mix_label = Label(audio_window, text="Lt/Rt Surround\nMix Level :", background="#434547",
@@ -5597,9 +5614,9 @@ def batch_processing():
                                               buttonbackground="black", width=10, readonlybackground="#23272A")
             lt_rt_surround_mix_spinbox.grid(row=12, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             lt_rt_surround_mix.set(-1)
-            # ------------------------------------------------------------------------------------ Lt/Rt Surround Mix Level
+            # -------------------------------------------------------------------------------- Lt/Rt Surround Mix Level
 
-            # Lo/Ro Center Mix Level Spinbox ------------------------------------------------------------------------------
+            # Lo/Ro Center Mix Level Spinbox --------------------------------------------------------------------------
             global lo_ro_center_mix
             lo_ro_center_mix = StringVar()
             lo_ro_center_mix_label = Label(audio_window, text="Lo/Ro Center\nMix Level :", background="#434547",
@@ -5611,9 +5628,9 @@ def batch_processing():
                                             buttonbackground="black", width=10, readonlybackground="#23272A")
             lo_ro_center_mix_spinbox.grid(row=12, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             lo_ro_center_mix.set(-1)
-            # -------------------------------------------------------------------------------------- Lo/Ro Center Mix Level
+            # ---------------------------------------------------------------------------------- Lo/Ro Center Mix Level
 
-            # Lo/Ro Surround Mix Level Spinbox ----------------------------------------------------------------------------
+            # Lo/Ro Surround Mix Level Spinbox ------------------------------------------------------------------------
             global lo_ro_surround_mix
             lo_ro_surround_mix = StringVar()
             lo_ro_surround_mix_label = Label(audio_window, text="Lo/Ro Surround\nMix Level :", background="#434547",
@@ -5625,9 +5642,9 @@ def batch_processing():
                                               buttonbackground="black", width=10, readonlybackground="#23272A")
             lo_ro_surround_mix_spinbox.grid(row=12, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             lo_ro_surround_mix.set(-1)
-            # ------------------------------------------------------------------------------------ Lo/Ro Surround Mix Level
+            # -------------------------------------------------------------------------------- Lo/Ro Surround Mix Level
 
-            # Dolby Surround EX Mode Selection ----------------------------------------------------------------------------
+            # Dolby Surround EX Mode Selection ------------------------------------------------------------------------
             global dolby_surround_ex_mode, dolby_surround_ex_mode_choices
             dolby_surround_ex_mode = StringVar(audio_window)
             dolby_surround_ex_mode_choices = {'Default': "",
@@ -5646,9 +5663,9 @@ def batch_processing():
             dolby_surround_ex_mode_menu["menu"].configure(activebackground="dim grey")
             dolby_surround_ex_mode_menu.bind("<Enter>", dolby_surround_ex_mode_menu_hover)
             dolby_surround_ex_mode_menu.bind("<Leave>", dolby_surround_ex_mode_menu_hover_leave)
-            # -------------------------------------------------------------------------------------- Dolby Surround EX Mode
+            # ---------------------------------------------------------------------------------- Dolby Surround EX Mode
 
-            # Dolby Headphone Mode Selection ------------------------------------------------------------------------------
+            # Dolby Headphone Mode Selection --------------------------------------------------------------------------
             global dolby_headphone_mode, dolby_headphone_mode_choices
             dolby_headphone_mode = StringVar(audio_window)
             dolby_headphone_mode_choices = {'Default': "",
@@ -5666,9 +5683,9 @@ def batch_processing():
             dolby_headphone_mode_menu["menu"].configure(activebackground="dim grey")
             dolby_headphone_mode_menu.bind("<Enter>", dolby_headphone_mode_menu_hover)
             dolby_headphone_mode_menu.bind("<Leave>", dolby_headphone_mode_menu_hover_leave)
-            # --------------------------------------------------------------------------------------------- Dolby Headphone
+            # ----------------------------------------------------------------------------------------- Dolby Headphone
 
-            # A/D Converter Type Selection --------------------------------------------------------------------------------
+            # A/D Converter Type Selection ----------------------------------------------------------------------------
             global a_d_converter_type, a_d_converter_type_choices
             a_d_converter_type = StringVar(audio_window)
             a_d_converter_type_choices = {'Default': "",
@@ -5684,9 +5701,9 @@ def batch_processing():
             a_d_converter_type_menu["menu"].configure(activebackground="dim grey")
             a_d_converter_type_menu.bind("<Enter>", a_d_converter_type_menu_hover)
             a_d_converter_type_menu.bind("<Leave>", a_d_converter_type_menu_hover_leave)
-            # ----------------------------------------------------------------------------------------------- A/D Converter
+            # ------------------------------------------------------------------------------------------- A/D Converter
 
-            # Stereo Rematrixing Selection --------------------------------------------------------------------------------
+            # Stereo Rematrixing Selection ----------------------------------------------------------------------------
             global stereo_rematrixing, stereo_rematrixing_choices
             stereo_rematrixing = StringVar(audio_window)
             stereo_rematrixing_choices = {'Default': "",
@@ -5702,9 +5719,9 @@ def batch_processing():
             stereo_rematrixing_menu["menu"].configure(activebackground="dim grey")
             stereo_rematrixing_menu.bind("<Enter>", stereo_rematrixing_menu_hover)
             stereo_rematrixing_menu.bind("<Leave>", stereo_rematrixing_menu_hover_leave)
-            # ------------------------------------------------------------------------------------------ Stereo Rematrixing
+            # -------------------------------------------------------------------------------------- Stereo Rematrixing
 
-            # Channel Coupling Spinbox ------------------------------------------------------------------------------------
+            # Channel Coupling Spinbox --------------------------------------------------------------------------------
             global channel_coupling
             channel_coupling = StringVar()
             channel_coupling_label = Label(audio_window, text="Channel Coupling :", background="#434547",
@@ -5716,9 +5733,9 @@ def batch_processing():
                                             buttonbackground="black", width=10, readonlybackground="#23272A")
             channel_coupling_spinbox.grid(row=16, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             channel_coupling.set(-1)
-            # -------------------------------------------------------------------------------------------- Channel Coupling
+            # ---------------------------------------------------------------------------------------- Channel Coupling
 
-            # Channel CPL Band Spinbox ------------------------------------------------------------------------------------
+            # Channel CPL Band Spinbox --------------------------------------------------------------------------------
             global cpl_start_band
             cpl_start_band = StringVar()
             cpl_start_band_label = Label(audio_window, text="Coupling Start Band :", background="#434547",
@@ -5730,10 +5747,10 @@ def batch_processing():
                                           buttonbackground="black", width=10, readonlybackground="#23272A")
             cpl_start_band_spinbox.grid(row=16, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             cpl_start_band.set(-1)
-            # -------------------------------------------------------------------------------------------- Channel CPL Band
-        # ----------------------------------------------------------------------------------------------------------- E-AC3
+            # ---------------------------------------------------------------------------------------- Channel CPL Band
+        # ------------------------------------------------------------------------------------------------------- E-AC3
 
-        # FDK-AAC Window --------------------------------------------------------------------------------------------------
+        # FDK-AAC Window ----------------------------------------------------------------------------------------------
         elif encoder.get() == "FDK-AAC":
             audio_window = Toplevel()
             audio_window.title('FDK-AAC Settings')
@@ -5803,7 +5820,7 @@ def batch_processing():
             def acodec_profile_menu_hover_leave(e):
                 acodec_profile_menu["bg"] = "#23272A"
 
-            # Help Button for FDK -----------------------------------------------------------------------------------------
+            # Help Button for FDK -------------------------------------------------------------------------------------
             def gotofdkaachelp():
                 helpfile_window = Toplevel(audio_window)
                 helpfile_window.title("FDK-AAC Advanced Settings Help")
@@ -5819,9 +5836,9 @@ def batch_processing():
                     text_area.configure(font=("Helvetica", 14))
                     text_area.configure(state=DISABLED)
 
-            # ---------------------------------------------------------------------------------------------------- FDK Help
+            # ------------------------------------------------------------------------------------------------ FDK Help
 
-            # Views Command -----------------------------------------------------------------------------------------------
+            # Views Command -------------------------------------------------------------------------------------------
             def view_command():
                 global cmd_label
                 global cmd_line_window
@@ -5855,9 +5872,9 @@ def batch_processing():
 
                     cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
 
-            # ----------------------------------------------------------------------------------------------- Views Command
+            # ------------------------------------------------------------------------------------------- Views Command
 
-            # Buttons -----------------------------------------------------------------------------------------------------
+            # Buttons -------------------------------------------------------------------------------------------------
             apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                                   command=gotosavefile)
             apply_button.grid(row=15, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -5875,15 +5892,15 @@ def batch_processing():
             help_button.grid(row=15, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
             help_button.bind("<Enter>", help_button_hover)
             help_button.bind("<Leave>", help_button_hover_leave)
-            # ----------------------------------------------------------------------------------------------------- Buttons
+            # ------------------------------------------------------------------------------------------------- Buttons
 
             advanced_label = Label(audio_window,
-                                   text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - - - - - - - - - - "
-                                        "- - - - - - - - -",
+                                   text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - "
+                                        "- - - - - - - - - - - - - - - - - -",
                                    background="#434547", foreground="white", relief=GROOVE)
             advanced_label.grid(row=4, column=0, columnspan=3, padx=10, pady=10, sticky=W + E)
 
-            # Audio Bitrate Menu ------------------------------------------------------------------------------------------
+            # Audio Bitrate Menu --------------------------------------------------------------------------------------
             acodec_bitrate = StringVar(audio_window)
             acodec_bitrate_choices = {'CBR: 16k': "-b16 ",
                                       'CBR: 32k': "-b32 ",
@@ -5908,9 +5925,9 @@ def batch_processing():
             acodec_bitrate_menu["menu"].configure(activebackground="dim grey")
             acodec_bitrate_menu.bind("<Enter>", acodec_bitrate_menu_hover)
             acodec_bitrate_menu.bind("<Leave>", acodec_bitrate_menu_hover_leave)
-            # ------------------------------------------------------------------------------------------------ Bitrate Menu
+            # -------------------------------------------------------------------------------------------- Bitrate Menu
 
-            # Audio Channel Selection -------------------------------------------------------------------------------------
+            # Audio Channel Selection ---------------------------------------------------------------------------------
             acodec_channel = StringVar(audio_window)
             acodec_channel_choices = {'Original': "",
                                       '1 (Mono)': "-ac 1 ",
@@ -5928,9 +5945,9 @@ def batch_processing():
             achannel_menu.bind("<Enter>", achannel_menu_hover)
             achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
             acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
-            # ----------------------------------------------------------------------------------------------------- Channel
+            # ------------------------------------------------------------------------------------------------- Channel
 
-            # Audio Stream Selection --------------------------------------------------------------------------------------
+            # Audio Stream Selection ----------------------------------------------------------------------------------
             acodec_stream = StringVar(audio_window)
             acodec_stream_choices = acodec_stream_batch_choices
             acodec_stream.set('Track 1')
@@ -5942,9 +5959,9 @@ def batch_processing():
             acodec_stream_menu["menu"].configure(activebackground="dim grey")
             acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
             acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
-            # ------------------------------------------------------------------------------------------------------ Stream
+            # -------------------------------------------------------------------------------------------------- Stream
 
-            # Dolby Pro Logic II ------------------------------------------------------------------------------------------
+            # Dolby Pro Logic II --------------------------------------------------------------------------------------
             dolby_pro_logic_ii = StringVar()
             dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                       variable=dolby_pro_logic_ii, state=DISABLED,
@@ -5956,9 +5973,9 @@ def batch_processing():
                                                   activeforeground="white", selectcolor="#434547",
                                                   font=("Helvetica", 11))
             dolby_pro_logic_ii.set("")
-            # ------------------------------------------------------------------------------------------------------ DPL II
+            # -------------------------------------------------------------------------------------------------- DPL II
 
-            # Audio Gain Selection ----------------------------------------------------------------------------------------
+            # Audio Gain Selection ------------------------------------------------------------------------------------
             ffmpeg_gain = StringVar()
             ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
                                       foreground="white")
@@ -5971,9 +5988,9 @@ def batch_processing():
             ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             ffmpeg_gain.trace('w', audio_filter_function)
             ffmpeg_gain.set(0)
-            # -------------------------------------------------------------------------------------------------------- Gain
+            # ---------------------------------------------------------------------------------------------------- Gain
 
-            # Audio Sample Rate Selection ---------------------------------------------------------------------------------
+            # Audio Sample Rate Selection -----------------------------------------------------------------------------
             acodec_samplerate = StringVar(audio_window)
             acodec_samplerate_choices = {'Original': "",
                                          '11025 Hz': "-ar 11025 ",
@@ -5993,9 +6010,9 @@ def batch_processing():
             acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
             acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
 
-            # ------------------------------------------------------------------------------------------------- Sample Rate
+            # --------------------------------------------------------------------------------------------- Sample Rate
 
-            # Entry Box for Custom Command Line ---------------------------------------------------------------------------
+            # Entry Box for Custom Command Line -----------------------------------------------------------------------
             def fdkaac_cmd(*args):
                 global fdkaac_custom_cmd_input
                 if fdkaac_custom_cmd.get() == (""):
@@ -6015,9 +6032,9 @@ def batch_processing():
             fdkaac_custom_cmd.trace('w', fdkaac_cmd)
             fdkaac_custom_cmd.set("")
 
-            # ----------------------------------------------------------------------------------------- Custom Command Line
+            # ------------------------------------------------------------------------------------- Custom Command Line
 
-            # Entry Box for Track Title -----------------------------------------------------------------------------------
+            # Entry Box for Track Title -------------------------------------------------------------------------------
             def fdkaac_title_check(*args):
                 global fdkaac_title_input
                 if fdkaac_title.get() == (""):
@@ -6034,9 +6051,9 @@ def batch_processing():
             fdkaac_title_entrybox.grid(row=14, column=0, columnspan=3, padx=10, pady=(0, 10), sticky=W + E)
             fdkaac_title.trace('w', fdkaac_title_check)
             fdkaac_title.set("")
-            # ------------------------------------------------------------------------------------------------- Track Title
+            # --------------------------------------------------------------------------------------------- Track Title
 
-            # Audio Profile Selection -------------------------------------------------------------------------------------
+            # Audio Profile Selection ---------------------------------------------------------------------------------
             acodec_profile = StringVar(audio_window)
             acodec_profile_choices = {'AAC LC (Default)': "-p2 ",
                                       'HE-AAC SBR': "-p5 ",
@@ -6052,9 +6069,9 @@ def batch_processing():
             acodec_profile_menu["menu"].configure(activebackground="dim grey")
             acodec_profile_menu.bind("<Enter>", acodec_profile_menu_hover)
             acodec_profile_menu.bind("<Leave>", acodec_profile_menu_hover_leave)
-            # ------------------------------------------------------------------------------------------- Profile Selection
+            # --------------------------------------------------------------------------------------- Profile Selection
 
-            # Audio Lowdelay SBR Selection --------------------------------------------------------------------------------
+            # Audio Lowdelay SBR Selection ----------------------------------------------------------------------------
             global acodec_lowdelay
             global acodec_lowdelay_choices
             acodec_lowdelay = StringVar(audio_window)
@@ -6070,9 +6087,9 @@ def batch_processing():
             acodec_lowdelay_menu["menu"].configure(activebackground="dim grey")
             acodec_lowdelay_menu.bind("<Enter>", acodec_lowdelay_menu_hover)
             acodec_lowdelay_menu.bind("<Leave>", acodec_lowdelay_menu_hover_leave)
-            # --------------------------------------------------------------------------------------------------- Low Delay
+            # ----------------------------------------------------------------------------------------------- Low Delay
 
-            # Audio SBR Ratio ---------------------------------------------------------------------------------------------
+            # Audio SBR Ratio -----------------------------------------------------------------------------------------
             global acodec_sbr_ratio
             global acodec_sbr_ratio_choices
             acodec_sbr_ratio = StringVar(audio_window)
@@ -6088,9 +6105,9 @@ def batch_processing():
             acodec_sbr_ratio_menu["menu"].configure(activebackground="dim grey")
             acodec_sbr_ratio_menu.bind("<Enter>", acodec_sbr_ratio_menu_hover)
             acodec_sbr_ratio_menu.bind("<Leave>", acodec_sbr_ratio_menu_hover_leave)
-            # --------------------------------------------------------------------------------------------------- SBR Ratio
+            # ----------------------------------------------------------------------------------------------- SBR Ratio
 
-            # Audio Gapless Mode ------------------------------------------------------------------------------------------
+            # Audio Gapless Mode --------------------------------------------------------------------------------------
             global acodec_gapless_mode
             global acodec_gapless_mode_choices
             acodec_gapless_mode = StringVar(audio_window)
@@ -6108,9 +6125,9 @@ def batch_processing():
             acodec_gapless_mode_menu["menu"].configure(activebackground="dim grey")
             acodec_gapless_mode_menu.bind("<Enter>", acodec_gapless_mode_menu_hover)
             acodec_gapless_mode_menu.bind("<Leave>", acodec_gapless_mode_menu_hover_leave)
-            # ------------------------------------------------------------------------------------------ Audio Gapless Mode
+            # -------------------------------------------------------------------------------------- Audio Gapless Mode
 
-            # Audio Transport Format --------------------------------------------------------------------------------------
+            # Audio Transport Format ----------------------------------------------------------------------------------
             global acodec_transport_format
             global acodec_transport_format_choices
             acodec_transport_format = StringVar(audio_window)
@@ -6131,9 +6148,9 @@ def batch_processing():
             acodec_transport_format_menu["menu"].configure(activebackground="dim grey")
             acodec_transport_format_menu.bind("<Enter>", acodec_transport_format_menu_hover)
             acodec_transport_format_menu.bind("<Leave>", acodec_transport_format_menu_hover_leave)
-            # --------------------------------------------------------------------------------------------------- Transport
+            # ----------------------------------------------------------------------------------------------- Transport
 
-            # Misc Checkboxes - Afterburner -------------------------------------------------------------------------------
+            # Misc Checkboxes - Afterburner ---------------------------------------------------------------------------
             global afterburnervar
             afterburnervar = StringVar()
             afterburnervar.set("-a1 ")
@@ -6143,9 +6160,9 @@ def batch_processing():
             afterburner_checkbox.grid(row=8, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             afterburner_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                            activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
-            # ------------------------------------------------------------------------------------------------- Afterburner
+            # --------------------------------------------------------------------------------------------- Afterburner
 
-            # Misc Checkboxes - Add CRC Check on ADTS Header --------------------------------------------------------------
+            # Misc Checkboxes - Add CRC Check on ADTS Header ----------------------------------------------------------
             global crccheck
             crccheck = StringVar()
             crccheck.set("")
@@ -6154,9 +6171,9 @@ def batch_processing():
             crccheck_checkbox.grid(row=9, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             crccheck_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                         activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
-            # --------------------------------------------------------------------------------------------------------- CRC
+            # ----------------------------------------------------------------------------------------------------- CRC
 
-            # Misc Checkboxes - Header Period -----------------------------------------------------------------------------
+            # Misc Checkboxes - Header Period -------------------------------------------------------------------------
             global headerperiod
             headerperiod = StringVar()
             headerperiod.set("")
@@ -6165,9 +6182,9 @@ def batch_processing():
             headerperiod_checkbox.grid(row=9, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             headerperiod_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                             activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
-            # ------------------------------------------------------------------------------------------------------ Header
+            # -------------------------------------------------------------------------------------------------- Header
 
-            # Misc Checkboxes - Include SBR Delay -------------------------------------------------------------------------
+            # Misc Checkboxes - Include SBR Delay ---------------------------------------------------------------------
             global sbrdelay
             sbrdelay = StringVar()
             sbrdelay.set("")
@@ -6176,9 +6193,9 @@ def batch_processing():
             sbrdelay_checkbox.grid(row=9, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             sbrdelay_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                         activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
-            # --------------------------------------------------------------------------------------------------- SBR Delay
+            # ----------------------------------------------------------------------------------------------- SBR Delay
 
-            # Misc Checkboxes - Place Moov Box Before Mdat Box ------------------------------------------------------------
+            # Misc Checkboxes - Place Moov Box Before Mdat Box --------------------------------------------------------
             global moovbox
             moovbox = StringVar()
             moovbox.set("")
@@ -6187,10 +6204,10 @@ def batch_processing():
             moovbox_checkbox.grid(row=10, column=1, columnspan=3, padx=10, pady=3, sticky=N + S + E + W)
             moovbox_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                        activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
-            # ---------------------------------------------------------------------------------------------------- Moov Box
-        # --------------------------------------------------------------------------------------------------------- FDK AAC
+            # ------------------------------------------------------------------------------------------------ Moov Box
+        # ----------------------------------------------------------------------------------------------------- FDK AAC
 
-        # 1 Window -----------------------------------------------------------------------------------------------------
+        # 1 Window ----------------------------------------------------------------------------------------------------
         elif encoder.get() == "QAAC":
             audio_window = Toplevel()
             audio_window.title('QAAC Settings')
@@ -6218,7 +6235,7 @@ def batch_processing():
             audio_window.grid_rowconfigure(9, weight=1)
             audio_window.grid_rowconfigure(14, weight=1)
 
-            # Gets gain information for QAAC ------------------------------------------------------------------------------
+            # Gets gain information for QAAC --------------------------------------------------------------------------
             def qaac_gain_trace(*args):
                 global set_qaac_gain
                 if q_acodec_gain.get() == '0':
@@ -6226,9 +6243,9 @@ def batch_processing():
                 elif q_acodec_gain.get() != '0':
                     set_qaac_gain = '--gain ' + q_acodec_gain.get() + ' '
 
-            # ----------------------------------------------------------------------------------------------- QAAC Get Gain
+            # ------------------------------------------------------------------------------------------- QAAC Get Gain
 
-            # Help --------------------------------------------------------------------------------------------------------
+            # Help ----------------------------------------------------------------------------------------------------
             def gotoqaachelp():
                 helpfile_window = Toplevel(audio_window)
                 helpfile_window.title("QAAC Advanced Settings Help")
@@ -6244,9 +6261,9 @@ def batch_processing():
                     text_area.configure(font=("Helvetica", 14))
                     text_area.configure(state=DISABLED)
 
-            # -------------------------------------------------------------------------------------------------------- Help
+            # ---------------------------------------------------------------------------------------------------- Help
 
-            # Views Command -----------------------------------------------------------------------------------------------
+            # Views Command -------------------------------------------------------------------------------------------
             def view_command():
                 global cmd_label
                 global cmd_line_window
@@ -6294,8 +6311,8 @@ def batch_processing():
 
                     cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
 
-            # ----------------------------------------------------------------------------------------------- Views Command
-            # Buttons -----------------------------------------------------------------------------------------------------
+            # ------------------------------------------------------------------------------------------- Views Command
+            # Buttons -------------------------------------------------------------------------------------------------
             apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                                   command=gotosavefile)
             apply_button.grid(row=14, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -6313,15 +6330,15 @@ def batch_processing():
             help_button.grid(row=14, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
             help_button.bind("<Enter>", help_button_hover)
             help_button.bind("<Leave>", help_button_hover_leave)
-            # ----------------------------------------------------------------------------------------------------- Buttons
+            # ------------------------------------------------------------------------------------------------- Buttons
 
             advanced_label = Label(audio_window,
-                                   text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - - - - - - - - - - "
-                                        "- - - - - - - - -",
+                                   text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - -"
+                                        " - - - - - - - - - - - - - - - - -",
                                    background="#434547", foreground="white", relief=GROOVE)
             advanced_label.grid(row=6, column=0, columnspan=3, padx=10, pady=10, sticky=W + E)
 
-            # Quality or Bitrate ------------------------------------------------------------------------------------------
+            # Quality or Bitrate --------------------------------------------------------------------------------------
             def quality_or_bitrate(*args):
                 if q_acodec_profile.get() == 'True VBR':
                     q_acodec_quality_spinbox.configure(state=NORMAL)
@@ -6334,9 +6351,9 @@ def batch_processing():
                     q_acodec_bitrate_spinbox.configure(state=NORMAL)
                     qaac_high_efficiency_checkbox.configure(state=NORMAL)
 
-            # ------------------------------------------------------------------------------------------ Quality or Bitrate
+            # -------------------------------------------------------------------------------------- Quality or Bitrate
 
-            # Audio Profile Menu ------------------------------------------------------------------------------------------
+            # Audio Profile Menu --------------------------------------------------------------------------------------
             global q_acodec_profile
             global q_acodec_profile_choices
             q_acodec_profile = StringVar(audio_window)
@@ -6354,9 +6371,9 @@ def batch_processing():
             q_acodec_profile_menu["menu"].configure(activebackground="dim grey")
             q_acodec_profile_menu.bind("<Enter>", q_acodec_profile_hover)
             q_acodec_profile_menu.bind("<Leave>", q_acodec_profile_hover_leave)
-            # ------------------------------------------------------------------------------------------ Audio Profile Menu
+            # -------------------------------------------------------------------------------------- Audio Profile Menu
 
-            # Dolby Pro Logic II ------------------------------------------------------------------------------------------
+            # Dolby Pro Logic II --------------------------------------------------------------------------------------
             dolby_pro_logic_ii = StringVar()
             dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                       variable=dolby_pro_logic_ii, state=DISABLED,
@@ -6369,9 +6386,9 @@ def batch_processing():
                                                   font=("Helvetica", 11))
             dolby_pro_logic_ii.trace('w', audio_filter_function)
             dolby_pro_logic_ii.set("")
-            # ------------------------------------------------------------------------------------------------------ DPL II
+            # -------------------------------------------------------------------------------------------------- DPL II
 
-            # Audio Channel Selection -------------------------------------------------------------------------------------
+            # Audio Channel Selection ---------------------------------------------------------------------------------
             acodec_channel = StringVar(audio_window)
             acodec_channel_choices = {'Original': "",
                                       '1 (Mono)': "-ac 1 ",
@@ -6389,9 +6406,9 @@ def batch_processing():
             achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
             acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
             acodec_channel.set('Original')
-            # ----------------------------------------------------------------------------------------------- Audio Channel
+            # ------------------------------------------------------------------------------------------- Audio Channel
 
-            # Audio Stream Selection --------------------------------------------------------------------------------------
+            # Audio Stream Selection ----------------------------------------------------------------------------------
             acodec_stream = StringVar(audio_window)
             acodec_stream_choices = acodec_stream_batch_choices
             acodec_stream.set('Track 1')  # set the default option
@@ -6404,9 +6421,9 @@ def batch_processing():
             acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
             acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
 
-            # ------------------------------------------------------------------------------------------------ Audio Stream
+            # -------------------------------------------------------------------------------------------- Audio Stream
 
-            # Entry Box for Custom Command Line ---------------------------------------------------------------------------
+            # Entry Box for Custom Command Line -----------------------------------------------------------------------
             def qaac_cmd(*args):
                 global qaac_custom_cmd_input
                 if qaac_custom_cmd.get() == (""):
@@ -6424,9 +6441,8 @@ def batch_processing():
             qaac_custom_cmd.trace('w', qaac_cmd)
             qaac_custom_cmd.set("")
 
-            # ----------------------------------------------------------------------------------------- Custom Command Line
-
-            # Entry Box for Track Title -----------------------------------------------------------------------------------
+            # ------------------------------------------------------------------------------------- Custom Command Line
+            # Entry Box for Track Title -------------------------------------------------------------------------------
             def qaac_title_check(*args):
                 global qaac_title_input
                 if qaac_title.get() == (""):
@@ -6443,9 +6459,9 @@ def batch_processing():
             qaac_title_entrybox.grid(row=13, column=0, columnspan=3, padx=10, pady=(0, 10), sticky=W + E)
             qaac_title.trace('w', qaac_title_check)
             qaac_title.set("")
-            # ------------------------------------------------------------------------------------------------- Track Title
+            # --------------------------------------------------------------------------------------------- Track Title
 
-            # Audio Sample Rate Selection ---------------------------------------------------------------------------------
+            # Audio Sample Rate Selection -----------------------------------------------------------------------------
             acodec_samplerate = StringVar(audio_window)
             acodec_samplerate_choices = {'Original': "",
                                          '11025 Hz': "-ar 11025 ",
@@ -6464,9 +6480,9 @@ def batch_processing():
             acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
             acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
             acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
-            # -------------------------------------------------------------------------------------------------- Samplerate
+            # ---------------------------------------------------------------------------------------------- Samplerate
 
-            # Audio Quality Selection -------------------------------------------------------------------------------------
+            # Audio Quality Selection ---------------------------------------------------------------------------------
             global q_acodec_quality
             global q_acodec_quality_choices
             q_acodec_quality = StringVar(audio_window)
@@ -6482,9 +6498,9 @@ def batch_processing():
             q_acodec_quality_menu["menu"].configure(activebackground="dim grey")
             q_acodec_quality_menu.bind("<Enter>", q_acodec_quality_menu_hover)
             q_acodec_quality_menu.bind("<Leave>", q_acodec_quality_menu_hover_leave)
-            # -------------------------------------------------------------------------------------------------------------
+            # ---------------------------------------------------------------------------------------------------------
 
-            # Audio Quality Spinbox ---------------------------------------------------------------------------------------
+            # Audio Quality Spinbox -----------------------------------------------------------------------------------
             global q_acodec_quality_amnt
             q_acodec_quality_amnt = StringVar(audio_window)
             q_acodec_quality_amnt_choices = ('0', '9', '18', '27', '36', '45', '54', '63', '73',
@@ -6500,9 +6516,9 @@ def batch_processing():
                                             readonlybackground="#23272A")
             q_acodec_quality_spinbox.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             q_acodec_quality_amnt.set('109')
-            # ----------------------------------------------------------------------------------------------------- Quality
+            # ------------------------------------------------------------------------------------------------- Quality
 
-            # Audio Bitrate -----------------------------------------------------------------------------------------------
+            # Audio Bitrate -------------------------------------------------------------------------------------------
             global q_acodec_bitrate
             q_acodec_bitrate = StringVar(audio_window)
             q_acodec_bitrate.set(256)  # set the default option
@@ -6513,9 +6529,9 @@ def batch_processing():
             q_acodec_bitrate_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                             buttonbackground="black", disabledbackground='grey')
             q_acodec_bitrate_spinbox.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            # ----------------------------------------------------------------------------------------------------- Bitrate
+            # ------------------------------------------------------------------------------------------------- Bitrate
 
-            # QAAC Gain ---------------------------------------------------------------------------------------------------
+            # QAAC Gain -----------------------------------------------------------------------------------------------
             global q_acodec_gain
             q_acodec_gain = StringVar(audio_window)
             q_acodec_gain_label = Label(audio_window, text="Gain :", background="#434547", foreground="white")
@@ -6527,9 +6543,9 @@ def batch_processing():
             q_acodec_gain_spinbox.grid(row=5, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             q_acodec_gain.trace('w', qaac_gain_trace)
             q_acodec_gain.set(0)
-            # -------------------------------------------------------------------------------------------------------- Gain
+            # ---------------------------------------------------------------------------------------------------- Gain
 
-            # Misc Checkboxes - Normalize ---------------------------------------------------------------------------------
+            # Misc Checkboxes - Normalize -----------------------------------------------------------------------------
             global qaac_normalize
             qaac_normalize = StringVar()
             qaac_normalize.set("")
@@ -6539,9 +6555,9 @@ def batch_processing():
             qaac_normalize_checkbox.grid(row=9, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             qaac_normalize_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                               activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
-            # --------------------------------------------------------------------------------------------------- Normalize
+            # ----------------------------------------------------------------------------------------------- Normalize
 
-            # Misc Checkboxes - High Efficiency ---------------------------------------------------------------------------
+            # Misc Checkboxes - High Efficiency -----------------------------------------------------------------------
             global qaac_high_efficiency
             qaac_high_efficiency = StringVar()
             qaac_high_efficiency.set("")
@@ -6554,9 +6570,9 @@ def batch_processing():
                                                     activebackground="#434547",
                                                     activeforeground="white", selectcolor="#434547",
                                                     font=("Helvetica", 12))
-            # --------------------------------------------------------------------------------------------- High Effeciency
+            # ----------------------------------------------------------------------------------------- High Effeciency
 
-            # Misc Checkboxes - No Dither When Quantizing to Lower Bit Depth ----------------------------------------------
+            # Misc Checkboxes - No Dither When Quantizing to Lower Bit Depth ------------------------------------------
             global qaac_nodither
             qaac_nodither = StringVar()
             qaac_nodither.set("")
@@ -6566,9 +6582,9 @@ def batch_processing():
             qaac_nodither_checkbox.grid(row=7, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             qaac_nodither_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                              activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
-            # --------------------------------------------------------------------------------------------------- No Dither
+            # ----------------------------------------------------------------------------------------------- No Dither
 
-            # Misc Checkboxes - No Delay ----------------------------------------------------------------------------------
+            # Misc Checkboxes - No Delay ------------------------------------------------------------------------------
             global qaac_nodelay
             qaac_nodelay = StringVar()
             qaac_nodelay.set("")
@@ -6578,9 +6594,9 @@ def batch_processing():
             qaac_nodelay_checkbox.grid(row=7, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             qaac_nodelay_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                             activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
-            # ---------------------------------------------------------------------------------------------------- No Delay
+            # ------------------------------------------------------------------------------------------------ No Delay
 
-            # Gapless Mode ------------------------------------------------------------------------------------------------
+            # Gapless Mode --------------------------------------------------------------------------------------------
             global q_gapless_mode
             global q_gapless_mode_choices
             q_gapless_mode = StringVar(audio_window)
@@ -6596,9 +6612,9 @@ def batch_processing():
             q_gapless_mode_menu["menu"].configure(activebackground="dim grey")
             q_gapless_mode_menu.bind("<Enter>", q_gapless_mode_menu_hover)
             q_gapless_mode_menu.bind("<Leave>", q_gapless_mode_menu_hover_leave)
-            # ------------------------------------------------------------------------------------------------ Gapless Mode
+            # -------------------------------------------------------------------------------------------- Gapless Mode
 
-            # Misc Checkboxes - No Optimize -------------------------------------------------------------------------------
+            # Misc Checkboxes - No Optimize ---------------------------------------------------------------------------
             global qaac_nooptimize
             qaac_nooptimize = StringVar()
             qaac_nooptimize.set("")
@@ -6608,9 +6624,9 @@ def batch_processing():
             qaac_nooptimize_checkbox.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             qaac_nooptimize_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                                activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
-            # ------------------------------------------------------------------------------------------------- No Optimize
+            # --------------------------------------------------------------------------------------------- No Optimize
 
-            # Misc Checkboxes - Threading ---------------------------------------------------------------------------------
+            # Misc Checkboxes - Threading -----------------------------------------------------------------------------
             global qaac_threading
             qaac_threading = StringVar()
             qaac_threading.set("")
@@ -6620,9 +6636,9 @@ def batch_processing():
             qaac_threading_checkbox.grid(row=8, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             qaac_threading_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                               activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
-            # --------------------------------------------------------------------------------------------------- Threading
+            # ----------------------------------------------------------------------------------------------- Threading
 
-            # Misc Checkboxes - Limiter -----------------------------------------------------------------------------------
+            # Misc Checkboxes - Limiter -------------------------------------------------------------------------------
             global qaac_limiter
             qaac_limiter = StringVar()
             qaac_limiter.set("")
@@ -6632,14 +6648,14 @@ def batch_processing():
             qaac_limiter_checkbox.grid(row=9, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             qaac_limiter_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                             activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
-            # ----------------------------------------------------------------------------------------------------- Limiter
-        # ----------------------------------------------------------------------------------------------------------- QAAC
+            # ------------------------------------------------------------------------------------------------- Limiter
+        # -------------------------------------------------------------------------------------------------------- QAAC
 
-    # ---------------------------------------------------------------------------------------------- End Audio Codec Window
+    # ------------------------------------------------------------------------------------------ End Audio Codec Window
 
 
-    audiosettings_button = Button(batch_processing_window, text="Audio Settings", command=openaudiowindow2, foreground="white",
-                                  background="#23272A", borderwidth="3", state=DISABLED)
+    audiosettings_button = Button(batch_processing_window, text="Audio Settings", command=openaudiowindow2,
+                                  foreground="white", background="#23272A", borderwidth="3", state=DISABLED)
     audiosettings_button.grid(row=1, column=2, columnspan=2, padx=5, pady=5, sticky=N + S + W + E)
     audiosettings_button.bind("<Enter>", audiosettings_button_hover)
     audiosettings_button.bind("<Leave>", audiosettings_button_hover_leave)
@@ -6731,7 +6747,7 @@ def batch_processing():
                            + acodec_bitrate_choices[acodec_bitrate.get()] + \
                            acodec_channel_choices[acodec_channel.get()] + \
                            acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
-                           + "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input + \
+                           + ac3_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " + \
                            '"' + automatic_batch_save_dir + '/NEW_%~na.ac3"' + " -hide_banner"
             if shell_options.get() == "Default":
                 subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
@@ -6753,8 +6769,8 @@ def batch_processing():
                            encoder_dropdownmenu_choices[encoder.get()] + bitrate_or_quality + \
                            acodec_channel_choices[acodec_channel.get()] + \
                            acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
-                           + "-sn -vn -map_chapters -1 -map_metadata -1 " \
-                           + aac_custom_cmd_input + '"' + automatic_batch_save_dir + '/NEW_%~na.mp4"' + " -hide_banner"
+                           + aac_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " \
+                           + '"' + automatic_batch_save_dir + '/NEW_%~na.mp4"' + " -hide_banner"
             if shell_options.get() == "Default":
                 subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
             elif shell_options.get() == "Debug":
@@ -6764,26 +6780,26 @@ def batch_processing():
         elif encoder.get() == 'DTS':
             if dts_settings.get() == 'DTS Encoder':
                 finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
-                           + automatic_batch_save_dir + '"' \
-                           +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                           '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
-                           + ' -analyzeduration 100M -probesize 50M -i "%a" ' \
-                           + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
-                           + "-b:a " + dts_bitrate_spinbox.get() + "k " \
-                           + acodec_channel_choices[acodec_channel.get()] \
-                           + acodec_samplerate_choices[acodec_samplerate.get()] \
-                           + audio_filter_setting + dts_custom_cmd_input \
-                           + "-sn -vn -map_chapters -1 " \
-                           + '"' + automatic_batch_save_dir + '/NEW_%~na.dts"' + " -hide_banner"
+                               + automatic_batch_save_dir + '"' \
+                               +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
+                               '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
+                               + ' -analyzeduration 100M -probesize 50M -i "%a" ' \
+                               + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
+                               + "-b:a " + dts_bitrate_spinbox.get() + "k " \
+                               + acodec_channel_choices[acodec_channel.get()] \
+                               + acodec_samplerate_choices[acodec_samplerate.get()] \
+                               + audio_filter_setting + dts_custom_cmd_input \
+                               + "-sn -vn -map_chapters -1 " \
+                               + '"' + automatic_batch_save_dir + '/NEW_%~na.dts"' + " -hide_banner"
             else:
                 finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
-                           + automatic_batch_save_dir + '"' \
-                           +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                           '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
-                           + ' -analyzeduration 100M -probesize 50M -i "%a" ' \
-                           + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
-                           + dts_custom_cmd_input + "-sn -vn -map_chapters -1 " \
-                           + '"' + automatic_batch_save_dir + '/NEW_%~na.dts"' + " -hide_banner"
+                               + automatic_batch_save_dir + '"' \
+                               +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
+                               '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
+                               + ' -analyzeduration 100M -probesize 50M -i "%a" ' \
+                               + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
+                               + dts_custom_cmd_input + "-sn -vn -map_chapters -1 " \
+                               + '"' + automatic_batch_save_dir + '/NEW_%~na.dts"' + " -hide_banner"
             if shell_options.get() == "Default":
                 subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
             elif shell_options.get() == "Debug":
@@ -6803,8 +6819,8 @@ def batch_processing():
                            acodec_application_choices[acodec_application.get()] + "-packet_loss " + \
                            packet_loss.get() + " -frame_duration " + frame_duration.get() + " " + \
                            acodec_samplerate_choices[acodec_samplerate.get()] + \
-                           audio_filter_setting + "-sn -vn -map_chapters -1 -map_metadata -1 " \
-                           + opus_custom_cmd_input + '"' + automatic_batch_save_dir + '/NEW_%~na.opus"' \
+                           audio_filter_setting + opus_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " \
+                           + '"' + automatic_batch_save_dir + '/NEW_%~na.opus"' \
                            + " -hide_banner"
             if shell_options.get() == "Default":
                 subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
@@ -6823,8 +6839,9 @@ def batch_processing():
                            acodec_bitrate_choices[acodec_bitrate.get()] \
                            + acodec_channel_choices[acodec_channel.get()] \
                            + mp3_abr.get() + acodec_samplerate_choices[acodec_samplerate.get()] \
-                           + audio_filter_setting + "-sn -vn -map_chapters -1 -map_metadata -1 " \
-                           + mp3_custom_cmd_input + '"' + automatic_batch_save_dir + '/NEW_%~na.mp3"' \
+                           + audio_filter_setting + mp3_custom_cmd_input \
+                           + "-sn -vn -map_chapters -1 -map_metadata -1 " + '"' \
+                           + automatic_batch_save_dir + '/NEW_%~na.mp3"' \
                            + " -hide_banner"
             if shell_options.get() == "Default":
                 subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
@@ -6841,8 +6858,8 @@ def batch_processing():
                            + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] \
                            + "-b:a " + eac3_spinbox.get() + acodec_channel_choices[acodec_channel.get()] \
                            + acodec_samplerate_choices[acodec_samplerate.get()] \
-                           + audio_filter_setting + "-sn -vn -map_chapters -1 -map_metadata -1 " \
-                           + eac3_custom_cmd_input \
+                           + audio_filter_setting + eac3_custom_cmd_input \
+                           + "-sn -vn -map_chapters -1 -map_metadata -1 " \
                            + per_frame_metadata_choices[per_frame_metadata.get()] \
                            + "-mixing_level " + eac3_mixing_level.get() + " " \
                            + room_type_choices[room_type.get()] \
@@ -6935,8 +6952,212 @@ def batch_processing():
                 subprocess.Popen('cmd /k ' + finalcommand)
         # -------------------------------------------------------------------------------------------------------- QAAC
 
+    # Print Command Line from Batch -----------------------------------------------------------------------------------
     def print_batch_command_line():
-        pass
+        global automatic_batch_save_dir, automatic_batch_save_dir_quoted
+        try:
+            automatic_batch_save_dir = batch_save_directory
+        except:
+            automatic_batch_save_dir = batch_input_directory + '/Encoded'
+        cmd_line_window = Toplevel()
+        cmd_line_window.title('Command Line')
+        cmd_line_window.configure(background="#434547")
+        # AC3 View Command --------------------------------------------------------------------------------------------
+        if encoder.get() == "AC3":
+            example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
+                                 + automatic_batch_save_dir + '"' \
+                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
+                                 '"' + '/Apps/FFMPEG/ffmpeg.exe' + '"' \
+                                 + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
+                                 + acodec_stream_choices[acodec_stream.get()] \
+                                 + encoder_dropdownmenu_choices[encoder.get()] \
+                                 + acodec_bitrate_choices[acodec_bitrate.get()] + \
+                                 acodec_channel_choices[acodec_channel.get()] + \
+                                 acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
+                                 + ac3_custom_cmd_input + '\n \n' \
+                                 + "-sn -vn -map_chapters -1 -map_metadata -1 " + '\n \n' + \
+                                 '"' + automatic_batch_save_dir + '/NEW_%~na.ac3"' + " -hide_banner"
+        # ----------------------------------------------------------------------------------------------------- AC3 Job
+        # AAC View Command --------------------------------------------------------------------------------------------
+        elif encoder.get() == "AAC":
+            if aac_vbr_toggle.get() == "-c:a ":
+                bitrate_or_quality = f"-b:a {aac_bitrate_spinbox.get()}k "
+            elif aac_vbr_toggle.get() == "-q:a ":
+                bitrate_or_quality = f"-q:a {aac_quality_spinbox.get()} "
+            example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
+                                 + automatic_batch_save_dir + '"' \
+                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
+                                 '"' + '/Apps/FFMPEG/ffmpeg.exe' + '"' \
+                                 + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
+                                 + acodec_stream_choices[acodec_stream.get()] + \
+                                 encoder_dropdownmenu_choices[encoder.get()] + bitrate_or_quality + \
+                                 acodec_channel_choices[acodec_channel.get()] + \
+                                 acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
+                                 + aac_custom_cmd_input + '\n \n' + "-sn -vn -map_chapters -1 -map_metadata -1 " \
+                                 + '\n \n' + '"' + automatic_batch_save_dir + '/NEW_%~na.mp4"' \
+                                 + " -hide_banner"
+                # --------------------------------------------------------------------------------------------- AAC Job
+        # DTS View Command --------------------------------------------------------------------------------------------
+        elif encoder.get() == 'DTS':
+            if dts_settings.get() == 'DTS Encoder':
+                example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
+                                     + automatic_batch_save_dir + '"' \
+                                     + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
+                                     '"' + '/Apps/FFMPEG/ffmpeg.exe' + '"' \
+                                     + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
+                                     + acodec_stream_choices[acodec_stream.get()] \
+                                     + dts_settings_choices[dts_settings.get()] \
+                                     + "-b:a " + dts_bitrate_spinbox.get() + "k " \
+                                     + acodec_channel_choices[acodec_channel.get()] \
+                                     + acodec_samplerate_choices[acodec_samplerate.get()] \
+                                     + audio_filter_setting + dts_custom_cmd_input + '\n \n' \
+                                     + "-sn -vn -map_chapters -1 -map_metadata -1 " + '\n \n' \
+                                     + '"' + automatic_batch_save_dir + '/NEW_%~na.dts"' + " -hide_banner"
+            else:
+                example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
+                                     + automatic_batch_save_dir + '"' \
+                                     + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
+                                     '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
+                                     + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
+                                     + acodec_stream_choices[acodec_stream.get()] \
+                                     + dts_settings_choices[dts_settings.get()] \
+                                     + dts_custom_cmd_input + '\n \n' + "-sn -vn -map_chapters -1 -map_metadata -1 " \
+                                     + '\n \n' + '"' + automatic_batch_save_dir + '/NEW_%~na.dts"' + " -hide_banner"
+        # --------------------------------------------------------------------------------------------------------- DTS
+        # Opus View Command -------------------------------------------------------------------------------------------
+        elif encoder.get() == "Opus":
+            example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
+                                 + automatic_batch_save_dir + '"' \
+                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
+                                 '"' + '/Apps/FFMPEG/ffmpeg.exe' + '"' \
+                                 + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
+                                 + acodec_stream_choices[acodec_stream.get()] + \
+                                 encoder_dropdownmenu_choices[encoder.get()] + \
+                                 acodec_vbr_choices[acodec_vbr.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + \
+                                 acodec_channel_choices[acodec_channel.get()] + \
+                                 acodec_application_choices[acodec_application.get()] + "-packet_loss " + \
+                                 packet_loss.get() + " -frame_duration " + frame_duration.get() + " " + \
+                                 acodec_samplerate_choices[acodec_samplerate.get()] + \
+                                 audio_filter_setting + opus_custom_cmd_input + '\n \n' \
+                                 + "-sn -vn -map_chapters -1 -map_metadata -1 " + '\n \n' \
+                                 + '"' + automatic_batch_save_dir + '/NEW_%~na.opus"' \
+                                 + " -hide_banner"
+        # -------------------------------------------------------------------------------------------------------- Opus
+        # MP3 View Command --------------------------------------------------------------------------------------------
+        elif encoder.get() == "MP3":
+            example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
+                                 + automatic_batch_save_dir + '"' \
+                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
+                                 '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
+                                 + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
+                                 + acodec_stream_choices[acodec_stream.get()] \
+                                 + encoder_dropdownmenu_choices[encoder.get()] + \
+                                 acodec_bitrate_choices[acodec_bitrate.get()] \
+                                 + acodec_channel_choices[acodec_channel.get()] \
+                                 + mp3_abr.get() + acodec_samplerate_choices[acodec_samplerate.get()] \
+                                 + audio_filter_setting + mp3_custom_cmd_input + '\n \n' \
+                                 + "-sn -vn -map_chapters -1 -map_metadata -1 " + '\n \n' \
+                                 + '"' + automatic_batch_save_dir + '/NEW_%~na.mp3"' \
+                                 + " -hide_banner"
+        # --------------------------------------------------------------------------------------------------------- MP3
+        # E-AC3 View Command ------------------------------------------------------------------------------------------
+        elif encoder.get() == "E-AC3":
+            example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
+                                 + automatic_batch_save_dir + '"' \
+                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
+                                 '"' + '/Apps/FFMPEG/ffmpeg.exe' + '"' \
+                                 + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
+                                 + acodec_stream_choices[acodec_stream.get()] \
+                                 + encoder_dropdownmenu_choices[encoder.get()] \
+                                 + "-b:a " + eac3_spinbox.get() + acodec_channel_choices[acodec_channel.get()] \
+                                 + acodec_samplerate_choices[acodec_samplerate.get()] \
+                                 + audio_filter_setting + '\n \n' \
+                                 + "-sn -vn -map_chapters -1 -map_metadata -1 " + '\n \n' \
+                                 + eac3_custom_cmd_input + per_frame_metadata_choices[per_frame_metadata.get()] \
+                                 + "-mixing_level " + eac3_mixing_level.get() + " " \
+                                 + room_type_choices[room_type.get()] \
+                                 + "-copyright " + copyright_bit.get() + " " \
+                                 + "-dialnorm " + dialogue_level.get() + " " \
+                                 + '\n \n' + dolby_surround_mode_choices[dolby_surround_mode.get()] \
+                                 + "-original " + original_bit_stream.get() + " " \
+                                 + downmix_mode_choices[downmix_mode.get()] \
+                                 + "-ltrt_cmixlev " + lt_rt_center_mix.get() + " " \
+                                 + "-ltrt_surmixlev " + lt_rt_surround_mix.get() + " " \
+                                 + "-loro_cmixlev " + lo_ro_center_mix.get() + " " \
+                                 + "-loro_surmixlev " + lo_ro_surround_mix.get() + " " \
+                                 + dolby_surround_ex_mode_choices[dolby_surround_ex_mode.get()] + '\n \n' \
+                                 + dolby_headphone_mode_choices[dolby_headphone_mode.get()] \
+                                 + a_d_converter_type_choices[a_d_converter_type.get()] \
+                                 + stereo_rematrixing_choices[stereo_rematrixing.get()] \
+                                 + "-channel_coupling " + channel_coupling.get() + " " \
+                                 + "-cpl_start_band " + cpl_start_band.get() + " " + '\n \n' \
+                                 + '"' + automatic_batch_save_dir + '/NEW_%~na.ac3"' + " -hide_banner"
+        # ------------------------------------------------------------------------------------------------------- E-AC3
+        # FDK_AAC View Command ----------------------------------------------------------------------------------------
+        elif encoder.get() == "FDK-AAC":
+            example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
+                                 + automatic_batch_save_dir + '"' \
+                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
+                                 '"' + '/Apps/FFMPEG/ffmpeg.exe' + '"' \
+                                 + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
+                                 + acodec_stream_choices[acodec_stream.get()] \
+                                 + acodec_channel_choices[acodec_channel.get()] + \
+                                 acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting + \
+                                 "-f caf - | " + '\n \n' + '"' + '/Apps/fdkaac/fdkaac.exe' + '"' + " " + '\n \n' + \
+                                 acodec_profile_choices[acodec_profile.get()] + \
+                                 fdkaac_title_input + fdkaac_custom_cmd_input + \
+                                 afterburnervar.get() + crccheck.get() + moovbox.get() \
+                                 + sbrdelay.get() + headerperiod.get() + \
+                                 acodec_lowdelay_choices[acodec_lowdelay.get()] + \
+                                 acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] + \
+                                 acodec_transport_format_choices[acodec_transport_format.get()] + \
+                                 acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " +  '\n \n' + '"' \
+                                 + automatic_batch_save_dir + '/%~na.m4a"' + '"'
+        # --------------------------------------------------------------------------------------------------------- FDK
+        # QAAC View Command -------------------------------------------------------------------------------------------
+        elif encoder.get() == "QAAC":
+            if q_acodec_profile.get() == "True VBR":
+                example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
+                                     + automatic_batch_save_dir + '"' \
+                                     + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
+                                     '"' + '/Apps/FFMPEG/ffmpeg.exe' + '"' \
+                                     + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
+                                     + acodec_stream_choices[acodec_stream.get()] \
+                                     + acodec_channel_choices[acodec_channel.get()] + audio_filter_setting \
+                                     + acodec_samplerate_choices[acodec_samplerate.get()] \
+                                     + "-f wav - | " + '\n \n' + '"' + '/Apps/qaac/qaac64.exe' + '"' + " " + '\n \n' \
+                                     + q_acodec_profile_choices[q_acodec_profile.get()] \
+                                     + q_acodec_quality_amnt.get() + " " + qaac_high_efficiency.get() \
+                                     + qaac_normalize.get() + qaac_nodither.get() + "--gain " \
+                                     + q_acodec_gain.get() + " " + q_acodec_quality_choices[q_acodec_quality.get()] \
+                                     + qaac_nodelay.get() \
+                                     + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
+                                     + qaac_threading.get() + qaac_limiter.get() + qaac_title_input \
+                                     + qaac_custom_cmd_input \
+                                     + "- -o " + '\n \n' + '"' + automatic_batch_save_dir + '/%~na.m4a"' + '"'
+            else:
+                example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
+                                     + automatic_batch_save_dir + '"' \
+                                     + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
+                                     '"' + '/Apps/FFMPEG/ffmpeg.exe' + '"' \
+                                     + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
+                                     + acodec_stream_choices[acodec_stream.get()] + \
+                                     acodec_channel_choices[acodec_channel.get()] + audio_filter_setting + \
+                                     acodec_samplerate_choices[acodec_samplerate.get()] \
+                                     + "-f wav - | " + '\n \n' + '/Apps/qaac/qaac64.exe' + " " + '\n \n' \
+                                     + q_acodec_profile_choices[q_acodec_profile.get()] + \
+                                     q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() \
+                                     + qaac_nodither.get() + "--gain " + q_acodec_gain.get() + " " \
+                                     + q_acodec_quality_choices[q_acodec_quality.get()] + qaac_nodelay.get() \
+                                     + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
+                                     + qaac_threading.get() + qaac_limiter.get() + qaac_title_input \
+                                     + qaac_custom_cmd_input + "- -o " + '\n \n' + '"' + \
+                                     + automatic_batch_save_dir + '/%~na.m4a"' + '"'
+        # -------------------------------------------------------------------------------------------------------- QAAC
+        cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
+        cmd_label.config(font=("Helvetica", 16))
+        cmd_label.pack()
+
 
     # Print Final Command Line
     command_line_button = Button(batch_processing_window, text="Show\nCommand", command=print_batch_command_line,
