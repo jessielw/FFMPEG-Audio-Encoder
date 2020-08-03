@@ -12,8 +12,8 @@ from tkinter import messagebox
 # Main Gui & Windows --------------------------------------------------------
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v2.1")
-root.iconphoto(True, PhotoImage(file="Runtime/topbar.png"))
+root.title("FFMPEG Audio Encoder v2.5")
+root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 210
 window_width = 450
@@ -55,7 +55,7 @@ def openaboutwindow():
     about_window_text = Text(about_window, background="#434547", foreground="white", relief=SUNKEN)
     about_window_text.pack()
     about_window_text.configure(state=NORMAL)
-    about_window_text.insert(INSERT, "FFMPEG Audio Encoder v1.21 \n")
+    about_window_text.insert(INSERT, "FFMPEG Audio Encoder v2.5 \n")
     about_window_text.insert(INSERT, "\n")
     about_window_text.insert(INSERT, "Development: jlw4049\n\nContributors: BassThatHertz")
     about_window_text.insert(INSERT, "\n\n")
@@ -3188,7 +3188,6 @@ def output_button_hover(e):
 def output_button_hover_leave(e):
     output_button["bg"] = "#23272A"
 
-
 def audiosettings_button_hover(e):
     audiosettings_button["bg"] = "grey"
 
@@ -3673,6 +3672,22 @@ start_audio_button.bind("<Leave>", start_audio_button_hover_leave)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Batch Processing Window ---------------------------------------------------------------------------------------------
 def batch_processing():
     batch_processing_window = Toplevel()
@@ -3685,12 +3700,12 @@ def batch_processing():
     x_cordinate = int((screen_width / 2) - (window_width / 2))
     y_cordinate = int((screen_height / 2) - (window_height / 2))
     batch_processing_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
-    batch_processing_window.transient(root)
 
 
     batch_processing_window.grid_columnconfigure(0, weight=1)
     batch_processing_window.grid_columnconfigure(1, weight=1)
     batch_processing_window.grid_columnconfigure(2, weight=1)
+    batch_processing_window.grid_columnconfigure(3, weight=1)
     batch_processing_window.grid_rowconfigure(0, weight=1)
     batch_processing_window.grid_rowconfigure(1, weight=1)
     batch_processing_window.grid_rowconfigure(2, weight=1)
@@ -3708,10 +3723,24 @@ def batch_processing():
     def save_batch_dir_hover_leave(e):
         save_batch_dir["bg"] = "#23272A"
 
+    def encoder_menu_hover(e):
+        encoder_menu["bg"] = "grey"
+        encoder_menu["activebackground"] = "grey"
+
+    def encoder_menu_hover_leave(e):
+        encoder_menu["bg"] = "#23272A"
+
+    def extension_menu_hover(e):
+        extension_menu["bg"] = "grey"
+        extension_menu["activebackground"] = "grey"
+
+    def extension_menu_hover_leave(e):
+        extension_menu["bg"] = "#23272A"
+
     # Encoder Codec Drop Down -----------------------------------------------------------------------------------------
     def encoder_changed_batch(*args):
         if encoder.get() == "Set Codec":
-            audiosettings_button.configure(state=DISABLED)
+            audiosettings_button_batch.configure(state=DISABLED)
             save_batch_dir.config(state=DISABLED)
             batch_input_entry.configure(state=NORMAL)
             batch_input_entry.delete(0, END)
@@ -3719,13 +3748,12 @@ def batch_processing():
             batch_output_entry.configure(state=NORMAL)
             batch_output_entry.delete(0, END)
             batch_output_entry.configure(state=DISABLED)
-            command_line_button.config(state=DISABLED)
-            start_audio_button.config(state=DISABLED)
+            command_line_button_batch.config(state=DISABLED)
+            start_audio_button_batch.config(state=DISABLED)
         else:
-            save_batch_dir.config(state=NORMAL)
-            audiosettings_button.configure(state=NORMAL)
-            command_line_button.config(state=DISABLED)
-            start_audio_button.config(state=DISABLED)
+            audiosettings_button_batch.configure(state=NORMAL)
+            command_line_button_batch.config(state=DISABLED)
+            start_audio_button_batch.config(state=DISABLED)
 
     encoder_dropdownmenu_choices = {
         "AAC": "-c:a aac ",
@@ -3740,9 +3768,15 @@ def batch_processing():
     encoder.set("Set Codec")
     encoder.trace('w', encoder_changed_batch)
     encoder_menu = OptionMenu(batch_processing_window, encoder, *encoder_dropdownmenu_choices.keys())
-    encoder_menu.grid(row=1, column=1, columnspan=1, padx=(0,0), pady=5, sticky=N + S + E)
+    encoder_menu.grid(row=1, column=2, columnspan=1, padx=(0,0), pady=5, sticky=N + S + E)
+    encoder_menu.grid(row=1, column=2, columnspan=1, padx=(0,0), pady=5, sticky=N + S + E)
     encoder_menu.config( background="#23272A", foreground="white", highlightthickness=1, width=15, state=DISABLED)
     encoder_menu["menu"].configure(activebackground="dim grey")
+    codec_batch_label = Label(batch_processing_window, text="<- Batch Extension\n    Set Codec ->",
+                              background="#434547", foreground="White")
+    codec_batch_label.grid(row=1, column=1, columnspan=1, padx=5, pady=5, sticky=N + S + W + E)
+    encoder_menu.bind("<Enter>", encoder_menu_hover)
+    encoder_menu.bind("<Leave>", encoder_menu_hover_leave)
 
     # ---------------------------------------------------------------------------------------------------- Encoder Menu
 
@@ -3764,6 +3798,8 @@ def batch_processing():
     extension_menu.grid(row=1, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + W + E)
     extension_menu.config( background="#23272A", foreground="white", highlightthickness=1, width=15)
     extension_menu["menu"].configure(activebackground="dim grey")
+    extension_menu.bind("<Enter>", extension_menu_hover)
+    extension_menu.bind("<Leave>", extension_menu_hover_leave)
 
 
     # ---------------------------------------------------------------------------------------------------- Encoder Menu
@@ -3920,6 +3956,7 @@ def batch_processing():
         def q_gapless_mode_menu_hover_leave(e):
             q_gapless_mode_menu["bg"] = "#23272A"
 
+
         acodec_stream_batch_choices = {'Track 1': '-map 0:a:0 ',
                                        'Track 2': '-map 0:a:1 ',
                                        'Track 3': '-map 0:a:2 ',
@@ -3979,9 +4016,9 @@ def batch_processing():
 
         def gotosavefile():
             audio_window.destroy()
-            output_button.config(state=NORMAL)
-            start_audio_button.config(state=NORMAL)
-            command_line_button.config(state=NORMAL)
+            save_batch_dir.config(state=NORMAL)
+            command_line_button_batch.config(state=NORMAL)
+            start_audio_button_batch.config(state=NORMAL)
             try:
                 cmd_line_window.withdraw()
             except:
@@ -6653,17 +6690,23 @@ def batch_processing():
 
     # ------------------------------------------------------------------------------------------ End Audio Codec Window
 
+    def audiosettings_button_batch_hover(e):
+        audiosettings_button_batch["bg"] = "grey"
 
-    audiosettings_button = Button(batch_processing_window, text="Audio Settings", command=openaudiowindow2,
+    def audiosettings_button_batch_hover_leave(e):
+        audiosettings_button_batch["bg"] = "#23272A"
+
+    audiosettings_button_batch = Button(batch_processing_window, text="Audio Settings", command=openaudiowindow2,
                                   foreground="white", background="#23272A", borderwidth="3", state=DISABLED)
-    audiosettings_button.grid(row=1, column=2, columnspan=2, padx=5, pady=5, sticky=N + S + W + E)
-    audiosettings_button.bind("<Enter>", audiosettings_button_hover)
-    audiosettings_button.bind("<Leave>", audiosettings_button_hover_leave)
+    audiosettings_button_batch.grid(row=1, column=3, columnspan=1, padx=5, pady=5, sticky=N + S + W + E)
+    audiosettings_button_batch.bind("<Enter>", audiosettings_button_batch_hover)
+    audiosettings_button_batch.bind("<Leave>", audiosettings_button_batch_hover_leave)
 
 
     def open_directory():
         global batch_input_directory, batch_input_directory_quoted, batch_save_directory
-        batch_input_directory = filedialog.askdirectory()
+        batch_input_directory = filedialog.askdirectory(parent=batch_processing_window,
+                                                        title='Select Directory To Batch Encode', initialdir='/')
         batch_input_directory_quoted = '"' + batch_input_directory + '"'
         batch_input_entry.configure(state=NORMAL)
         batch_input_entry.delete(0, END)
@@ -6672,15 +6715,14 @@ def batch_processing():
         except:
             pass
         if batch_input_directory:
-            global autofilesave_file_path
-            autofilesave_batch_path = pathlib.Path('"' + batch_input_directory + '/Encoded"')
+            autofilesave_batch_path_output_entry_box = pathlib.Path('"' + batch_input_directory + '/Encoded"')
             encoder_menu.config(state=NORMAL)
             batch_input_entry.configure(state=NORMAL)
             batch_input_entry.insert(0, '"' + batch_input_directory + '"')
             batch_input_entry.configure(state=DISABLED)
             batch_output_entry.configure(state=NORMAL)
             batch_output_entry.delete(0, END)
-            batch_output_entry.insert(0, autofilesave_batch_path)
+            batch_output_entry.insert(0, autofilesave_batch_path_output_entry_box)
             batch_output_entry.configure(state=DISABLED)
             encoder_menu.config(state=NORMAL)
         if not batch_input_directory:
@@ -6700,28 +6742,77 @@ def batch_processing():
 
     def save_directory():
         global batch_save_directory
-        batch_save_directory = filedialog.askdirectory()
+        batch_save_directory = filedialog.askdirectory(parent=batch_processing_window,
+                                                       title='Select Directory To Save Batch Encodes',
+                                                       initialdir=batch_save_directory)
         if save_directory:
             batch_output_entry.configure(state=NORMAL)
             batch_output_entry.delete(0, END)
             batch_output_entry.insert(0, '"' + batch_save_directory + '"')
             batch_output_entry.configure(state=DISABLED)
-        else:
+        if not batch_save_directory:
+            batch_save_directory = str(input_dnd_batch.get() + '/Encoded').replace("{", "").replace("}", "")
+            batch_output_entry.configure(state=NORMAL)
+            batch_output_entry.delete(0, END)
+            batch_output_entry.insert(0, '"' + batch_save_directory + '"')
+            batch_output_entry.configure(state=DISABLED)
+
+    def drop_input_batch(event):
+        global batch_input_directory_quoted, batch_save_directory, batch_input_directory
+        input_dnd_batch.set(event.data)
+        batch_input_directory = str(input_dnd_batch.get()).replace("{", "").replace("}", "")
+        batch_input_directory_quoted = '"' + batch_input_directory + '"'
+        batch_input_entry.configure(state=NORMAL)
+        batch_input_entry.delete(0, END)
+        encoder.set("Set Codec")
+        try:
+            del batch_save_directory
+        except:
             pass
+        batch_save_directory = str(input_dnd_batch.get() + '/Encoded').replace("{", "").replace("}", "")
+        if batch_input_directory:
+            autofilesave_batch_path_output_entry_box = pathlib.Path('"' + batch_input_directory + '/Encoded"')
+            encoder_menu.config(state=NORMAL)
+            batch_input_entry.configure(state=NORMAL)
+            batch_input_entry.insert(0, '"' + batch_input_directory + '"')
+            batch_input_entry.configure(state=DISABLED)
+            batch_output_entry.configure(state=NORMAL)
+            batch_output_entry.delete(0, END)
+            batch_output_entry.insert(0, autofilesave_batch_path_output_entry_box)
+            batch_output_entry.configure(state=DISABLED)
+            encoder_menu.config(state=NORMAL)
+        if not batch_input_directory:
+            batch_input_entry.configure(state=NORMAL)
+            batch_input_entry.delete(0, END)
+            batch_input_entry.configure(state=DISABLED)
+            batch_output_entry.configure(state=NORMAL)
+            batch_output_entry.delete(0, END)
+            batch_output_entry.configure(state=DISABLED)
+            encoder_menu.config(state=NORMAL)
+            encoder.set('Set Codec')
+            encoder_menu.config(state=DISABLED)
+            audiosettings_button.configure(state=DISABLED)
+            start_audio_button.config(state=DISABLED)
+            command_line_button.config(state=DISABLED)
+            save_batch_dir.config(state=DISABLED)
 
-    batch_input_entry = Entry(batch_processing_window, width=50, borderwidth=4, background="#CACACA")
-    batch_input_entry.grid(row=0, column=1, columnspan=3, padx=5, pady=(5,15), sticky=S + E + W)
-    # batch_input_entry.drop_target_register(DND_FILES)
-    # batch_input_entry.dnd_bind('<<Drop>>', drop_input)
 
-    batch_output_entry = Entry(batch_processing_window, width=50, borderwidth=4, background="#CACACA")
-    batch_output_entry.grid(row=2, column=1, columnspan=3, padx=5, pady=(5,15), sticky=S + E + W)
-
+    input_dnd_batch = StringVar()
     open_batch_dir = Button(batch_processing_window, text="Open\nDirectory", command=open_directory,
                                           foreground="white", background="#23272A", borderwidth="3")
     open_batch_dir.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
     open_batch_dir.bind("<Enter>", open_batch_dir_hover)
     open_batch_dir.bind("<Leave>", open_batch_dir_hover_leave)
+    open_batch_dir.drop_target_register(DND_FILES)
+    open_batch_dir.dnd_bind('<<Drop>>', drop_input_batch)
+
+    batch_input_entry = Entry(batch_processing_window, width=50, borderwidth=4, background="#CACACA")
+    batch_input_entry.grid(row=0, column=1, columnspan=3, padx=5, pady=(5,15), sticky=S + E + W)
+    batch_input_entry.drop_target_register(DND_FILES)
+    batch_input_entry.dnd_bind('<<Drop>>', drop_input_batch)
+
+    batch_output_entry = Entry(batch_processing_window, width=50, borderwidth=4, background="#CACACA")
+    batch_output_entry.grid(row=2, column=1, columnspan=3, padx=5, pady=(5,15), sticky=S + E + W)
 
     save_batch_dir = Button(batch_processing_window, text="Save\nDirectory", command=save_directory,
                                           foreground="white", background="#23272A", borderwidth="3", state=DISABLED)
@@ -7158,20 +7249,31 @@ def batch_processing():
         cmd_label.config(font=("Helvetica", 16))
         cmd_label.pack()
 
+    def command_line_button_batch_hover(e):
+        command_line_button_batch["bg"] = "grey"
+
+    def command_line_button_batch_hover_leave(e):
+        command_line_button_batch["bg"] = "#23272A"
 
     # Print Final Command Line
-    command_line_button = Button(batch_processing_window, text="Show\nCommand", command=print_batch_command_line,
+    command_line_button_batch = Button(batch_processing_window, text="Show\nCommand", command=print_batch_command_line,
                                  state=DISABLED, foreground="white", background="#23272A", borderwidth="3")
-    command_line_button.grid(row=3, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
-    command_line_button.bind("<Enter>", command_line_button_hover)
-    command_line_button.bind("<Leave>", command_line_button_hover_leave)
+    command_line_button_batch.grid(row=3, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
+    command_line_button_batch.bind("<Enter>", command_line_button_batch_hover)
+    command_line_button_batch.bind("<Leave>", command_line_button_batch_hover_leave)
+
+    def start_audio_button_batch_hover(e):
+        start_audio_button_batch["bg"] = "grey"
+
+    def start_audio_button_batch_hover_leave(e):
+        start_audio_button_batch["bg"] = "#23272A"
 
     # Start Batch Jobs
-    start_audio_button = Button(batch_processing_window, text="Start Batch Jobs", command=startbatchaudiojob,
+    start_audio_button_batch = Button(batch_processing_window, text="Start Batch Jobs", command=startbatchaudiojob,
                                 state=DISABLED, foreground="white", background="#23272A", borderwidth="3")
-    start_audio_button.grid(row=3, column=1, columnspan=3, padx=5, pady=5, sticky=N + S + E + W)
-    start_audio_button.bind("<Enter>", start_audio_button_hover)
-    start_audio_button.bind("<Leave>", start_audio_button_hover_leave)
+    start_audio_button_batch.grid(row=3, column=1, columnspan=3, padx=5, pady=5, sticky=N + S + E + W)
+    start_audio_button_batch.bind("<Enter>", start_audio_button_batch_hover)
+    start_audio_button_batch.bind("<Leave>", start_audio_button_batch_hover_leave)
 
 
 open_batch_processing_window = Button(root, text="Batch\nProcess", command=batch_processing, foreground="white",
@@ -7182,5 +7284,5 @@ open_batch_processing_window.bind("<Leave>", open_batch_processing_window_hover_
 
 
 
-# End Loop -----------------------------------------------------------------------
+# End Loop ------------------------------------------------------------------------------------------------------------
 root.mainloop()
