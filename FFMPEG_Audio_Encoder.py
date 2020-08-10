@@ -3083,10 +3083,10 @@ def file_input():
     global track_count
     VideoInput = filedialog.askopenfilename(initialdir="/", title="Select A File",
                                             filetypes=((
-                                                           "MOV, MKA, WAV, MP3, AAC, OGG, OGV, M4V, MPEG, AVI, VOB, "
-                                                           "WEBM, MKV, MP4, DTS, AC3, MT2S, WAV",
-                                                           "*.mov *.wav *.mt2s *.ac3 *.mka *.wav *.mp3 *.aac *.ogg "
-                                                           "*.ogv *.m4v *.mpeg *.avi *.vob *.webm *.mp4 *.mkv *.dts"),
+                                                       "AAC, AC3, AVI, DTS, M4A, M4V, MKA, MKV, MOV, MP3, MP4, MPEG, "
+                                                       "MT2S, OGG, OGV, VOB, WAV, WEBM",
+                                                       "*.aac *.ac3 *.avi *.dts *.m4a *.m4v *.mka *.mkv *.mov *.mp3 "
+                                                       "*.mp4 *.mpeg *.mt2s *.ogg *.ogv *.vob *.wav *.webm"),
                                                        ("All Files", "*.*")))
     input_entry.configure(state=NORMAL)
     input_entry.delete(0, END)
@@ -3784,7 +3784,7 @@ def batch_processing():
     extension_dropdownmenu_choices = {
         "Common Extensions": '("*.mov", "*.wav", "*.mt2s", "*.ac3", "*.mka", "*.wav", "*.mp3", "*.aac", "*.ogg", '
                              '"*.ogv", "*.m4v", "*.mpeg", "*.avi", "*.vob", "*.webm", "*.mp4", "*.mkv", "*.dts", '
-                             '"*.flac", "*.alac", "*.mpg")',
+                             '"*.flac", "*.alac", "*.mpg", "*.m4a")',
         "MKV": '("*.mkv")',
         "MP4": '("*.mp4")',
         "M4V": '("*.m4v")',
