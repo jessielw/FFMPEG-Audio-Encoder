@@ -1243,8 +1243,8 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('Opus Settings')
         audio_window.configure(background="#434547")
-        window_height = 530
-        window_width = 640
+        window_height = 580
+        window_width = 650
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
         x_cordinate = int((screen_width / 2) - (window_width / 2))
@@ -1260,13 +1260,13 @@ def openaudiowindow():
                                text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - - - - - - - - - - "
                                     "- - - - - - - - -",
                                background="#434547", foreground="white", relief=GROOVE)
-        advanced_label.grid(row=5, column=0, columnspan=3, padx=10, pady=(5, 0), sticky=W + E)
+        advanced_label.grid(row=7, column=0, columnspan=3, padx=10, pady=(5, 0), sticky=W + E)
 
         advanced_label_end = Label(audio_window,
                                    text="- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
                                         "- - - - - - - - -",
                                    background="#434547", foreground="white", relief=GROOVE)
-        advanced_label_end.grid(row=8, column=0, columnspan=3, padx=10, pady=(5, 0), sticky=W + E)
+        advanced_label_end.grid(row=10, column=0, columnspan=3, padx=10, pady=(5, 0), sticky=W + E)
 
         audio_window.grid_columnconfigure(0, weight=1)
         audio_window.grid_columnconfigure(1, weight=1)
@@ -1278,14 +1278,15 @@ def openaudiowindow():
         audio_window.grid_rowconfigure(4, weight=1)
         audio_window.grid_rowconfigure(5, weight=1)
         audio_window.grid_rowconfigure(6, weight=1)
-        audio_window.grid_rowconfigure(7, weight=1)
         audio_window.grid_rowconfigure(8, weight=1)
-        audio_window.grid_rowconfigure(11, weight=1)
+        audio_window.grid_rowconfigure(9, weight=1)
+        audio_window.grid_rowconfigure(13, weight=1)
 
         # Views Command -----------------------------------------------------------------------------------------------
         def view_command():
             global cmd_label
             global cmd_line_window
+            audio_filter_function()
             example_cmd_output = acodec_stream_choices[acodec_stream.get()] \
                                  + encoder_dropdownmenu_choices[encoder.get()] \
                                  + acodec_bitrate_choices[acodec_bitrate.get()] \
@@ -1317,13 +1318,13 @@ def openaudiowindow():
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                               command=gotosavefile)
-        apply_button.grid(row=11, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        apply_button.grid(row=13, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         apply_button.bind("<Enter>", apply_button_hover)
         apply_button.bind("<Leave>", apply_button_hover_leave)
 
         show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
                           command=view_command)
-        show_cmd.grid(row=11, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        show_cmd.grid(row=13, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
         # ----------------------------------------------------------------------------------------------------- Buttons
@@ -1389,9 +1390,9 @@ def openaudiowindow():
         opus_custom_cmd = StringVar()
         opus_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547",
                                         foreground="white")
-        opus_cmd_entrybox_label.grid(row=9, column=0, columnspan=2, padx=10, pady=(10, 0), sticky=N + S + W + E)
+        opus_cmd_entrybox_label.grid(row=11, column=0, columnspan=2, padx=10, pady=(10, 0), sticky=N + S + W + E)
         opus_cmd_entrybox = Entry(audio_window, textvariable=opus_custom_cmd, borderwidth=4, background="#CACACA")
-        opus_cmd_entrybox.grid(row=10, column=0, columnspan=3, padx=10, pady=(0, 15), sticky=W + E)
+        opus_cmd_entrybox.grid(row=12, column=0, columnspan=3, padx=10, pady=(0, 15), sticky=W + E)
         opus_custom_cmd.trace('w', opus_cmd)
         opus_custom_cmd.set("")
 
@@ -1421,10 +1422,10 @@ def openaudiowindow():
         acodec_application.set('Audio')  # set the default option
         acodec_application_menu_label = Label(audio_window, text="Application:\n*Default is 'Audio'*",
                                               background="#434547", foreground="white")
-        acodec_application_menu_label.grid(row=6, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
+        acodec_application_menu_label.grid(row=8, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
         acodec_application_menu = OptionMenu(audio_window, acodec_application, *acodec_application_choices.keys())
         acodec_application_menu.config(background="#23272A", foreground="white", highlightthickness=1)
-        acodec_application_menu.grid(row=7, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        acodec_application_menu.grid(row=9, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         acodec_application_menu["menu"].configure(activebackground="dim grey")
         acodec_application_menu.bind("<Enter>", acodec_application_menu_hover)
         acodec_application_menu.bind("<Leave>", acodec_application_menu_hover_leave)
@@ -1436,12 +1437,12 @@ def openaudiowindow():
         frame_duration = StringVar(audio_window)
         frame_duration_label = Label(audio_window, text="Frame Duration:\n*Default is '20'*", background="#434547",
                                      foreground="white")
-        frame_duration_label.grid(row=6, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        frame_duration_label.grid(row=8, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         frame_duration_spinbox = Spinbox(audio_window, values=frame_duration_values, justify=CENTER, wrap=True,
                                          textvariable=frame_duration, width=13)
         frame_duration_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                       buttonbackground="black")
-        frame_duration_spinbox.grid(row=7, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        frame_duration_spinbox.grid(row=9, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         frame_duration.set(20)
         # ---------------------------------------------------------------------------------------------- Frame Duration
 
@@ -1450,12 +1451,12 @@ def openaudiowindow():
         packet_loss = StringVar(audio_window)
         packet_loss_label = Label(audio_window, text="Packet Loss:\n*Default is '0'*", background="#434547",
                                   foreground="white")
-        packet_loss_label.grid(row=6, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        packet_loss_label.grid(row=8, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         packet_loss_spinbox = Spinbox(audio_window, from_=0, to=100, justify=CENTER, wrap=True,
                                       textvariable=packet_loss, width=13)
         packet_loss_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                    buttonbackground="black")
-        packet_loss_spinbox.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        packet_loss_spinbox.grid(row=9, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         packet_loss.set(0)
         # ------------------------------------------------------------------------------------------------- Packet Loss
 
@@ -1496,9 +1497,8 @@ def openaudiowindow():
         dolby_pro_logic_ii = StringVar()
         dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                   variable=dolby_pro_logic_ii,
-                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="",
-                                                  command=audio_filter_function)
-        dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=1, padx=10, pady=(15, 5),
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
+        dolby_pro_logic_ii_checkbox.grid(row=6, column=0, columnspan=1, rowspan=1, padx=10, pady=(15, 5),
                                          sticky=N + S + E + W)
         dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                               activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
@@ -1516,9 +1516,40 @@ def openaudiowindow():
         ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                       buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_gain.trace('w', audio_filter_function)
         ffmpeg_gain.set(0)
         # -------------------------------------------------------------------------------------------------------- Gain
+
+        # Audio Atempo Selection ---------------------------------------------------------------------------------------
+        acodec_atempo = StringVar(audio_window)
+        acodec_atempo_choices = {'Original': '',
+                                 '23.976 to 24': '"atempo=23.976/24"',
+                                 '23.976 to 25': '"atempo=23.976/25"',
+                                 '24 to 23.976': '"atempo=24/23.976"',
+                                 '24 to 25': '"atempo=24/25"',
+                                 '25 to 23.976': '"atempo=25/23.976"',
+                                 '25 to 24': '"atempo=25/24"',
+                                 '1/4 Slow-down': '"atempo=0.5,atempo=0.5"',
+                                 '1/2 Slow-down': '"atempo=0.5"',
+                                 '3/4 Slow-down': '"atempo=0.75"',
+                                 '1/4 Speed-up': '"atempo=1.25"',
+                                 '1/2 Speed-up': '"atempo=1.5"',
+                                 '3/4 Speed-up': '"atempo=1.75"',
+                                 '2x Speed-up': '"atempo=2.0"',
+                                 '2.5x Speed-up': '"atempo=2.5"',
+                                 '3x Speed-up': '"atempo=3.0"',
+                                 '3.5x Speed-up': '"atempo=3.5"',
+                                 '4x Speed-up': '"atempo=4.0"'}
+        acodec_atempo_menu_label = Label(audio_window, text="Time Modification :", background="#434547",
+                                         foreground="white")
+        acodec_atempo_menu_label.grid(row=4, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
+        acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
+        acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_atempo_menu.grid(row=5, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        acodec_atempo.set('Original')
+        acodec_atempo_menu["menu"].configure(activebackground="dim grey")
+        acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
+        acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
+        # ------------------------------------------------------------------------------------------------ Audio Atempo
     # ----------------------------------------------------------------------------------------------------- Opus Window
 
     # MP3 Window ------------------------------------------------------------------------------------------------------
