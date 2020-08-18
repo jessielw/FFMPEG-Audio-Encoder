@@ -973,8 +973,8 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('DTS Settings')
         audio_window.configure(background="#434547")
-        window_height = 350
-        window_width = 470
+        window_height = 400
+        window_width = 500
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
         x_cordinate = int((screen_width / 2) - (window_width / 2))
@@ -994,7 +994,9 @@ def openaudiowindow():
         audio_window.grid_rowconfigure(2, weight=1)
         audio_window.grid_rowconfigure(3, weight=1)
         audio_window.grid_rowconfigure(4, weight=1)
-        audio_window.grid_rowconfigure(7, weight=1)
+        audio_window.grid_rowconfigure(5, weight=1)
+        audio_window.grid_rowconfigure(6, weight=1)
+        audio_window.grid_rowconfigure(9, weight=1)
 
         def dts_setting_choice_trace(*args):
             if dts_settings.get() == 'DTS Encoder':
@@ -1006,6 +1008,8 @@ def openaudiowindow():
                 acodec_samplerate.set('Original')
                 dts_acodec_bitrate_spinbox.config(state=NORMAL)
                 dts_bitrate_spinbox.set(448)
+                acodec_atempo_menu.config(state=NORMAL)
+                acodec_atempo.set('Original')
             else:
                 acodec_channel.set('2 (Stereo)')
                 achannel_menu.config(state=DISABLED)
@@ -1017,11 +1021,15 @@ def openaudiowindow():
                 dts_acodec_bitrate_spinbox.config(state=DISABLED)
                 dolby_pro_logic_ii.set('')
                 dolby_pro_logic_ii_checkbox.config(state=DISABLED)
+                acodec_atempo.set('Original')
+                acodec_atempo_menu.config(state=DISABLED)
+
 
         # Views Command -----------------------------------------------------------------------------------------------
         def view_command():
             global cmd_label
             global cmd_line_window
+            audio_filter_function()
             if dts_settings.get() == 'DTS Encoder':
                 example_cmd_output = acodec_stream_choices[acodec_stream.get()] \
                                      + dts_settings_choices[dts_settings.get()] + \
@@ -1055,13 +1063,13 @@ def openaudiowindow():
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                               command=gotosavefile)
-        apply_button.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        apply_button.grid(row=9, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         apply_button.bind("<Enter>", apply_button_hover)
         apply_button.bind("<Leave>", apply_button_hover_leave)
 
         show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
                           command=view_command)
-        show_cmd.grid(row=7, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        show_cmd.grid(row=9, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
 
@@ -1079,9 +1087,9 @@ def openaudiowindow():
         dts_custom_cmd = StringVar()
         dts_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547",
                                        foreground="white")
-        dts_cmd_entrybox_label.grid(row=5, column=0, columnspan=2, padx=10, pady=(15, 0), sticky=N + S + W + E)
+        dts_cmd_entrybox_label.grid(row=7, column=0, columnspan=2, padx=10, pady=(15, 0), sticky=N + S + W + E)
         dts_cmd_entrybox = Entry(audio_window, textvariable=dts_custom_cmd, borderwidth=4, background="#CACACA")
-        dts_cmd_entrybox.grid(row=6, column=0, columnspan=3, padx=10, pady=(0, 10), sticky=W + E)
+        dts_cmd_entrybox.grid(row=8, column=0, columnspan=3, padx=10, pady=(0, 10), sticky=W + E)
         dts_custom_cmd.trace('w', dts_cmd)
         dts_custom_cmd.set("")
 
@@ -1107,9 +1115,8 @@ def openaudiowindow():
         dolby_pro_logic_ii = StringVar()
         dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                   variable=dolby_pro_logic_ii, state=DISABLED,
-                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue='',
-                                                  command=audio_filter_function)
-        dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=1, padx=10, pady=(10, 3),
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue='')
+        dolby_pro_logic_ii_checkbox.grid(row=6, column=0, columnspan=1, rowspan=1, padx=10, pady=(10, 3),
                                          sticky=N + S + E + W)
         dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                               activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
@@ -1128,7 +1135,6 @@ def openaudiowindow():
                                       buttonbackground="black", width=15, readonlybackground="#23272A",
                                       disabledbackground='grey')
         ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_gain.trace('w', audio_filter_function)
         ffmpeg_gain.set(0)
         # -------------------------------------------------------------------------------------------------------- Gain
 
@@ -1197,6 +1203,39 @@ def openaudiowindow():
         dts_settings_menu.bind("<Enter>", dts_settings_menu_hover)
         dts_settings_menu.bind("<Leave>", dts_settings_menu_hover_leave)
         dts_settings.trace('w', dts_setting_choice_trace)
+        # ------------------------------------------------------------------------------------------------ DTS Encoders
+
+       # Audio Atempo Selection ---------------------------------------------------------------------------------------
+        acodec_atempo = StringVar(audio_window)
+        acodec_atempo_choices = {'Original': '',
+                                 '23.976 to 24': '"atempo=23.976/24"',
+                                 '23.976 to 25': '"atempo=23.976/25"',
+                                 '24 to 23.976': '"atempo=24/23.976"',
+                                 '24 to 25': '"atempo=24/25"',
+                                 '25 to 23.976': '"atempo=25/23.976"',
+                                 '25 to 24': '"atempo=25/24"',
+                                 '1/4 Slow-down': '"atempo=0.5,atempo=0.5"',
+                                 '1/2 Slow-down': '"atempo=0.5"',
+                                 '3/4 Slow-down': '"atempo=0.75"',
+                                 '1/4 Speed-up': '"atempo=1.25"',
+                                 '1/2 Speed-up': '"atempo=1.5"',
+                                 '3/4 Speed-up': '"atempo=1.75"',
+                                 '2x Speed-up': '"atempo=2.0"',
+                                 '2.5x Speed-up': '"atempo=2.5"',
+                                 '3x Speed-up': '"atempo=3.0"',
+                                 '3.5x Speed-up': '"atempo=3.5"',
+                                 '4x Speed-up': '"atempo=4.0"'}
+        acodec_atempo_menu_label = Label(audio_window, text="Time Modification :", background="#434547",
+                                         foreground="white")
+        acodec_atempo_menu_label.grid(row=4, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
+        acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
+        acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1, state=DISABLED)
+        acodec_atempo_menu.grid(row=5, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        acodec_atempo.set('Original')
+        acodec_atempo_menu["menu"].configure(activebackground="dim grey")
+        acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
+        acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
+        # ------------------------------------------------------------------------------------------------ Audio Atempo
     # ------------------------------------------------------------------------------------------------------------- DTS
 
     # Opus Window -----------------------------------------------------------------------------------------------------
