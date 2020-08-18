@@ -12,7 +12,7 @@ from tkinter import messagebox
 # Main Gui & Windows --------------------------------------------------------
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v2.5")
+root.title("FFMPEG Audio Encoder v2.6 Beta")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 210
@@ -55,7 +55,7 @@ def openaboutwindow():
     about_window_text = Text(about_window, background="#434547", foreground="white", relief=SUNKEN)
     about_window_text.pack()
     about_window_text.configure(state=NORMAL)
-    about_window_text.insert(INSERT, "FFMPEG Audio Encoder v2.5 \n")
+    about_window_text.insert(INSERT, "FFMPEG Audio Encoder v2.6 Beta \n")
     about_window_text.insert(INSERT, "\n")
     about_window_text.insert(INSERT, "Development: jlw4049\n\nContributors: BassThatHertz")
     about_window_text.insert(INSERT, "\n\n")
@@ -324,6 +324,13 @@ def openaudiowindow():
     def q_gapless_mode_menu_hover_leave(e):
         q_gapless_mode_menu["bg"] = "#23272A"
 
+    def acodec_atempo_menu_hover(e):
+        acodec_atempo_menu["bg"] = "grey"
+        acodec_atempo_menu["activebackground"] = "grey"
+
+    def acodec_atempo_menu_hover_leave(e):
+        acodec_atempo_menu["bg"] = "#23272A"
+
     # Checks channel for dolby pro logic II checkbox ------------------------------------------------------------------
     def dolby_pro_logic_ii_enable_disable(*args):
         if acodec_channel.get() == '2 (Stereo)':
@@ -335,33 +342,49 @@ def openaudiowindow():
     # --------------------------------------------------------------------------------------------- dplII channel check
 
     # Combines -af filter settings ------------------------------------------------------------------------------------
+    global audio_filter_function
     def audio_filter_function(*args):
         global audio_filter_setting
-        audio_filter_setting = ''
+        ffmpeg_gain_cmd = '"volume=' + ffmpeg_gain.get() + 'dB"'
         if encoder.get() == "QAAC":
             if dolby_pro_logic_ii.get() == '':
                 audio_filter_setting = ''
             else:
                 audio_filter_setting = '-af ' + dolby_pro_logic_ii.get() + ' '
         elif encoder.get() == 'E-AC3':
-            ffmpeg_gain_cmd = '"volume=' + ffmpeg_gain.get() + 'dB"'
             if ffmpeg_gain.get() == '0':
                 audio_filter_setting = ''
             else:
                 audio_filter_setting = '-af ' + ffmpeg_gain_cmd + ' '
         else:
-            ffmpeg_gain_cmd = '"volume=' + ffmpeg_gain.get() + 'dB"'
-            if dolby_pro_logic_ii.get() == '' and ffmpeg_gain.get() == '0':
+            if dolby_pro_logic_ii.get() == '' and ffmpeg_gain.get() == '0' and \
+                    acodec_atempo_choices[acodec_atempo.get()] == '':
                 audio_filter_setting = ''
             elif dolby_pro_logic_ii.get() == '"aresample=matrix_encoding=dplii"' and \
-                    ffmpeg_gain.get() == '0':
+                    ffmpeg_gain.get() == '0' and acodec_atempo_choices[acodec_atempo.get()] == '':
                 audio_filter_setting = '-af ' + dolby_pro_logic_ii.get() + ' '
+
             elif dolby_pro_logic_ii.get() == '"aresample=matrix_encoding=dplii"' \
-                    and ffmpeg_gain.get() != '0':
+                    and ffmpeg_gain.get() != '0' and acodec_atempo_choices[acodec_atempo.get()] == '':
                 audio_filter_setting = '-af ' + dolby_pro_logic_ii.get() + ',' + \
                                        ffmpeg_gain_cmd + ' '
-            elif dolby_pro_logic_ii.get() == '' and ffmpeg_gain.get() != '0':
+            elif dolby_pro_logic_ii.get() == '' and ffmpeg_gain.get() != '0' and \
+                    acodec_atempo_choices[acodec_atempo.get()] == '':
                 audio_filter_setting = '-af ' + ffmpeg_gain_cmd + ' '
+            elif dolby_pro_logic_ii.get() == '"aresample=matrix_encoding=dplii"' and \
+                    ffmpeg_gain.get() == '0' and acodec_atempo_choices[acodec_atempo.get()] != '':
+                audio_filter_setting = '-af ' + dolby_pro_logic_ii.get() + ',' + \
+                                       acodec_atempo_choices[acodec_atempo.get()] + ' '
+            elif dolby_pro_logic_ii.get() == '"aresample=matrix_encoding=dplii"' \
+                    and ffmpeg_gain.get() != '0' and acodec_atempo_choices[acodec_atempo.get()] != '':
+                audio_filter_setting = '-af ' + dolby_pro_logic_ii.get() + ',' + \
+                                       ffmpeg_gain_cmd + ',' + acodec_atempo_choices[acodec_atempo.get()] + ' '
+            elif dolby_pro_logic_ii.get() == '' and ffmpeg_gain.get() != '0' and \
+                    acodec_atempo_choices[acodec_atempo.get()] != '':
+                audio_filter_setting = '-af ' + ffmpeg_gain_cmd + ',' + acodec_atempo_choices[acodec_atempo.get()] + ' '
+            elif dolby_pro_logic_ii.get() == '' and \
+                    ffmpeg_gain.get() == '0' and acodec_atempo_choices[acodec_atempo.get()] != '':
+                audio_filter_setting = '-af ' + acodec_atempo_choices[acodec_atempo.get()] + ' '
 
     # ---------------------------------------------------------------------------------------------------- combines -af
 
@@ -411,200 +434,239 @@ def openaudiowindow():
     # ---------------------------------------------------------------------------------------------------- Show Streams
 
     # AC3 Window ------------------------------------------------------------------------------------------------------
+    global audio_window
     if encoder.get() == "AC3":
-        audio_window = Toplevel()
-        audio_window.title('AC3 Settings')
-        audio_window.configure(background="#434547")
-        window_height = 310
-        window_width = 600
-        screen_width = audio_window.winfo_screenwidth()
-        screen_height = audio_window.winfo_screenheight()
-        x_cordinate = int((screen_width / 2) - (window_width / 2))
-        y_cordinate = int((screen_height / 2) - (window_height / 2))
-        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+        try:
+            audio_window.deiconify()
+        except:
+            audio_window = Toplevel()
+            audio_window.title('AC3 Settings')
+            audio_window.configure(background="#434547")
+            window_height = 400
+            window_width = 600
+            screen_width = audio_window.winfo_screenwidth()
+            screen_height = audio_window.winfo_screenheight()
+            x_cordinate = int((screen_width / 2) - (window_width / 2))
+            y_cordinate = int((screen_height / 2) - (window_height / 2))
+            audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
 
-        my_menu = Menu(audio_window, tearoff=0)
-        audio_window.config(menu=my_menu)
-        Menu(my_menu, tearoff=0, activebackground="dim grey")
-        my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
+            my_menu = Menu(audio_window, tearoff=0)
+            audio_window.config(menu=my_menu)
+            Menu(my_menu, tearoff=0, activebackground="dim grey")
+            my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
 
-        audio_window.grid_columnconfigure(0, weight=1)
-        audio_window.grid_columnconfigure(1, weight=1)
-        audio_window.grid_columnconfigure(2, weight=1)
-        audio_window.grid_rowconfigure(0, weight=1)
-        audio_window.grid_rowconfigure(1, weight=1)
-        audio_window.grid_rowconfigure(2, weight=1)
-        audio_window.grid_rowconfigure(3, weight=1)
-        audio_window.grid_rowconfigure(8, weight=1)
+            audio_window.grid_columnconfigure(0, weight=1)
+            audio_window.grid_columnconfigure(1, weight=1)
+            audio_window.grid_columnconfigure(2, weight=1)
+            audio_window.grid_rowconfigure(0, weight=1)
+            audio_window.grid_rowconfigure(1, weight=1)
+            audio_window.grid_rowconfigure(2, weight=1)
+            audio_window.grid_rowconfigure(3, weight=1)
+            audio_window.grid_rowconfigure(8, weight=1)
 
-        # Views Command -----------------------------------------------------------------------------------------------
-        def view_command():
-            global cmd_line_window
-            global cmd_label
-            example_cmd_output = acodec_stream_choices[acodec_stream.get()] \
-                                 + encoder_dropdownmenu_choices[encoder.get()] + \
-                                 acodec_bitrate_choices[acodec_bitrate.get()] + \
-                                 acodec_channel_choices[acodec_channel.get()] + \
-                                 acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting + \
-                                 ac3_custom_cmd_input
-            try:
-                cmd_label.config(text=example_cmd_output)
-                cmd_line_window.deiconify()
-            except (AttributeError, NameError):
-                cmd_line_window = Toplevel()
-                cmd_line_window.title('Command Line')
-                cmd_line_window.configure(background="#434547")
-                cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
-                cmd_label.config(font=("Helvetica", 16))
-                cmd_label.pack()
+            # Views Command -----------------------------------------------------------------------------------------------
+            def view_command():
+                global cmd_line_window
+                global cmd_label
+                audio_filter_function()
+                example_cmd_output = acodec_stream_choices[acodec_stream.get()] \
+                                     + encoder_dropdownmenu_choices[encoder.get()] + \
+                                     acodec_bitrate_choices[acodec_bitrate.get()] + \
+                                     acodec_channel_choices[acodec_channel.get()] + \
+                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting + \
+                                     ac3_custom_cmd_input
+                try:
+                    cmd_label.config(text=example_cmd_output)
+                    cmd_line_window.deiconify()
+                except (AttributeError, NameError):
+                    cmd_line_window = Toplevel()
+                    cmd_line_window.title('Command Line')
+                    cmd_line_window.configure(background="#434547")
+                    cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white",
+                                      background="#434547")
+                    cmd_label.config(font=("Helvetica", 16))
+                    cmd_label.pack()
 
-                def hide_instead():
-                    cmd_line_window.withdraw()
+                    def hide_instead():
+                        cmd_line_window.withdraw()
 
-                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
+                    cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
 
-        # ----------------------------------------------------------------------------------------------- Views Command
+            # ----------------------------------------------------------------------------------------------- Views Command
 
-        # Buttons -----------------------------------------------------------------------------------------------------
-        apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
-                              command=gotosavefile)
-        apply_button.grid(row=8, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-        apply_button.bind("<Enter>", apply_button_hover)
-        apply_button.bind("<Leave>", apply_button_hover_leave)
+            # Buttons -----------------------------------------------------------------------------------------------------
+            apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
+                                  command=gotosavefile)
+            apply_button.grid(row=8, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+            apply_button.bind("<Enter>", apply_button_hover)
+            apply_button.bind("<Leave>", apply_button_hover_leave)
 
-        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
-                          command=view_command)
-        show_cmd.grid(row=8, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-        show_cmd.bind("<Enter>", show_cmd_hover)
-        show_cmd.bind("<Leave>", show_cmd_hover_leave)
-        # ----------------------------------------------------------------------------------------------------- Buttons
+            show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
+                              command=view_command)
+            show_cmd.grid(row=8, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+            show_cmd.bind("<Enter>", show_cmd_hover)
+            show_cmd.bind("<Leave>", show_cmd_hover_leave)
+            # ----------------------------------------------------------------------------------------------------- Buttons
 
-        # Audio Bitrate Selection -------------------------------------------------------------------------------------
-        acodec_bitrate = StringVar(audio_window)
-        acodec_bitrate_choices = {'64k': "-b:a 64k ",
-                                  '128k': "-b:a 128k ",
-                                  '160k': "-b:a 160k ",
-                                  '192k': "-b:a 192k ",
-                                  '224k': "-b:a 224k ",
-                                  '256k': "-b:a 256k ",
-                                  '288k': "-b:a 288k ",
-                                  '320k': "-b:a 320k ",
-                                  '352k': "-b:a 352k ",
-                                  '384k': "-b:a 384k ",
-                                  '448k': "-b:a 448k ",
-                                  '512k': "-b:a 512k ",
-                                  '576k': "-b:a 576k ",
-                                  '640k': "-b:a 640k "}
-        acodec_bitrate.set('224k')  # set the default option
-        acodec_bitrate_menu_label = Label(audio_window, text="Bitrate :", background="#434547", foreground="white")
-        acodec_bitrate_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
-        acodec_bitrate_menu = OptionMenu(audio_window, acodec_bitrate, *acodec_bitrate_choices.keys())
-        acodec_bitrate_menu.config(background="#23272A", foreground="white", highlightthickness=1)
-        acodec_bitrate_menu.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-        acodec_bitrate_menu["menu"].configure(activebackground="dim grey")
-        acodec_bitrate_menu.bind("<Enter>", acodec_bitrate_menu_hover)
-        acodec_bitrate_menu.bind("<Leave>", acodec_bitrate_menu_hover_leave)
+            # Audio Bitrate Selection -------------------------------------------------------------------------------------
+            acodec_bitrate = StringVar(audio_window)
+            acodec_bitrate_choices = {'64k': "-b:a 64k ",
+                                      '128k': "-b:a 128k ",
+                                      '160k': "-b:a 160k ",
+                                      '192k': "-b:a 192k ",
+                                      '224k': "-b:a 224k ",
+                                      '256k': "-b:a 256k ",
+                                      '288k': "-b:a 288k ",
+                                      '320k': "-b:a 320k ",
+                                      '352k': "-b:a 352k ",
+                                      '384k': "-b:a 384k ",
+                                      '448k': "-b:a 448k ",
+                                      '512k': "-b:a 512k ",
+                                      '576k': "-b:a 576k ",
+                                      '640k': "-b:a 640k "}
+            acodec_bitrate.set('224k')  # set the default option
+            acodec_bitrate_menu_label = Label(audio_window, text="Bitrate :", background="#434547", foreground="white")
+            acodec_bitrate_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
+            acodec_bitrate_menu = OptionMenu(audio_window, acodec_bitrate, *acodec_bitrate_choices.keys())
+            acodec_bitrate_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+            acodec_bitrate_menu.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+            acodec_bitrate_menu["menu"].configure(activebackground="dim grey")
+            acodec_bitrate_menu.bind("<Enter>", acodec_bitrate_menu_hover)
+            acodec_bitrate_menu.bind("<Leave>", acodec_bitrate_menu_hover_leave)
+            # ----------------------------------------------------------------------------------------------- Audio Bitrate
+
+            # Audio Stream Selection --------------------------------------------------------------------------------------
+            acodec_stream = StringVar(audio_window)
+            acodec_stream_choices = acodec_stream_track_counter
+            acodec_stream.set('Track 1')  # set the default option
+            acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
+            acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
+            acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
+            acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+            acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+            acodec_stream_menu["menu"].configure(activebackground="dim grey")
+            acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
+            acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+            # -------------------------------------------------------------------------------------------------------------
+
+            # Audio Channel Selection -------------------------------------------------------------------------------------
+            acodec_channel = StringVar(audio_window)
+            acodec_channel_choices = {'Original': "",
+                                      '1 (Mono)': "-ac 1 ",
+                                      '2 (Stereo)': "-ac 2 ",
+                                      '2.1 (Stereo)': "-ac 3 ",
+                                      '4.0 (Quad)': "-ac 4 ",
+                                      '5.0 (Surround)': "-ac 5 ",
+                                      '5.1 (Surround)': "-ac 6 "}
+            acodec_channel.set('Original')  # set the default option
+            achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
+            achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
+            achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
+            achannel_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+            achannel_menu.grid(row=1, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+            achannel_menu["menu"].configure(activebackground="dim grey")
+            achannel_menu.bind("<Enter>", achannel_menu_hover)
+            achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
+            acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
+            # ----------------------------------------------------------------------------------------------- Audio Channel
+
+            # Dolby Pro Logic II ------------------------------------------------------------------------------------------
+            dolby_pro_logic_ii = StringVar()
+            dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
+                                                      variable=dolby_pro_logic_ii, state=DISABLED,
+                                                      onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
+            dolby_pro_logic_ii_checkbox.grid(row=4, column=2, columnspan=1, rowspan=1, padx=10, pady=(20, 5),
+                                             sticky=N + S + E + W)
+            dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                                  activeforeground="white", selectcolor="#434547",
+                                                  font=("Helvetica", 11))
+            dolby_pro_logic_ii.set("")
+            # ------------------------------------------------------------------------------------------------------ DPL II
+
+            # Audio Gain Selection ----------------------------------------------------------------------------------------
+            ffmpeg_gain = StringVar()
+            ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
+                                      foreground="white")
+            ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
+                                   sticky=N + S + E + W)
+            ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
+                                          wrap=True, textvariable=ffmpeg_gain)
+            ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+                                          buttonbackground="black", width=15, readonlybackground="#23272A")
+            ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+            ffmpeg_gain.set(0)
+            # -------------------------------------------------------------------------------------------------------- Gain
+
+            # Audio Sample Rate Selection ---------------------------------------------------------------------------------
+            acodec_samplerate = StringVar(audio_window)
+            acodec_samplerate_choices = {'Original': "",
+                                         '32000 Hz': "-ar 32000 ",
+                                         '44100 Hz': "-ar 44100 ",
+                                         '48000 Hz': "-ar 48000 "}
+            acodec_samplerate.set('Original')  # set the default option
+            acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547",
+                                            foreground="white")
+            acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+            acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate, *acodec_samplerate_choices.keys())
+            acodec_samplerate_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+            acodec_samplerate_menu.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+            acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
+            acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
+            acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
+
+            # ------------------------------------------------------------------------------------------------- Sample Rate
+
+            # Entry Box for Custom Command Line ---------------------------------------------------------------------------
+            def ac3_cmd(*args):
+                global ac3_custom_cmd_input
+                if ac3_custom_cmd.get() == (""):
+                    ac3_custom_cmd_input = ("")
+                else:
+                    cstmcmd = ac3_custom_cmd.get()
+                    ac3_custom_cmd_input = cstmcmd + " "
+
+            ac3_custom_cmd = StringVar()
+            ac3_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547",
+                                           foreground="white")
+            ac3_cmd_entrybox_label.grid(row=5, column=0, columnspan=2, padx=10, pady=(15, 0), sticky=N + S + W + E)
+            ac3_cmd_entrybox = Entry(audio_window, textvariable=ac3_custom_cmd, borderwidth=4, background="#CACACA")
+            ac3_cmd_entrybox.grid(row=6, column=0, columnspan=3, padx=10, pady=(0, 15), sticky=W + E)
+            ac3_custom_cmd.trace('w', ac3_cmd)
+            ac3_custom_cmd.set("")
+            # ----------------------------------------------------------------------------------------- Custom Command Line
+
+            # Audio Bitrate Selection -------------------------------------------------------------------------------------
+            global acodec_atempo, acodec_atempo_choices
+            acodec_atempo = StringVar(audio_window)
+            acodec_atempo_choices = {'Original': '',
+                                     '23.976 to 24': '"atempo=23.976/24"',
+                                     '23.976 to 25': '"atempo=23.976/25"',
+                                     '24 to 23.976': '"atempo=24/23.976"',
+                                     '24 to 25': '"atempo=24/25"',
+                                     '25 to 23.976': '"atempo=25/23.976"',
+                                     '25 to 24': '"atempo=25/24"',
+                                     '1/4 Slow-down': '"atempo=0.5,atempo=0.5"',
+                                     '1/2 Slow-down': '"atempo=0.5"',
+                                     '3/4 Slow-down': '"atempo=0.75"',
+                                     '1/4 Speed-up': '"atempo=1.25"',
+                                     '1/2 Speed-up': '"atempo=1.5"',
+                                     '3/4 Speed-up': '"atempo=1.75"',
+                                     '2x Speed-up': '"atempo=2.0"',
+                                     '2.5x Speed-up': '"atempo=2.5"',
+                                     '3x Speed-up': '"atempo=3.0"',
+                                     '3.5x Speed-up': '"atempo=3.5"',
+                                     '4x Speed-up': '"atempo=4.0"'}
+            acodec_atempo_menu_label = Label(audio_window, text="Time Modification :", background="#434547",
+                                             foreground="white")
+            acodec_atempo_menu_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
+            acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
+            acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+            acodec_atempo_menu.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+            acodec_atempo.set('Original')
+            acodec_atempo_menu["menu"].configure(activebackground="dim grey")
+            acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
+            acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
         # ----------------------------------------------------------------------------------------------- Audio Bitrate
-
-        # Audio Stream Selection --------------------------------------------------------------------------------------
-        acodec_stream = StringVar(audio_window)
-        acodec_stream_choices = acodec_stream_track_counter
-        acodec_stream.set('Track 1')  # set the default option
-        acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
-        acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
-        acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
-        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1)
-        acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-        acodec_stream_menu["menu"].configure(activebackground="dim grey")
-        acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
-        acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
-        # -------------------------------------------------------------------------------------------------------------
-
-        # Audio Channel Selection -------------------------------------------------------------------------------------
-        acodec_channel = StringVar(audio_window)
-        acodec_channel_choices = {'Original': "",
-                                  '1 (Mono)': "-ac 1 ",
-                                  '2 (Stereo)': "-ac 2 ",
-                                  '2.1 (Stereo)': "-ac 3 ",
-                                  '4.0 (Quad)': "-ac 4 ",
-                                  '5.0 (Surround)': "-ac 5 ",
-                                  '5.1 (Surround)': "-ac 6 "}
-        acodec_channel.set('Original')  # set the default option
-        achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
-        achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
-        achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
-        achannel_menu.config(background="#23272A", foreground="white", highlightthickness=1)
-        achannel_menu.grid(row=1, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-        achannel_menu["menu"].configure(activebackground="dim grey")
-        achannel_menu.bind("<Enter>", achannel_menu_hover)
-        achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
-        acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
-        # ----------------------------------------------------------------------------------------------- Audio Channel
-
-        # Dolby Pro Logic II ------------------------------------------------------------------------------------------
-        dolby_pro_logic_ii = StringVar()
-        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
-                                                  variable=dolby_pro_logic_ii, state=DISABLED,
-                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="",
-                                                  command=audio_filter_function)
-        dolby_pro_logic_ii_checkbox.grid(row=3, column=2, columnspan=1, rowspan=1, padx=10, pady=3,
-                                         sticky=N + S + E + W)
-        dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
-                                              activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
-        dolby_pro_logic_ii.set("")
-        # ------------------------------------------------------------------------------------------------------ DPL II
-
-        # Audio Gain Selection ----------------------------------------------------------------------------------------
-        ffmpeg_gain = StringVar()
-        ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
-                                  foreground="white")
-        ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
-                               sticky=N + S + E + W)
-        ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                      wrap=True, textvariable=ffmpeg_gain)
-        ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
-                                      buttonbackground="black", width=15, readonlybackground="#23272A")
-        ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_gain.trace('w', audio_filter_function)
-        ffmpeg_gain.set(0)
-        # -------------------------------------------------------------------------------------------------------- Gain
-
-        # Audio Sample Rate Selection ---------------------------------------------------------------------------------
-        acodec_samplerate = StringVar(audio_window)
-        acodec_samplerate_choices = {'Original': "",
-                                     '32000 Hz': "-ar 32000 ",
-                                     '44100 Hz': "-ar 44100 ",
-                                     '48000 Hz': "-ar 48000 "}
-        acodec_samplerate.set('Original')  # set the default option
-        acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547", foreground="white")
-        acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate, *acodec_samplerate_choices.keys())
-        acodec_samplerate_menu.config(background="#23272A", foreground="white", highlightthickness=1)
-        acodec_samplerate_menu.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
-        acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
-        acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
-
-        # ------------------------------------------------------------------------------------------------- Sample Rate
-
-        # Entry Box for Custom Command Line ---------------------------------------------------------------------------
-        def ac3_cmd(*args):
-            global ac3_custom_cmd_input
-            if ac3_custom_cmd.get() == (""):
-                ac3_custom_cmd_input = ("")
-            else:
-                cstmcmd = ac3_custom_cmd.get()
-                ac3_custom_cmd_input = cstmcmd + " "
-
-        ac3_custom_cmd = StringVar()
-        ac3_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547",
-                                       foreground="white")
-        ac3_cmd_entrybox_label.grid(row=4, column=0, columnspan=2, padx=10, pady=(15, 0), sticky=N + S + W + E)
-        ac3_cmd_entrybox = Entry(audio_window, textvariable=ac3_custom_cmd, borderwidth=4, background="#CACACA")
-        ac3_cmd_entrybox.grid(row=5, column=0, columnspan=3, padx=10, pady=(0, 15), sticky=W + E)
-        ac3_custom_cmd.trace('w', ac3_cmd)
-        ac3_custom_cmd.set("")
-        # ----------------------------------------------------------------------------------------- Custom Command Line
     # ------------------------------------------------------------------------------------------------------------- AC3
 
     # AAC Window ------------------------------------------------------------------------------------------------------
@@ -3235,6 +3297,7 @@ def print_command_line():
     cmd_line_window.configure(background="#434547")
     VideoInputQuoted = '"' + VideoInput + '"'
     VideoOutputQuoted = '"' + VideoOutput + '"'
+    audio_filter_function()
     # DTS Command Line Main Gui ---------------------------------------------------------------------------------------
     if encoder.get() == "DTS":
         if dts_settings.get() == 'DTS Encoder':
@@ -3387,6 +3450,7 @@ def startaudiojob():
     # Quote File Input/Output Paths------------
     VideoInputQuoted = '"' + VideoInput + '"'
     VideoOutputQuoted = '"' + VideoOutput + '"'
+    audio_filter_function()
     # -------------------------- Quote File Paths
     # AC3 Start Job ---------------------------------------------------------------------------------------------------
     if encoder.get() == "AC3":
