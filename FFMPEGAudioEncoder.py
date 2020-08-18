@@ -177,7 +177,7 @@ def openaudiowindow():
     global acodec_bitrate, acodec_channel, acodec_channel_choices, acodec_bitrate_choices, acodec_stream, \
     acodec_stream_choices, acodec_gain, acodec_gain_choices, dts_settings, dts_settings_choices, \
     acodec_vbr_choices, acodec_vbr, acodec_samplerate, acodec_samplerate_choices, acodec_application, \
-    acodec_application_choices, acodec_profile, acodec_profile_choices
+    acodec_application_choices, acodec_profile, acodec_profile_choices, acodec_atempo, acodec_atempo_choices
 
     def apply_button_hover(e):
         apply_button["bg"] = "grey"
@@ -345,6 +345,7 @@ def openaudiowindow():
     global audio_filter_function
     def audio_filter_function(*args):
         global audio_filter_setting
+        audio_filter_setting = ''
         ffmpeg_gain_cmd = '"volume=' + ffmpeg_gain.get() + 'dB"'
         if encoder.get() == "QAAC":
             if dolby_pro_logic_ii.get() == '':
@@ -636,7 +637,6 @@ def openaudiowindow():
             # ----------------------------------------------------------------------------------------- Custom Command Line
 
             # Audio Bitrate Selection -------------------------------------------------------------------------------------
-            global acodec_atempo, acodec_atempo_choices
             acodec_atempo = StringVar(audio_window)
             acodec_atempo_choices = {'Original': '',
                                      '23.976 to 24': '"atempo=23.976/24"',
@@ -675,7 +675,7 @@ def openaudiowindow():
         audio_window.title('AAC Settings')
         audio_window.configure(background="#434547")
         window_height = 420
-        window_width = 600
+        window_width = 620
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
         x_cordinate = int((screen_width / 2) - (window_width / 2))
@@ -694,11 +694,14 @@ def openaudiowindow():
         audio_window.grid_rowconfigure(1, weight=1)
         audio_window.grid_rowconfigure(2, weight=1)
         audio_window.grid_rowconfigure(3, weight=1)
-        audio_window.grid_rowconfigure(9, weight=1)
+        audio_window.grid_rowconfigure(4, weight=1)
+        audio_window.grid_rowconfigure(5, weight=1)
+        audio_window.grid_rowconfigure(10, weight=1)
 
         def view_command():  # Views Command ---------------------------------------------------------------------------
             global cmd_label
             global cmd_line_window
+            audio_filter_function()
             if aac_vbr_toggle.get() == "-c:a ":
                 example_cmd_output = acodec_stream_choices[acodec_stream.get()] + \
                                      encoder_dropdownmenu_choices[encoder.get()] + \
@@ -735,13 +738,13 @@ def openaudiowindow():
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                               command=gotosavefile)
-        apply_button.grid(row=9, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        apply_button.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         apply_button.bind("<Enter>", apply_button_hover)
         apply_button.bind("<Leave>", apply_button_hover_leave)
 
         show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
                           command=view_command)
-        show_cmd.grid(row=9, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        show_cmd.grid(row=10, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
 
@@ -759,9 +762,9 @@ def openaudiowindow():
         aac_custom_cmd = StringVar()
         aac_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547",
                                        foreground="white")
-        aac_cmd_entrybox_label.grid(row=5, column=0, columnspan=2, padx=10, pady=(0, 0), sticky=N + S + W + E)
+        aac_cmd_entrybox_label.grid(row=6, column=0, columnspan=2, padx=10, pady=(0, 0), sticky=N + S + W + E)
         aac_cmd_entrybox = Entry(audio_window, textvariable=aac_custom_cmd, borderwidth=4, background="#CACACA")
-        aac_cmd_entrybox.grid(row=6, column=0, columnspan=3, padx=10, pady=(0, 0), sticky=W + E)
+        aac_cmd_entrybox.grid(row=7, column=0, columnspan=3, padx=10, pady=(0, 0), sticky=W + E)
         aac_custom_cmd.trace('w', aac_cmd)
         aac_custom_cmd.set("")
 
@@ -779,9 +782,9 @@ def openaudiowindow():
         aac_title = StringVar()
         aac_title_entrybox_label = Label(audio_window, text="Track Name :", anchor=W, background="#434547",
                                          foreground="white")
-        aac_title_entrybox_label.grid(row=7, column=0, columnspan=2, padx=10, pady=(5, 0), sticky=N + S + W + E)
+        aac_title_entrybox_label.grid(row=8, column=0, columnspan=2, padx=10, pady=(5, 0), sticky=N + S + W + E)
         aac_title_entrybox = Entry(audio_window, textvariable=aac_title, borderwidth=4, background="#CACACA")
-        aac_title_entrybox.grid(row=8, column=0, columnspan=3, padx=10, pady=(0, 10), sticky=W + E)
+        aac_title_entrybox.grid(row=9, column=0, columnspan=3, padx=10, pady=(0, 10), sticky=W + E)
         aac_title.trace('w', aac_title_check)
         aac_title.set("")
         # ------------------------------------------------------------------------------------------------- Track Title
@@ -790,8 +793,7 @@ def openaudiowindow():
         dolby_pro_logic_ii = StringVar()
         dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                   variable=dolby_pro_logic_ii, state=DISABLED,
-                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="",
-                                                  command=audio_filter_function)
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
         dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=1, padx=10, pady=(15, 15),
                                          sticky=N + S + E + W)
         dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
@@ -810,7 +812,6 @@ def openaudiowindow():
         ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                       buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_gain_spinbox.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_gain.trace('w', audio_filter_function)
         ffmpeg_gain.set(0)
         # -------------------------------------------------------------------------------------------------------- Gain
 
@@ -864,7 +865,7 @@ def openaudiowindow():
 
         aac_vbr_toggle_checkbox = Checkbutton(audio_window, text=' Variable\n Bit-Rate', variable=aac_vbr_toggle,
                                               onvalue="-q:a ", offvalue="-c:a ", command=aac_vbr_trace)
-        aac_vbr_toggle_checkbox.grid(row=2, column=0, columnspan=1, rowspan=2, padx=10, pady=3, sticky=N + S + E + W)
+        aac_vbr_toggle_checkbox.grid(row=4, column=1, columnspan=1, rowspan=2, padx=10, pady=3, sticky=N + S + E + W)
         aac_vbr_toggle_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                           activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
         aac_vbr_toggle.trace('w', aac_vbr_trace)
@@ -929,7 +930,39 @@ def openaudiowindow():
         acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
         acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
         # --------------------------------------------------------------------------------- Audio Sample Rate Selection
-        # -------------------------------------------------------------------------------------------------- AAC Window
+
+        # Audio Bitrate Selection -------------------------------------------------------------------------------------
+        acodec_atempo = StringVar(audio_window)
+        acodec_atempo_choices = {'Original': '',
+                                 '23.976 to 24': '"atempo=23.976/24"',
+                                 '23.976 to 25': '"atempo=23.976/25"',
+                                 '24 to 23.976': '"atempo=24/23.976"',
+                                 '24 to 25': '"atempo=24/25"',
+                                 '25 to 23.976': '"atempo=25/23.976"',
+                                 '25 to 24': '"atempo=25/24"',
+                                 '1/4 Slow-down': '"atempo=0.5,atempo=0.5"',
+                                 '1/2 Slow-down': '"atempo=0.5"',
+                                 '3/4 Slow-down': '"atempo=0.75"',
+                                 '1/4 Speed-up': '"atempo=1.25"',
+                                 '1/2 Speed-up': '"atempo=1.5"',
+                                 '3/4 Speed-up': '"atempo=1.75"',
+                                 '2x Speed-up': '"atempo=2.0"',
+                                 '2.5x Speed-up': '"atempo=2.5"',
+                                 '3x Speed-up': '"atempo=3.0"',
+                                 '3.5x Speed-up': '"atempo=3.5"',
+                                 '4x Speed-up': '"atempo=4.0"'}
+        acodec_atempo_menu_label = Label(audio_window, text="Time Modification :", background="#434547",
+                                         foreground="white")
+        acodec_atempo_menu_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
+        acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
+        acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=10)
+        acodec_atempo_menu.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        acodec_atempo.set('Original')
+        acodec_atempo_menu["menu"].configure(activebackground="dim grey")
+        acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
+        acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
+        # ----------------------------------------------------------------------------------------------- Audio Bitrate
+    # ------------------------------------------------------------------------------------------------------ AAC Window
 
     # DTS Window ------------------------------------------------------------------------------------------------------
     elif encoder.get() == "DTS":
