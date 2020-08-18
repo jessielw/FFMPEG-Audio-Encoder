@@ -46,7 +46,7 @@ def openaboutwindow():
     about_window.title('About')
     about_window.configure(background="#434547")
     window_height = 140
-    window_width = 450
+    window_width = 470
     screen_width = about_window.winfo_screenwidth()
     screen_height = about_window.winfo_screenheight()
     x_cordinate = int((screen_width / 2) - (window_width / 2))
@@ -164,7 +164,7 @@ encoder.set("Set Codec")
 encoder.trace('w', encoder_changed)
 encoder_menu = OptionMenu(root, encoder, *encoder_dropdownmenu_choices.keys(), command=track_count)
 encoder_menu.grid(row=1, column=2, columnspan=1, padx=5, pady=5, sticky=N + S + W + E)
-encoder_menu.config(state=DISABLED, background="#23272A", foreground="white", highlightthickness=1)
+encoder_menu.config(state=DISABLED, background="#23272A", foreground="white", highlightthickness=1, width=10)
 encoder_menu["menu"].configure(activebackground="dim grey")
 codec_label = Label(root, text="Codec ->", background="#434547", foreground="White")
 codec_label.grid(row=1, column=1, columnspan=1, padx=5, pady=5, sticky=N + S + W + E)
@@ -353,10 +353,14 @@ def openaudiowindow():
             else:
                 audio_filter_setting = '-af ' + dolby_pro_logic_ii.get() + ' '
         elif encoder.get() == 'E-AC3':
-            if ffmpeg_gain.get() == '0':
+            if ffmpeg_gain.get() == '0' and acodec_atempo_choices[acodec_atempo.get()] == '':
                 audio_filter_setting = ''
-            else:
+            elif ffmpeg_gain.get() != '0' and acodec_atempo_choices[acodec_atempo.get()] == '':
                 audio_filter_setting = '-af ' + ffmpeg_gain_cmd + ' '
+            elif ffmpeg_gain.get() == '0' and acodec_atempo_choices[acodec_atempo.get()] != '':
+                audio_filter_setting = '-af ' + acodec_atempo_choices[acodec_atempo.get()] + ' '
+            elif ffmpeg_gain.get() != '0' and acodec_atempo_choices[acodec_atempo.get()] != '':
+                audio_filter_setting = '-af ' + ffmpeg_gain_cmd + ',' + acodec_atempo_choices[acodec_atempo.get()] + ' '
         else:
             if dolby_pro_logic_ii.get() == '' and ffmpeg_gain.get() == '0' and \
                     acodec_atempo_choices[acodec_atempo.get()] == '':
@@ -636,7 +640,7 @@ def openaudiowindow():
             ac3_custom_cmd.set("")
             # ----------------------------------------------------------------------------------------- Custom Command Line
 
-            # Audio Bitrate Selection -------------------------------------------------------------------------------------
+            # Audio Atempo Selection ----------------------------------------------------------------------------------
             acodec_atempo = StringVar(audio_window)
             acodec_atempo_choices = {'Original': '',
                                      '23.976 to 24': '"atempo=23.976/24"',
@@ -666,7 +670,7 @@ def openaudiowindow():
             acodec_atempo_menu["menu"].configure(activebackground="dim grey")
             acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
             acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
-        # ----------------------------------------------------------------------------------------------- Audio Bitrate
+        # ------------------------------------------------------------------------------------------------ Audio Atempo
     # ------------------------------------------------------------------------------------------------------------- AC3
 
     # AAC Window ------------------------------------------------------------------------------------------------------
@@ -931,7 +935,7 @@ def openaudiowindow():
         acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
         # --------------------------------------------------------------------------------- Audio Sample Rate Selection
 
-        # Audio Bitrate Selection -------------------------------------------------------------------------------------
+        # Audio Atempo Selection -------------------------------------------------------------------------------------
         acodec_atempo = StringVar(audio_window)
         acodec_atempo_choices = {'Original': '',
                                  '23.976 to 24': '"atempo=23.976/24"',
@@ -961,7 +965,7 @@ def openaudiowindow():
         acodec_atempo_menu["menu"].configure(activebackground="dim grey")
         acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
         acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
-        # ----------------------------------------------------------------------------------------------- Audio Bitrate
+        # ----------------------------------------------------------------------------------------------- Audio Atempto
     # ------------------------------------------------------------------------------------------------------ AAC Window
 
     # DTS Window ------------------------------------------------------------------------------------------------------
@@ -1813,6 +1817,7 @@ def openaudiowindow():
         def view_command():
             global cmd_label
             global cmd_line_window
+            audio_filter_function()
             example_cmd_output = acodec_stream_choices[acodec_stream.get()] \
                                  + encoder_dropdownmenu_choices[encoder.get()] + "-b:a " + eac3_spinbox.get() + " " \
                                  + acodec_channel_choices[acodec_channel.get()] \
@@ -1958,7 +1963,6 @@ def openaudiowindow():
         ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                       buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_gain.trace('w', audio_filter_function)
         ffmpeg_gain.set(0)
         # -------------------------------------------------------------------------------------------------------- Gain
 
@@ -2267,6 +2271,38 @@ def openaudiowindow():
         cpl_start_band_spinbox.grid(row=16, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         cpl_start_band.set(-1)
         # -------------------------------------------------------------------------------------------- Channel CPL Band
+
+        # Audio Atempo Selection --------------------------------------------------------------------------------------
+        acodec_atempo = StringVar(audio_window)
+        acodec_atempo_choices = {'Original': '',
+                                 '23.976 to 24': '"atempo=23.976/24"',
+                                 '23.976 to 25': '"atempo=23.976/25"',
+                                 '24 to 23.976': '"atempo=24/23.976"',
+                                 '24 to 25': '"atempo=24/25"',
+                                 '25 to 23.976': '"atempo=25/23.976"',
+                                 '25 to 24': '"atempo=25/24"',
+                                 '1/4 Slow-down': '"atempo=0.5,atempo=0.5"',
+                                 '1/2 Slow-down': '"atempo=0.5"',
+                                 '3/4 Slow-down': '"atempo=0.75"',
+                                 '1/4 Speed-up': '"atempo=1.25"',
+                                 '1/2 Speed-up': '"atempo=1.5"',
+                                 '3/4 Speed-up': '"atempo=1.75"',
+                                 '2x Speed-up': '"atempo=2.0"',
+                                 '2.5x Speed-up': '"atempo=2.5"',
+                                 '3x Speed-up': '"atempo=3.0"',
+                                 '3.5x Speed-up': '"atempo=3.5"',
+                                 '4x Speed-up': '"atempo=4.0"'}
+        acodec_atempo_menu_label = Label(audio_window, text="Time Modification :", background="#434547",
+                                         foreground="white")
+        acodec_atempo_menu_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
+        acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
+        acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_atempo_menu.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        acodec_atempo.set('Original')
+        acodec_atempo_menu["menu"].configure(activebackground="dim grey")
+        acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
+        acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
+        # ------------------------------------------------------------------------------------------------ Audio Atempo
     # ----------------------------------------------------------------------------------------------------------- E-AC3
 
     # FDK-AAC Window --------------------------------------------------------------------------------------------------
