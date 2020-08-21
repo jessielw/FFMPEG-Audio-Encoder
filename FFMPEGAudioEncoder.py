@@ -2505,6 +2505,7 @@ def openaudiowindow():
         def view_command():
             global cmd_label
             global cmd_line_window
+            audio_filter_function()
             example_cmd_output = acodec_stream_choices[acodec_stream.get()] + \
                                  acodec_channel_choices[acodec_channel.get()] + \
                                  acodec_samplerate_choices[acodec_samplerate.get()] + \
@@ -2627,9 +2628,8 @@ def openaudiowindow():
         dolby_pro_logic_ii = StringVar()
         dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                   variable=dolby_pro_logic_ii, state=DISABLED,
-                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="",
-                                                  command=audio_filter_function)
-        dolby_pro_logic_ii_checkbox.grid(row=3, column=2, columnspan=1, rowspan=1, padx=10, pady=3,
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
+        dolby_pro_logic_ii_checkbox.grid(row=10, column=2, columnspan=1, rowspan=1, padx=10, pady=3,
                                          sticky=N + S + E + W)
         dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                               activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
@@ -2647,7 +2647,6 @@ def openaudiowindow():
         ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                       buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_gain.trace('w', audio_filter_function)
         ffmpeg_gain.set(0)
         # -------------------------------------------------------------------------------------------------------- Gain
 
@@ -2855,11 +2854,43 @@ def openaudiowindow():
         moovbox = StringVar()
         moovbox.set("")
         moovbox_checkbox = Checkbutton(audio_window, text='Place Moov Box Before Mdat Box', variable=moovbox,
-                                       onvalue="--moov-before-mdat ", offvalue="", anchor='w')
-        moovbox_checkbox.grid(row=10, column=1, columnspan=3, padx=10, pady=3, sticky=N + S + E + W)
+                                       onvalue="--moov-before-mdat ", offvalue="")
+        moovbox_checkbox.grid(row=10, column=0, columnspan=2, padx=10, pady=3, sticky=N + S + E + W)
         moovbox_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                    activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
         # ---------------------------------------------------------------------------------------------------- Moov Box
+
+        # Audio Atempo Selection ---------------------------------------------------------------------------------------
+        acodec_atempo = StringVar(audio_window)
+        acodec_atempo_choices = {'Original': '',
+                                 '23.976 to 24': '"atempo=23.976/24"',
+                                 '23.976 to 25': '"atempo=23.976/25"',
+                                 '24 to 23.976': '"atempo=24/23.976"',
+                                 '24 to 25': '"atempo=24/25"',
+                                 '25 to 23.976': '"atempo=25/23.976"',
+                                 '25 to 24': '"atempo=25/24"',
+                                 '1/4 Slow-down': '"atempo=0.5,atempo=0.5"',
+                                 '1/2 Slow-down': '"atempo=0.5"',
+                                 '3/4 Slow-down': '"atempo=0.75"',
+                                 '1/4 Speed-up': '"atempo=1.25"',
+                                 '1/2 Speed-up': '"atempo=1.5"',
+                                 '3/4 Speed-up': '"atempo=1.75"',
+                                 '2x Speed-up': '"atempo=2.0"',
+                                 '2.5x Speed-up': '"atempo=2.5"',
+                                 '3x Speed-up': '"atempo=3.0"',
+                                 '3.5x Speed-up': '"atempo=3.5"',
+                                 '4x Speed-up': '"atempo=4.0"'}
+        acodec_atempo_menu_label = Label(audio_window, text="Time Modification :", background="#434547",
+                                         foreground="white")
+        acodec_atempo_menu_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
+        acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
+        acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_atempo_menu.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        acodec_atempo.set('Original')
+        acodec_atempo_menu["menu"].configure(activebackground="dim grey")
+        acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
+        acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
+        # ------------------------------------------------------------------------------------------------ Audio Atempo
     # --------------------------------------------------------------------------------------------------------- FDK AAC
 
     # 1 Window -----------------------------------------------------------------------------------------------------
