@@ -346,13 +346,19 @@ def openaudiowindow():
     def audio_filter_function(*args):
         global audio_filter_setting
         audio_filter_setting = ''
-        ffmpeg_gain_cmd = '"volume=' + ffmpeg_gain.get() + 'dB"'
+        # ffmpeg_gain_cmd = '"volume=' + ffmpeg_gain.get() + 'dB"'
         if encoder.get() == "QAAC":
-            if dolby_pro_logic_ii.get() == '':
+            if dolby_pro_logic_ii.get() == '' and acodec_atempo_choices[acodec_atempo.get()] == '':
                 audio_filter_setting = ''
-            else:
+            elif dolby_pro_logic_ii.get() != '' and acodec_atempo_choices[acodec_atempo.get()] == '':
                 audio_filter_setting = '-af ' + dolby_pro_logic_ii.get() + ' '
+            elif dolby_pro_logic_ii.get() != '' and acodec_atempo_choices[acodec_atempo.get()] != '':
+                audio_filter_setting = '-af ' + dolby_pro_logic_ii.get() + ',' + \
+                                       acodec_atempo_choices[acodec_atempo.get()] + ' '
+            elif dolby_pro_logic_ii.get() == '' and acodec_atempo_choices[acodec_atempo.get()] != '':
+                audio_filter_setting = '-af ' + acodec_atempo_choices[acodec_atempo.get()] + ' '
         elif encoder.get() == 'E-AC3':
+            ffmpeg_gain_cmd = '"volume=' + ffmpeg_gain.get() + 'dB"'
             if ffmpeg_gain.get() == '0' and acodec_atempo_choices[acodec_atempo.get()] == '':
                 audio_filter_setting = ''
             elif ffmpeg_gain.get() != '0' and acodec_atempo_choices[acodec_atempo.get()] == '':
@@ -362,6 +368,7 @@ def openaudiowindow():
             elif ffmpeg_gain.get() != '0' and acodec_atempo_choices[acodec_atempo.get()] != '':
                 audio_filter_setting = '-af ' + ffmpeg_gain_cmd + ',' + acodec_atempo_choices[acodec_atempo.get()] + ' '
         else:
+            ffmpeg_gain_cmd = '"volume=' + ffmpeg_gain.get() + 'dB"'
             if dolby_pro_logic_ii.get() == '' and ffmpeg_gain.get() == '0' and \
                     acodec_atempo_choices[acodec_atempo.get()] == '':
                 audio_filter_setting = ''
@@ -2924,7 +2931,8 @@ def openaudiowindow():
         audio_window.grid_rowconfigure(7, weight=1)
         audio_window.grid_rowconfigure(8, weight=1)
         audio_window.grid_rowconfigure(9, weight=1)
-        audio_window.grid_rowconfigure(14, weight=1)
+        audio_window.grid_rowconfigure(10, weight=1)
+        audio_window.grid_rowconfigure(15, weight=1)
 
         # Gets gain information for QAAC ------------------------------------------------------------------------------
         def qaac_gain_trace(*args):
@@ -2958,6 +2966,7 @@ def openaudiowindow():
         def view_command():
             global cmd_label
             global cmd_line_window
+            audio_filter_function()
             if q_acodec_profile.get() == "True VBR":
                 example_cmd_output = acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[
                     acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] \
@@ -3004,19 +3013,19 @@ def openaudiowindow():
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
                               command=gotosavefile)
-        apply_button.grid(row=14, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        apply_button.grid(row=16, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         apply_button.bind("<Enter>", apply_button_hover)
         apply_button.bind("<Leave>", apply_button_hover_leave)
 
         show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
                           command=view_command)
-        show_cmd.grid(row=14, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        show_cmd.grid(row=16, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
 
         help_button = Button(audio_window, text="Help + Information", foreground="white", background="#23272A",
                              command=gotoqaachelp)
-        help_button.grid(row=14, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        help_button.grid(row=16, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         help_button.bind("<Enter>", help_button_hover)
         help_button.bind("<Leave>", help_button_hover_leave)
         # ----------------------------------------------------------------------------------------------------- Buttons
@@ -3072,7 +3081,6 @@ def openaudiowindow():
                                          sticky=N + S + E + W)
         dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                               activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
-        dolby_pro_logic_ii.trace('w', audio_filter_function)
         dolby_pro_logic_ii.set("")
         # ------------------------------------------------------------------------------------------------------ DPL II
 
@@ -3123,9 +3131,9 @@ def openaudiowindow():
         qaac_custom_cmd = StringVar()
         qaac_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547",
                                         foreground="white")
-        qaac_cmd_entrybox_label.grid(row=10, column=0, columnspan=2, padx=10, pady=(0, 0), sticky=N + S + W + E)
+        qaac_cmd_entrybox_label.grid(row=12, column=0, columnspan=2, padx=10, pady=(0, 0), sticky=N + S + W + E)
         qaac_cmd_entrybox = Entry(audio_window, textvariable=qaac_custom_cmd, borderwidth=4, background="#CACACA")
-        qaac_cmd_entrybox.grid(row=11, column=0, columnspan=3, padx=10, pady=(0, 0), sticky=W + E)
+        qaac_cmd_entrybox.grid(row=13, column=0, columnspan=3, padx=10, pady=(0, 0), sticky=W + E)
         qaac_custom_cmd.trace('w', qaac_cmd)
         qaac_custom_cmd.set("")
 
@@ -3143,9 +3151,9 @@ def openaudiowindow():
         qaac_title = StringVar()
         qaac_title_entrybox_label = Label(audio_window, text="Track Name :", anchor=W, background="#434547",
                                           foreground="white")
-        qaac_title_entrybox_label.grid(row=12, column=0, columnspan=2, padx=10, pady=(5, 0), sticky=N + S + W + E)
+        qaac_title_entrybox_label.grid(row=14, column=0, columnspan=2, padx=10, pady=(5, 0), sticky=N + S + W + E)
         qaac_title_entrybox = Entry(audio_window, textvariable=qaac_title, borderwidth=4, background="#CACACA")
-        qaac_title_entrybox.grid(row=13, column=0, columnspan=3, padx=10, pady=(0, 10), sticky=W + E)
+        qaac_title_entrybox.grid(row=15, column=0, columnspan=3, padx=10, pady=(0, 10), sticky=W + E)
         qaac_title.trace('w', qaac_title_check)
         qaac_title.set("")
         # ------------------------------------------------------------------------------------------------- Track Title
@@ -3239,7 +3247,7 @@ def openaudiowindow():
         qaac_normalize_checkbox = Checkbutton(audio_window, text='Normalize', variable=qaac_normalize,
                                               onvalue="--normalize ",
                                               offvalue="")
-        qaac_normalize_checkbox.grid(row=9, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        qaac_normalize_checkbox.grid(row=10, column=1, columnspan=1, padx=10, pady=(10,3), sticky=N + S + E + W)
         qaac_normalize_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                           activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
         # --------------------------------------------------------------------------------------------------- Normalize
@@ -3317,7 +3325,7 @@ def openaudiowindow():
         qaac_threading_checkbox = Checkbutton(audio_window, text='Threading',
                                               variable=qaac_threading, onvalue="--threading ",
                                               offvalue="")
-        qaac_threading_checkbox.grid(row=8, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        qaac_threading_checkbox.grid(row=10, column=0, columnspan=1, padx=10, pady=(10,3), sticky=N + S + E + W)
         qaac_threading_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                           activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
         # --------------------------------------------------------------------------------------------------- Threading
@@ -3333,6 +3341,38 @@ def openaudiowindow():
         qaac_limiter_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                         activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
         # ----------------------------------------------------------------------------------------------------- Limiter
+
+        # Audio Atempo Selection ---------------------------------------------------------------------------------------
+        acodec_atempo = StringVar(audio_window)
+        acodec_atempo_choices = {'Original': '',
+                                 '23.976 to 24': '"atempo=23.976/24"',
+                                 '23.976 to 25': '"atempo=23.976/25"',
+                                 '24 to 23.976': '"atempo=24/23.976"',
+                                 '24 to 25': '"atempo=24/25"',
+                                 '25 to 23.976': '"atempo=25/23.976"',
+                                 '25 to 24': '"atempo=25/24"',
+                                 '1/4 Slow-down': '"atempo=0.5,atempo=0.5"',
+                                 '1/2 Slow-down': '"atempo=0.5"',
+                                 '3/4 Slow-down': '"atempo=0.75"',
+                                 '1/4 Speed-up': '"atempo=1.25"',
+                                 '1/2 Speed-up': '"atempo=1.5"',
+                                 '3/4 Speed-up': '"atempo=1.75"',
+                                 '2x Speed-up': '"atempo=2.0"',
+                                 '2.5x Speed-up': '"atempo=2.5"',
+                                 '3x Speed-up': '"atempo=3.0"',
+                                 '3.5x Speed-up': '"atempo=3.5"',
+                                 '4x Speed-up': '"atempo=4.0"'}
+        acodec_atempo_menu_label = Label(audio_window, text="Time Modification :", background="#434547",
+                                         foreground="white")
+        acodec_atempo_menu_label.grid(row=8, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
+        acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
+        acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_atempo_menu.grid(row=9, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        acodec_atempo.set('Original')
+        acodec_atempo_menu["menu"].configure(activebackground="dim grey")
+        acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
+        acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
+        # ------------------------------------------------------------------------------------------------ Audio Atempo
     # ----------------------------------------------------------------------------------------------------------- QAAC
 
 
