@@ -12,7 +12,7 @@ from tkinter import messagebox
 # Main Gui & Windows --------------------------------------------------------
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v2.7")
+root.title("FFMPEG Audio Encoder v2.8")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 210
@@ -55,7 +55,7 @@ def openaboutwindow():
     about_window_text = Text(about_window, background="#434547", foreground="white", relief=SUNKEN)
     about_window_text.pack()
     about_window_text.configure(state=NORMAL)
-    about_window_text.insert(INSERT, "FFMPEG Audio Encoder v2.7 \n")
+    about_window_text.insert(INSERT, "FFMPEG Audio Encoder v2.8 \n")
     about_window_text.insert(INSERT, "\n")
     about_window_text.insert(INSERT, "Development: jlw4049\n\nContributors: BassThatHertz")
     about_window_text.insert(INSERT, "\n\n")
@@ -3388,15 +3388,15 @@ def file_input():
     VideoInput = filedialog.askopenfilename(initialdir="/", title="Select A File",
                                             filetypes=((
                                                        "AAC, AC3, AVI, DTS, M4A, M4V, MKA, MKV, MOV, MP3, MP4, MPEG, "
-                                                       "MT2S, OGG, OGV, VOB, WAV, WEBM",
+                                                       "MT2S, OGG, OGV, VOB, WAV, WEBM, FLAC",
                                                        "*.aac *.ac3 *.avi *.dts *.m4a *.m4v *.mka *.mkv *.mov *.mp3 "
-                                                       "*.mp4 *.mpeg *.mt2s *.ogg *.ogv *.vob *.wav *.webm"),
+                                                       "*.mp4 *.mpeg *.mt2s *.ogg *.ogv *.vob *.wav *.webm *.flac"),
                                                        ("All Files", "*.*")))
     input_entry.configure(state=NORMAL)
     input_entry.delete(0, END)
     file_extension = pathlib.Path(VideoInput).suffix
     supported_extensions = ['.wav', '.mt2s', '.ac3', '.mka', '.mp3', '.aac', '.ogg', '.ogv', '.m4v', '.mpeg', '.avi',
-                            '.vob', '.webm', '.mp4', '.mkv', '.dts', '.m4a', '.mov']
+                            '.vob', '.webm', '.mp4', '.mkv', '.dts', '.m4a', '.mov', '.flac']
     if VideoInput:
         if file_extension in supported_extensions:
             autofilesave_file_path = pathlib.PureWindowsPath(VideoInput)  # Command to get file input location
@@ -3905,7 +3905,7 @@ def update_file_input(*args):
             file_extension == '.ogg' or file_extension == '.ogv' or file_extension == '.m4v' or \
             file_extension == '.mpeg' or file_extension == '.avi' or file_extension == '.vob' or \
             file_extension == '.webm' or file_extension == '.mp4' or file_extension == '.mkv' or \
-            file_extension == '.dts' or file_extension == '.m4a' or file_extension == '.mov':
+            file_extension == '.dts' or file_extension == '.m4a' or file_extension == '.mov' or '.flac':
         autofilesave_file_path = pathlib.PureWindowsPath(VideoInput)  # Command to get file input location
         autofilesave_dir_path = autofilesave_file_path.parents[0]  # Final command to get only the directory
         VideoInputQuoted = '"' + VideoInput + '"'
