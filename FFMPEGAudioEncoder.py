@@ -8071,7 +8071,7 @@ def batch_processing():
         global batch_save_directory
         batch_save_directory = filedialog.askdirectory(parent=batch_processing_window,
                                                        title='Select Directory To Save Batch Encodes',
-                                                       initialdir=batch_save_directory)
+                                                       initialdir="/")
         if save_directory:
             batch_output_entry.configure(state=NORMAL)
             batch_output_entry.delete(0, END)
