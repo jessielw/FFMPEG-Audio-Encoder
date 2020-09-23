@@ -8721,6 +8721,7 @@ def batch_processing():
             automatic_batch_save_dir = batch_save_directory
         except:
             automatic_batch_save_dir = batch_input_directory + '/Encoded'
+        audio_filter_function()
         # AC3 Start Job -----------------------------------------------------------------------------------------------
         if encoder.get() == "AC3":
             finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
@@ -8970,7 +8971,7 @@ def batch_processing():
                            acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
                            + min_pre_order + max_pre_order + flac_custom_cmd_input \
                            + "-sn -vn -map_chapters -1 -map_metadata -1 " + \
-                           '"' + automatic_batch_save_dir + '/NEW_%~na.flac"' + " -hide_banner"
+                           '"' + automatic_batch_save_dir + '/NEW_%~na.m4a"' + " -hide_banner"
             if shell_options.get() == "Default":
                 subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
             elif shell_options.get() == "Debug":
@@ -8987,6 +8988,7 @@ def batch_processing():
         cmd_line_window = Toplevel()
         cmd_line_window.title('Command Line')
         cmd_line_window.configure(background="#434547")
+        audio_filter_function()
         # AC3 View Command --------------------------------------------------------------------------------------------
         if encoder.get() == "AC3":
             example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
@@ -9211,7 +9213,7 @@ def batch_processing():
                                  acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
                                  + min_pre_order + max_pre_order + flac_custom_cmd_input + '\n \n' \
                                  + "-sn -vn -map_chapters -1 -map_metadata -1 " + '\n \n' + \
-                                 '"' + automatic_batch_save_dir + '/NEW_%~na.flac"' + " -hide_banner"
+                                 '"' + automatic_batch_save_dir + '/NEW_%~na.m4a"' + " -hide_banner"
         # ---------------------------------------------------------------------------------------------------- ALAC Job
         cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
         cmd_label.config(font=("Helvetica", 16))
