@@ -3655,7 +3655,8 @@ def openaudiowindow():
             acodec_flac_lpc_type_label = Label(audio_window, text="LPC Algorithm :", background="#434547",
                                             foreground="white")
             acodec_flac_lpc_type_label.grid(row=6, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            acodec_flac_lpc_type_menu = OptionMenu(audio_window, acodec_flac_lpc_type, *acodec_flac_lpc_type_choices.keys())
+            acodec_flac_lpc_type_menu = OptionMenu(audio_window, acodec_flac_lpc_type,
+                                                   *acodec_flac_lpc_type_choices.keys())
             acodec_flac_lpc_type_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15)
             acodec_flac_lpc_type_menu.grid(row=7, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             acodec_flac_lpc_type_menu["menu"].configure(activebackground="dim grey")
@@ -4080,7 +4081,7 @@ def file_save():
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("FLAC", "*.flac"), ("All Files", "*.*")))
 
-    elif encoder.get() == "FLAC":
+    elif encoder.get() == "ALAC":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".m4a", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("ALAC", "*.m4a"), ("All Files", "*.*")))
@@ -4515,7 +4516,7 @@ def startaudiojob():
             subprocess.Popen('cmd /k ' + finalcommand + '"')
     # ------------------------------------------------------------------------------------------------------------ FLAC
     # ALAC Start Job --------------------------------------------------------------------------------------------------
-    elif encoder.get() == "FLAC":
+    elif encoder.get() == "ALAC":
         finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
                        acodec_stream_choices[acodec_stream.get()] \
                        + encoder_dropdownmenu_choices[encoder.get()] + \
