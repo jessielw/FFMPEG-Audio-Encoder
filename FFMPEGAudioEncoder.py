@@ -4763,7 +4763,7 @@ def batch_processing():
     extension_dropdownmenu_choices = {
         "Common Extensions": '("*.mov", "*.wav", "*.mt2s", "*.ac3", "*.mka", "*.wav", "*.mp3", "*.aac", "*.ogg", '
                              '"*.ogv", "*.m4v", "*.mpeg", "*.avi", "*.vob", "*.webm", "*.mp4", "*.mkv", "*.dts", '
-                             '"*.flac", "*.alac", "*.mpg", "*.m4a"")',
+                             '"*.flac", "*.alac", "*.mpg", "*.m4a")',
         "MKV": '("*.mkv")',
         "MP4": '("*.mp4")',
         "M4V": '("*.m4v")',
