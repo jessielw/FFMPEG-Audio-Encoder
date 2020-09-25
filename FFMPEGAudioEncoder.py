@@ -383,7 +383,7 @@ def openaudiowindow():
     # Open InputFile Track X with portable mpv ------------------------------------------------------------------------
     def mpv_gui_audio_window():
         VideoInputQuoted = '"' + VideoInput + '"'
-        commands = mpv_player + ' ' + '--aid=' + mpv_track_number[0] + ' ' + VideoInputQuoted
+        commands = mpv_player + ' ' + '--volume=50 ' + '--aid=' + mpv_track_number[0] + ' ' + VideoInputQuoted
         subprocess.Popen(commands)
 
     # ------------------------------------------------------------------------------------------------------------- mpv
@@ -514,7 +514,8 @@ def openaudiowindow():
             file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
             my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
             file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-            file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
+            file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
+                                  command=mpv_gui_audio_window)
 
             audio_window.grid_columnconfigure(0, weight=1)
             audio_window.grid_columnconfigure(1, weight=1)
@@ -750,7 +751,8 @@ def openaudiowindow():
         file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
         my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
         file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-        file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
+        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
+                              command=mpv_gui_audio_window)
 
         audio_window.grid_columnconfigure(0, weight=1)
         audio_window.grid_columnconfigure(1, weight=1)
@@ -1050,7 +1052,8 @@ def openaudiowindow():
         file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
         my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
         file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-        file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
+        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
+                              command=mpv_gui_audio_window)
 
         audio_window.grid_columnconfigure(0, weight=1)
         audio_window.grid_columnconfigure(1, weight=1)
@@ -1325,7 +1328,8 @@ def openaudiowindow():
         file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
         my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
         file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-        file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
+        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
+                              command=mpv_gui_audio_window)
 
         advanced_label = Label(audio_window,
                                text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - - - - - - - - - - "
@@ -1644,7 +1648,8 @@ def openaudiowindow():
         file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
         my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
         file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-        file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
+        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
+                              command=mpv_gui_audio_window)
 
         audio_window.grid_columnconfigure(0, weight=1)
         audio_window.grid_columnconfigure(1, weight=1)
@@ -1966,7 +1971,8 @@ def openaudiowindow():
         file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
         my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
         file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-        file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
+        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
+                              command=mpv_gui_audio_window)
 
         audio_window.grid_columnconfigure(0, weight=1)
         audio_window.grid_columnconfigure(1, weight=1)
@@ -2510,7 +2516,8 @@ def openaudiowindow():
         file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
         my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
         file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-        file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
+        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
+                              command=mpv_gui_audio_window)
 
         audio_window.grid_columnconfigure(0, weight=1)
         audio_window.grid_columnconfigure(1, weight=1)
@@ -3000,7 +3007,8 @@ def openaudiowindow():
         file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
         my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
         file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-        file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
+        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
+                              command=mpv_gui_audio_window)
 
         audio_window.grid_columnconfigure(0, weight=1)
         audio_window.grid_columnconfigure(1, weight=1)
@@ -3482,7 +3490,8 @@ def openaudiowindow():
             file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
             my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
             file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-            file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
+            file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
+                                  command=mpv_gui_audio_window)
 
             audio_window.grid_columnconfigure(0, weight=1)
             audio_window.grid_columnconfigure(1, weight=1)
@@ -3821,7 +3830,8 @@ def openaudiowindow():
             file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
             my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
             file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-            file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
+            file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
+                                  command=mpv_gui_audio_window)
 
             # Views Command ---------------------------------------------------------------------------------------
             def view_command():
