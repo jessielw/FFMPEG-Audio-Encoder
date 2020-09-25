@@ -12,7 +12,7 @@ from tkinter import messagebox
 # Main Gui & Windows --------------------------------------------------------
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v2.9.1")
+root.title("FFMPEG Audio Encoder v2.9.2")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 210
@@ -39,6 +39,7 @@ mediainfo = '"Apps/MediaInfo/MediaInfo.exe"'
 mediainfocli = '"Apps/MediaInfoCLI/MediaInfo.exe"'
 fdkaac = '"Apps/fdkaac/fdkaac.exe"'
 qaac = '"Apps/qaac/qaac64.exe"'
+mpv_player = '"Apps/mpv/mpv.exe"'
 
 # About Window --------------------------------------------------------------------------------------------------------
 def openaboutwindow():
@@ -55,7 +56,7 @@ def openaboutwindow():
     about_window_text = Text(about_window, background="#434547", foreground="white", relief=SUNKEN)
     about_window_text.pack()
     about_window_text.configure(state=NORMAL)
-    about_window_text.insert(INSERT, "FFMPEG Audio Encoder v2.9.1 \n")
+    about_window_text.insert(INSERT, "FFMPEG Audio Encoder v2.9.2 \n")
     about_window_text.insert(INSERT, "\n")
     about_window_text.insert(INSERT, "Development: jlw4049\n\nContributors: BassThatHertz")
     about_window_text.insert(INSERT, "\n\n")
@@ -78,6 +79,19 @@ def mediainfogui():
 
 # ----------------------------------------------------------------------------------------------------------- MediaInfo
 
+# Open InputFile with portable mpv ------------------------------------------------------------------------------------
+def mpv_gui_main_gui():
+    try:
+        VideoInputQuoted = '"' + VideoInput + '"'
+        commands = mpv_player + " " + VideoInputQuoted
+        subprocess.Popen(commands)
+    except:
+        commands = mpv_player
+        subprocess.Popen(commands)
+
+
+# ----------------------------------------------------------------------------------------------------------------- mpv
+
 # Menu Items and Sub-Bars ---------------------------------------------------------------------------------------------
 my_menu_bar = Menu(root, tearoff=0)
 root.config(menu=my_menu_bar)
@@ -99,6 +113,7 @@ options_submenu.add_radiobutton(label='Shell Stays Open (Debug)', variable=shell
 tools_submenu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
 my_menu_bar.add_cascade(label='Tools', menu=tools_submenu)
 tools_submenu.add_command(label="Open MediaInfo", command=mediainfogui)
+tools_submenu.add_command(label="Open MPV (Media Player)", command=mpv_gui_main_gui)
 
 help_menu = Menu(my_menu_bar, tearoff=0, activebackground="dim grey")
 my_menu_bar.add_cascade(label="Help", menu=help_menu)
@@ -147,7 +162,6 @@ def track_count(*args):  # Thanks for helping me shorten this 'gmes78'
     acodec_stream_track_counter = {}
     for i in range(int(str.split(track_count)[-1])):
         acodec_stream_track_counter[f'Track {i + 1}'] = f' -map 0:a:{i} '
-
 
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -359,6 +373,21 @@ def openaudiowindow():
 
     # --------------------------------------------------------------------------------------------- dplII channel check
 
+    # Get Selected Track Number for MPV Player ------------------------------------------------------------------------
+    def track_number_mpv(*args):
+        global mpv_track_number
+        mpv_track_number = str.split(acodec_stream.get()[-1])
+
+    # ------------------------------------------------------------------------ Get Selected Track Number for MPV Player
+
+    # Open InputFile Track X with portable mpv ------------------------------------------------------------------------
+    def mpv_gui_audio_window():
+        VideoInputQuoted = '"' + VideoInput + '"'
+        commands = mpv_player + ' ' + '--aid=' + mpv_track_number[0] + ' ' + VideoInputQuoted
+        subprocess.Popen(commands)
+
+    # ------------------------------------------------------------------------------------------------------------- mpv
+
     # Combines -af filter settings ------------------------------------------------------------------------------------
     global audio_filter_function
     def audio_filter_function(*args):
@@ -479,10 +508,13 @@ def openaudiowindow():
             y_cordinate = int((screen_height / 2) - (window_height / 2))
             audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
 
-            my_menu = Menu(audio_window, tearoff=0)
-            audio_window.config(menu=my_menu)
-            Menu(my_menu, tearoff=0, activebackground="dim grey")
-            my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
+            my_menu_bar = Menu(audio_window, tearoff=0)
+            audio_window.config(menu=my_menu_bar)
+
+            file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+            my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
+            file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
+            file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
 
             audio_window.grid_columnconfigure(0, weight=1)
             audio_window.grid_columnconfigure(1, weight=1)
@@ -576,6 +608,8 @@ def openaudiowindow():
             acodec_stream_menu["menu"].configure(activebackground="dim grey")
             acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
             acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+            acodec_stream.trace('w', track_number_mpv)
+            track_number_mpv()
             # ---------------------------------------------------------------------------------------------------------
 
             # Audio Channel Selection ---------------------------------------------------------------------------------
@@ -710,10 +744,13 @@ def openaudiowindow():
         y_cordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
 
-        my_menu = Menu(audio_window, tearoff=0)
-        audio_window.config(menu=my_menu)
-        Menu(my_menu, tearoff=0, activebackground="dim grey")
-        my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
+        my_menu_bar = Menu(audio_window, tearoff=0)
+        audio_window.config(menu=my_menu_bar)
+
+        file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+        my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
+        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
+        file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
 
         audio_window.grid_columnconfigure(0, weight=1)
         audio_window.grid_columnconfigure(1, weight=1)
@@ -934,6 +971,8 @@ def openaudiowindow():
         acodec_stream_menu["menu"].configure(activebackground="dim grey")
         acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
         acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+        acodec_stream.trace('w', track_number_mpv)
+        track_number_mpv()
         # -------------------------------------------------------------------------------------- Audio Stream Selection
 
         # Audio Sample Rate Selection ---------------------------------------------------------------------------------
@@ -1005,10 +1044,13 @@ def openaudiowindow():
         y_cordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
 
-        my_menu = Menu(audio_window, tearoff=0)
-        audio_window.config(menu=my_menu)
-        Menu(my_menu, tearoff=0, activebackground="dim grey")
-        my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
+        my_menu_bar = Menu(audio_window, tearoff=0)
+        audio_window.config(menu=my_menu_bar)
+
+        file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+        my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
+        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
+        file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
 
         audio_window.grid_columnconfigure(0, weight=1)
         audio_window.grid_columnconfigure(1, weight=1)
@@ -1194,6 +1236,8 @@ def openaudiowindow():
         acodec_stream_menu["menu"].configure(activebackground="dim grey")
         acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
         acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+        acodec_stream.trace('w', track_number_mpv)
+        track_number_mpv()
         # ------------------------------------------------------------------------------------------------ Audio Stream
 
         # Audio Channel Selection -------------------------------------------------------------------------------------
@@ -1275,10 +1319,13 @@ def openaudiowindow():
         y_cordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
 
-        my_menu = Menu(audio_window, tearoff=0)
-        audio_window.config(menu=my_menu)
-        Menu(my_menu, tearoff=0, activebackground="dim grey")
-        my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
+        my_menu_bar = Menu(audio_window, tearoff=0)
+        audio_window.config(menu=my_menu_bar)
+
+        file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+        my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
+        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
+        file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
 
         advanced_label = Label(audio_window,
                                text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - - - - - - - - - - "
@@ -1515,6 +1562,8 @@ def openaudiowindow():
         acodec_stream_menu["menu"].configure(activebackground="dim grey")
         acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
         acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+        acodec_stream.trace('w', track_number_mpv)
+        track_number_mpv()
         # -------------------------------------------------------------------------------------- Audio Stream Selection
 
         # Dolby Pro Logic II ------------------------------------------------------------------------------------------
@@ -1589,10 +1638,13 @@ def openaudiowindow():
         y_cordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
 
-        my_menu = Menu(audio_window, tearoff=0)
-        audio_window.config(menu=my_menu)
-        Menu(my_menu, tearoff=0, activebackground="dim grey")
-        my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
+        my_menu_bar = Menu(audio_window, tearoff=0)
+        audio_window.config(menu=my_menu_bar)
+
+        file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+        my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
+        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
+        file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
 
         audio_window.grid_columnconfigure(0, weight=1)
         audio_window.grid_columnconfigure(1, weight=1)
@@ -1807,6 +1859,8 @@ def openaudiowindow():
         acodec_stream_menu["menu"].configure(activebackground="dim grey")
         acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
         acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+        acodec_stream.trace('w', track_number_mpv)
+        track_number_mpv()
         # ------------------------------------------------------------------------------------------------ Audio Stream
 
         # Dolby Pro Logic II ------------------------------------------------------------------------------------------
@@ -1906,10 +1960,13 @@ def openaudiowindow():
         y_cordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
 
-        my_menu = Menu(audio_window, tearoff=0)
-        audio_window.config(menu=my_menu)
-        Menu(my_menu, tearoff=0, activebackground="dim grey")
-        my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
+        my_menu_bar = Menu(audio_window, tearoff=0)
+        audio_window.config(menu=my_menu_bar)
+
+        file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+        my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
+        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
+        file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
 
         audio_window.grid_columnconfigure(0, weight=1)
         audio_window.grid_columnconfigure(1, weight=1)
@@ -2077,6 +2134,8 @@ def openaudiowindow():
         acodec_stream_menu["menu"].configure(activebackground="dim grey")
         acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
         acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+        acodec_stream.trace('w', track_number_mpv)
+        track_number_mpv()
         # ------------------------------------------------------------------------------------------------------ Stream
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
@@ -2445,10 +2504,13 @@ def openaudiowindow():
         y_cordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
 
-        my_menu = Menu(audio_window, tearoff=0)
-        audio_window.config(menu=my_menu)
-        Menu(my_menu, tearoff=0, activebackground="dim grey")
-        my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
+        my_menu_bar = Menu(audio_window, tearoff=0)
+        audio_window.config(menu=my_menu_bar)
+
+        file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+        my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
+        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
+        file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
 
         audio_window.grid_columnconfigure(0, weight=1)
         audio_window.grid_columnconfigure(1, weight=1)
@@ -2646,6 +2708,8 @@ def openaudiowindow():
         acodec_stream_menu["menu"].configure(activebackground="dim grey")
         acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
         acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+        acodec_stream.trace('w', track_number_mpv)
+        track_number_mpv()
         # ------------------------------------------------------------------------------------------------------ Stream
 
         # Dolby Pro Logic II ------------------------------------------------------------------------------------------
@@ -2930,10 +2994,13 @@ def openaudiowindow():
         y_cordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
 
-        my_menu = Menu(audio_window, tearoff=0)
-        audio_window.config(menu=my_menu)
-        Menu(my_menu, tearoff=0, activebackground="dim grey")
-        my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
+        my_menu_bar = Menu(audio_window, tearoff=0)
+        audio_window.config(menu=my_menu_bar)
+
+        file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+        my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
+        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
+        file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
 
         audio_window.grid_columnconfigure(0, weight=1)
         audio_window.grid_columnconfigure(1, weight=1)
@@ -3133,7 +3200,8 @@ def openaudiowindow():
         acodec_stream_menu["menu"].configure(activebackground="dim grey")
         acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
         acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
-
+        acodec_stream.trace('w', track_number_mpv)
+        track_number_mpv()
         # ------------------------------------------------------------------------------------------------ Audio Stream
 
         # Entry Box for Custom Command Line ---------------------------------------------------------------------------
@@ -3408,10 +3476,13 @@ def openaudiowindow():
             y_cordinate = int((screen_height / 2) - (window_height / 2))
             audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
 
-            my_menu = Menu(audio_window, tearoff=0)
-            audio_window.config(menu=my_menu)
-            Menu(my_menu, tearoff=0, activebackground="dim grey")
-            my_menu.add_command(label="View Streams", command=show_streams_mediainfo)
+            my_menu_bar = Menu(audio_window, tearoff=0)
+            audio_window.config(menu=my_menu_bar)
+
+            file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+            my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
+            file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
+            file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
 
             audio_window.grid_columnconfigure(0, weight=1)
             audio_window.grid_columnconfigure(1, weight=1)
@@ -3517,6 +3588,8 @@ def openaudiowindow():
             acodec_stream_menu["menu"].configure(activebackground="dim grey")
             acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
             acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+            acodec_stream.trace('w', track_number_mpv)
+            track_number_mpv()
             # ---------------------------------------------------------------------------------------------------------
 
             # Audio Channel Selection ---------------------------------------------------------------------------------
@@ -3742,6 +3815,14 @@ def openaudiowindow():
             audio_window.grid_rowconfigure(6, weight=1)
             audio_window.grid_rowconfigure(10, weight=1)
 
+            my_menu_bar = Menu(audio_window, tearoff=0)
+            audio_window.config(menu=my_menu_bar)
+
+            file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+            my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
+            file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
+            file_menu.add_command(label='Play Selected Audio Track', command=mpv_gui_audio_window)
+
             # Views Command ---------------------------------------------------------------------------------------
             def view_command():
                 global cmd_line_window
@@ -3803,6 +3884,8 @@ def openaudiowindow():
             acodec_stream_menu["menu"].configure(activebackground="dim grey")
             acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
             acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+            acodec_stream.trace('w', track_number_mpv)
+            track_number_mpv()
             # -----------------------------------------------------------------------------------------------------
 
             # Audio Channel Selection -----------------------------------------------------------------------------
