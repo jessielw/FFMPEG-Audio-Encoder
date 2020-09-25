@@ -4087,16 +4087,16 @@ def file_input():
     VideoInput = filedialog.askopenfilename(initialdir="/", title="Select A File",
                                             filetypes=((
                                                        "AAC, AC3, AVI, DTS, M4A, M4V, MKA, MKV, MOV, MP3, MP4, MPEG, "
-                                                       "MT2S, OGG, OGV, VOB, WAV, WEBM, FLAC, ALAC",
+                                                       "MT2S, OGG, OGV, VOB, WAV, WEBM, FLAC, ALAC, EAC3",
                                                        "*.aac *.ac3 *.avi *.dts *.m4a *.m4v *.mka *.mkv *.mov *.mp3 "
                                                        "*.mp4 *.mpeg *.mt2s *.ogg *.ogv *.vob *.wav *.webm *.flac "
-                                                       "*.alac"),
+                                                       "*.alac *.eac3"),
                                                        ("All Files", "*.*")))
     input_entry.configure(state=NORMAL)
     input_entry.delete(0, END)
     file_extension = pathlib.Path(VideoInput).suffix
     supported_extensions = ['.wav', '.mt2s', '.ac3', '.mka', '.mp3', '.aac', '.ogg', '.ogv', '.m4v', '.mpeg', '.avi',
-                            '.vob', '.webm', '.mp4', '.mkv', '.dts', '.m4a', '.mov', '.flac', '.alac']
+                            '.vob', '.webm', '.mp4', '.mkv', '.dts', '.m4a', '.mov', '.flac', '.alac', '.eac3']
     if VideoInput:
         if file_extension in supported_extensions:
             autofilesave_file_path = pathlib.PureWindowsPath(VideoInput)  # Command to get file input location
@@ -4670,7 +4670,7 @@ def update_file_input(*args):
             file_extension == '.mpeg' or file_extension == '.avi' or file_extension == '.vob' or \
             file_extension == '.webm' or file_extension == '.mp4' or file_extension == '.mkv' or \
             file_extension == '.dts' or file_extension == '.m4a' or file_extension == '.mov' or \
-            file_extension == '.flac':
+            file_extension == '.flac' or file_extension == '.eac3':
         autofilesave_file_path = pathlib.PureWindowsPath(VideoInput)  # Command to get file input location
         autofilesave_dir_path = autofilesave_file_path.parents[0]  # Final command to get only the directory
         VideoInputQuoted = '"' + VideoInput + '"'
@@ -4857,13 +4857,14 @@ def batch_processing():
     extension_dropdownmenu_choices = {
         "Common Extensions": '("*.mov", "*.wav", "*.mt2s", "*.ac3", "*.mka", "*.wav", "*.mp3", "*.aac", "*.ogg", '
                              '"*.ogv", "*.m4v", "*.mpeg", "*.avi", "*.vob", "*.webm", "*.mp4", "*.mkv", "*.dts", '
-                             '"*.flac", "*.alac", "*.mpg", "*.m4a")',
+                             '"*.flac", "*.alac", "*.mpg", "*.m4a", "*.eac3")',
         "MKV": '("*.mkv")',
         "MP4": '("*.mp4")',
         "M4V": '("*.m4v")',
         "AVI": '("*.avi")',
         "FLAC/ALAC": '("*.flac", "*.alac")',
         "WAV": '("*.wav")',
+        "AC3/EAC3": '("*.ac3", "*.eac3")',
         "All Files": '("*.*")'}
     extension = StringVar()
     extension.set("Common Extensions")
