@@ -1,5 +1,4 @@
 # Imports--------------------------------------------------------------------
-
 from tkinter import *
 from tkinter import filedialog, StringVar
 import subprocess
@@ -8,6 +7,7 @@ import pathlib
 import tkinter.scrolledtext as scrolledtextwidget
 from TkinterDnD2 import *
 from tkinter import messagebox
+
 
 # Main Gui & Windows --------------------------------------------------------
 
@@ -40,6 +40,7 @@ mediainfocli = '"Apps/MediaInfoCLI/MediaInfo.exe"'
 fdkaac = '"Apps/fdkaac/fdkaac.exe"'
 qaac = '"Apps/qaac/qaac64.exe"'
 mpv_player = '"Apps/mpv/mpv.exe"'
+youtube_dl_gui = "Youtube-DL-Gui.pyw"
 
 # About Window --------------------------------------------------------------------------------------------------------
 def openaboutwindow():
@@ -89,8 +90,13 @@ def mpv_gui_main_gui():
         commands = mpv_player
         subprocess.Popen(commands)
 
-
 # ----------------------------------------------------------------------------------------------------------------- mpv
+
+# Opens Youtube-DL-Gui ------------------------------------------------------------------------------------------------
+def open_youtube_dl_gui():
+    subprocess.Popen(['python', youtube_dl_gui])
+
+# ------------------------------------------------------------------------------------------------------ Youtube-DL-Gui
 
 # Menu Items and Sub-Bars ---------------------------------------------------------------------------------------------
 my_menu_bar = Menu(root, tearoff=0)
@@ -112,8 +118,9 @@ options_submenu.add_radiobutton(label='Shell Stays Open (Debug)', variable=shell
 
 tools_submenu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
 my_menu_bar.add_cascade(label='Tools', menu=tools_submenu)
-tools_submenu.add_command(label="Open MediaInfo", command=mediainfogui)
-tools_submenu.add_command(label="Open MPV (Media Player)", command=mpv_gui_main_gui)
+tools_submenu.add_command(label="MediaInfo", command=mediainfogui)
+tools_submenu.add_command(label="MPV (Media Player)", command=mpv_gui_main_gui)
+tools_submenu.add_command(label="Youtube-DL-Gui", command=open_youtube_dl_gui)
 
 help_menu = Menu(my_menu_bar, tearoff=0, activebackground="dim grey")
 my_menu_bar.add_cascade(label="Help", menu=help_menu)
