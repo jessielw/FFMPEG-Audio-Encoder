@@ -31,10 +31,34 @@ root.grid_rowconfigure(3, weight=1)
 # Bundled Apps ---------------------------------------------------------------
 
 youtube_dl_cli = '"' + "Apps/youtube-dl/youtube-dl.exe" + '"'
-ffmpeg_location = ' --ffmpeg-location "Apps/FFMPEG/ffmpeg.exe" '
-
+ffmpeg_location = ' --ffmpeg-location "Apps/ffmpeg/ffmpeg.exe" '
 
 # --------------------------------------------------------------- Bundled Apps
+
+# About Window --------------------------------------------------------------------------------------------------------
+def openaboutwindow():
+    about_window = Toplevel()
+    about_window.title('About')
+    about_window.configure(background="#434547")
+    window_height = 140
+    window_width = 470
+    screen_width = about_window.winfo_screenwidth()
+    screen_height = about_window.winfo_screenheight()
+    x_cordinate = int((screen_width / 2) - (window_width / 2))
+    y_cordinate = int((screen_height / 2) - (window_height / 2))
+    about_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+    about_window_text = Text(about_window, background="#434547", foreground="white", relief=SUNKEN)
+    about_window_text.pack()
+    about_window_text.configure(state=NORMAL)
+    about_window_text.insert(INSERT, "Youtube-DL-Gui Beta v1.0 \n")
+    about_window_text.insert(INSERT, "\n")
+    about_window_text.insert(INSERT, "Development: jlw4049")
+    about_window_text.insert(INSERT, "\n\n")
+    about_window_text.insert(INSERT, "A early BETA Youtube audio/video downloader. \n")
+    about_window_text.configure(state=DISABLED)
+
+
+# -------------------------------------------------------------------------------------------------------- About Window
 
 # Menu Items and Sub-Bars ---------------------------------------------------------------------------------------------
 my_menu_bar = Menu(root, tearoff=0)
@@ -44,15 +68,15 @@ file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
 my_menu_bar.add_cascade(label='File', menu=file_menu)
 file_menu.add_command(label='Exit', command=root.quit)
 
-# options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-# my_menu_bar.add_cascade(label='Options', menu=options_menu)
-#
-# options_submenu = Menu(root, tearoff=0, activebackground='dim grey')
-# options_menu.add_cascade(label='Shell Options', menu=options_submenu)
-# shell_options = StringVar()
-# shell_options.set('Default')
-# options_submenu.add_radiobutton(label='Shell Closes Automatically', variable=shell_options, value="Default")
-# options_submenu.add_radiobutton(label='Shell Stays Open (Debug)', variable=shell_options, value="Debug")
+options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+my_menu_bar.add_cascade(label='Options', menu=options_menu)
+
+options_submenu = Menu(root, tearoff=0, activebackground='dim grey')
+options_menu.add_cascade(label='Shell Options', menu=options_submenu)
+shell_options = StringVar()
+shell_options.set('Default')
+options_submenu.add_radiobutton(label='Shell Closes Automatically', variable=shell_options, value="Default")
+options_submenu.add_radiobutton(label='Shell Stays Open (Debug)', variable=shell_options, value="Debug")
 #
 # tools_submenu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
 # my_menu_bar.add_cascade(label='Tools', menu=tools_submenu)
@@ -60,7 +84,7 @@ file_menu.add_command(label='Exit', command=root.quit)
 #
 help_menu = Menu(my_menu_bar, tearoff=0, activebackground="dim grey")
 my_menu_bar.add_cascade(label="Help", menu=help_menu)
-help_menu.add_command(label="About") #command=openaboutwindow)
+help_menu.add_command(label="About", command=openaboutwindow)
 
 # --------------------------------------------------------------------------------------------- Menu Items and Sub-Bars
 
@@ -110,7 +134,7 @@ def file_save():
     save_entry.config(state=DISABLED)     #
     VideoOutput = filedialog.askdirectory()  # Pop up window to choose a save directory location
     if VideoOutput:
-        save_for_entry = '"' + VideoOutput + '/"'  # Completes save directory and adds qoutes
+        save_for_entry = '"' + VideoOutput + '/"'  # Completes save directory and adds quotes
         save_entry.config(state=NORMAL)       #
         save_entry.insert(0, save_for_entry)  # Adds download_link to entry box
         save_entry.config(state=DISABLED)     #
@@ -205,11 +229,13 @@ audio_quality_menu.bind("<Leave>", audio_quality_menu_hover_leave)
 
 # Start Job -----------------------------------------------------------------------------------------------------------
 def start_job():
-    command = '"' + youtube_dl_cli + ffmpeg_location + audio_only.get() \
+    command = '"' + youtube_dl_cli + ffmpeg_location + '--console-title ' + audio_only.get() \
               + audio_format_choices[audio_format.get()] + audio_quality_choices[audio_quality.get()] \
               + '-o ' + '"' + VideoOutput + '/%(title)s.%(ext)s' + '" ' + download_link + '"'
-    print(command)
-    subprocess.Popen('cmd /k' + command)
+    if shell_options.get() == 'Default':
+        subprocess.Popen('cmd /c' + command)
+    elif shell_options.get() == 'Debug':
+        subprocess.Popen('cmd /k' + command)
 
 # ---------------------------------------------------------------------------------------------------------- Start Job
 
