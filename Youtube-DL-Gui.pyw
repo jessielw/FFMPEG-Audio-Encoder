@@ -8,10 +8,10 @@ from tkinter import scrolledtext
 # Main Gui & Windows --------------------------------------------------------
 
 root = Tk()
-root.title("Youtube-DL-Gui Beta v1.0")
+root.title("Youtube-DL-Gui Beta v1.1")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/Youtube-DL-Gui.png"))
 root.configure(background="#434547")
-window_height = 380
+window_height = 440
 window_width = 720
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
@@ -50,7 +50,7 @@ def openaboutwindow():
     about_window_text = Text(about_window, background="#434547", foreground="white", relief=SUNKEN)
     about_window_text.pack()
     about_window_text.configure(state=NORMAL)
-    about_window_text.insert(INSERT, "Youtube-DL-Gui Beta v1.0 \n")
+    about_window_text.insert(INSERT, "Youtube-DL-Gui Beta v1.1 \n")
     about_window_text.insert(INSERT, "\n")
     about_window_text.insert(INSERT, "Development: jlw4049")
     about_window_text.insert(INSERT, "\n\n")
@@ -59,6 +59,13 @@ def openaboutwindow():
 
 
 # -------------------------------------------------------------------------------------------------------- About Window
+
+def check_for_update():
+    command = '"' + youtube_dl_cli + '" --update'
+    if shell_options.get() == 'Default':
+        subprocess.Popen('cmd /c' + command)
+    elif shell_options.get() == 'Debug':
+        subprocess.Popen('cmd /k' + command)
 
 # Menu Items and Sub-Bars ---------------------------------------------------------------------------------------------
 my_menu_bar = Menu(root, tearoff=0)
@@ -77,11 +84,11 @@ shell_options = StringVar()
 shell_options.set('Default')
 options_submenu.add_radiobutton(label='Shell Closes Automatically', variable=shell_options, value="Default")
 options_submenu.add_radiobutton(label='Shell Stays Open (Debug)', variable=shell_options, value="Debug")
-#
-# tools_submenu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-# my_menu_bar.add_cascade(label='Tools', menu=tools_submenu)
-# tools_submenu.add_command(label="Open MediaInfo") #command=mediainfogui)
-#
+
+tools_submenu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+my_menu_bar.add_cascade(label='Tools', menu=tools_submenu)
+tools_submenu.add_command(label="Check for Youtube-DL CLI updates", command=check_for_update)
+
 help_menu = Menu(my_menu_bar, tearoff=0, activebackground="dim grey")
 my_menu_bar.add_cascade(label="Help", menu=help_menu)
 help_menu.add_command(label="About", command=openaboutwindow)
@@ -143,30 +150,77 @@ def file_save():
 
 # Audio Only Function -------------------------------------------------------------------------------------------------
 def audio_only_toggle():
-    global audio_format, audio_quality
-    if audio_only.get() == '-x ':
-        audio_format_menu.config(state=NORMAL, background="#23272A")
-        audio_quality_menu.config(state=NORMAL, background="#23272A")
-        audio_format.set('Default (Best - WAV)')
+    global audio_format_selection, audio_quality_selection
+    if audio_only.get() == 'on':
+        metadata_from_title_checkbox.config(state=NORMAL)
+        metadata_from_title.set('')
+        audio_format_menu.config(state=NORMAL)
+        audio_format.set('WAV')
+        highest_quality_audio_only_checkbox.config(state=NORMAL)
+        highest_quality_audio_only.set('')
+        audio_quality_menu.config(state=NORMAL)
         audio_quality.set('5 - Default')
-    elif audio_only.get() != '-x ':
-        audio_format.set('')
-        audio_quality.set('')
-        audio_format_menu.config(state=DISABLED, background='grey')
-        audio_quality_menu.config(state=DISABLED, background='grey')
+    elif audio_only.get() != 'on':
+        metadata_from_title_checkbox.config(state=NORMAL)
+        metadata_from_title.set('')
+        metadata_from_title_checkbox.config(state=DISABLED)
+        audio_format_menu.config(state=NORMAL)
+        audio_format.set('WAV')
+        audio_format_menu.config(state=DISABLED)
+        highest_quality_audio_only_checkbox.config(state=NORMAL)
+        highest_quality_audio_only.set('')
+        highest_quality_audio_only_checkbox.config(state=DISABLED)
+        audio_quality_menu.config(state=NORMAL)
+        audio_quality.set('5 - Default')
+        audio_quality_menu.config(state=DISABLED)
 
 # ------------------------------------------------------------------------------------------------- Audio Only Function
+def highest_quality_audio_only_toggle():
+    if highest_quality_audio_only.get() == 'on':
+        audio_format.set('WAV')
+        audio_format_menu.config(state=DISABLED)
+        audio_quality.set('5 - Default')
+        audio_quality_menu.config(state=DISABLED)
+    if highest_quality_audio_only.get() != 'on':
+        audio_format_menu.config(state=NORMAL)
+        audio_format.set('WAV')
+        audio_quality_menu.config(state=NORMAL)
+        audio_quality.set('5 - Default')
 
 # Audio Only Checkbutton ----------------------------------------------------------------------------------------------
 audio_only = StringVar()
-audio_only_checkbox = Checkbutton(audio_frame, text='Audio Only', variable=audio_only, onvalue="-x ",
-                                   offvalue="", command=audio_only_toggle)
-audio_only_checkbox.grid(row=0, column=0, columnspan=1, rowspan=2, padx=10, pady=3, sticky=N + S + E + W)
+audio_only_checkbox = Checkbutton(audio_frame, text='Audio Only', variable=audio_only, onvalue='on',
+                                   offvalue='', command=audio_only_toggle)
+audio_only_checkbox.grid(row=0, column=0, columnspan=1, rowspan=1, padx=10, pady=3, sticky=N + S + E + W)
 audio_only_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
-audio_only.set("-x ")
+audio_only.set("on")
 
 # ---------------------------------------------------------------------------------------------- Audio Only Checkbutton
+
+# Highest Quality Audio Only ------------------------------------------------------------------------------------------
+highest_quality_audio_only = StringVar()
+highest_quality_audio_only_checkbox = Checkbutton(audio_frame, text='Extract Audio Only\nNo Encode',
+                                                  variable=highest_quality_audio_only, onvalue='on', offvalue='',
+                                                  command=highest_quality_audio_only_toggle)
+highest_quality_audio_only_checkbox.grid(row=1, column=0, columnspan=1, rowspan=1, padx=10, pady=3,
+                                         sticky=N + S + E + W)
+highest_quality_audio_only_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                               activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+highest_quality_audio_only.set("on")
+
+# ------------------------------------------------------------------------------------------ Highest Quality Audio Only
+
+# Add Meta-Data From Title ------------------------------------------------------------------------------------------
+metadata_from_title = StringVar()
+metadata_from_title_checkbox = Checkbutton(audio_frame, text='Add Meta-Data\nFrom Title', variable=metadata_from_title,
+                                           onvalue='--add-metadata --metadata-from-title "%(artist)s" ', offvalue='')
+metadata_from_title_checkbox.grid(row=2, column=0, columnspan=1, rowspan=1, padx=10, pady=3, sticky=N + S + E + W)
+metadata_from_title_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                               activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+metadata_from_title.set('')
+
+# -------------------------------------------------------------------------------------------- Add Meta-Data From Title
 
 # Audio Format Selection ----------------------------------------------------------------------------------------------
 def audio_format_menu_hover(e):
@@ -177,20 +231,20 @@ def audio_format_menu_hover_leave(e):
     audio_format_menu["bg"] = "#23272A"
 
 audio_format = StringVar(root)
-audio_format_choices = {'Default (Best - WAV)': '--audio-format wav ',
-                         'AAC': '--audio-format aac ',
-                         'FLAC': '--audio-format flac ',
-                         'MP3': '--audio-format mp3 ',
-                         'M4A': '--audio-format m4a ',
-                         'Opus': '--audio-format opus ',
-                         'Vorbis': '--audio-format vorbis '}
+audio_format_choices = {'WAV': '--audio-format wav ',
+                        'AAC': '--audio-format aac ',
+                        'FLAC': '--audio-format flac ',
+                        'MP3': '--audio-format mp3 ',
+                        'M4A': '--audio-format m4a ',
+                        'Opus': '--audio-format opus ',
+                        'Vorbis': '--audio-format vorbis '}
 audio_format_menu_label = Label(audio_frame, text="Audio Format :", background="#434547",
                                  foreground="white")
 audio_format_menu_label.grid(row=0, column=1, columnspan=2, padx=10, pady=(3,10), sticky=W + E)
 audio_format_menu = OptionMenu(audio_frame, audio_format, *audio_format_choices.keys())
-audio_format_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=23)
+audio_format_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=23, state=DISABLED)
 audio_format_menu.grid(row=1, column=1, columnspan=2, padx=10, pady=(3,10))
-audio_format.set('Default (Best - WAV)')
+audio_format.set('WAV')
 audio_format_menu["menu"].configure(activebackground="dim grey")
 audio_format_menu.bind("<Enter>", audio_format_menu_hover)
 audio_format_menu.bind("<Leave>", audio_format_menu_hover_leave)
@@ -205,21 +259,20 @@ def audio_quality_menu_hover_leave(e):
     audio_quality_menu["bg"] = "#23272A"
 
 audio_quality = StringVar(root)
-audio_quality_choices = {'0 - Best': '--audio-quality 0 ',
-                        '1': '--audio-quality 1 ',
-                        '2': '--audio-quality 2 ',
-                        '3': '--audio-quality 3 ',
-                        '4': '--audio-quality 4 ',
-                        '5 - Default': '--audio-quality 5 ',
-                        '6': '--audio-quality 6 ',
-                        '7': '--audio-quality 7 ',
-                        '8': '--audio-quality 8 ',
-                        '9 - Worse': '--audio-quality 9 '}
-audio_quality_menu_label = Label(audio_frame, text="Audio Quality (VBR) :", background="#434547",
-                                 foreground="white")
+audio_quality_choices = {'0 - Best': '--audio-quality 0 -x ',
+                         '1': '--audio-quality 1 -x ',
+                         '2': '--audio-quality 2 -x ',
+                         '3': '--audio-quality 3 -x ',
+                         '4': '--audio-quality 4 -x ',
+                         '5 - Default': '--audio-quality 5 -x ',
+                         '6': '--audio-quality 6 -x ',
+                         '7': '--audio-quality 7 -x ',
+                         '8': '--audio-quality 8 -x ',
+                         '9 - Worse': '--audio-quality 9 -x '}
+audio_quality_menu_label = Label(audio_frame, text="Audio Quality (VBR) :", background="#434547", foreground="white")
 audio_quality_menu_label.grid(row=0, column=3, columnspan=2, padx=10, pady=(3,10), sticky=W + E)
 audio_quality_menu = OptionMenu(audio_frame, audio_quality, *audio_quality_choices.keys())
-audio_quality_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=23)
+audio_quality_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=23, state=DISABLED)
 audio_quality_menu.grid(row=1, column=3, columnspan=2, padx=10, pady=(3,10))
 audio_quality.set('5 - Default')
 audio_quality_menu["menu"].configure(activebackground="dim grey")
@@ -229,15 +282,26 @@ audio_quality_menu.bind("<Leave>", audio_quality_menu_hover_leave)
 
 # Start Job -----------------------------------------------------------------------------------------------------------
 def start_job():
-    command = '"' + youtube_dl_cli + ffmpeg_location + '--console-title ' + audio_only.get() \
-              + audio_format_choices[audio_format.get()] + audio_quality_choices[audio_quality.get()] \
-              + '-o ' + '"' + VideoOutput + '/%(title)s.%(ext)s' + '" ' + download_link + '"'
+    if audio_only.get() == 'on':
+        if highest_quality_audio_only.get() == 'on':
+            audio_format_selection = '--audio-format best -x '
+            audio_quality_selection = ''
+        elif highest_quality_audio_only.get() != 'on':
+            audio_format_selection = audio_format_choices[audio_format.get()]
+            audio_quality_selection = audio_quality_choices[audio_quality.get()]
+    elif audio_only.get() != 'on':
+        audio_format_selection = '-f bestvideo+bestaudio '
+        audio_quality_selection = ''
+    command = '"' + youtube_dl_cli + ffmpeg_location + '--console-title ' \
+              + audio_format_selection + audio_quality_selection \
+              + metadata_from_title.get() + '-o ' + '"' + VideoOutput + '/%(title)s.%(ext)s' \
+              + '" ' + download_link + '"'
     if shell_options.get() == 'Default':
         subprocess.Popen('cmd /c' + command)
     elif shell_options.get() == 'Debug':
         subprocess.Popen('cmd /k' + command)
 
-# ---------------------------------------------------------------------------------------------------------- Start Job
+# ----------------------------------------------------------------------------------------------------------- Start Job
 
 # Buttons and Entry Box's ---------------------------------------------------------------------------------------------
 text_area = scrolledtext.ScrolledText(link_frame, wrap=WORD, width=69, height=1, font=("Times New Roman", 14))
