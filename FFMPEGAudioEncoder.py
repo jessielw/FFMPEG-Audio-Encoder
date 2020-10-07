@@ -40,7 +40,7 @@ mediainfocli = '"Apps/MediaInfoCLI/MediaInfo.exe"'
 fdkaac = '"Apps/fdkaac/fdkaac.exe"'
 qaac = '"Apps/qaac/qaac64.exe"'
 mpv_player = '"Apps/mpv/mpv.exe"'
-youtube_dl_gui = "Youtube-DL-Gui.pyw"
+youtube_dl_gui = "Youtube-DL-GUI.exe"
 
 # About Window --------------------------------------------------------------------------------------------------------
 def openaboutwindow():
@@ -94,7 +94,7 @@ def mpv_gui_main_gui():
 
 # Opens Youtube-DL-Gui ------------------------------------------------------------------------------------------------
 def open_youtube_dl_gui():
-    subprocess.Popen(['python', youtube_dl_gui])
+    subprocess.Popen(youtube_dl_gui)
 
 # ------------------------------------------------------------------------------------------------------ Youtube-DL-Gui
 
