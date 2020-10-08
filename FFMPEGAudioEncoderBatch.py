@@ -132,7 +132,7 @@ def batch_processing():
     extension_dropdownmenu_choices = {
         "Common Extensions": '("*.mov", "*.wav", "*.mt2s", "*.ac3", "*.mka", "*.wav", "*.mp3", "*.aac", "*.ogg", '
                              '"*.ogv", "*.m4v", "*.mpeg", "*.avi", "*.vob", "*.webm", "*.mp4", "*.mkv", "*.dts", '
-                             '"*.flac", "*.alac", "*.mpg", "*.m4a", "*.eac3")',
+                             '"*.flac", "*.alac", "*.mpg", "*.m4a", "*.eac3", "*.opus")',
         "MKV": '("*.mkv")',
         "MP4": '("*.mp4")',
         "M4V": '("*.m4v")',
@@ -140,6 +140,7 @@ def batch_processing():
         "FLAC/ALAC": '("*.flac", "*.alac")',
         "WAV": '("*.wav")',
         "AC3/EAC3": '("*.ac3", "*.eac3")',
+        "OPUS/OGG": '("*.opus", "*.ogg")',
         "All Files": '("*.*")'}
     extension = StringVar()
     extension.set("Common Extensions")
