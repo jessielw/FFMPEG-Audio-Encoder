@@ -1,4 +1,4 @@
-# FFMPEG-Audio-Encoder
+# FFMPEG Audio Encoder
 ###### Work in progress...
 
 ## Guide to building the program yourself: (Windows)
