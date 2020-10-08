@@ -1,5 +1,10 @@
-# FFMPEG Audio Encoder
-###### Work in progress...
+# FFMPEG Audio Encoder # 
+###### Work in progress... ######
+
+## Supported Operating Systems ##
+Windows 7 **x64**, Windows 8 **x64**, and Windows 10 **x64**
+
+In order to run this program on a x86 system you would need to change all binaries in the `Apps` folder to 32-Bit with the same names as the files you are replacing
 
 ## Guide to building the program yourself: (Windows)
 1.) **List of required files**
