@@ -32,6 +32,7 @@ In order to run this program on a x86 system you would need to change all binari
    - You can either open a directory or drag and drop a directory into the **Open Directory button or text box to the right**
    - **Common Extensions** can be fine tuned for individual files, if you have a mix up in a single folder, however this setting will work for most people
    - Other then that the rest of the program works pretty much the same as above
+ 8. **Youtube-DL-GUI** is merged with this program, it's a custom GUI to control `youtube-dl.exe cli`, this program is paired with this GUI, but if you need support please follow this link `https://github.com/jlw4049/Youtube-DL-GUI` to post any issues or feedback
 
 ## Guide to building the program yourself: (Windows)
 1.) **List of required files**
