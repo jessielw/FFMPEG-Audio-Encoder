@@ -32,7 +32,8 @@ In order to run this program on a x86 system you would need to change all binari
    - You can either open a directory or drag and drop a directory into the **Open Directory button or text box to the right**
    - **Common Extensions** can be fine tuned for individual files, if you have a mix up in a single folder, however this setting will work for most people
    - Other then that the rest of the program works pretty much the same as above
- 8. **Youtube-DL-GUI** is merged with this program, it's a custom GUI to control `youtube-dl.exe cli`, this program is paired with this GUI, but if you need support please follow this link `https://github.com/jlw4049/Youtube-DL-GUI` to post any issues or feedback
+ 8. **Youtube-DL-GUI** is merged with this program, it's a custom GUI to control `youtube-dl.exe cli`, this program is paired with this GUI, but if you need support please follow this link https://github.com/jlw4049/Youtube-DL-GUI to post any issues or feedback
+   - You can access it via the **Tools** menu in the GUI or by downloading the standalone version from https://github.com/jlw4049/Youtube-DL-GUI/releases
 
 ## Guide to building the program yourself: (Windows)
 1.) **List of required files**
@@ -40,8 +41,8 @@ In order to run this program on a x86 system you would need to change all binari
 - Something to build the program, I use Pyinstaller
   - Open CMD Prompt and use run command `pip install PyInstaller` to install Pyinstaller
 - You'll need to manually add TkinterDND for the program to function correctly (Tkinter does not natively support drag and drop)
-  - You'll need two files `https://github.com/petasis/tkdnd/releases` (tkdnd-X.X.X-windows-x86.zip)
-) and `https://sourceforge.net/projects/tkinterdnd/files/latest/download`
+  - You'll need two files https://github.com/petasis/tkdnd/releases (tkdnd-X.X.X-windows-x86.zip)
+) and https://sourceforge.net/projects/tkinterdnd/files/latest/download
   - You need to place `tkdnd2.9.2` folder in **BOTH** `C:\Users\USERNAME\AppData\Local\Programs\Python\Python38-32\tcl` and `C:\Users\USERNAME\AppData\Local\Programs\Python\Python38-32\tcl\tcl8.6` directories
   - For the second file you downloaded you'll want to place the folder `TkinterDnD2` in directory `C:\Users\USERNAME\AppData\Local\Programs\Python\Python38-32\Lib\site-packages`
 
