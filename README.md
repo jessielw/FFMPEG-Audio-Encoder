@@ -2,20 +2,20 @@
 ###### Work in progress... ######
 
 ## Supported Operating Systems ##
-Windows 7 **x64**, Windows 8 **x64**, and Windows 10 **x64**
+Windows 7 **(x64)**, Windows 8 **(x64)**, and Windows 10 **(x64)**
 
-In order to run this program on a x86 system you would need to change all binaries in the `Apps` folder to 32-Bit with the same names as the files you are replacing
+In order to run this program on a x86 system you would need to change all binaries in the `Apps` folder to 32-Bit with the same names as the files you are replacing. The GUI itself can be ran in a x86/32-Bit environment, but the apps that it calls onto are mostly 64-bit.
 
 ## Guide to building the program yourself: (Windows)
 1.) **List of required files**
-- Latest version of Python
+- Latest version of Python (Python 3+)
 - Something to build the program, I use Pyinstaller
   - Open CMD Prompt and use run command `pip install PyInstaller` to install Pyinstaller
 - You'll need to manually add TkinterDND for the program to function correctly (Tkinter does not natively support drag and drop)
   - You'll need two files `https://github.com/petasis/tkdnd/releases` (tkdnd-X.X.X-windows-x86.zip)
 ) and `https://sourceforge.net/projects/tkinterdnd/files/latest/download`
-  - You need to place `tkdnd2.9.2` folder in `C:\Users\USERNAME\AppData\Local\Programs\Python\Python38-32\tcl` and `C:\Users\USERNAME\AppData\Local\Programs\Python\Python38-32\tcl\tcl8.6`
-  - For the second file you downloaded you'll want to place the folder `TkinterDnD2` in this directory `C:\Users\USERNAME\AppData\Local\Programs\Python\Python38-32\Lib\site-packages`
+  - You need to place `tkdnd2.9.2` folder in **BOTH** `C:\Users\USERNAME\AppData\Local\Programs\Python\Python38-32\tcl` and `C:\Users\USERNAME\AppData\Local\Programs\Python\Python38-32\tcl\tcl8.6` directories
+  - For the second file you downloaded you'll want to place the folder `TkinterDnD2` in directory `C:\Users\USERNAME\AppData\Local\Programs\Python\Python38-32\Lib\site-packages`
 
 2.) **With all the required files/programs installed correctly you can use your favorite terminal to build the program**
   - Navigate to `FFMPEG Audio Encoder` folder in what ever ternimal/console you are using
