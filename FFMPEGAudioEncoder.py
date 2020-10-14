@@ -4094,17 +4094,17 @@ def file_input():
     VideoInput = filedialog.askopenfilename(initialdir="/", title="Select A File",
                                             filetypes=((
                                                        "AAC, AC3, AVI, DTS, M4A, M4V, MKA, MKV, MOV, MP3, MP4, MPEG, "
-                                                       "MT2S, OGG, OGV, VOB, WAV, WEBM, FLAC, ALAC, EAC3, OPUS",
+                                                       "MT2S, OGG, OGV, VOB, WAV, WEBM, FLAC, ALAC, EAC3, OPUS, AAX",
                                                        "*.aac *.ac3 *.avi *.dts *.m4a *.m4v *.mka *.mkv *.mov *.mp3 "
                                                        "*.mp4 *.mpeg *.mt2s *.ogg *.ogv *.vob *.wav *.webm *.flac "
-                                                       "*.alac *.eac3 *.opus"),
+                                                       "*.alac *.eac3 *.opus *.aax"),
                                                        ("All Files", "*.*")))
     input_entry.configure(state=NORMAL)
     input_entry.delete(0, END)
     file_extension = pathlib.Path(VideoInput).suffix
     supported_extensions = ['.wav', '.mt2s', '.ac3', '.mka', '.mp3', '.aac', '.ogg', '.ogv', '.m4v', '.mpeg', '.avi',
                             '.vob', '.webm', '.mp4', '.mkv', '.dts', '.m4a', '.mov', '.flac', '.alac', '.eac3',
-                            '.opus']
+                            '.opus', '.aax']
     if VideoInput:
         if file_extension in supported_extensions:
             autofilesave_file_path = pathlib.PureWindowsPath(VideoInput)  # Command to get file input location
@@ -4678,7 +4678,8 @@ def update_file_input(*args):
             file_extension == '.mpeg' or file_extension == '.avi' or file_extension == '.vob' or \
             file_extension == '.webm' or file_extension == '.mp4' or file_extension == '.mkv' or \
             file_extension == '.dts' or file_extension == '.m4a' or file_extension == '.mov' or \
-            file_extension == '.flac' or file_extension == '.eac3' or file_extension == '.opus':
+            file_extension == '.flac' or file_extension == '.eac3' or file_extension == '.opus' or \
+            file_extension == '.aax':
         autofilesave_file_path = pathlib.PureWindowsPath(VideoInput)  # Command to get file input location
         autofilesave_dir_path = autofilesave_file_path.parents[0]  # Final command to get only the directory
         VideoInputQuoted = '"' + VideoInput + '"'

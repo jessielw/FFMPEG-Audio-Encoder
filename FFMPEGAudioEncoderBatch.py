@@ -111,7 +111,7 @@ def batch_processing():
         "FDK-AAC": fdkaac,
         "QAAC": qaac,
         "FLAC": '-c:a flac ',
-        "ALAC": '-c:a alac '}
+        "ALAC": '-c:a alac ',}
     encoder = StringVar()
     encoder.set("Set Codec")
     encoder.trace('w', encoder_changed_batch)
@@ -132,7 +132,7 @@ def batch_processing():
     extension_dropdownmenu_choices = {
         "Common Extensions": '("*.mov", "*.wav", "*.mt2s", "*.ac3", "*.mka", "*.wav", "*.mp3", "*.aac", "*.ogg", '
                              '"*.ogv", "*.m4v", "*.mpeg", "*.avi", "*.vob", "*.webm", "*.mp4", "*.mkv", "*.dts", '
-                             '"*.flac", "*.alac", "*.mpg", "*.m4a", "*.eac3", "*.opus")',
+                             '"*.flac", "*.alac", "*.mpg", "*.m4a", "*.eac3", "*.opus", "*.aax")',
         "MKV": '("*.mkv")',
         "MP4": '("*.mp4")',
         "M4V": '("*.m4v")',
@@ -141,6 +141,7 @@ def batch_processing():
         "WAV": '("*.wav")',
         "AC3/EAC3": '("*.ac3", "*.eac3")',
         "OPUS/OGG": '("*.opus", "*.ogg")',
+        "AAX": '("*.aax")',
         "All Files": '("*.*")'}
     extension = StringVar()
     extension.set("Common Extensions")
