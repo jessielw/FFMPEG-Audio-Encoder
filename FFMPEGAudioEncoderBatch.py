@@ -4105,7 +4105,7 @@ def batch_processing():
                            acodec_channel_choices[acodec_channel.get()] + \
                            acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
                            + ac3_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " + \
-                           '"' + automatic_batch_save_dir + '/NEW_%~na.ac3"' + " -hide_banner"
+                           '"' + automatic_batch_save_dir + '/%~na.ac3"' + " -hide_banner"
             if shell_options.get() == "Default":
                 subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
             elif shell_options.get() == "Debug":
@@ -4127,7 +4127,7 @@ def batch_processing():
                            acodec_channel_choices[acodec_channel.get()] + \
                            acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
                            + aac_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " \
-                           + '"' + automatic_batch_save_dir + '/NEW_%~na.mp4"' + " -hide_banner"
+                           + '"' + automatic_batch_save_dir + '/%~na.mp4"' + " -hide_banner"
             if shell_options.get() == "Default":
                 subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
             elif shell_options.get() == "Debug":
@@ -4147,7 +4147,7 @@ def batch_processing():
                                + acodec_samplerate_choices[acodec_samplerate.get()] \
                                + audio_filter_setting + dts_custom_cmd_input \
                                + "-sn -vn -map_chapters -1 " \
-                               + '"' + automatic_batch_save_dir + '/NEW_%~na.dts"' + " -hide_banner"
+                               + '"' + automatic_batch_save_dir + '/%~na.dts"' + " -hide_banner"
             else:
                 finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                                + automatic_batch_save_dir + '"' \
@@ -4156,7 +4156,7 @@ def batch_processing():
                                + ' -analyzeduration 100M -probesize 50M -i "%a" ' \
                                + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
                                + dts_custom_cmd_input + "-sn -vn -map_chapters -1 " \
-                               + '"' + automatic_batch_save_dir + '/NEW_%~na.dts"' + " -hide_banner"
+                               + '"' + automatic_batch_save_dir + '/%~na.dts"' + " -hide_banner"
             if shell_options.get() == "Default":
                 subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
             elif shell_options.get() == "Debug":
@@ -4177,7 +4177,7 @@ def batch_processing():
                            packet_loss.get() + " -frame_duration " + frame_duration.get() + " " + \
                            acodec_samplerate_choices[acodec_samplerate.get()] + \
                            audio_filter_setting + opus_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " \
-                           + '"' + automatic_batch_save_dir + '/NEW_%~na.opus"' \
+                           + '"' + automatic_batch_save_dir + '/%~na.opus"' \
                            + " -hide_banner"
             if shell_options.get() == "Default":
                 subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
@@ -4198,7 +4198,7 @@ def batch_processing():
                            + mp3_abr.get() + acodec_samplerate_choices[acodec_samplerate.get()] \
                            + audio_filter_setting + mp3_custom_cmd_input \
                            + "-sn -vn -map_chapters -1 -map_metadata -1 " + '"' \
-                           + automatic_batch_save_dir + '/NEW_%~na.mp3"' \
+                           + automatic_batch_save_dir + '/%~na.mp3"' \
                            + " -hide_banner"
             if shell_options.get() == "Default":
                 subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
@@ -4235,7 +4235,7 @@ def batch_processing():
                            + stereo_rematrixing_choices[stereo_rematrixing.get()] \
                            + "-channel_coupling " + channel_coupling.get() + " " \
                            + "-cpl_start_band " + cpl_start_band.get() + " " + '"' + automatic_batch_save_dir \
-                           + '/NEW_%~na.ac3"' + " -hide_banner"
+                           + '/%~na.ac3"' + " -hide_banner"
             if shell_options.get() == "Default":
                 subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
             elif shell_options.get() == "Debug":
@@ -4323,7 +4323,7 @@ def batch_processing():
                            + set_flac_acodec_coefficient + acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] \
                            + acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] \
                            + flac_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " + \
-                           '"' + automatic_batch_save_dir + '/NEW_%~na.flac"' + " -hide_banner"
+                           '"' + automatic_batch_save_dir + '/%~na.flac"' + " -hide_banner"
             if shell_options.get() == "Default":
                 subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
             elif shell_options.get() == "Debug":
@@ -4342,7 +4342,7 @@ def batch_processing():
                            acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
                            + min_pre_order + max_pre_order + flac_custom_cmd_input \
                            + "-sn -vn -map_chapters -1 -map_metadata -1 " + \
-                           '"' + automatic_batch_save_dir + '/NEW_%~na.m4a"' + " -hide_banner"
+                           '"' + automatic_batch_save_dir + '/%~na.m4a"' + " -hide_banner"
             if shell_options.get() == "Default":
                 subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
             elif shell_options.get() == "Debug":
@@ -4374,7 +4374,7 @@ def batch_processing():
                                  acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
                                  + ac3_custom_cmd_input + '\n \n' \
                                  + "-sn -vn -map_chapters -1 -map_metadata -1 " + '\n \n' + \
-                                 '"' + automatic_batch_save_dir + '/NEW_%~na.ac3"' + " -hide_banner"
+                                 '"' + automatic_batch_save_dir + '/%~na.ac3"' + " -hide_banner"
         # ----------------------------------------------------------------------------------------------------- AC3 Job
         # AAC View Command --------------------------------------------------------------------------------------------
         elif encoder.get() == "AAC":
@@ -4392,7 +4392,7 @@ def batch_processing():
                                  acodec_channel_choices[acodec_channel.get()] + \
                                  acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
                                  + aac_custom_cmd_input + '\n \n' + "-sn -vn -map_chapters -1 -map_metadata -1 " \
-                                 + '\n \n' + '"' + automatic_batch_save_dir + '/NEW_%~na.mp4"' \
+                                 + '\n \n' + '"' + automatic_batch_save_dir + '/%~na.mp4"' \
                                  + " -hide_banner"
                 # --------------------------------------------------------------------------------------------- AAC Job
         # DTS View Command --------------------------------------------------------------------------------------------
@@ -4410,7 +4410,7 @@ def batch_processing():
                                      + acodec_samplerate_choices[acodec_samplerate.get()] \
                                      + audio_filter_setting + dts_custom_cmd_input + '\n \n' \
                                      + "-sn -vn -map_chapters -1 -map_metadata -1 " + '\n \n' \
-                                     + '"' + automatic_batch_save_dir + '/NEW_%~na.dts"' + " -hide_banner"
+                                     + '"' + automatic_batch_save_dir + '/%~na.dts"' + " -hide_banner"
             else:
                 example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
                                      + automatic_batch_save_dir + '"' \
@@ -4420,7 +4420,7 @@ def batch_processing():
                                      + acodec_stream_choices[acodec_stream.get()] \
                                      + dts_settings_choices[dts_settings.get()] \
                                      + dts_custom_cmd_input + '\n \n' + "-sn -vn -map_chapters -1 -map_metadata -1 " \
-                                     + '\n \n' + '"' + automatic_batch_save_dir + '/NEW_%~na.dts"' + " -hide_banner"
+                                     + '\n \n' + '"' + automatic_batch_save_dir + '/%~na.dts"' + " -hide_banner"
         # --------------------------------------------------------------------------------------------------------- DTS
         # Opus View Command -------------------------------------------------------------------------------------------
         elif encoder.get() == "Opus":
@@ -4438,7 +4438,7 @@ def batch_processing():
                                  acodec_samplerate_choices[acodec_samplerate.get()] + \
                                  audio_filter_setting + opus_custom_cmd_input + '\n \n' \
                                  + "-sn -vn -map_chapters -1 -map_metadata -1 " + '\n \n' \
-                                 + '"' + automatic_batch_save_dir + '/NEW_%~na.opus"' \
+                                 + '"' + automatic_batch_save_dir + '/%~na.opus"' \
                                  + " -hide_banner"
         # -------------------------------------------------------------------------------------------------------- Opus
         # MP3 View Command --------------------------------------------------------------------------------------------
@@ -4455,7 +4455,7 @@ def batch_processing():
                                  + mp3_abr.get() + acodec_samplerate_choices[acodec_samplerate.get()] \
                                  + audio_filter_setting + mp3_custom_cmd_input + '\n \n' \
                                  + "-sn -vn -map_chapters -1 -map_metadata -1 " + '\n \n' \
-                                 + '"' + automatic_batch_save_dir + '/NEW_%~na.mp3"' \
+                                 + '"' + automatic_batch_save_dir + '/%~na.mp3"' \
                                  + " -hide_banner"
         # --------------------------------------------------------------------------------------------------------- MP3
         # E-AC3 View Command ------------------------------------------------------------------------------------------
@@ -4489,7 +4489,7 @@ def batch_processing():
                                  + stereo_rematrixing_choices[stereo_rematrixing.get()] \
                                  + "-channel_coupling " + channel_coupling.get() + " " \
                                  + "-cpl_start_band " + cpl_start_band.get() + " " + '\n \n' \
-                                 + '"' + automatic_batch_save_dir + '/NEW_%~na.ac3"' + " -hide_banner"
+                                 + '"' + automatic_batch_save_dir + '/%~na.ac3"' + " -hide_banner"
         # ------------------------------------------------------------------------------------------------------- E-AC3
         # FDK_AAC View Command ----------------------------------------------------------------------------------------
         elif encoder.get() == "FDK-AAC":
@@ -4569,7 +4569,7 @@ def batch_processing():
                                  + acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] \
                                  + flac_custom_cmd_input + '\n \n' \
                                  + "-sn -vn -map_chapters -1 -map_metadata -1 " + '\n \n' + \
-                                 '"' + automatic_batch_save_dir + '/NEW_%~na.flac"' + " -hide_banner"
+                                 '"' + automatic_batch_save_dir + '/%~na.flac"' + " -hide_banner"
         # ---------------------------------------------------------------------------------------------------- FLAC Job
         # ALAC View Command --------------------------------------------------------------------------------------------
         if encoder.get() == "ALAC":
@@ -4584,7 +4584,7 @@ def batch_processing():
                                  acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
                                  + min_pre_order + max_pre_order + flac_custom_cmd_input + '\n \n' \
                                  + "-sn -vn -map_chapters -1 -map_metadata -1 " + '\n \n' + \
-                                 '"' + automatic_batch_save_dir + '/NEW_%~na.m4a"' + " -hide_banner"
+                                 '"' + automatic_batch_save_dir + '/%~na.m4a"' + " -hide_banner"
         # ---------------------------------------------------------------------------------------------------- ALAC Job
         cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
         cmd_label.config(font=("Helvetica", 16))
