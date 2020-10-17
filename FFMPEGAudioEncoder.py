@@ -13,7 +13,7 @@ from FFMPEGAudioEncoderBatch import batch_processing
 # Main Gui & Windows --------------------------------------------------------
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v2.9.4")
+root.title("FFMPEG Audio Encoder v2.9.5")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 210
@@ -57,7 +57,7 @@ def openaboutwindow():
     about_window_text = Text(about_window, background="#434547", foreground="white", relief=SUNKEN)
     about_window_text.pack()
     about_window_text.configure(state=NORMAL)
-    about_window_text.insert(INSERT, "FFMPEG Audio Encoder v2.9.4 \n")
+    about_window_text.insert(INSERT, "FFMPEG Audio Encoder v2.9.5 \n")
     about_window_text.insert(INSERT, "\n")
     about_window_text.insert(INSERT, "Development: jlw4049\n\nContributors: BassThatHertz")
     about_window_text.insert(INSERT, "\n\n")
