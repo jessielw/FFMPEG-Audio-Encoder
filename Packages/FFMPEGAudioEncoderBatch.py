@@ -1482,7 +1482,7 @@ def batch_processing():
             dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                       variable=dolby_pro_logic_ii,
                                                       onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
-            dolby_pro_logic_ii_checkbox.grid(row=6, column=0, columnspan=1, rowspan=1, padx=10, pady=(15, 5),
+            dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=2, padx=10, pady=(15, 5),
                                              sticky=N + S + E + W)
             dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                                   activeforeground="white", selectcolor="#434547",
