@@ -2,5 +2,6 @@
 Encoder/
 build/
 dist/
+Apps/
 __pycache__/
 FFMPEGAudioEncoder.spec
