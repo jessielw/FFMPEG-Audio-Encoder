@@ -15,11 +15,12 @@ from urllib.request import urlopen
 from zipfile import ZipFile
 from time import sleep
 import threading
+import shutil
 
 # Main Gui & Windows --------------------------------------------------------
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v2.9.5")
+root.title("FFMPEG Audio Encoder v2.9.6")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 210
@@ -39,207 +40,17 @@ root.grid_rowconfigure(1, weight=1)
 root.grid_rowconfigure(2, weight=1)
 root.grid_rowconfigure(3, weight=1)
 
-# Checks for App Folder and Sub-Directories - Creates Folders if they are missing -------------------------------------
-ffmpeg_folder = pathlib.Path.cwd() / 'Apps' / 'fdkaac'
-mediainfo_folder = pathlib.Path.cwd() / 'Apps' / 'FFMPEG'
-mediainfocli_folder = pathlib.Path.cwd() / 'Apps' / 'MediaInfo'
-fdkaac_folder = pathlib.Path.cwd() / 'Apps' / 'MediaInfoCLI'
-qaac_folder = pathlib.Path.cwd() / 'Apps' / 'mpv'
-mpv_player_folder = pathlib.Path.cwd() / 'Apps' / 'qaac'
-youtube_dl_folder = pathlib.Path.cwd() / 'Apps' / 'youtube-dl'
-try:
-    youtube_dl_folder.mkdir(parents=True, exist_ok=False)
-    ffmpeg_folder.mkdir(parents=True, exist_ok=False)
-    mediainfo_folder.mkdir(parents=True, exist_ok=False)
-    mediainfocli_folder.mkdir(parents=True, exist_ok=False)
-    fdkaac_folder.mkdir(parents=True, exist_ok=False)
-    qaac_folder.mkdir(parents=True, exist_ok=False)
-    mpv_player_folder.mkdir(parents=True, exist_ok=False)
-    fdkaac_folder.mkdir(parents=True, exist_ok=False)
-except FileExistsError:
-    pass
-
-# -------------------------------------------------------------------------------------------------------- Folder Check
-
-def downloadfiles():
-    if ffmpeg_path.exists():
-        pass
-    else:
-        print('Downloading Required Apps...')
-        download_window_text.configure(state=NORMAL)
-        download_window_text.delete('1.0', END)
-        download_window_text.insert(INSERT, "Downloading FFMPEG...")
-        download_window_text.configure(state=DISABLED)
-        with urlopen(ffmpeg_url) as zipresp:
-            with ZipFile(BytesIO(zipresp.read())) as zfile:
-                zfile.extractall('Apps/FFMPEG')
-                download_window_text.configure(state=NORMAL)
-                download_window_text.delete('1.0', END)
-                download_window_text.insert(INSERT, "Done! \n")
-                download_window_text.insert(INSERT, "Checking Next App... \n")
-                download_window_text.configure(state=DISABLED)
-                sleep(2)
-
-    if fdkaac_path.exists():
-        pass
-    else:
-        download_window_text.configure(state=NORMAL)
-        download_window_text.delete('1.0', END)
-        download_window_text.insert(INSERT, "Downloading FDKAAC...")
-        download_window_text.configure(state=DISABLED)
-        with urlopen(fdkaac_url) as zipresp:
-            with ZipFile(BytesIO(zipresp.read())) as zfile:
-                zfile.extractall('Apps/fdkaac')
-                download_window_text.configure(state=NORMAL)
-                download_window_text.delete('1.0', END)
-                download_window_text.insert(INSERT, "Done! \n")
-                download_window_text.insert(INSERT, "Checking Next App... \n")
-                download_window_text.configure(state=DISABLED)
-                sleep(2)
-
-    if mediainfo_path.exists():
-        pass
-    else:
-        download_window_text.configure(state=NORMAL)
-        download_window_text.delete('1.0', END)
-        download_window_text.insert(INSERT, "Downloading MediaInfoGui...")
-        download_window_text.configure(state=DISABLED)
-        with urlopen(mediainfo_url) as zipresp:
-            with ZipFile(BytesIO(zipresp.read())) as zfile:
-                zfile.extractall('Apps/MediaInfo')
-                download_window_text.configure(state=NORMAL)
-                download_window_text.delete('1.0', END)
-                download_window_text.insert(INSERT, "Done! \n")
-                download_window_text.insert(INSERT, "Checking Next App... \n")
-                download_window_text.configure(state=DISABLED)
-                sleep(2)
-
-    if mediainfocli_path.exists():
-        pass
-    else:
-        download_window_text.configure(state=NORMAL)
-        download_window_text.delete('1.0', END)
-        download_window_text.insert(INSERT, "Downloading MediaInfoCLI...")
-        download_window_text.configure(state=DISABLED)
-        with urlopen(mediainfocli_url) as zipresp:
-            with ZipFile(BytesIO(zipresp.read())) as zfile:
-                zfile.extractall('Apps/MediaInfoCLI')
-                download_window_text.configure(state=NORMAL)
-                download_window_text.delete('1.0', END)
-                download_window_text.insert(INSERT, "Done! \n")
-                download_window_text.insert(INSERT, "Checking Next App... \n")
-                download_window_text.configure(state=DISABLED)
-                sleep(2)
-
-    if qaac_path.exists():
-        pass
-    else:
-        download_window_text.configure(state=NORMAL)
-        download_window_text.delete('1.0', END)
-        download_window_text.insert(INSERT, "Downloading QAAC...")
-        download_window_text.configure(state=DISABLED)
-        with urlopen(qaac_url) as zipresp:
-            with ZipFile(BytesIO(zipresp.read())) as zfile:
-                zfile.extractall('Apps/qaac')
-                download_window_text.configure(state=NORMAL)
-                download_window_text.delete('1.0', END)
-                download_window_text.insert(INSERT, "Done! \n")
-                download_window_text.insert(INSERT, "Checking Next App... \n")
-                download_window_text.configure(state=DISABLED)
-                sleep(2)
-
-    if mpv_player_path.exists():
-        pass
-    else:
-        download_window_text.configure(state=NORMAL)
-        download_window_text.delete('1.0', END)
-        download_window_text.insert(INSERT, "Downloading MPV Player...")
-        download_window_text.configure(state=DISABLED)
-        with urlopen(mpv_player_url) as zipresp:
-            with ZipFile(BytesIO(zipresp.read())) as zfile:
-                zfile.extractall('Apps/mpv')
-                download_window_text.configure(state=NORMAL)
-                download_window_text.delete('1.0', END)
-                download_window_text.insert(INSERT, "Done! \n")
-                download_window_text.insert(INSERT, "Checking Next App... \n")
-                download_window_text.configure(state=DISABLED)
-                sleep(2)
-
-    if youtubedl_path.exists():
-        pass
-    else:
-        download_window_text.configure(state=NORMAL)
-        download_window_text.delete('1.0', END)
-        download_window_text.insert(INSERT, "Downloading YouTubeDL...")
-        download_window_text.configure(state=DISABLED)
-        with urlopen(youtubedl_url) as zipresp:
-            with ZipFile(BytesIO(zipresp.read())) as zfile:
-                zfile.extractall('Apps/youtube-dl')
-                download_window_text.configure(state=NORMAL)
-                download_window_text.delete('1.0', END)
-                download_window_text.insert(INSERT, "Done! \n")
-                download_window_text.configure(state=DISABLED)
-                sleep(2)
-    download_window_text.configure(state=NORMAL)
-    download_window_text.insert(INSERT, "Completed!! \n")
-    download_window_text.configure(state=DISABLED)
-    sleep(2)
-    download_window.destroy()
-
-# Checks for Required Apps --------------------------------------------------------------------------------------------
-ffmpeg_path = pathlib.Path("Apps/FFMPEG/ffmpeg.exe")
-mediainfo_path = pathlib.Path("Apps/MediaInfo/MediaInfo.exe")
-mediainfocli_path = pathlib.Path("Apps/MediaInfoCLI/MediaInfo.exe")
-fdkaac_path = pathlib.Path("Apps/fdkaac/fdkaac.exe")
-qaac_path = pathlib.Path("Apps/qaac/qaac64.exe")
-mpv_player_path = pathlib.Path("Apps/mpv/mpv.exe")
-youtubedl_path = pathlib.Path("Apps/youtube-dl/youtube-dl.exe")
-
-if ffmpeg_path.exists() and mediainfo_path.exists() and mediainfocli_path.exists() and fdkaac_path.exists() and \
-        qaac_path.exists() and mpv_player_path.exists() and youtubedl_path.exists():
-    pass
-else:
-    missing_files = messagebox.askyesno(title='Missing Files', message='Download Required Binaries?', parent=root)
-    if missing_files == False:
-        msg_box = messagebox.showinfo(title='Error', message='Download required files manually for program to work '
-                                                             ' correctly!!! \n\nPlace required files in the '
-                                                             'Apps directory and restart the program',
-                                      parent=root)
-        root.destroy()
-    elif missing_files == True:
-        ffmpeg_url = 'http://download1338.mediafire.com/m2xsyluelt1g/n6cyxea2il9fv89/ffmpeg.zip'
-        mediainfo_url = 'http://download1484.mediafire.com/lsm3omz49jhg/ya6czu9jn6u2ki0/MediaInfo.zip'
-        mediainfocli_url = 'http://download1479.mediafire.com/jjb57jhiu7sg/trk6l6p1snhzee4/MediaInfoCLI.zip'
-        fdkaac_url = 'http://download843.mediafire.com/4j655wv2mqfg/9teytvbxvd4p147/fdkaac.zip'
-        qaac_url = 'http://download1509.mediafire.com/u798rxtj5abg/r432455i70yi0px/qaac.zip'
-        mpv_player_url = 'http://download1507.mediafire.com/zm01pgzq6wtg/w291k8ewomk3hym/mpv.zip'
-        youtubedl_url = 'http://download1514.mediafire.com/g4jt1tzjbeqg/vujt353tx8lr1j4/youtube-dl.zip'
-
-        download_window = Toplevel(master=root)
-        download_window.title('Download')
-        download_window.configure(background="#434547")
-        window_height = 140
-        window_width = 470
-        screen_width = download_window.winfo_screenwidth()
-        screen_height = download_window.winfo_screenheight()
-        x_cordinate = int((screen_width / 2) - (window_width / 2))
-        y_cordinate = int((screen_height / 2) - (window_height / 2))
-        download_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
-        download_window_text = Text(download_window, background="#434547", foreground="white", relief=SUNKEN)
-        download_window_text.pack()
-        download_window.attributes('-topmost', 'true')
-        threading.Thread(target=downloadfiles).start()
-
 # Bundled Apps Quoted -------------------------------
-ffmpeg = '"Apps/FFMPEG/ffmpeg.exe"'
+if shutil.which('ffmpeg') != None:
+    ffmpeg = str(pathlib.Path(shutil.which('ffmpeg')))
+elif shutil.which('ffmpeg') == None:
+    ffmpeg = str(pathlib.Path("Apps/FFMPEG/ffmpeg.exe"))
 mediainfo = '"Apps/MediaInfo/MediaInfo.exe"'
 mediainfocli = '"Apps/MediaInfoCLI/MediaInfo.exe"'
 fdkaac = '"Apps/fdkaac/fdkaac.exe"'
 qaac = '"Apps/qaac/qaac64.exe"'
 mpv_player = '"Apps/mpv/mpv.exe"'
 # -------------------------------------- Bundled Apps
-
-# ----------------------------------------------------------------------------------------------------- Checks for Apps
 
 # Open InputFile with portable MediaInfo ------------------------------------------------------------------------------
 def mediainfogui():
@@ -4915,6 +4726,213 @@ open_batch_processing_window = Button(root, text="Batch\nProcess", command=batch
 open_batch_processing_window.grid(row=1, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
 open_batch_processing_window.bind("<Enter>", open_batch_processing_window_hover)
 open_batch_processing_window.bind("<Leave>", open_batch_processing_window_hover_leave)
+
+# Checks for App Folder and Sub-Directories - Creates Folders if they are missing -------------------------------------
+if shutil.which('ffmpeg') != None:
+    pass
+elif shutil.which('ffmpeg') == None:
+    ffmpeg_folder = pathlib.Path.cwd() / 'Apps' / 'FFMPEG'
+mediainfo_folder = pathlib.Path.cwd() / 'Apps' / 'MediaInfo'
+mediainfocli_folder = pathlib.Path.cwd() / 'Apps' / 'MediaInfoCLI'
+fdkaac_folder = pathlib.Path.cwd() / 'Apps' / 'fdkaac'
+qaac_folder = pathlib.Path.cwd() / 'Apps' / 'qaac'
+mpv_player_folder = pathlib.Path.cwd() / 'Apps' / 'mpv'
+youtube_dl_folder = pathlib.Path.cwd() / 'Apps' / 'youtube-dl'
+
+try:
+    if shutil.which('ffmpeg') != None:
+        pass
+    elif shutil.which('ffmpeg') == None:
+        ffmpeg_folder.mkdir(parents=True, exist_ok=False)
+    youtube_dl_folder.mkdir(parents=True, exist_ok=False)
+    mediainfo_folder.mkdir(parents=True, exist_ok=False)
+    mediainfocli_folder.mkdir(parents=True, exist_ok=False)
+    fdkaac_folder.mkdir(parents=True, exist_ok=False)
+    qaac_folder.mkdir(parents=True, exist_ok=False)
+    mpv_player_folder.mkdir(parents=True, exist_ok=False)
+    fdkaac_folder.mkdir(parents=True, exist_ok=False)
+except FileExistsError:
+    pass
+
+# -------------------------------------------------------------------------------------------------------- Folder Check
+
+# Download and unzip required apps to the needed folders --------------------------------------------------------------
+def downloadfiles():
+    root.withdraw()
+    if ffmpeg_path.exists():
+        pass
+    else:
+        print('Downloading Required Apps...')
+        download_window_text.configure(state=NORMAL)
+        download_window_text.delete('1.0', END)
+        download_window_text.insert(INSERT, "Downloading FFMPEG...")
+        download_window_text.configure(state=DISABLED)
+        with urlopen(ffmpeg_url) as zipresp:
+            with ZipFile(BytesIO(zipresp.read())) as zfile:
+                zfile.extractall('Apps/FFMPEG')
+                download_window_text.configure(state=NORMAL)
+                download_window_text.delete('1.0', END)
+                download_window_text.insert(INSERT, "Done! \n")
+                download_window_text.insert(INSERT, "Checking Next App... \n")
+                download_window_text.configure(state=DISABLED)
+                sleep(2)
+
+    if fdkaac_path.exists():
+        pass
+    else:
+        download_window_text.configure(state=NORMAL)
+        download_window_text.delete('1.0', END)
+        download_window_text.insert(INSERT, "Downloading FDKAAC...")
+        download_window_text.configure(state=DISABLED)
+        with urlopen(fdkaac_url) as zipresp:
+            with ZipFile(BytesIO(zipresp.read())) as zfile:
+                zfile.extractall('Apps/fdkaac')
+                download_window_text.configure(state=NORMAL)
+                download_window_text.delete('1.0', END)
+                download_window_text.insert(INSERT, "Done! \n")
+                download_window_text.insert(INSERT, "Checking Next App... \n")
+                download_window_text.configure(state=DISABLED)
+                sleep(2)
+
+    if mediainfo_path.exists():
+        pass
+    else:
+        download_window_text.configure(state=NORMAL)
+        download_window_text.delete('1.0', END)
+        download_window_text.insert(INSERT, "Downloading MediaInfoGui...")
+        download_window_text.configure(state=DISABLED)
+        with urlopen(mediainfo_url) as zipresp:
+            with ZipFile(BytesIO(zipresp.read())) as zfile:
+                zfile.extractall('Apps/MediaInfo')
+                download_window_text.configure(state=NORMAL)
+                download_window_text.delete('1.0', END)
+                download_window_text.insert(INSERT, "Done! \n")
+                download_window_text.insert(INSERT, "Checking Next App... \n")
+                download_window_text.configure(state=DISABLED)
+                sleep(2)
+
+    if mediainfocli_path.exists():
+        pass
+    else:
+        download_window_text.configure(state=NORMAL)
+        download_window_text.delete('1.0', END)
+        download_window_text.insert(INSERT, "Downloading MediaInfoCLI...")
+        download_window_text.configure(state=DISABLED)
+        with urlopen(mediainfocli_url) as zipresp:
+            with ZipFile(BytesIO(zipresp.read())) as zfile:
+                zfile.extractall('Apps/MediaInfoCLI')
+                download_window_text.configure(state=NORMAL)
+                download_window_text.delete('1.0', END)
+                download_window_text.insert(INSERT, "Done! \n")
+                download_window_text.insert(INSERT, "Checking Next App... \n")
+                download_window_text.configure(state=DISABLED)
+                sleep(2)
+
+    if qaac_path.exists():
+        pass
+    else:
+        download_window_text.configure(state=NORMAL)
+        download_window_text.delete('1.0', END)
+        download_window_text.insert(INSERT, "Downloading QAAC...")
+        download_window_text.configure(state=DISABLED)
+        with urlopen(qaac_url) as zipresp:
+            with ZipFile(BytesIO(zipresp.read())) as zfile:
+                zfile.extractall('Apps/qaac')
+                download_window_text.configure(state=NORMAL)
+                download_window_text.delete('1.0', END)
+                download_window_text.insert(INSERT, "Done! \n")
+                download_window_text.insert(INSERT, "Checking Next App... \n")
+                download_window_text.configure(state=DISABLED)
+                sleep(2)
+
+    if mpv_player_path.exists():
+        pass
+    else:
+        download_window_text.configure(state=NORMAL)
+        download_window_text.delete('1.0', END)
+        download_window_text.insert(INSERT, "Downloading MPV Player...")
+        download_window_text.configure(state=DISABLED)
+        with urlopen(mpv_player_url) as zipresp:
+            with ZipFile(BytesIO(zipresp.read())) as zfile:
+                zfile.extractall('Apps/mpv')
+                download_window_text.configure(state=NORMAL)
+                download_window_text.delete('1.0', END)
+                download_window_text.insert(INSERT, "Done! \n")
+                download_window_text.insert(INSERT, "Checking Next App... \n")
+                download_window_text.configure(state=DISABLED)
+                sleep(2)
+
+    if youtubedl_path.exists():
+        pass
+    else:
+        download_window_text.configure(state=NORMAL)
+        download_window_text.delete('1.0', END)
+        download_window_text.insert(INSERT, "Downloading YouTubeDL...")
+        download_window_text.configure(state=DISABLED)
+        with urlopen(youtubedl_url) as zipresp:
+            with ZipFile(BytesIO(zipresp.read())) as zfile:
+                zfile.extractall('Apps/youtube-dl')
+                download_window_text.configure(state=NORMAL)
+                download_window_text.delete('1.0', END)
+                download_window_text.insert(INSERT, "Done! \n")
+                download_window_text.configure(state=DISABLED)
+                sleep(2)
+    download_window_text.configure(state=NORMAL)
+    download_window_text.insert(INSERT, "Completed!! \n")
+    download_window_text.configure(state=DISABLED)
+    sleep(2)
+    download_window.destroy()
+    root.deiconify()
+# -------------------------------------------------------------------------------------------------- Download and Unzip
+
+# Checks for Required Apps --------------------------------------------------------------------------------------------
+if shutil.which('ffmpeg') != None:
+    ffmpeg_path = pathlib.Path(shutil.which('ffmpeg'))
+elif shutil.which('ffmpeg') == None:
+    ffmpeg_path = pathlib.Path("Apps/FFMPEG/ffmpeg.exe")
+mediainfo_path = pathlib.Path("Apps/MediaInfo/MediaInfo.exe")
+mediainfocli_path = pathlib.Path("Apps/MediaInfoCLI/MediaInfo.exe")
+fdkaac_path = pathlib.Path("Apps/fdkaac/fdkaac.exe")
+qaac_path = pathlib.Path("Apps/qaac/qaac64.exe")
+mpv_player_path = pathlib.Path("Apps/mpv/mpv.exe")
+youtubedl_path = pathlib.Path("Apps/youtube-dl/youtube-dl.exe")
+
+if ffmpeg_path.exists() and mediainfo_path.exists() and mediainfocli_path.exists() and fdkaac_path.exists() and \
+        qaac_path.exists() and mpv_player_path.exists() and youtubedl_path.exists():
+    pass
+else:
+    missing_files = messagebox.askyesno(title='Missing Files', message='Download Required Binaries?', parent=root)
+    if missing_files == False:
+        msg_box = messagebox.showinfo(title='Error', message='Download required files manually for program to work '
+                                                             ' correctly!!! \n\nPlace required files in the '
+                                                             'Apps directory and restart the program',
+                                      parent=root)
+        root.destroy()
+    elif missing_files == True:
+        ffmpeg_url = 'http://download1338.mediafire.com/m2xsyluelt1g/n6cyxea2il9fv89/ffmpeg.zip'
+        mediainfo_url = 'http://download1484.mediafire.com/lsm3omz49jhg/ya6czu9jn6u2ki0/MediaInfo.zip'
+        mediainfocli_url = 'http://download1479.mediafire.com/jjb57jhiu7sg/trk6l6p1snhzee4/MediaInfoCLI.zip'
+        fdkaac_url = 'http://download843.mediafire.com/4j655wv2mqfg/9teytvbxvd4p147/fdkaac.zip'
+        qaac_url = 'http://download1509.mediafire.com/u798rxtj5abg/r432455i70yi0px/qaac.zip'
+        mpv_player_url = 'http://download1507.mediafire.com/zm01pgzq6wtg/w291k8ewomk3hym/mpv.zip'
+        youtubedl_url = 'http://download1514.mediafire.com/g4jt1tzjbeqg/vujt353tx8lr1j4/youtube-dl.zip'
+
+        download_window = Toplevel(master=root)
+        download_window.title('Download')
+        download_window.configure(background="#434547")
+        window_height = 140
+        window_width = 470
+        screen_width = download_window.winfo_screenwidth()
+        screen_height = download_window.winfo_screenheight()
+        x_cordinate = int((screen_width / 2) - (window_width / 2))
+        y_cordinate = int((screen_height / 2) - (window_height / 2))
+        download_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+        download_window_text = Text(download_window, background="#434547", foreground="white", relief=SUNKEN)
+        download_window_text.pack()
+        download_window.attributes('-topmost', 'true')
+        threading.Thread(target=downloadfiles).start()
+
+# -------------------------------------------------------------------------------------------- Checks for required apps
 
 # End Loop ------------------------------------------------------------------------------------------------------------
 root.mainloop()
