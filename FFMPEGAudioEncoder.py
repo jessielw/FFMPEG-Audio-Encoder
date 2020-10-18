@@ -18,6 +18,13 @@ import threading
 import shutil
 
 # Main Gui & Windows --------------------------------------------------------
+def root_exit_function():
+    confirm_exit = messagebox.askyesno(title='Prompt', message="Are you sure you want to exit the program?",
+                                       parent=root)
+    if confirm_exit == False:
+        pass
+    elif confirm_exit == True:
+        root.destroy()
 
 root = TkinterDnD.Tk()
 root.title("FFMPEG Audio Encoder v2.9.6")
@@ -30,6 +37,7 @@ screen_height = root.winfo_screenheight()
 x_cordinate = int((screen_width / 2) - (window_width / 2))
 y_cordinate = int((screen_height / 2) - (window_height / 2))
 root.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+root.protocol('WM_DELETE_WINDOW', root_exit_function)
 
 root.grid_columnconfigure(0, weight=1)
 root.grid_columnconfigure(1, weight=1)
@@ -83,7 +91,7 @@ root.config(menu=my_menu_bar)
 
 file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
 my_menu_bar.add_cascade(label='File', menu=file_menu)
-file_menu.add_command(label='Exit', command=root.destroy)
+file_menu.add_command(label='Exit', command=root_exit_function)
 
 options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
 my_menu_bar.add_cascade(label='Options', menu=options_menu)
@@ -4763,123 +4771,95 @@ def downloadfiles():
         pass
     else:
         print('Downloading Required Apps...')
-        download_window_text.configure(state=NORMAL)
-        download_window_text.delete('1.0', END)
-        download_window_text.insert(INSERT, "Downloading FFMPEG...")
-        download_window_text.configure(state=DISABLED)
+        download_window_text.configure(text="Downloading FFMPEG...")
         with urlopen(ffmpeg_url) as zipresp:
             with ZipFile(BytesIO(zipresp.read())) as zfile:
                 zfile.extractall('Apps/FFMPEG')
-                download_window_text.configure(state=NORMAL)
-                download_window_text.delete('1.0', END)
-                download_window_text.insert(INSERT, "Done! \n")
-                download_window_text.insert(INSERT, "Checking Next App... \n")
-                download_window_text.configure(state=DISABLED)
+                download_window_text2.configure(text='Done!')
+                sleep(1)
+                download_window_text2.configure(text='Checking Next App...')
                 sleep(2)
 
     if fdkaac_path.exists():
         pass
     else:
-        download_window_text.configure(state=NORMAL)
-        download_window_text.delete('1.0', END)
-        download_window_text.insert(INSERT, "Downloading FDKAAC...")
-        download_window_text.configure(state=DISABLED)
+        download_window_text2.configure(text='')
+        download_window_text.configure(text="Downloading FDKAAC...")
         with urlopen(fdkaac_url) as zipresp:
             with ZipFile(BytesIO(zipresp.read())) as zfile:
                 zfile.extractall('Apps/fdkaac')
-                download_window_text.configure(state=NORMAL)
-                download_window_text.delete('1.0', END)
-                download_window_text.insert(INSERT, "Done! \n")
-                download_window_text.insert(INSERT, "Checking Next App... \n")
-                download_window_text.configure(state=DISABLED)
+                download_window_text2.configure(text='Done!')
+                sleep(1)
+                download_window_text2.configure(text='Checking Next App...')
                 sleep(2)
 
     if mediainfo_path.exists():
         pass
     else:
-        download_window_text.configure(state=NORMAL)
-        download_window_text.delete('1.0', END)
-        download_window_text.insert(INSERT, "Downloading MediaInfoGui...")
-        download_window_text.configure(state=DISABLED)
+        download_window_text2.configure(text='')
+        download_window_text.configure(text="Downloading MediaInfoGUI...")
         with urlopen(mediainfo_url) as zipresp:
             with ZipFile(BytesIO(zipresp.read())) as zfile:
                 zfile.extractall('Apps/MediaInfo')
-                download_window_text.configure(state=NORMAL)
-                download_window_text.delete('1.0', END)
-                download_window_text.insert(INSERT, "Done! \n")
-                download_window_text.insert(INSERT, "Checking Next App... \n")
-                download_window_text.configure(state=DISABLED)
+                download_window_text2.configure(text='Done!')
+                sleep(1)
+                download_window_text2.configure(text='Checking Next App...')
                 sleep(2)
 
     if mediainfocli_path.exists():
         pass
     else:
-        download_window_text.configure(state=NORMAL)
-        download_window_text.delete('1.0', END)
-        download_window_text.insert(INSERT, "Downloading MediaInfoCLI...")
-        download_window_text.configure(state=DISABLED)
+        download_window_text2.configure(text='')
+        download_window_text.configure(text="Downloading MediaInfoCLI...")
         with urlopen(mediainfocli_url) as zipresp:
             with ZipFile(BytesIO(zipresp.read())) as zfile:
                 zfile.extractall('Apps/MediaInfoCLI')
-                download_window_text.configure(state=NORMAL)
-                download_window_text.delete('1.0', END)
-                download_window_text.insert(INSERT, "Done! \n")
-                download_window_text.insert(INSERT, "Checking Next App... \n")
-                download_window_text.configure(state=DISABLED)
+                download_window_text2.configure(text='Done!')
+                sleep(1)
+                download_window_text2.configure(text='Checking Next App...')
                 sleep(2)
 
     if qaac_path.exists():
         pass
     else:
-        download_window_text.configure(state=NORMAL)
-        download_window_text.delete('1.0', END)
-        download_window_text.insert(INSERT, "Downloading QAAC...")
-        download_window_text.configure(state=DISABLED)
+        download_window_text2.configure(text='')
+        download_window_text.configure(text="Downloading QAAC...")
         with urlopen(qaac_url) as zipresp:
             with ZipFile(BytesIO(zipresp.read())) as zfile:
                 zfile.extractall('Apps/qaac')
-                download_window_text.configure(state=NORMAL)
-                download_window_text.delete('1.0', END)
-                download_window_text.insert(INSERT, "Done! \n")
-                download_window_text.insert(INSERT, "Checking Next App... \n")
-                download_window_text.configure(state=DISABLED)
+                download_window_text2.configure(text='Done!')
+                sleep(1)
+                download_window_text2.configure(text='Checking Next App...')
                 sleep(2)
 
     if mpv_player_path.exists():
         pass
     else:
-        download_window_text.configure(state=NORMAL)
-        download_window_text.delete('1.0', END)
-        download_window_text.insert(INSERT, "Downloading MPV Player...")
-        download_window_text.configure(state=DISABLED)
+        download_window_text2.configure(text='')
+        download_window_text.configure(text="Downloading MPV Player...")
         with urlopen(mpv_player_url) as zipresp:
             with ZipFile(BytesIO(zipresp.read())) as zfile:
                 zfile.extractall('Apps/mpv')
-                download_window_text.configure(state=NORMAL)
-                download_window_text.delete('1.0', END)
-                download_window_text.insert(INSERT, "Done! \n")
-                download_window_text.insert(INSERT, "Checking Next App... \n")
-                download_window_text.configure(state=DISABLED)
+                download_window_text2.configure(text='Done!')
+                sleep(1)
+                download_window_text2.configure(text='Checking Next App...')
                 sleep(2)
 
     if youtubedl_path.exists():
         pass
     else:
-        download_window_text.configure(state=NORMAL)
-        download_window_text.delete('1.0', END)
-        download_window_text.insert(INSERT, "Downloading YouTubeDL...")
-        download_window_text.configure(state=DISABLED)
+        download_window_text2.configure(text='')
+        download_window_text.configure(text="Youtube-DL...")
         with urlopen(youtubedl_url) as zipresp:
             with ZipFile(BytesIO(zipresp.read())) as zfile:
                 zfile.extractall('Apps/youtube-dl')
-                download_window_text.configure(state=NORMAL)
-                download_window_text.delete('1.0', END)
-                download_window_text.insert(INSERT, "Done! \n")
-                download_window_text.configure(state=DISABLED)
+                zfile.extractall('Apps/mpv')
+                download_window_text2.configure(text='Done!')
+                sleep(1)
+                download_window_text2.configure(text='Checking Next App...')
                 sleep(2)
-    download_window_text.configure(state=NORMAL)
-    download_window_text.insert(INSERT, "Completed!! \n")
-    download_window_text.configure(state=DISABLED)
+    download_window_text2.configure(text='')
+    download_window_text.configure(text='Completed!')
     sleep(2)
     download_window.destroy()
     root.deiconify()
@@ -4917,19 +4897,33 @@ else:
         mpv_player_url = 'http://download1507.mediafire.com/zm01pgzq6wtg/w291k8ewomk3hym/mpv.zip'
         youtubedl_url = 'http://download1514.mediafire.com/g4jt1tzjbeqg/vujt353tx8lr1j4/youtube-dl.zip'
 
+        def dw_exit_function():
+            confirm_exit = messagebox.askyesno(title='Prompt', message="Are you sure you want to exit the program?\n"
+                                                                       "\nYou could potentially corrupt some required"
+                                                                       " applications\n\nIf this happens delete the "
+                                                                       "'Apps' folder and restart the program",
+                                                parent=root)
+            if confirm_exit == False:
+                pass
+            elif confirm_exit == True:
+                root.destroy()
+
         download_window = Toplevel(master=root)
         download_window.title('Download')
         download_window.configure(background="#434547")
-        window_height = 140
-        window_width = 470
+        window_height = 80
+        window_width = 400
         screen_width = download_window.winfo_screenwidth()
         screen_height = download_window.winfo_screenheight()
         x_cordinate = int((screen_width / 2) - (window_width / 2))
         y_cordinate = int((screen_height / 2) - (window_height / 2))
         download_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
-        download_window_text = Text(download_window, background="#434547", foreground="white", relief=SUNKEN)
-        download_window_text.pack()
-        download_window.attributes('-topmost', 'true')
+        download_window.resizable(False, False)
+        download_window.protocol('WM_DELETE_WINDOW', dw_exit_function)
+        download_window_text = Label(download_window, background="#434547", foreground="white", width=50)
+        download_window_text.grid(row=0, column=0, columnspan=2)
+        download_window_text2 = Label(download_window, background="#434547", foreground="white", width=50)
+        download_window_text2.grid(row=1, column=0, columnspan=2)
         threading.Thread(target=downloadfiles).start()
 
 # -------------------------------------------------------------------------------------------- Checks for required apps
