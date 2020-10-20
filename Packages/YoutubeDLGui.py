@@ -161,7 +161,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
         save_entry.config(state=NORMAL)  #
         save_entry.delete(0, END)  # This function clears entry box in order to add new link to entry box
         save_entry.config(state=DISABLED)  #
-        VideoOutput = filedialog.askdirectory()  # Pop up window to choose a save directory location
+        VideoOutput = filedialog.askdirectory(parent=root)  # Pop up window to choose a save directory location
         if VideoOutput:
             save_for_entry = '"' + VideoOutput + '/"'  # Completes save directory and adds quotes
             save_entry.config(state=NORMAL)  #
