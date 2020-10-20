@@ -1,21 +1,26 @@
 # Imports--------------------------------------------------------------------
 from tkinter import *
 from tkinter import filedialog, StringVar
+from tkinter import ttk
 import subprocess
 import tkinter as tk
 import pathlib
 import tkinter.scrolledtext as scrolledtextwidget
 from TkinterDnD2 import *
 from tkinter import messagebox
-from Packages.YoutubeDLGui import youtube_dl_launcher_for_ffmpegaudioencoder
-from Packages.FFMPEGAudioEncoderBatch import batch_processing
-from Packages.About import openaboutwindow
-from io import BytesIO
-from urllib.request import urlopen
-from zipfile import ZipFile
+from urllib.error import URLError
+from urllib.request import urlretrieve
 from time import sleep
 import threading
 import shutil
+from io import BytesIO
+from urllib.request import urlopen
+from zipfile import ZipFile
+from Packages.AppAutoDownloadLinks import *
+from Packages.DirectoryCheck import directory_check
+from Packages.YoutubeDLGui import youtube_dl_launcher_for_ffmpegaudioencoder
+from Packages.FFMPEGAudioEncoderBatch import batch_processing
+from Packages.About import openaboutwindow
 
 # Main Gui & Windows --------------------------------------------------------
 def root_exit_function():
@@ -27,7 +32,7 @@ def root_exit_function():
         root.destroy()
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v2.9.6")
+root.title("FFMPEG Audio Encoder v2.9.7")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 210
@@ -4736,38 +4741,16 @@ open_batch_processing_window.bind("<Enter>", open_batch_processing_window_hover)
 open_batch_processing_window.bind("<Leave>", open_batch_processing_window_hover_leave)
 
 # Checks for App Folder and Sub-Directories - Creates Folders if they are missing -------------------------------------
-if shutil.which('ffmpeg') != None:
-    pass
-elif shutil.which('ffmpeg') == None:
-    ffmpeg_folder = pathlib.Path.cwd() / 'Apps' / 'FFMPEG'
-mediainfo_folder = pathlib.Path.cwd() / 'Apps' / 'MediaInfo'
-mediainfocli_folder = pathlib.Path.cwd() / 'Apps' / 'MediaInfoCLI'
-fdkaac_folder = pathlib.Path.cwd() / 'Apps' / 'fdkaac'
-qaac_folder = pathlib.Path.cwd() / 'Apps' / 'qaac'
-mpv_player_folder = pathlib.Path.cwd() / 'Apps' / 'mpv'
-youtube_dl_folder = pathlib.Path.cwd() / 'Apps' / 'youtube-dl'
-
-try:
-    if shutil.which('ffmpeg') != None:
-        pass
-    elif shutil.which('ffmpeg') == None:
-        ffmpeg_folder.mkdir(parents=True, exist_ok=False)
-    youtube_dl_folder.mkdir(parents=True, exist_ok=False)
-    mediainfo_folder.mkdir(parents=True, exist_ok=False)
-    mediainfocli_folder.mkdir(parents=True, exist_ok=False)
-    fdkaac_folder.mkdir(parents=True, exist_ok=False)
-    qaac_folder.mkdir(parents=True, exist_ok=False)
-    mpv_player_folder.mkdir(parents=True, exist_ok=False)
-    fdkaac_folder.mkdir(parents=True, exist_ok=False)
-except FileExistsError:
-    pass
-
+directory_check()
 # -------------------------------------------------------------------------------------------------------- Folder Check
 
 # Download and unzip required apps to the needed folders --------------------------------------------------------------
 def downloadfiles():
     root.withdraw()
+    app_progress_bar = ttk.Progressbar(download_window, orient=HORIZONTAL, length=395, mode='determinate')
+    app_progress_bar.grid(row=2)
     if ffmpeg_path.exists():
+        app_progress_bar['value'] += 12
         pass
     else:
         print('Downloading Required Apps...')
@@ -4775,12 +4758,14 @@ def downloadfiles():
         with urlopen(ffmpeg_url) as zipresp:
             with ZipFile(BytesIO(zipresp.read())) as zfile:
                 zfile.extractall('Apps/FFMPEG')
+                app_progress_bar['value'] += 12
                 download_window_text2.configure(text='Done!')
                 sleep(1)
                 download_window_text2.configure(text='Checking Next App...')
                 sleep(2)
 
     if fdkaac_path.exists():
+        app_progress_bar['value'] += 12
         pass
     else:
         download_window_text2.configure(text='')
@@ -4788,38 +4773,81 @@ def downloadfiles():
         with urlopen(fdkaac_url) as zipresp:
             with ZipFile(BytesIO(zipresp.read())) as zfile:
                 zfile.extractall('Apps/fdkaac')
+                app_progress_bar['value'] += 12
                 download_window_text2.configure(text='Done!')
                 sleep(1)
                 download_window_text2.configure(text='Checking Next App...')
                 sleep(2)
 
     if mediainfo_path.exists():
+        app_progress_bar['value'] += 12
         pass
     else:
         download_window_text2.configure(text='')
         download_window_text.configure(text="Downloading MediaInfoGUI...")
-        with urlopen(mediainfo_url) as zipresp:
-            with ZipFile(BytesIO(zipresp.read())) as zfile:
-                zfile.extractall('Apps/MediaInfo')
-                download_window_text2.configure(text='Done!')
-                sleep(1)
-                download_window_text2.configure(text='Checking Next App...')
-                sleep(2)
+        sleep(2)
+        try:
+            with urlopen(mediainfo_url) as zipresp:
+                with ZipFile(BytesIO(zipresp.read())) as zfile:
+                    zfile.extractall('Apps/MediaInfo')
+                    app_progress_bar['value'] += 12
+                    download_window_text2.configure(text='Done!')
+                    sleep(1)
+                    download_window_text2.configure(text='Checking Next App...')
+                    sleep(2)
+        except URLError:
+            download_window_text2.configure(text='Link #1 is broken')
+            sleep(2)
+            download_window_text2.configure(text='Retrying with backup link...')
+            sleep(2)
+            try:
+                with urlopen(mediainfo_url2) as zipresp:
+                    with ZipFile(BytesIO(zipresp.read())) as zfile:
+                        zfile.extractall('Apps/MediaInfo')
+                        app_progress_bar['value'] += 12
+                        download_window_text2.configure(text='Done!')
+                        sleep(1)
+                        download_window_text2.configure(text='Checking Next App...')
+                        sleep(2)
+            except:
+                pass
 
     if mediainfocli_path.exists():
+        app_progress_bar['value'] += 12
         pass
     else:
         download_window_text2.configure(text='')
         download_window_text.configure(text="Downloading MediaInfoCLI...")
-        with urlopen(mediainfocli_url) as zipresp:
-            with ZipFile(BytesIO(zipresp.read())) as zfile:
-                zfile.extractall('Apps/MediaInfoCLI')
-                download_window_text2.configure(text='Done!')
-                sleep(1)
-                download_window_text2.configure(text='Checking Next App...')
-                sleep(2)
+        sleep(2)
+        try:
+            with urlopen(mediainfocli_url) as zipresp:
+                with ZipFile(BytesIO(zipresp.read())) as zfile:
+                    zfile.extractall('Apps/MediaInfoCLI')
+                    app_progress_bar['value'] += 12
+                    download_window_text2.configure(text='Done!')
+                    sleep(1)
+                    download_window_text2.configure(text='Checking Next App...')
+                    sleep(2)
+        except URLError:
+            download_window_text2.configure(text='Link #1 is broken')
+            sleep(2)
+            download_window_text2.configure(text='Retrying with backup link...')
+            sleep(2)
+            try:
+                with urlopen(mediainfocli_url2) as zipresp:
+                    with ZipFile(BytesIO(zipresp.read())) as zfile:
+                        zfile.extractall('Apps/MediaInfoCLI')
+                        app_progress_bar['value'] += 12
+                        download_window_text2.configure(text='Done!')
+                        sleep(1)
+                        download_window_text2.configure(text='Checking Next App...')
+                        sleep(2)
+            except:
+                pass
+
 
     if qaac_path.exists():
+        app_progress_bar['value'] += 12
         pass
     else:
         download_window_text2.configure(text='')
@@ -4827,12 +4855,14 @@ def downloadfiles():
         with urlopen(qaac_url) as zipresp:
             with ZipFile(BytesIO(zipresp.read())) as zfile:
                 zfile.extractall('Apps/qaac')
+                app_progress_bar['value'] += 12
                 download_window_text2.configure(text='Done!')
                 sleep(1)
                 download_window_text2.configure(text='Checking Next App...')
                 sleep(2)
 
     if mpv_player_path.exists():
+        app_progress_bar['value'] += 12
         pass
     else:
         download_window_text2.configure(text='')
@@ -4840,25 +4870,26 @@ def downloadfiles():
         with urlopen(mpv_player_url) as zipresp:
             with ZipFile(BytesIO(zipresp.read())) as zfile:
                 zfile.extractall('Apps/mpv')
+                app_progress_bar['value'] += 12
                 download_window_text2.configure(text='Done!')
                 sleep(1)
                 download_window_text2.configure(text='Checking Next App...')
                 sleep(2)
 
     if youtubedl_path.exists():
+        app_progress_bar['value'] += 12
         pass
     else:
         download_window_text2.configure(text='')
         download_window_text.configure(text="Youtube-DL...")
-        with urlopen(youtubedl_url) as zipresp:
-            with ZipFile(BytesIO(zipresp.read())) as zfile:
-                zfile.extractall('Apps/youtube-dl')
-                zfile.extractall('Apps/mpv')
-                download_window_text2.configure(text='Done!')
-                sleep(1)
-                download_window_text2.configure(text='Checking Next App...')
-                sleep(2)
+        urlretrieve('https://yt-dl.org/downloads/2020.09.20/youtube-dl.exe', 'Apps/youtube-dl/youtube-dl.exe')
+        app_progress_bar['value'] += 12
+        download_window_text2.configure(text='Done!')
+        sleep(1)
+        download_window_text2.configure(text='Checking Next App...')
+        sleep(2)
     download_window_text2.configure(text='')
+    app_progress_bar['value'] += 27
     download_window_text.configure(text='Completed!')
     sleep(2)
     download_window.destroy()
@@ -4889,14 +4920,6 @@ else:
                                       parent=root)
         root.destroy()
     elif missing_files == True:
-        ffmpeg_url = 'http://download1338.mediafire.com/m2xsyluelt1g/n6cyxea2il9fv89/ffmpeg.zip'
-        mediainfo_url = 'http://download1484.mediafire.com/lsm3omz49jhg/ya6czu9jn6u2ki0/MediaInfo.zip'
-        mediainfocli_url = 'http://download1479.mediafire.com/jjb57jhiu7sg/trk6l6p1snhzee4/MediaInfoCLI.zip'
-        fdkaac_url = 'http://download843.mediafire.com/4j655wv2mqfg/9teytvbxvd4p147/fdkaac.zip'
-        qaac_url = 'http://download1509.mediafire.com/u798rxtj5abg/r432455i70yi0px/qaac.zip'
-        mpv_player_url = 'http://download1507.mediafire.com/zm01pgzq6wtg/w291k8ewomk3hym/mpv.zip'
-        youtubedl_url = 'http://download1514.mediafire.com/g4jt1tzjbeqg/vujt353tx8lr1j4/youtube-dl.zip'
-
         def dw_exit_function():
             confirm_exit = messagebox.askyesno(title='Prompt', message="Are you sure you want to exit the program?\n"
                                                                        "\nYou could potentially corrupt some required"
