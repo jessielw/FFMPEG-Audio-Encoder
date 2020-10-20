@@ -2,7 +2,7 @@
 # These links MUST be direct links to '.zip' files
 
 ffmpeg_url = 'http://www.mediafire.com/file/n6cyxea2il9fv89/ffmpeg.zip/file'
-mediainfo_url = 'http://www.mediapoop.com/file/ya6czu9jn6u2ki0/MediaInfo.zip/file'
+mediainfo_url = 'http://www.mediafire.com/file/ya6czu9jn6u2ki0/MediaInfo.zip/file'
 mediainfocli_url = 'https://mediaarea.net/download/binary/mediainfo/20.09/MediaInfo_CLI_20.09_Windows_x64.zip'
 fdkaac_url = 'http://www.mediafire.com/file/9teytvbxvd4p147/fdkaac.zip/file'
 qaac_url = 'http://www.mediafire.com/file/r432455i70yi0px/qaac.zip/file'
