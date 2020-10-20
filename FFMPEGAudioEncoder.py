@@ -4746,23 +4746,39 @@ directory_check()
 
 # Download and unzip required apps to the needed folders --------------------------------------------------------------
 def downloadfiles():
-    root.withdraw()
+    root.withdraw()  # Hides main window until all the apps are downloaded/unzipped
     app_progress_bar = ttk.Progressbar(download_window, orient=HORIZONTAL, length=395, mode='determinate')
     app_progress_bar.grid(row=2)
-    if ffmpeg_path.exists():
+    if ffmpeg_path.exists():  # Checks for ffmpeg.exe
         app_progress_bar['value'] += 12
         pass
     else:
-        print('Downloading Required Apps...')
         download_window_text.configure(text="Downloading FFMPEG...")
-        with urlopen(ffmpeg_url) as zipresp:
-            with ZipFile(BytesIO(zipresp.read())) as zfile:
-                zfile.extractall('Apps/FFMPEG')
-                app_progress_bar['value'] += 12
-                download_window_text2.configure(text='Done!')
-                sleep(1)
-                download_window_text2.configure(text='Checking Next App...')
-                sleep(2)
+        try:
+            with urlopen(ffmpeg_url) as zipresp:  # Collects ffmpeg.zip from a link and unzips it to where we need it
+                with ZipFile(BytesIO(zipresp.read())) as zfile:
+                    zfile.extractall('Apps/FFMPEG')
+                    app_progress_bar['value'] += 12
+                    download_window_text2.configure(text='Done!')
+                    sleep(1)
+                    download_window_text2.configure(text='Checking Next App...')
+                    sleep(2)
+        except URLError:  # If first link is dead, this checks for the 2nd link
+            download_window_text2.configure(text='Link #1 is broken')
+            sleep(2)
+            download_window_text2.configure(text='Retrying with backup link...')
+            sleep(2)
+            try:
+                with urlopen(ffmpeg_url2) as zipresp: # Downloads and unzips ffmpeg from 2nd link
+                    with ZipFile(BytesIO(zipresp.read())) as zfile:
+                        zfile.extractall('Apps/FFMPEG')
+                        app_progress_bar['value'] += 12
+                        download_window_text2.configure(text='Done!')
+                        sleep(1)
+                        download_window_text2.configure(text='Checking Next App...')
+                        sleep(2)
+            except:
+                pass
 
     if fdkaac_path.exists():
         app_progress_bar['value'] += 12
@@ -4770,14 +4786,32 @@ def downloadfiles():
     else:
         download_window_text2.configure(text='')
         download_window_text.configure(text="Downloading FDKAAC...")
-        with urlopen(fdkaac_url) as zipresp:
-            with ZipFile(BytesIO(zipresp.read())) as zfile:
-                zfile.extractall('Apps/fdkaac')
-                app_progress_bar['value'] += 12
-                download_window_text2.configure(text='Done!')
-                sleep(1)
-                download_window_text2.configure(text='Checking Next App...')
-                sleep(2)
+        try:
+            with urlopen(fdkaac_url) as zipresp:
+                with ZipFile(BytesIO(zipresp.read())) as zfile:
+                    zfile.extractall('Apps/fdkaac')
+                    app_progress_bar['value'] += 12
+                    download_window_text2.configure(text='Done!')
+                    sleep(1)
+                    download_window_text2.configure(text='Checking Next App...')
+                    sleep(2)
+        except URLError:
+            download_window_text2.configure(text='Link #1 is broken')
+            sleep(2)
+            download_window_text2.configure(text='Retrying with backup link...')
+            sleep(2)
+            try:
+                with urlopen(fdkaac_url2) as zipresp:
+                    with ZipFile(BytesIO(zipresp.read())) as zfile:
+                        zfile.extractall('Apps/fdkaac')
+                        app_progress_bar['value'] += 12
+                        download_window_text2.configure(text='Done!')
+                        sleep(1)
+                        download_window_text2.configure(text='Checking Next App...')
+                        sleep(2)
+            except:
+                pass
+
 
     if mediainfo_path.exists():
         app_progress_bar['value'] += 12
@@ -4845,21 +4879,37 @@ def downloadfiles():
             except:
                 pass
 
-
     if qaac_path.exists():
         app_progress_bar['value'] += 12
         pass
     else:
         download_window_text2.configure(text='')
         download_window_text.configure(text="Downloading QAAC...")
-        with urlopen(qaac_url) as zipresp:
-            with ZipFile(BytesIO(zipresp.read())) as zfile:
-                zfile.extractall('Apps/qaac')
-                app_progress_bar['value'] += 12
-                download_window_text2.configure(text='Done!')
-                sleep(1)
-                download_window_text2.configure(text='Checking Next App...')
-                sleep(2)
+        try:
+            with urlopen(qaac_url) as zipresp:
+                with ZipFile(BytesIO(zipresp.read())) as zfile:
+                    zfile.extractall('Apps/qaac')
+                    app_progress_bar['value'] += 12
+                    download_window_text2.configure(text='Done!')
+                    sleep(1)
+                    download_window_text2.configure(text='Checking Next App...')
+                    sleep(2)
+        except URLError:
+            download_window_text2.configure(text='Link #1 is broken')
+            sleep(2)
+            download_window_text2.configure(text='Retrying with backup link...')
+            sleep(2)
+            try:
+                with urlopen(qaac_url2) as zipresp:
+                    with ZipFile(BytesIO(zipresp.read())) as zfile:
+                        zfile.extractall('Apps/qaac')
+                        app_progress_bar['value'] += 12
+                        download_window_text2.configure(text='Done!')
+                        sleep(1)
+                        download_window_text2.configure(text='Checking Next App...')
+                        sleep(2)
+            except:
+                pass
 
     if mpv_player_path.exists():
         app_progress_bar['value'] += 12
@@ -4867,14 +4917,31 @@ def downloadfiles():
     else:
         download_window_text2.configure(text='')
         download_window_text.configure(text="Downloading MPV Player...")
-        with urlopen(mpv_player_url) as zipresp:
-            with ZipFile(BytesIO(zipresp.read())) as zfile:
-                zfile.extractall('Apps/mpv')
-                app_progress_bar['value'] += 12
-                download_window_text2.configure(text='Done!')
-                sleep(1)
-                download_window_text2.configure(text='Checking Next App...')
-                sleep(2)
+        try:
+            with urlopen(mpv_player_url) as zipresp:
+                with ZipFile(BytesIO(zipresp.read())) as zfile:
+                    zfile.extractall('Apps/mpv')
+                    app_progress_bar['value'] += 12
+                    download_window_text2.configure(text='Done!')
+                    sleep(1)
+                    download_window_text2.configure(text='Checking Next App...')
+                    sleep(2)
+        except URLError:
+            download_window_text2.configure(text='Link #1 is broken')
+            sleep(2)
+            download_window_text2.configure(text='Retrying with backup link...')
+            sleep(2)
+            try:
+                with urlopen(mpv_player_url2) as zipresp:
+                    with ZipFile(BytesIO(zipresp.read())) as zfile:
+                        zfile.extractall('Apps/mpv')
+                        app_progress_bar['value'] += 12
+                        download_window_text2.configure(text='Done!')
+                        sleep(1)
+                        download_window_text2.configure(text='Checking Next App...')
+                        sleep(2)
+            except:
+                pass
 
     if youtubedl_path.exists():
         app_progress_bar['value'] += 12
@@ -4882,12 +4949,30 @@ def downloadfiles():
     else:
         download_window_text2.configure(text='')
         download_window_text.configure(text="Youtube-DL...")
-        urlretrieve('https://yt-dl.org/downloads/2020.09.20/youtube-dl.exe', 'Apps/youtube-dl/youtube-dl.exe')
-        app_progress_bar['value'] += 12
-        download_window_text2.configure(text='Done!')
-        sleep(1)
-        download_window_text2.configure(text='Checking Next App...')
-        sleep(2)
+        try:
+            urlretrieve(youtubedl_url, 'Apps/youtube-dl/youtube-dl.exe')  # Direct downloads youtube-dl.exe from website
+            app_progress_bar['value'] += 12
+            download_window_text2.configure(text='Done!')
+            sleep(1)
+            download_window_text2.configure(text='Checking Next App...')
+            sleep(2)
+        except URLError:  # If the link is broken it will run this block
+            download_window_text2.configure(text='Link #1 is broken')
+            sleep(2)
+            download_window_text2.configure(text='Retrying with backup link...')
+            sleep(2)
+            try:
+                with urlopen(youtubedl_url2) as zipresp:  # Gets youtube-dl.exe from a backup link
+                    with ZipFile(BytesIO(zipresp.read())) as zfile:
+                        zfile.extractall('Apps/youtube-dl')
+                        app_progress_bar['value'] += 12
+                        download_window_text2.configure(text='Done!')
+                        sleep(1)
+                        download_window_text2.configure(text='Checking Next App...')
+                        sleep(2)
+            except:
+                pass
+
     download_window_text2.configure(text='')
     app_progress_bar['value'] += 27
     download_window_text.configure(text='Completed!')
