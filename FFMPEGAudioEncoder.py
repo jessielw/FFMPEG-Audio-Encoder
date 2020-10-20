@@ -4951,6 +4951,7 @@ def downloadfiles():
         download_window_text.configure(text="Youtube-DL...")
         try:
             urlretrieve(youtubedl_url, 'Apps/youtube-dl/youtube-dl.exe')  # Direct downloads youtube-dl.exe from website
+            urlretrieve(msvcr100dll_url, 'Apps/youtube-dl/msvcr100.dll')
             app_progress_bar['value'] += 12
             download_window_text2.configure(text='Done!')
             sleep(1)
@@ -4991,10 +4992,10 @@ mediainfocli_path = pathlib.Path("Apps/MediaInfoCLI/MediaInfo.exe")
 fdkaac_path = pathlib.Path("Apps/fdkaac/fdkaac.exe")
 qaac_path = pathlib.Path("Apps/qaac/qaac64.exe")
 mpv_player_path = pathlib.Path("Apps/mpv/mpv.exe")
-if shutil.which('youtube-dl') != None:
-    youtubedl_path = pathlib.Path(shutil.which('youtube-dl'))
-elif shutil.which('youtube-dl') == None:
-    youtubedl_path = pathlib.Path("Apps/FFMPEG/youtube-dl.exe")
+if shutil.which("youtube-dl") != None:
+    youtubedl_path = pathlib.Path(shutil.which("youtube-dl"))
+elif shutil.which("youtube-dl") == None:
+    youtubedl_path = pathlib.Path("Apps/youtube-dl/youtube-dl.exe")
 
 if ffmpeg_path.exists() and mediainfo_path.exists() and mediainfocli_path.exists() and fdkaac_path.exists() and \
         qaac_path.exists() and mpv_player_path.exists() and youtubedl_path.exists():
