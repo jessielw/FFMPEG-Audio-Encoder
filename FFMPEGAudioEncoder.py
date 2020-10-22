@@ -39,19 +39,15 @@ window_height = 210
 window_width = 450
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
-x_cordinate = int((screen_width / 2) - (window_width / 2))
-y_cordinate = int((screen_height / 2) - (window_height / 2))
-root.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+x_coordinate = int((screen_width / 2) - (window_width / 2))
+y_coordinate = int((screen_height / 2) - (window_height / 2))
+root.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
 root.protocol('WM_DELETE_WINDOW', root_exit_function)
 
-root.grid_columnconfigure(0, weight=1)
-root.grid_columnconfigure(1, weight=1)
-root.grid_columnconfigure(2, weight=1)
-root.grid_columnconfigure(3, weight=1)
-root.grid_rowconfigure(0, weight=1)
-root.grid_rowconfigure(1, weight=1)
-root.grid_rowconfigure(2, weight=1)
-root.grid_rowconfigure(3, weight=1)
+for n in range(4):
+    root.gridcolumnconfigure(n, weight=1)
+for n in range(4):
+    root.grid_rowconfigure(n, weight=1)
 
 # Bundled Apps Quoted -------------------------------
 if shutil.which('ffmpeg') != None:
@@ -503,9 +499,9 @@ def openaudiowindow():
             window_width = 600
             screen_width = audio_window.winfo_screenwidth()
             screen_height = audio_window.winfo_screenheight()
-            x_cordinate = int((screen_width / 2) - (window_width / 2))
-            y_cordinate = int((screen_height / 2) - (window_height / 2))
-            audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+            x_coordinate = int((screen_width / 2) - (window_width / 2))
+            y_coordinate = int((screen_height / 2) - (window_height / 2))
+            audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
 
             my_menu_bar = Menu(audio_window, tearoff=0)
             audio_window.config(menu=my_menu_bar)
@@ -516,13 +512,10 @@ def openaudiowindow():
             file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
                                   command=mpv_gui_audio_window)
 
-            audio_window.grid_columnconfigure(0, weight=1)
-            audio_window.grid_columnconfigure(1, weight=1)
-            audio_window.grid_columnconfigure(2, weight=1)
-            audio_window.grid_rowconfigure(0, weight=1)
-            audio_window.grid_rowconfigure(1, weight=1)
-            audio_window.grid_rowconfigure(2, weight=1)
-            audio_window.grid_rowconfigure(3, weight=1)
+            for n in range(3):
+                audio_window.grid_columnconfigure(n, weight=1)
+            for n in range(4):
+                audio_window.grid_rowconfigure(n, weight=1)
             audio_window.grid_rowconfigure(8, weight=1)
 
             # Views Command -------------------------------------------------------------------------------------------
@@ -740,9 +733,9 @@ def openaudiowindow():
         window_width = 620
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
-        x_cordinate = int((screen_width / 2) - (window_width / 2))
-        y_cordinate = int((screen_height / 2) - (window_height / 2))
-        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+        x_coordinate = int((screen_width / 2) - (window_width / 2))
+        y_coordinate = int((screen_height / 2) - (window_height / 2))
+        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -753,15 +746,10 @@ def openaudiowindow():
         file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
                               command=mpv_gui_audio_window)
 
-        audio_window.grid_columnconfigure(0, weight=1)
-        audio_window.grid_columnconfigure(1, weight=1)
-        audio_window.grid_columnconfigure(2, weight=1)
-        audio_window.grid_rowconfigure(0, weight=1)
-        audio_window.grid_rowconfigure(1, weight=1)
-        audio_window.grid_rowconfigure(2, weight=1)
-        audio_window.grid_rowconfigure(3, weight=1)
-        audio_window.grid_rowconfigure(4, weight=1)
-        audio_window.grid_rowconfigure(5, weight=1)
+        for n in range(3):
+            audio_window.grid_columnconfigure(n, weight=1)
+        for n in range(6):
+            audio_window.grid_rowconfigure(n, weight=1)
         audio_window.grid_rowconfigure(10, weight=1)
 
         def view_command():  # Views Command --------------------------------------------------------------------------
@@ -1041,9 +1029,9 @@ def openaudiowindow():
         window_width = 500
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
-        x_cordinate = int((screen_width / 2) - (window_width / 2))
-        y_cordinate = int((screen_height / 2) - (window_height / 2))
-        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+        x_coordinate = int((screen_width / 2) - (window_width / 2))
+        y_coordinate = int((screen_height / 2) - (window_height / 2))
+        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -1054,16 +1042,10 @@ def openaudiowindow():
         file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
                               command=mpv_gui_audio_window)
 
-        audio_window.grid_columnconfigure(0, weight=1)
-        audio_window.grid_columnconfigure(1, weight=1)
-        audio_window.grid_columnconfigure(2, weight=1)
-        audio_window.grid_rowconfigure(0, weight=1)
-        audio_window.grid_rowconfigure(1, weight=1)
-        audio_window.grid_rowconfigure(2, weight=1)
-        audio_window.grid_rowconfigure(3, weight=1)
-        audio_window.grid_rowconfigure(4, weight=1)
-        audio_window.grid_rowconfigure(5, weight=1)
-        audio_window.grid_rowconfigure(6, weight=1)
+        for n in range(3):
+            audio_window.grid_columnconfigure(n, weight=1)
+        for n in range(7):
+            audio_window.grid_rowconfigure(n, weight=1)
         audio_window.grid_rowconfigure(9, weight=1)
 
         def dts_setting_choice_trace(*args):
@@ -1317,9 +1299,9 @@ def openaudiowindow():
         window_width = 650
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
-        x_cordinate = int((screen_width / 2) - (window_width / 2))
-        y_cordinate = int((screen_height / 2) - (window_height / 2))
-        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+        x_coordinate = int((screen_width / 2) - (window_width / 2))
+        y_coordinate = int((screen_height / 2) - (window_height / 2))
+        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -1342,19 +1324,12 @@ def openaudiowindow():
                                    background="#434547", foreground="white", relief=GROOVE)
         advanced_label_end.grid(row=10, column=0, columnspan=3, padx=10, pady=(5, 0), sticky=W + E)
 
-        audio_window.grid_columnconfigure(0, weight=1)
-        audio_window.grid_columnconfigure(1, weight=1)
-        audio_window.grid_columnconfigure(2, weight=1)
-        audio_window.grid_rowconfigure(0, weight=1)
-        audio_window.grid_rowconfigure(1, weight=1)
-        audio_window.grid_rowconfigure(2, weight=1)
-        audio_window.grid_rowconfigure(3, weight=1)
-        audio_window.grid_rowconfigure(4, weight=1)
-        audio_window.grid_rowconfigure(5, weight=1)
-        audio_window.grid_rowconfigure(6, weight=1)
-        audio_window.grid_rowconfigure(8, weight=1)
-        audio_window.grid_rowconfigure(9, weight=1)
-        audio_window.grid_rowconfigure(13, weight=1)
+        for n in range(3):
+            audio_window.grid_columnconfigure(n, weight=1)
+        for n in range(7):
+            audio_window.grid_rowconfigure(n, weight=1)
+        for n in [8, 9, 13]:
+            audio_window.grid_rowconfigure(n, weight=1)
 
         # Views Command -----------------------------------------------------------------------------------------------
         def view_command():
@@ -1637,9 +1612,9 @@ def openaudiowindow():
         window_width = 550
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
-        x_cordinate = int((screen_width / 2) - (window_width / 2))
-        y_cordinate = int((screen_height / 2) - (window_height / 2))
-        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+        x_coordinate = int((screen_width / 2) - (window_width / 2))
+        y_coordinate = int((screen_height / 2) - (window_height / 2))
+        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -1650,14 +1625,10 @@ def openaudiowindow():
         file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
                               command=mpv_gui_audio_window)
 
-        audio_window.grid_columnconfigure(0, weight=1)
-        audio_window.grid_columnconfigure(1, weight=1)
-        audio_window.grid_columnconfigure(2, weight=1)
-        audio_window.grid_rowconfigure(0, weight=1)
-        audio_window.grid_rowconfigure(1, weight=1)
-        audio_window.grid_rowconfigure(2, weight=1)
-        audio_window.grid_rowconfigure(3, weight=1)
-        audio_window.grid_rowconfigure(4, weight=1)
+        for n in range(3):
+            audio_window.grid_columnconfigure(n, weight=1)
+        for n in range(5):
+            audio_window.grid_rowconfigure(n, weight=1)
         audio_window.grid_rowconfigure(7, weight=1)
 
         # Using VBR or CBR/ABR ----------------------------------------------------------------------------------------
@@ -1960,9 +1931,9 @@ def openaudiowindow():
         window_width = 850
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
-        x_cordinate = int((screen_width / 2) - (window_width / 2))
-        y_cordinate = int((screen_height / 2) - (window_height / 2))
-        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+        x_coordinate = int((screen_width / 2) - (window_width / 2))
+        y_coordinate = int((screen_height / 2) - (window_height / 2))
+        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -1973,26 +1944,10 @@ def openaudiowindow():
         file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
                               command=mpv_gui_audio_window)
 
-        audio_window.grid_columnconfigure(0, weight=1)
-        audio_window.grid_columnconfigure(1, weight=1)
-        audio_window.grid_columnconfigure(2, weight=1)
-        audio_window.grid_rowconfigure(0, weight=1)
-        audio_window.grid_rowconfigure(1, weight=1)
-        audio_window.grid_rowconfigure(2, weight=1)
-        audio_window.grid_rowconfigure(3, weight=1)
-        audio_window.grid_rowconfigure(4, weight=1)
-        audio_window.grid_rowconfigure(5, weight=1)
-        audio_window.grid_rowconfigure(6, weight=1)
-        audio_window.grid_rowconfigure(7, weight=1)
-        audio_window.grid_rowconfigure(8, weight=1)
-        audio_window.grid_rowconfigure(9, weight=1)
-        audio_window.grid_rowconfigure(10, weight=1)
-        audio_window.grid_rowconfigure(11, weight=1)
-        audio_window.grid_rowconfigure(12, weight=1)
-        audio_window.grid_rowconfigure(13, weight=1)
-        audio_window.grid_rowconfigure(14, weight=1)
-        audio_window.grid_rowconfigure(15, weight=1)
-        audio_window.grid_rowconfigure(16, weight=1)
+        for n in range(3):
+            audio_window.grid_columnconfigure(n, weight=1)
+        for n in range(17):
+            audio_window.grid_rowconfigure(n, weight=1)
         audio_window.grid_rowconfigure(19, weight=1)
 
         advanced_label = Label(audio_window,
@@ -2505,9 +2460,9 @@ def openaudiowindow():
         window_width = 780
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
-        x_cordinate = int((screen_width / 2) - (window_width / 2))
-        y_cordinate = int((screen_height / 2) - (window_height / 2))
-        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+        x_coordinate = int((screen_width / 2) - (window_width / 2))
+        y_coordinate = int((screen_height / 2) - (window_height / 2))
+        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -2518,20 +2473,10 @@ def openaudiowindow():
         file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
                               command=mpv_gui_audio_window)
 
-        audio_window.grid_columnconfigure(0, weight=1)
-        audio_window.grid_columnconfigure(1, weight=1)
-        audio_window.grid_columnconfigure(2, weight=1)
-        audio_window.grid_rowconfigure(0, weight=1)
-        audio_window.grid_rowconfigure(1, weight=1)
-        audio_window.grid_rowconfigure(2, weight=1)
-        audio_window.grid_rowconfigure(3, weight=1)
-        audio_window.grid_rowconfigure(4, weight=1)
-        audio_window.grid_rowconfigure(5, weight=1)
-        audio_window.grid_rowconfigure(6, weight=1)
-        audio_window.grid_rowconfigure(7, weight=1)
-        audio_window.grid_rowconfigure(8, weight=1)
-        audio_window.grid_rowconfigure(9, weight=1)
-        audio_window.grid_rowconfigure(10, weight=1)
+        for n in range(3):
+            audio_window.grid_columnconfigure(n, weight=1)
+        for n in range(11):
+            audio_window.grid_rowconfigure(n, weight=1)
         audio_window.grid_rowconfigure(15, weight=1)
 
         def help_button_hover(e):
@@ -2996,9 +2941,9 @@ def openaudiowindow():
         window_width = 750
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
-        x_cordinate = int((screen_width / 2) - (window_width / 2))
-        y_cordinate = int((screen_height / 2) - (window_height / 2))
-        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+        x_coordinate = int((screen_width / 2) - (window_width / 2))
+        y_coordinate = int((screen_height / 2) - (window_height / 2))
+        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -3009,20 +2954,10 @@ def openaudiowindow():
         file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
                               command=mpv_gui_audio_window)
 
-        audio_window.grid_columnconfigure(0, weight=1)
-        audio_window.grid_columnconfigure(1, weight=1)
-        audio_window.grid_columnconfigure(2, weight=1)
-        audio_window.grid_rowconfigure(0, weight=1)
-        audio_window.grid_rowconfigure(1, weight=1)
-        audio_window.grid_rowconfigure(2, weight=1)
-        audio_window.grid_rowconfigure(3, weight=1)
-        audio_window.grid_rowconfigure(4, weight=1)
-        audio_window.grid_rowconfigure(5, weight=1)
-        audio_window.grid_rowconfigure(6, weight=1)
-        audio_window.grid_rowconfigure(7, weight=1)
-        audio_window.grid_rowconfigure(8, weight=1)
-        audio_window.grid_rowconfigure(9, weight=1)
-        audio_window.grid_rowconfigure(10, weight=1)
+        for n in range(3):
+            audio_window.grid_columnconfigure(n, weight=1)
+        for n in range(11):
+            audio_window.grid_rowconfigure(n, weight=1)
         audio_window.grid_rowconfigure(15, weight=1)
 
         # Gets gain information for QAAC ------------------------------------------------------------------------------
@@ -3479,9 +3414,9 @@ def openaudiowindow():
             window_width = 650
             screen_width = audio_window.winfo_screenwidth()
             screen_height = audio_window.winfo_screenheight()
-            x_cordinate = int((screen_width / 2) - (window_width / 2))
-            y_cordinate = int((screen_height / 2) - (window_height / 2))
-            audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+            x_coordinate = int((screen_width / 2) - (window_width / 2))
+            y_coordinate = int((screen_height / 2) - (window_height / 2))
+            audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
 
             my_menu_bar = Menu(audio_window, tearoff=0)
             audio_window.config(menu=my_menu_bar)
@@ -3492,17 +3427,10 @@ def openaudiowindow():
             file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
                                   command=mpv_gui_audio_window)
 
-            audio_window.grid_columnconfigure(0, weight=1)
-            audio_window.grid_columnconfigure(1, weight=1)
-            audio_window.grid_columnconfigure(2, weight=1)
-            audio_window.grid_rowconfigure(0, weight=1)
-            audio_window.grid_rowconfigure(1, weight=1)
-            audio_window.grid_rowconfigure(2, weight=1)
-            audio_window.grid_rowconfigure(3, weight=1)
-            audio_window.grid_rowconfigure(4, weight=1)
-            audio_window.grid_rowconfigure(6, weight=1)
-            audio_window.grid_rowconfigure(7, weight=1)
-            audio_window.grid_rowconfigure(10, weight=1)
+            for n in range(3):
+                audio_window.grid_columnconfigure(n, weight=1)
+            for n in [0, 1, 2, 3, 4, 6, 7, 10]:
+                audio_window.grid_rowconfigure(n, weight=1)
 
             # Views Command -------------------------------------------------------------------------------------------
             def view_command():
@@ -3808,20 +3736,16 @@ def openaudiowindow():
             window_width = 650
             screen_width = audio_window.winfo_screenwidth()
             screen_height = audio_window.winfo_screenheight()
-            x_cordinate = int((screen_width / 2) - (window_width / 2))
-            y_cordinate = int((screen_height / 2) - (window_height / 2))
-            audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+            x_coordinate = int((screen_width / 2) - (window_width / 2))
+            y_coordinate = int((screen_height / 2) - (window_height / 2))
+            audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
 
-            audio_window.grid_columnconfigure(0, weight=1)
-            audio_window.grid_columnconfigure(1, weight=1)
-            audio_window.grid_columnconfigure(2, weight=1)
-            audio_window.grid_rowconfigure(0, weight=1)
-            audio_window.grid_rowconfigure(1, weight=1)
-            audio_window.grid_rowconfigure(2, weight=1)
-            audio_window.grid_rowconfigure(3, weight=1)
-            audio_window.grid_rowconfigure(5, weight=1)
-            audio_window.grid_rowconfigure(6, weight=1)
-            audio_window.grid_rowconfigure(10, weight=1)
+            for n in range(3):
+                audio_window.grid_columnconfigure(n, weight=1)
+            for n in range(4):
+                audio_window.grid_rowconfigure(n, weight=1)
+            for n in [5, 6, 10]:
+                audio_window.grid_rowconfigure(n, weight=1)
 
             my_menu_bar = Menu(audio_window, tearoff=0)
             audio_window.config(menu=my_menu_bar)
@@ -5027,9 +4951,9 @@ else:
         window_width = 400
         screen_width = download_window.winfo_screenwidth()
         screen_height = download_window.winfo_screenheight()
-        x_cordinate = int((screen_width / 2) - (window_width / 2))
-        y_cordinate = int((screen_height / 2) - (window_height / 2))
-        download_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+        x_coordinate = int((screen_width / 2) - (window_width / 2))
+        y_coordinate = int((screen_height / 2) - (window_height / 2))
+        download_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
         download_window.resizable(False, False)
         download_window.protocol('WM_DELETE_WINDOW', dw_exit_function)
         download_window_text = Label(download_window, background="#434547", foreground="white", width=50)
