@@ -1,32 +1,71 @@
 from tkinter import *
-from tkinter import filedialog, StringVar
+from tkinter import filedialog, StringVar, messagebox
 import subprocess
 import pathlib
 import tkinter.scrolledtext as scrolledtextwidget
 from TkinterDnD2 import *
+import shutil
+import threading
 
-# Bundled Apps ---------------------------------------------------------------
-
-ffmpeg = '"Apps/FFMPEG/ffmpeg.exe"'
+# Bundled Apps Quoted -------------------------------
+if shutil.which('ffmpeg') != None:
+    ffmpeg = str(pathlib.Path(shutil.which('ffmpeg')))
+elif shutil.which('ffmpeg') == None:
+    ffmpeg = str(pathlib.Path("Apps/FFMPEG/ffmpeg.exe"))
 mediainfo = '"Apps/MediaInfo/MediaInfo.exe"'
 mediainfocli = '"Apps/MediaInfoCLI/MediaInfo.exe"'
 fdkaac = '"Apps/fdkaac/fdkaac.exe"'
 qaac = '"Apps/qaac/qaac64.exe"'
 mpv_player = '"Apps/mpv/mpv.exe"'
+# -------------------------------------- Bundled Apps
 
 # Batch Processing Window ---------------------------------------------------------------------------------------------
+def batch_exit_function():
+    global example_cmd_output, ac3_batch_job, aac_batch_job, dts_batch_job, opus_batch_job, \
+        mp3_batch_job, eac3_batch_job, fdkaac_batch_job, qaac_batch_job, \
+        flac_batch_job, alac_batch_job, batch_processing_window
+    confirm_exit = messagebox.askyesno(title='Prompt', message="Are you sure you want to exit the program?",
+                                       parent=batch_processing_window)
+    if confirm_exit == False:
+        pass
+    elif confirm_exit == True:
+        if ac3_batch_job.get() == '' and aac_batch_job.get() == '' and dts_batch_job.get() \
+                == '' and opus_batch_job.get() == '' and mp3_batch_job.get() == '' and eac3_batch_job.get() \
+                == '' and fdkaac_batch_job.get() == '' and qaac_batch_job.get() == '' and flac_batch_job.get() \
+                == '' and alac_batch_job.get() == '':
+            batch_processing_window.destroy()
+
+            ac3_batch_job.set('')
+            aac_batch_job.set('')
+            dts_batch_job.set('')
+            opus_batch_job.set('')
+            mp3_batch_job.set('')
+            eac3_batch_job.set('')
+            fdkaac_batch_job.set('')
+            qaac_batch_job.set('')
+            flac_batch_job.set('')
+            alac_batch_job.set('')
+
+        elif ac3_batch_job.get() != '' or aac_batch_job.get() != '' or dts_batch_job.get() != '' \
+                or opus_batch_job.get() != '' or mp3_batch_job.get() != '' or eac3_batch_job.get() != '' \
+                or fdkaac_batch_job.get() != '' or qaac_batch_job.get() != '' or flac_batch_job.get() != '' \
+                or alac_batch_job.get() != '':
+            messagebox.showinfo(title='Error', message='Wait for all jobs to finish',
+                                          parent=batch_processing_window)
+
 def batch_processing():
+    global batch_processing_window, batch_widow
     batch_processing_window = Toplevel()
     batch_processing_window.title('Batch Processing Window')
     batch_processing_window.configure(background="#434547")
     window_height = 260
-    window_width = 650
+    window_width = 600
     screen_width = batch_processing_window.winfo_screenwidth()
     screen_height = batch_processing_window.winfo_screenheight()
     x_cordinate = int((screen_width / 2) - (window_width / 2))
     y_cordinate = int((screen_height / 2) - (window_height / 2))
     batch_processing_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
-
+    batch_processing_window.protocol('WM_DELETE_WINDOW', batch_exit_function)
 
     batch_processing_window.grid_columnconfigure(0, weight=1)
     batch_processing_window.grid_columnconfigure(1, weight=1)
@@ -100,6 +139,30 @@ def batch_processing():
             audiosettings_button_batch.configure(state=NORMAL)
             command_line_button_batch.config(state=DISABLED)
             start_audio_button_batch.config(state=DISABLED)
+
+    global ac3_batch_job, aac_batch_job, dts_batch_job, opus_batch_job, mp3_batch_job, \
+        eac3_batch_job, fdkaac_batch_job, qaac_batch_job, flac_batch_job, alac_batch_job
+    ac3_batch_job = StringVar()
+    aac_batch_job = StringVar()
+    dts_batch_job = StringVar()
+    opus_batch_job = StringVar()
+    mp3_batch_job = StringVar()
+    eac3_batch_job = StringVar()
+    fdkaac_batch_job = StringVar()
+    qaac_batch_job = StringVar()
+    flac_batch_job = StringVar()
+    alac_batch_job = StringVar()
+
+    ac3_batch_job.set('')
+    aac_batch_job.set('')
+    dts_batch_job.set('')
+    opus_batch_job.set('')
+    mp3_batch_job.set('')
+    eac3_batch_job.set('')
+    fdkaac_batch_job.set('')
+    qaac_batch_job.set('')
+    flac_batch_job.set('')
+    alac_batch_job.set('')
 
     encoder_dropdownmenu_choices = {
         "AAC": "-c:a aac ",
@@ -4087,19 +4150,85 @@ def batch_processing():
 
     # Start Batch Job -------------------------------------------------------------------------------------------------
     def startbatchaudiojob():
-        global automatic_batch_save_dir, automatic_batch_save_dir_quoted
+        global automatic_batch_save_dir, automatic_batch_save_dir_quoted, ac3_batch_job, aac_batch_job, \
+            dts_batch_job, opus_batch_job, mp3_batch_job, eac3_batch_job, fdkaac_batch_job, qaac_batch_job, \
+            flac_batch_job, alac_batch_job
         try:
             automatic_batch_save_dir = batch_save_directory
         except:
             automatic_batch_save_dir = batch_input_directory + '/Encoded'
         audio_filter_function()
+
+        ac3_batch_job = StringVar()
+        aac_batch_job = StringVar()
+        dts_batch_job = StringVar()
+        opus_batch_job = StringVar()
+        mp3_batch_job = StringVar()
+        eac3_batch_job = StringVar()
+        fdkaac_batch_job = StringVar()
+        qaac_batch_job = StringVar()
+        flac_batch_job = StringVar()
+        alac_batch_job = StringVar()
+
+        def close_encode():
+            confirm_exit = messagebox.askyesno(title='Prompt',
+                                               message="Are you sure you want to stop the encode?", parent=window)
+            if confirm_exit == False:
+                pass
+            elif confirm_exit == True:
+                global example_cmd_output
+                ac3_batch_job.set('')
+                aac_batch_job.set('')
+                dts_batch_job.set('')
+                opus_batch_job.set('')
+                mp3_batch_job.set('')
+                eac3_batch_job.set('')
+                fdkaac_batch_job.set('')
+                qaac_batch_job.set('')
+                flac_batch_job.set('')
+                alac_batch_job.set('')
+                try:
+                    subprocess.Popen(f"TASKKILL /F /PID {job.pid} /T", creationflags=subprocess.CREATE_NO_WINDOW)
+                    if ac3_batch_job.get() == '' and aac_batch_job.get() == '' and dts_batch_job.get() == '' and opus_batch_job.get() \
+                            == '' and mp3_batch_job.get() == '' and eac3_batch_job.get() == '' and fdkaac_batch_job.get() == '' \
+                            and qaac_batch_job.get() == '' and flac_batch_job.get() == '' and alac_batch_job.get() == '':
+                        batch_processing_window.deiconify()
+                    elif ac3_batch_job.get() != '' or aac_batch_job.get() != '' or dts_batch_job.get() != '' or opus_batch_job.get() \
+                            != '' or mp3_batch_job.get() != '' or eac3_batch_job.get() != '' or fdkaac_batch_job.get() != '' \
+                            or qaac_batch_job.get() != '' or flac_batch_job.get() != '' or alac_batch_job.get() != '':
+                        window.destroy()
+                except NameError:
+                    window.destroy()
+
+
+        def close_window():
+            thread = threading.Thread(target=close_encode)
+            thread.start()
+
+        window = Toplevel(batch_processing_window)
+        window.title('Codec : ' + encoder.get() + '  |  ' + str(pathlib.Path(batch_save_directory)))
+        window.configure(background="#434547")
+        encode_label = Label(window, text="- - - - - - - - - - - - - - - - - - - - - - Progress - - "
+                                          "- - - - - - - - - - - - - - - - - - - -",
+                             font=("Times New Roman", 14), background='#434547', foreground="white")
+        encode_label.grid(column=0, row=0)
+        window.grid_columnconfigure(0, weight=1)
+        window.grid_rowconfigure(0, weight=1)
+        window.grid_rowconfigure(1, weight=1)
+        window.protocol('WM_DELETE_WINDOW', close_window)
+        encode_window_progress = Text(window, width=70, height=2, relief=SUNKEN, bd=3)
+        encode_window_progress.grid(row=1, column=0, pady=(10, 10), padx=10)
+        encode_window_progress.insert(END, '')
+
+
         # AC3 Start Job -----------------------------------------------------------------------------------------------
         if encoder.get() == "AC3":
+            ac3_batch_job.set('Working')
             finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                            + automatic_batch_save_dir + '"' \
                            +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                           '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
-                           + ' -analyzeduration 100M -probesize 50M -i "%a" ' \
+                           '"' + ffmpeg + '"' \
+                           + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                            + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] \
                            + acodec_bitrate_choices[acodec_bitrate.get()] + \
                            acodec_channel_choices[acodec_channel.get()] + \
@@ -4107,12 +4236,21 @@ def batch_processing():
                            + ac3_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " + \
                            '"' + automatic_batch_save_dir + '/%~na.ac3"' + " -hide_banner"
             if shell_options.get() == "Default":
-                subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
+                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', universal_newlines=True,
+                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
+                                       creationflags=subprocess.CREATE_NO_WINDOW)
+                for line in job.stdout:
+                    encode_window_progress.delete('1.0', END)
+                    encode_window_progress.insert(END, line)
+                    ac3_batch_job.set('Working')
+                window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand + '"')
+            ac3_batch_job.set('')
         # ----------------------------------------------------------------------------------------------------- AC3 Job
         # AAC Start Job -----------------------------------------------------------------------------------------------
         elif encoder.get() == "AAC":
+            aac_batch_job.set('Working')
             if aac_vbr_toggle.get() == "-c:a ":
                 bitrate_or_quality = f"-b:a {aac_bitrate_spinbox.get()}k "
             elif aac_vbr_toggle.get() == "-q:a ":
@@ -4120,8 +4258,8 @@ def batch_processing():
             finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                            + automatic_batch_save_dir + '"' \
                            +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                           '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
-                           + ' -analyzeduration 100M -probesize 50M -i "%a" ' \
+                           '"' + ffmpeg + '"' \
+                           + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                            + acodec_stream_choices[acodec_stream.get()] + \
                            encoder_dropdownmenu_choices[encoder.get()] + bitrate_or_quality + \
                            acodec_channel_choices[acodec_channel.get()] + \
@@ -4129,18 +4267,27 @@ def batch_processing():
                            + aac_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " \
                            + '"' + automatic_batch_save_dir + '/%~na.mp4"' + " -hide_banner"
             if shell_options.get() == "Default":
-                subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
+                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                                       creationflags=subprocess.CREATE_NO_WINDOW)
+                for line in job.stdout:
+                    encode_window_progress.delete('1.0', END)
+                    encode_window_progress.insert(END, line)
+                    aac_batch_job.set('Working')
+                window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand + '"')
+            aac_batch_job.set('')
                 # --------------------------------------------------------------------------------------------- AAC Job
         # DTS Start Job -----------------------------------------------------------------------------------------------
         elif encoder.get() == 'DTS':
+            dts_batch_job.set('Working')
             if dts_settings.get() == 'DTS Encoder':
                 finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                                + automatic_batch_save_dir + '"' \
                                +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                               '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
-                               + ' -analyzeduration 100M -probesize 50M -i "%a" ' \
+                               '"' + ffmpeg + '"' \
+                               + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                                + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
                                + "-b:a " + dts_bitrate_spinbox.get() + "k " \
                                + acodec_channel_choices[acodec_channel.get()] \
@@ -4152,23 +4299,32 @@ def batch_processing():
                 finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                                + automatic_batch_save_dir + '"' \
                                +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                               '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
-                               + ' -analyzeduration 100M -probesize 50M -i "%a" ' \
+                               '"' + ffmpeg + '"' \
+                               + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                                + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
                                + dts_custom_cmd_input + "-sn -vn -map_chapters -1 " \
                                + '"' + automatic_batch_save_dir + '/%~na.dts"' + " -hide_banner"
             if shell_options.get() == "Default":
-                subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
+                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                                       creationflags=subprocess.CREATE_NO_WINDOW)
+                for line in job.stdout:
+                    encode_window_progress.delete('1.0', END)
+                    encode_window_progress.insert(END, line)
+                    dts_batch_job.set('Working')
+                window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand + '"')
+            dts_batch_job.set('')
         # --------------------------------------------------------------------------------------------------------- DTS
         # Opus Start Job ----------------------------------------------------------------------------------------------
         elif encoder.get() == "Opus":
+            opus_batch_job.set('Working')
             finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                            + automatic_batch_save_dir + '"' \
                            +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                           '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
-                           + ' -analyzeduration 100M -probesize 50M -i "%a" ' \
+                           '"' + ffmpeg + '"' \
+                           + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                            + acodec_stream_choices[acodec_stream.get()] + \
                            encoder_dropdownmenu_choices[encoder.get()] + \
                            acodec_vbr_choices[acodec_vbr.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + \
@@ -4180,17 +4336,26 @@ def batch_processing():
                            + '"' + automatic_batch_save_dir + '/%~na.opus"' \
                            + " -hide_banner"
             if shell_options.get() == "Default":
-                subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
+                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                                       creationflags=subprocess.CREATE_NO_WINDOW)
+                for line in job.stdout:
+                    encode_window_progress.delete('1.0', END)
+                    encode_window_progress.insert(END, line)
+                    opus_batch_job.set('Working')
+                window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand + '"')
+            opus_batch_job.set('')
         # -------------------------------------------------------------------------------------------------------- Opus
         # MP3 Start Job -----------------------------------------------------------------------------------------------
         elif encoder.get() == "MP3":
+            mp3_batch_job.set('Working')
             finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                            + automatic_batch_save_dir + '"' \
                            +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                           '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
-                           + ' -analyzeduration 100M -probesize 50M -i "%a" ' \
+                           '"' + ffmpeg + '"' \
+                           + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                            + acodec_stream_choices[acodec_stream.get()] \
                            + encoder_dropdownmenu_choices[encoder.get()] + \
                            acodec_bitrate_choices[acodec_bitrate.get()] \
@@ -4201,17 +4366,26 @@ def batch_processing():
                            + automatic_batch_save_dir + '/%~na.mp3"' \
                            + " -hide_banner"
             if shell_options.get() == "Default":
-                subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
+                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                                       creationflags=subprocess.CREATE_NO_WINDOW)
+                for line in job.stdout:
+                    encode_window_progress.delete('1.0', END)
+                    encode_window_progress.insert(END, line)
+                    mp3_batch_job.set('Working')
+                window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand + '"')
+            mp3_batch_job.set('')
         # --------------------------------------------------------------------------------------------------------- MP3
         # E-AC3 Start Job ---------------------------------------------------------------------------------------------
         elif encoder.get() == "E-AC3":
+            eac3_batch_job.set('Working')
             finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                            + automatic_batch_save_dir + '"' \
                            +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                           '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
-                           + ' -analyzeduration 100M -probesize 50M -i "%a" ' \
+                           '"' + ffmpeg + '"' \
+                           + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                            + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] \
                            + "-b:a " + eac3_spinbox.get() + acodec_channel_choices[acodec_channel.get()] \
                            + acodec_samplerate_choices[acodec_samplerate.get()] \
@@ -4237,17 +4411,26 @@ def batch_processing():
                            + "-cpl_start_band " + cpl_start_band.get() + " " + '"' + automatic_batch_save_dir \
                            + '/%~na.ac3"' + " -hide_banner"
             if shell_options.get() == "Default":
-                subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
+                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                                       creationflags=subprocess.CREATE_NO_WINDOW)
+                for line in job.stdout:
+                    encode_window_progress.delete('1.0', END)
+                    encode_window_progress.insert(END, line)
+                    eac3_batch_job.set('Working')
+                window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand + '"')
+            eac3_batch_job.set('')
         # ------------------------------------------------------------------------------------------------------- E-AC3
         # FDK_AAC Start Job -------------------------------------------------------------------------------------------
         elif encoder.get() == "FDK-AAC":
+            fdkaac_batch_job.set('Working')
             finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                            + automatic_batch_save_dir + '"' \
                            +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                           '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
-                           + ' -analyzeduration 100M -probesize 50M -i "%a" ' \
+                           '"' + ffmpeg + '"' \
+                           + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                            + acodec_stream_choices[acodec_stream.get()] \
                            + acodec_channel_choices[acodec_channel.get()] + \
                            acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting + \
@@ -4262,18 +4445,27 @@ def batch_processing():
                            acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " + '"' + automatic_batch_save_dir \
                            + '/%~na.m4a"' + '"'
             if shell_options.get() == "Default":
-                subprocess.Popen('cmd /c ' + finalcommand)
+                job = subprocess.Popen('cmd /c ' + finalcommand, stdout=subprocess.PIPE, stdin=subprocess.DEVNULL,
+                                       stderr=subprocess.STDOUT, universal_newlines=True,
+                                       creationflags=subprocess.CREATE_NO_WINDOW)
+                for line in job.stdout:
+                    encode_window_progress.delete('1.0', END)
+                    encode_window_progress.insert(END, line)
+                    fdkaac_batch_job.set('Working')
+                window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand)
+            fdkaac_batch_job.set('')
         # --------------------------------------------------------------------------------------------------------- FDK
         # QAAC Start Job ----------------------------------------------------------------------------------------------
         elif encoder.get() == "QAAC":
+            qaac_batch_job.set('Working')
             if q_acodec_profile.get() == "True VBR":
                 finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                                + automatic_batch_save_dir + '"' \
                                +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                               '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
-                               + ' -analyzeduration 100M -probesize 50M -i "%a" ' \
+                               '"' + ffmpeg + '"' \
+                               + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                                + acodec_stream_choices[acodec_stream.get()] \
                                + acodec_channel_choices[acodec_channel.get()] + audio_filter_setting \
                                + acodec_samplerate_choices[acodec_samplerate.get()] \
@@ -4290,8 +4482,8 @@ def batch_processing():
                 finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                                + automatic_batch_save_dir + '"' \
                                +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                               '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
-                               + ' -analyzeduration 100M -probesize 50M -i "%a" ' \
+                               '"' + ffmpeg + '"' \
+                               + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                                + acodec_stream_choices[acodec_stream.get()] + \
                                acodec_channel_choices[acodec_channel.get()] + audio_filter_setting + \
                                acodec_samplerate_choices[acodec_samplerate.get()] \
@@ -4304,17 +4496,26 @@ def batch_processing():
                                + qaac_threading.get() + qaac_limiter.get() + qaac_title_input \
                                + qaac_custom_cmd_input + "- -o " + '"' + automatic_batch_save_dir + '/%~na.m4a"' + '"'
             if shell_options.get() == "Default":
-                subprocess.Popen('cmd /c ' + finalcommand)
+                job = subprocess.Popen('cmd /c ' + finalcommand, stdout=subprocess.PIPE, stdin=subprocess.DEVNULL,
+                                       stderr=subprocess.STDOUT, universal_newlines=True,
+                                       creationflags=subprocess.CREATE_NO_WINDOW)
+                for line in job.stdout:
+                    encode_window_progress.delete('1.0', END)
+                    encode_window_progress.insert(END, line)
+                    qaac_batch_job.set('Working')
+                window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand)
+            qaac_batch_job.set('')
         # -------------------------------------------------------------------------------------------------------- QAAC
         # FLAC Start Job ----------------------------------------------------------------------------------------------
         if encoder.get() == "FLAC":
+            flac_batch_job.set('Working')
             finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                            + automatic_batch_save_dir + '"' \
                            +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                           '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
-                           + ' -analyzeduration 100M -probesize 50M -i "%a" ' \
+                           '"' + ffmpeg + '"' \
+                           + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                            + acodec_stream_choices[acodec_stream.get()] \
                            + encoder_dropdownmenu_choices[encoder.get()] + \
                            acodec_bitrate_choices[acodec_bitrate.get()] + \
@@ -4325,17 +4526,26 @@ def batch_processing():
                            + flac_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " + \
                            '"' + automatic_batch_save_dir + '/%~na.flac"' + " -hide_banner"
             if shell_options.get() == "Default":
-                subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
+                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                                       creationflags=subprocess.CREATE_NO_WINDOW)
+                for line in job.stdout:
+                    encode_window_progress.delete('1.0', END)
+                    encode_window_progress.insert(END, line)
+                    flac_batch_job.set('Working')
+                window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand + '"')
+            flac_batch_job.set('')
         # ---------------------------------------------------------------------------------------------------- FLAC Job
         # FLAC Start Job ----------------------------------------------------------------------------------------------
         if encoder.get() == "ALAC":
+            alac_batch_job.set('Working')
             finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                            + automatic_batch_save_dir + '"' \
                            +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                           '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
-                           + ' -analyzeduration 100M -probesize 50M -i "%a" ' \
+                           '"' + ffmpeg + '"' \
+                           + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                            + acodec_stream_choices[acodec_stream.get()] \
                            + encoder_dropdownmenu_choices[encoder.get()] + \
                            acodec_channel_choices[acodec_channel.get()] + \
@@ -4344,9 +4554,17 @@ def batch_processing():
                            + "-sn -vn -map_chapters -1 -map_metadata -1 " + \
                            '"' + automatic_batch_save_dir + '/%~na.m4a"' + " -hide_banner"
             if shell_options.get() == "Default":
-                subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
+                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                                       creationflags=subprocess.CREATE_NO_WINDOW)
+                for line in job.stdout:
+                    encode_window_progress.delete('1.0', END)
+                    encode_window_progress.insert(END, line)
+                    alac_batch_job.set('Working')
+                window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand + '"')
+            alac_batch_job.set('')
         # ---------------------------------------------------------------------------------------------------- FLAC Job
 
     # Print Command Line from Batch -----------------------------------------------------------------------------------
@@ -4603,6 +4821,7 @@ def batch_processing():
     command_line_button_batch.bind("<Enter>", command_line_button_batch_hover)
     command_line_button_batch.bind("<Leave>", command_line_button_batch_hover_leave)
 
+
     def start_audio_button_batch_hover(e):
         start_audio_button_batch["bg"] = "grey"
 
@@ -4610,7 +4829,8 @@ def batch_processing():
         start_audio_button_batch["bg"] = "#23272A"
 
     # Start Batch Jobs
-    start_audio_button_batch = Button(batch_processing_window, text="Start Batch Jobs", command=startbatchaudiojob,
+    start_audio_button_batch = Button(batch_processing_window, text="Start Batch Jobs",
+                                      command = lambda: threading.Thread(target=startbatchaudiojob).start(),
                                 state=DISABLED, foreground="white", background="#23272A", borderwidth="3")
     start_audio_button_batch.grid(row=3, column=1, columnspan=3, padx=5, pady=5, sticky=N + S + E + W)
     start_audio_button_batch.bind("<Enter>", start_audio_button_batch_hover)

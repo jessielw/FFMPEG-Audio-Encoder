@@ -23,16 +23,25 @@ from Packages.FFMPEGAudioEncoderBatch import batch_processing
 from Packages.About import openaboutwindow
 
 # Main Gui & Windows --------------------------------------------------------
+
+
 def root_exit_function():
-    confirm_exit = messagebox.askyesno(title='Prompt', message="Are you sure you want to exit the program?",
+    global example_cmd_output, ac3_job, aac_job, dts_job, opus_job, mp3_job, eac3_job, \
+        fdkaac_job, qaac_job, flac_job, alac_job
+    confirm_exit = messagebox.askyesno(title='Prompt', message="Are you sure you want to exit the program?\nThis "
+                                                               "will end all current taks.",
                                        parent=root)
     if confirm_exit == False:
         pass
     elif confirm_exit == True:
-        root.destroy()
+        try:
+            subprocess.Popen(f"TASKKILL /F /im FFMPEGAudioEncoder.exe /T", creationflags=subprocess.CREATE_NO_WINDOW)
+            root.destroy()
+        except:
+            root.destroy()
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v2.9.7")
+root.title("FFMPEG Audio Encoder v3.0")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 210
@@ -146,6 +155,7 @@ def encoder_changed(*args):
         output_entry.configure(state=DISABLED)
         audiosettings_button.configure(state=NORMAL)
         command_line_button.config(state=DISABLED)
+        start_audio_button.config(state=DISABLED)
         autosavefilename = VideoOut.name
 
 
@@ -4340,28 +4350,67 @@ def print_command_line():
     cmd_label.config(font=("Helvetica", 16))
     cmd_label.pack()
 
-
 # ---------------------------------------------------------------------------------------- Print Command Line from ROOT
 
 # Start Audio Job -----------------------------------------------------------------------------------------------------
 def startaudiojob():
-    global example_cmd_output
+    global example_cmd_output, ac3_job, aac_job, dts_job, opus_job, mp3_job, eac3_job, \
+        fdkaac_job, qaac_job, flac_job, alac_job
     # Quote File Input/Output Paths------------
     VideoInputQuoted = '"' + VideoInput + '"'
     VideoOutputQuoted = '"' + VideoOutput + '"'
-    audio_filter_function()
     # -------------------------- Quote File Paths
+    # Combine audio filters for FFMPEG
+    audio_filter_function()
+    # ------------------------- Filters
+
+    if shell_options.get() == "Default":
+        def close_encode():
+            confirm_exit = messagebox.askyesno(title='Prompt',
+                                               message="Are you sure you want to stop the encode?", parent=window)
+            if confirm_exit == False:
+                pass
+            elif confirm_exit == True:
+                subprocess.Popen(f"TASKKILL /F /PID {job.pid} /T", creationflags=subprocess.CREATE_NO_WINDOW)
+                window.destroy()
+
+        def close_window():
+            thread = threading.Thread(target=close_encode)
+            thread.start()
+
+        window = tk.Toplevel(root)
+        window.title('Codec : ' + encoder.get() + '  |  ' + str(pathlib.Path(VideoInput).stem))
+        window.configure(background="#434547")
+        encode_label = Label(window, text="- - - - - - - - - - - - - - - - - - - - - - Progress - - "
+                                          "- - - - - - - - - - - - - - - - - - - -",
+              font=("Times New Roman", 14), background='#434547', foreground="white")
+        encode_label.grid(column=0, row=0)
+        window.grid_columnconfigure(0, weight=1)
+        window.grid_rowconfigure(0, weight=1)
+        window.grid_rowconfigure(1, weight=1)
+        window.protocol('WM_DELETE_WINDOW', close_window)
+        encode_window_progress = Text(window, width=70, height=2, relief=SUNKEN, bd=3)
+        encode_window_progress.grid(row=1, column=0, pady=(10,10), padx=10)
+        encode_window_progress.insert(END, '')
+
     # AC3 Start Job ---------------------------------------------------------------------------------------------------
     if encoder.get() == "AC3":
-        finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+        finalcommand = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
                        acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
                        acodec_bitrate_choices[acodec_bitrate.get()] + \
                        acodec_channel_choices[acodec_channel.get()] + \
                        acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
                        + "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input + \
                        VideoOutputQuoted + " -hide_banner"
+
         if shell_options.get() == "Default":
-            subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
+            job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', universal_newlines=True,
+                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
+                                   creationflags=subprocess.CREATE_NO_WINDOW)
+            for line in job.stdout:
+                encode_window_progress.delete('1.0', END)
+                encode_window_progress.insert(END, line)
+            window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
     # --------------------------------------------------------------------------------------------------------- AC3 Job
@@ -4371,7 +4420,7 @@ def startaudiojob():
             bitrate_or_quality = f"-b:a {aac_bitrate_spinbox.get()}k "
         elif aac_vbr_toggle.get() == "-q:a ":
             bitrate_or_quality = f"-q:a {aac_quality_spinbox.get()} "
-        finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+        finalcommand = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
                        acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
                        bitrate_or_quality + acodec_channel_choices[acodec_channel.get()] + \
                        acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
@@ -4379,14 +4428,20 @@ def startaudiojob():
                        + aac_custom_cmd_input \
                        + aac_title_input + VideoOutputQuoted + " -hide_banner"
         if shell_options.get() == "Default":
-            subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
+            job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                                   creationflags=subprocess.CREATE_NO_WINDOW)
+            for line in job.stdout:
+                encode_window_progress.delete('1.0', END)
+                encode_window_progress.insert(END, line)
+            window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
             # ------------------------------------------------------------------------------------------------- AAC Job
     # DTS Start Job ---------------------------------------------------------------------------------------------------
     elif encoder.get() == 'DTS':
         if dts_settings.get() == 'DTS Encoder':
-            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+            finalcommand = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
                            acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
                            + "-b:a " + dts_bitrate_spinbox.get() + "k " \
                            + acodec_channel_choices[acodec_channel.get()] \
@@ -4395,18 +4450,24 @@ def startaudiojob():
                            + "-sn -vn -map_chapters -1 " \
                            + VideoOutputQuoted + " -hide_banner"
         else:
-            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted \
+            finalcommand = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted \
                            + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
                            + dts_custom_cmd_input + "-sn -vn -map_chapters -1 " \
                            + VideoOutputQuoted + " -hide_banner"
         if shell_options.get() == "Default":
-            subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
+            job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT,stdin=subprocess.DEVNULL, universal_newlines=True,
+                                   creationflags=subprocess.CREATE_NO_WINDOW)
+            for line in job.stdout:
+                encode_window_progress.delete('1.0', END)
+                encode_window_progress.insert(END, line)
+            window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
     # ------------------------------------------------------------------------------------------------------------- DTS
     # Opus Start Job --------------------------------------------------------------------------------------------------
     elif encoder.get() == "Opus":
-        finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+        finalcommand = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
                        acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
                        acodec_vbr_choices[acodec_vbr.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + \
                        acodec_channel_choices[acodec_channel.get()] + \
@@ -4416,26 +4477,38 @@ def startaudiojob():
                        audio_filter_setting + "-sn -vn -map_chapters -1 -map_metadata -1 " \
                        + opus_custom_cmd_input + VideoOutputQuoted + " -hide_banner"
         if shell_options.get() == "Default":
-            subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
+            job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                                   creationflags=subprocess.CREATE_NO_WINDOW)
+            for line in job.stdout:
+                encode_window_progress.delete('1.0', END)
+                encode_window_progress.insert(END, line)
+            window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
     # ------------------------------------------------------------------------------------------------------------ Opus
     # MP3 Start Job ---------------------------------------------------------------------------------------------------
     elif encoder.get() == "MP3":
-        finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+        finalcommand = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
                        acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
                        acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] \
                        + mp3_abr.get() + acodec_samplerate_choices[acodec_samplerate.get()] \
                        + audio_filter_setting + "-sn -vn -map_chapters -1 -map_metadata -1 " \
                        + mp3_custom_cmd_input + VideoOutputQuoted + " -hide_banner"
         if shell_options.get() == "Default":
-            subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
+            job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                                   creationflags=subprocess.CREATE_NO_WINDOW)
+            for line in job.stdout:
+                encode_window_progress.delete('1.0', END)
+                encode_window_progress.insert(END, line)
+            window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
     # ------------------------------------------------------------------------------------------------------------- MP3
     # E-AC3 Start Job -------------------------------------------------------------------------------------------------
     elif encoder.get() == "E-AC3":
-        finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+        finalcommand = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
                        acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] \
                        + "-b:a " + eac3_spinbox.get() + acodec_channel_choices[acodec_channel.get()] \
                        + acodec_samplerate_choices[acodec_samplerate.get()] \
@@ -4461,13 +4534,19 @@ def startaudiojob():
                        + "-cpl_start_band " + cpl_start_band.get() + " " + \
                        VideoOutputQuoted + " -hide_banner"
         if shell_options.get() == "Default":
-            subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
+            job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                                   creationflags=subprocess.CREATE_NO_WINDOW)
+            for line in job.stdout:
+                encode_window_progress.delete('1.0', END)
+                encode_window_progress.insert(END, line)
+            window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
     # ----------------------------------------------------------------------------------------------------------- E-AC3
     # FDK_AAC Start Job -----------------------------------------------------------------------------------------------
     elif encoder.get() == "FDK-AAC":
-        finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+        finalcommand = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
                        acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + \
                        acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting + \
                        "-f caf - | " + fdkaac + " " + acodec_profile_choices[acodec_profile.get()] + \
@@ -4479,14 +4558,20 @@ def startaudiojob():
                        acodec_transport_format_choices[acodec_transport_format.get()] + \
                        acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " + VideoOutputQuoted + '"'
         if shell_options.get() == "Default":
-            subprocess.Popen('cmd /c ' + finalcommand)
+            job = subprocess.Popen('cmd /c ' + finalcommand, stdout=subprocess.PIPE, stdin=subprocess.DEVNULL,
+                                   stderr=subprocess.STDOUT, universal_newlines=True,
+                                   creationflags=subprocess.CREATE_NO_WINDOW)
+            for line in job.stdout:
+                encode_window_progress.delete('1.0', END)
+                encode_window_progress.insert(END, line)
+            window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand)
     # ------------------------------------------------------------------------------------------------------------- FDK
     # QAAC Start Job --------------------------------------------------------------------------------------------------
     elif encoder.get() == "QAAC":
         if q_acodec_profile.get() == "True VBR":
-            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " \
+            finalcommand = ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
                            + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] \
                            + acodec_channel_choices[acodec_channel.get()] + audio_filter_setting \
                            + acodec_samplerate_choices[acodec_samplerate.get()] \
@@ -4497,7 +4582,7 @@ def startaudiojob():
                            + qaac_nodelay.get() \
                            + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
                            + qaac_threading.get() + qaac_limiter.get() + qaac_title_input + qaac_custom_cmd_input \
-                           + "- -o " + VideoOutputQuoted + '"'
+                           + "- -o " + VideoOutputQuoted
         else:
             finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted \
                            + acodec_stream_choices[acodec_stream.get()] + \
@@ -4511,13 +4596,19 @@ def startaudiojob():
                            + qaac_threading.get() + qaac_limiter.get() + qaac_title_input \
                            + qaac_custom_cmd_input + "- -o " + VideoOutputQuoted + '"'
         if shell_options.get() == "Default":
-            subprocess.Popen('cmd /c ' + finalcommand)
+            job = subprocess.Popen('cmd /c ' + finalcommand, stdout=subprocess.PIPE, stdin=subprocess.DEVNULL,
+                                   stderr=subprocess.STDOUT, universal_newlines=True,
+                                   creationflags=subprocess.CREATE_NO_WINDOW)
+            for line in job.stdout:
+                encode_window_progress.delete('1.0', END)
+                encode_window_progress.insert(END, line)
+            window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand)
     # ------------------------------------------------------------------------------------------------------------ QAAC
     # FLAC Start Job --------------------------------------------------------------------------------------------------
     elif encoder.get() == "FLAC":
-        finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+        finalcommand = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
                        acodec_stream_choices[acodec_stream.get()] \
                        + encoder_dropdownmenu_choices[encoder.get()] + \
                        acodec_bitrate_choices[acodec_bitrate.get()] + \
@@ -4528,13 +4619,19 @@ def startaudiojob():
                        + acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] \
                        + flac_custom_cmd_input + " " + VideoOutputQuoted + " -hide_banner"
         if shell_options.get() == "Default":
-            subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
+            job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                                   creationflags=subprocess.CREATE_NO_WINDOW)
+            for line in job.stdout:
+                encode_window_progress.delete('1.0', END)
+                encode_window_progress.insert(END, line)
+            window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
     # ------------------------------------------------------------------------------------------------------------ FLAC
     # ALAC Start Job --------------------------------------------------------------------------------------------------
     elif encoder.get() == "ALAC":
-        finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+        finalcommand = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
                        acodec_stream_choices[acodec_stream.get()] \
                        + encoder_dropdownmenu_choices[encoder.get()] + \
                        acodec_channel_choices[acodec_channel.get()] + \
@@ -4542,7 +4639,13 @@ def startaudiojob():
                        + min_pre_order + max_pre_order + flac_custom_cmd_input \
                        + " " + VideoOutputQuoted + " -hide_banner"
         if shell_options.get() == "Default":
-            subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"')
+            job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                                   creationflags=subprocess.CREATE_NO_WINDOW)
+            for line in job.stdout:
+                encode_window_progress.delete('1.0', END)
+                encode_window_progress.insert(END, line)
+            window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
     # ------------------------------------------------------------------------------------------------------------ ALAC
@@ -4652,11 +4755,15 @@ command_line_button.bind("<Enter>", command_line_button_hover)
 command_line_button.bind("<Leave>", command_line_button_hover_leave)
 
 # Start Audio Job
-start_audio_button = Button(root, text="Start Audio Job", command=startaudiojob, state=DISABLED, foreground="white",
-                            background="#23272A", borderwidth="3")
+start_audio_button = Button(root, text="Start Audio Job",
+                            command=lambda: threading.Thread(target=startaudiojob).start(),
+                            state=DISABLED, foreground="white", background="#23272A", borderwidth="3")
 start_audio_button.grid(row=3, column=1, columnspan=3, padx=5, pady=5, sticky=N + S + E + W)
 start_audio_button.bind("<Enter>", start_audio_button_hover)
 start_audio_button.bind("<Leave>", start_audio_button_hover_leave)
+
+batch_open_closed = StringVar()
+batch_open_closed.set('Closed')
 
 open_batch_processing_window = Button(root, text="Batch\nProcess", command=batch_processing, foreground="white",
                              background="#23272A", borderwidth="3")
@@ -4963,6 +5070,5 @@ else:
         threading.Thread(target=downloadfiles).start()
 
 # -------------------------------------------------------------------------------------------- Checks for required apps
-
 # End Loop ------------------------------------------------------------------------------------------------------------
 root.mainloop()
