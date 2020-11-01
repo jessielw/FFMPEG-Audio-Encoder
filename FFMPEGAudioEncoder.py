@@ -54,7 +54,7 @@ root.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_
 root.protocol('WM_DELETE_WINDOW', root_exit_function)
 
 for n in range(4):
-    root.gridcolumnconfigure(n, weight=1)
+    root.grid_columnconfigure(n, weight=1)
 for n in range(4):
     root.grid_rowconfigure(n, weight=1)
 
@@ -526,7 +526,6 @@ def openaudiowindow():
                 audio_window.grid_columnconfigure(n, weight=1)
             for n in range(4):
                 audio_window.grid_rowconfigure(n, weight=1)
-            audio_window.grid_rowconfigure(8, weight=1)
 
             # Views Command -------------------------------------------------------------------------------------------
             def view_command():
