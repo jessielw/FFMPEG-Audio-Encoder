@@ -26,8 +26,6 @@ from Packages.About import openaboutwindow
 
 
 def root_exit_function():
-    global example_cmd_output, ac3_job, aac_job, dts_job, opus_job, mp3_job, eac3_job, \
-        fdkaac_job, qaac_job, flac_job, alac_job
     confirm_exit = messagebox.askyesno(title='Prompt', message="Are you sure you want to exit the program?\nThis "
                                                                "will end all current taks.",
                                        parent=root)
@@ -4364,6 +4362,16 @@ def startaudiojob():
     # ------------------------- Filters
 
     if shell_options.get() == "Default":
+        global total_duration
+        mediainfocli_cmd = '"' + mediainfocli + " " + '--Inform="General;%Duration%"' \
+                           + " " + VideoInputQuoted + '"'
+        mediainfo_duration = subprocess.Popen('cmd /c ' + mediainfocli_cmd, creationflags=subprocess.CREATE_NO_WINDOW,
+                                           universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                           stdin=subprocess.PIPE)
+        stdout, stderr = mediainfo_duration.communicate()
+        total_duration = stdout[:-4]
+        print(total_duration)
+
         def close_encode():
             confirm_exit = messagebox.askyesno(title='Prompt',
                                                message="Are you sure you want to stop the encode?", parent=window)
@@ -4389,8 +4397,10 @@ def startaudiojob():
         window.grid_rowconfigure(1, weight=1)
         window.protocol('WM_DELETE_WINDOW', close_window)
         encode_window_progress = Text(window, width=70, height=2, relief=SUNKEN, bd=3)
-        encode_window_progress.grid(row=1, column=0, pady=(10,10), padx=10)
+        encode_window_progress.grid(row=1, column=0, pady=(10,6), padx=10)
         encode_window_progress.insert(END, '')
+        app_progress_bar = ttk.Progressbar(window, orient=HORIZONTAL, length=630, mode='determinate')
+        app_progress_bar.grid(row=2, pady=(0,10))
 
     # AC3 Start Job ---------------------------------------------------------------------------------------------------
     if encoder.get() == "AC3":
@@ -4409,6 +4419,10 @@ def startaudiojob():
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
+                time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
+                progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
+                percent = '{:.1%}'.format(progress/int(total_duration)).split('.',1)[0]
+                app_progress_bar['value'] = int(percent)
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4433,6 +4447,10 @@ def startaudiojob():
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
+                time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
+                progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
+                percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
+                app_progress_bar['value'] = int(percent)
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4460,6 +4478,10 @@ def startaudiojob():
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
+                time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
+                progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
+                percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
+                app_progress_bar['value'] = int(percent)
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4482,6 +4504,10 @@ def startaudiojob():
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
+                time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
+                progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
+                percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
+                app_progress_bar['value'] = int(percent)
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4501,6 +4527,10 @@ def startaudiojob():
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
+                time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
+                progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
+                percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
+                app_progress_bar['value'] = int(percent)
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4539,23 +4569,31 @@ def startaudiojob():
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
+                time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
+                progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
+                percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
+                app_progress_bar['value'] = int(percent)
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
     # ----------------------------------------------------------------------------------------------------------- E-AC3
     # FDK_AAC Start Job -----------------------------------------------------------------------------------------------
     elif encoder.get() == "FDK-AAC":
+        if shell_options.get() == "Default":
+            silent = '--silent '
+        else:
+            silent = ' '
         finalcommand = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
                        acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + \
                        acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting + \
-                       "-f caf - | " + fdkaac + " " + acodec_profile_choices[acodec_profile.get()] + \
+                       "-f caf - -hide_banner -v error -stats |" + fdkaac + " " + acodec_profile_choices[acodec_profile.get()] + \
                        fdkaac_title_input + fdkaac_custom_cmd_input + \
                        afterburnervar.get() + crccheck.get() + moovbox.get() \
                        + sbrdelay.get() + headerperiod.get() + \
                        acodec_lowdelay_choices[acodec_lowdelay.get()] + \
                        acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] + \
                        acodec_transport_format_choices[acodec_transport_format.get()] + \
-                       acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " + VideoOutputQuoted + '"'
+                       acodec_bitrate_choices[acodec_bitrate.get()] + silent + " - -o " + VideoOutputQuoted + '"'
         if shell_options.get() == "Default":
             job = subprocess.Popen('cmd /c ' + finalcommand, stdout=subprocess.PIPE, stdin=subprocess.DEVNULL,
                                    stderr=subprocess.STDOUT, universal_newlines=True,
@@ -4563,37 +4601,47 @@ def startaudiojob():
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
+                time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
+                progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
+                percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
+                app_progress_bar['value'] = int(percent)
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand)
     # ------------------------------------------------------------------------------------------------------------- FDK
     # QAAC Start Job --------------------------------------------------------------------------------------------------
     elif encoder.get() == "QAAC":
+        if shell_options.get() == "Default":
+            silent = '--silent '
+        else:
+            silent = ' '
         if q_acodec_profile.get() == "True VBR":
             finalcommand = ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
                            + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] \
                            + acodec_channel_choices[acodec_channel.get()] + audio_filter_setting \
                            + acodec_samplerate_choices[acodec_samplerate.get()] \
-                           + "-f wav - | " + qaac + " " + q_acodec_profile_choices[q_acodec_profile.get()] \
+                           + "-f wav - -hide_banner -v error -stats | " + qaac \
+                           + " " + q_acodec_profile_choices[q_acodec_profile.get()] \
                            + q_acodec_quality_amnt.get() + " " + qaac_high_efficiency.get() \
                            + qaac_normalize.get() + qaac_nodither.get() + "--gain " \
                            + q_acodec_gain.get() + " " + q_acodec_quality_choices[q_acodec_quality.get()] \
                            + qaac_nodelay.get() \
                            + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
                            + qaac_threading.get() + qaac_limiter.get() + qaac_title_input + qaac_custom_cmd_input \
-                           + "- -o " + VideoOutputQuoted
+                           + silent + " - -o " + VideoOutputQuoted
         else:
             finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted \
                            + acodec_stream_choices[acodec_stream.get()] + \
                            acodec_channel_choices[acodec_channel.get()] + audio_filter_setting + \
                            acodec_samplerate_choices[acodec_samplerate.get()] \
-                           + "-f wav - | " + qaac + " " + q_acodec_profile_choices[q_acodec_profile.get()] + \
+                           + "-f wav - -hide_banner -v error -stats | " + qaac \
+                           + " " + q_acodec_profile_choices[q_acodec_profile.get()] + \
                            q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() \
                            + qaac_nodither.get() + "--gain " + q_acodec_gain.get() + " " \
                            + q_acodec_quality_choices[q_acodec_quality.get()] + qaac_nodelay.get() \
                            + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
                            + qaac_threading.get() + qaac_limiter.get() + qaac_title_input \
-                           + qaac_custom_cmd_input + "- -o " + VideoOutputQuoted + '"'
+                           + qaac_custom_cmd_input + silent + " - -o " + VideoOutputQuoted + '"'
         if shell_options.get() == "Default":
             job = subprocess.Popen('cmd /c ' + finalcommand, stdout=subprocess.PIPE, stdin=subprocess.DEVNULL,
                                    stderr=subprocess.STDOUT, universal_newlines=True,
@@ -4601,6 +4649,10 @@ def startaudiojob():
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
+                time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
+                progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
+                percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
+                app_progress_bar['value'] = int(percent)
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand)
@@ -4624,6 +4676,10 @@ def startaudiojob():
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
+                time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
+                progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
+                percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
+                app_progress_bar['value'] = int(percent)
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4644,6 +4700,10 @@ def startaudiojob():
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
+                time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
+                progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
+                percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
+                app_progress_bar['value'] = int(percent)
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4761,10 +4821,11 @@ start_audio_button.grid(row=3, column=1, columnspan=3, padx=5, pady=5, sticky=N 
 start_audio_button.bind("<Enter>", start_audio_button_hover)
 start_audio_button.bind("<Leave>", start_audio_button_hover_leave)
 
-batch_open_closed = StringVar()
-batch_open_closed.set('Closed')
+def batch_processing_command():
+    batch_processing()
+    root.wm_state("iconic")  # Minimizes main window while it opens batch_processing window
 
-open_batch_processing_window = Button(root, text="Batch\nProcess", command=batch_processing, foreground="white",
+open_batch_processing_window = Button(root, text="Batch\nProcess", command=batch_processing_command, foreground="white",
                              background="#23272A", borderwidth="3")
 open_batch_processing_window.grid(row=1, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
 open_batch_processing_window.bind("<Enter>", open_batch_processing_window_hover)
