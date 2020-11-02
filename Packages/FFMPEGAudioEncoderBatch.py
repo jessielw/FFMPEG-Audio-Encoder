@@ -6,6 +6,7 @@ import tkinter.scrolledtext as scrolledtextwidget
 from TkinterDnD2 import *
 import shutil
 import threading
+from tkinter import ttk
 
 # Bundled Apps Quoted -------------------------------
 if shutil.which('ffmpeg') != None:
@@ -4217,8 +4218,10 @@ def batch_processing():
         window.grid_rowconfigure(1, weight=1)
         window.protocol('WM_DELETE_WINDOW', close_window)
         encode_window_progress = Text(window, width=70, height=2, relief=SUNKEN, bd=3)
-        encode_window_progress.grid(row=1, column=0, pady=(10, 10), padx=10)
+        encode_window_progress.grid(row=1, column=0, pady=(10,6), padx=10)
         encode_window_progress.insert(END, '')
+        # app_progress_bar = ttk.Progressbar(window, orient=HORIZONTAL, length=630, mode='determinate')
+        # app_progress_bar.grid(row=2, pady=(0,10))
 
 
         # AC3 Start Job -----------------------------------------------------------------------------------------------
