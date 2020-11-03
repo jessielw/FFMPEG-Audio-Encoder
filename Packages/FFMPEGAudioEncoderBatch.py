@@ -7,6 +7,7 @@ from TkinterDnD2 import *
 import shutil
 import threading
 from tkinter import ttk
+from time import sleep
 
 # Bundled Apps Quoted -------------------------------
 if shutil.which('ffmpeg') != None:
@@ -4160,6 +4161,15 @@ def batch_processing():
             automatic_batch_save_dir = batch_input_directory + '/Encoded'
         audio_filter_function()
 
+        ext = extension_dropdownmenu_choices[extension.get()].replace('"', '').replace("(", '')\
+            .replace(")", '').replace("*", '').replace(' ', '')
+
+
+        import os
+        extension_counter = len([f for f in os.listdir(batch_input_directory)
+             if f.endswith(tuple(ext))
+                       and os.path.isfile(os.path.join(batch_input_directory, f))])
+
         ac3_batch_job = StringVar()
         aac_batch_job = StringVar()
         dts_batch_job = StringVar()
@@ -4220,8 +4230,8 @@ def batch_processing():
         encode_window_progress = Text(window, width=70, height=2, relief=SUNKEN, bd=3)
         encode_window_progress.grid(row=1, column=0, pady=(10,6), padx=10)
         encode_window_progress.insert(END, '')
-        # app_progress_bar = ttk.Progressbar(window, orient=HORIZONTAL, length=630, mode='determinate')
-        # app_progress_bar.grid(row=2, pady=(0,10))
+        app_progress_bar = ttk.Progressbar(window, orient=HORIZONTAL, length=630, mode='determinate')
+        app_progress_bar.grid(row=2, pady=(0,10))
 
 
         # AC3 Start Job -----------------------------------------------------------------------------------------------
@@ -4239,13 +4249,24 @@ def batch_processing():
                            + ac3_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " + \
                            '"' + automatic_batch_save_dir + '/%~na.ac3"' + " -hide_banner"
             if shell_options.get() == "Default":
-                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', universal_newlines=True,
-                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
+                next_job = 0
+                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats & echo JOBDONE"',
+                                       universal_newlines=True, stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                        creationflags=subprocess.CREATE_NO_WINDOW)
                 for line in job.stdout:
                     encode_window_progress.delete('1.0', END)
                     encode_window_progress.insert(END, line)
                     ac3_batch_job.set('Working')
+                    try:
+                        job_done = line.split()[0]
+                        if job_done == 'JOBDONE':
+                            next_job += 1
+                        percent = '{:.1%}'.format(next_job / int(extension_counter)).split('.', 1)[0]
+                        app_progress_bar['value'] = int(percent)
+                    except:
+                        pass
+                sleep(2)
                 window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4270,13 +4291,24 @@ def batch_processing():
                            + aac_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " \
                            + '"' + automatic_batch_save_dir + '/%~na.mp4"' + " -hide_banner"
             if shell_options.get() == "Default":
-                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                next_job = 0
+                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats & echo JOBDONE"',
+                                       universal_newlines=True, stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                        creationflags=subprocess.CREATE_NO_WINDOW)
                 for line in job.stdout:
                     encode_window_progress.delete('1.0', END)
                     encode_window_progress.insert(END, line)
                     aac_batch_job.set('Working')
+                    try:
+                        job_done = line.split()[0]
+                        if job_done == 'JOBDONE':
+                            next_job += 1
+                        percent = '{:.1%}'.format(next_job / int(extension_counter)).split('.', 1)[0]
+                        app_progress_bar['value'] = int(percent)
+                    except:
+                        pass
+                sleep(2)
                 window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4308,13 +4340,24 @@ def batch_processing():
                                + dts_custom_cmd_input + "-sn -vn -map_chapters -1 " \
                                + '"' + automatic_batch_save_dir + '/%~na.dts"' + " -hide_banner"
             if shell_options.get() == "Default":
-                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                next_job = 0
+                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats & echo JOBDONE"',
+                                       universal_newlines=True, stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                        creationflags=subprocess.CREATE_NO_WINDOW)
                 for line in job.stdout:
                     encode_window_progress.delete('1.0', END)
                     encode_window_progress.insert(END, line)
                     dts_batch_job.set('Working')
+                    try:
+                        job_done = line.split()[0]
+                        if job_done == 'JOBDONE':
+                            next_job += 1
+                        percent = '{:.1%}'.format(next_job / int(extension_counter)).split('.', 1)[0]
+                        app_progress_bar['value'] = int(percent)
+                    except:
+                        pass
+                sleep(2)
                 window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4339,13 +4382,24 @@ def batch_processing():
                            + '"' + automatic_batch_save_dir + '/%~na.opus"' \
                            + " -hide_banner"
             if shell_options.get() == "Default":
-                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                next_job = 0
+                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats & echo JOBDONE"',
+                                       universal_newlines=True, stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                        creationflags=subprocess.CREATE_NO_WINDOW)
                 for line in job.stdout:
                     encode_window_progress.delete('1.0', END)
                     encode_window_progress.insert(END, line)
                     opus_batch_job.set('Working')
+                    try:
+                        job_done = line.split()[0]
+                        if job_done == 'JOBDONE':
+                            next_job += 1
+                        percent = '{:.1%}'.format(next_job / int(extension_counter)).split('.', 1)[0]
+                        app_progress_bar['value'] = int(percent)
+                    except:
+                        pass
+                sleep(2)
                 window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4369,13 +4423,24 @@ def batch_processing():
                            + automatic_batch_save_dir + '/%~na.mp3"' \
                            + " -hide_banner"
             if shell_options.get() == "Default":
-                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                next_job = 0
+                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats & echo JOBDONE"',
+                                       universal_newlines=True, stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                        creationflags=subprocess.CREATE_NO_WINDOW)
                 for line in job.stdout:
                     encode_window_progress.delete('1.0', END)
                     encode_window_progress.insert(END, line)
                     mp3_batch_job.set('Working')
+                    try:
+                        job_done = line.split()[0]
+                        if job_done == 'JOBDONE':
+                            next_job += 1
+                        percent = '{:.1%}'.format(next_job / int(extension_counter)).split('.', 1)[0]
+                        app_progress_bar['value'] = int(percent)
+                    except:
+                        pass
+                sleep(2)
                 window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4414,13 +4479,24 @@ def batch_processing():
                            + "-cpl_start_band " + cpl_start_band.get() + " " + '"' + automatic_batch_save_dir \
                            + '/%~na.ac3"' + " -hide_banner"
             if shell_options.get() == "Default":
-                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                next_job = 0
+                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats & echo JOBDONE"',
+                                       universal_newlines=True, stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                        creationflags=subprocess.CREATE_NO_WINDOW)
                 for line in job.stdout:
                     encode_window_progress.delete('1.0', END)
                     encode_window_progress.insert(END, line)
                     eac3_batch_job.set('Working')
+                    try:
+                        job_done = line.split()[0]
+                        if job_done == 'JOBDONE':
+                            next_job += 1
+                        percent = '{:.1%}'.format(next_job / int(extension_counter)).split('.', 1)[0]
+                        app_progress_bar['value'] = int(percent)
+                    except:
+                        pass
+                sleep(2)
                 window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4428,6 +4504,10 @@ def batch_processing():
         # ------------------------------------------------------------------------------------------------------- E-AC3
         # FDK_AAC Start Job -------------------------------------------------------------------------------------------
         elif encoder.get() == "FDK-AAC":
+            if shell_options.get() == "Default":
+                silent = '--silent'
+            else:
+                silent = ''
             fdkaac_batch_job.set('Working')
             finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                            + automatic_batch_save_dir + '"' \
@@ -4437,7 +4517,8 @@ def batch_processing():
                            + acodec_stream_choices[acodec_stream.get()] \
                            + acodec_channel_choices[acodec_channel.get()] + \
                            acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting + \
-                           "-f caf - | " + '"' + f"{pathlib.Path.cwd()}{'/Apps/fdkaac/fdkaac.exe'}" + '"' + " " + \
+                           "-f caf - -hide_banner -v error -stats | " \
+                           + '"' + f"{pathlib.Path.cwd()}{'/Apps/fdkaac/fdkaac.exe'}" + '"' + " " + \
                            acodec_profile_choices[acodec_profile.get()] + \
                            fdkaac_title_input + fdkaac_custom_cmd_input + \
                            afterburnervar.get() + crccheck.get() + moovbox.get() \
@@ -4445,16 +4526,28 @@ def batch_processing():
                            acodec_lowdelay_choices[acodec_lowdelay.get()] + \
                            acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] + \
                            acodec_transport_format_choices[acodec_transport_format.get()] + \
-                           acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " + '"' + automatic_batch_save_dir \
-                           + '/%~na.m4a"' + '"'
+                           acodec_bitrate_choices[acodec_bitrate.get()] + silent + " - -o " \
+                           + '"' + automatic_batch_save_dir \
+                           + '/%~na.m4a"' + ' & echo JOBDONE"'
             if shell_options.get() == "Default":
-                job = subprocess.Popen('cmd /c ' + finalcommand, stdout=subprocess.PIPE, stdin=subprocess.DEVNULL,
-                                       stderr=subprocess.STDOUT, universal_newlines=True,
+                next_job = 0
+                job = subprocess.Popen('cmd /c ' + finalcommand,
+                                       universal_newlines=True, stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                        creationflags=subprocess.CREATE_NO_WINDOW)
                 for line in job.stdout:
                     encode_window_progress.delete('1.0', END)
                     encode_window_progress.insert(END, line)
                     fdkaac_batch_job.set('Working')
+                    try:
+                        job_done = line.split()[0]
+                        if job_done == 'JOBDONE':
+                            next_job += 1
+                        percent = '{:.1%}'.format(next_job / int(extension_counter)).split('.', 1)[0]
+                        app_progress_bar['value'] = int(percent)
+                    except:
+                        pass
+                sleep(2)
                 window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand)
@@ -4462,6 +4555,10 @@ def batch_processing():
         # --------------------------------------------------------------------------------------------------------- FDK
         # QAAC Start Job ----------------------------------------------------------------------------------------------
         elif encoder.get() == "QAAC":
+            if shell_options.get() == "Default":
+                silent = '--silent '
+            else:
+                silent = ' '
             qaac_batch_job.set('Working')
             if q_acodec_profile.get() == "True VBR":
                 finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
@@ -4480,7 +4577,7 @@ def batch_processing():
                                + qaac_nodelay.get() \
                                + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
                                + qaac_threading.get() + qaac_limiter.get() + qaac_title_input + qaac_custom_cmd_input \
-                               + "- -o " + '"' + automatic_batch_save_dir + '/%~na.m4a"' + '"'
+                               + silent + " - -o " + '"' + automatic_batch_save_dir + '/%~na.m4a"' + ' & echo JOBDONE"'
             else:
                 finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                                + automatic_batch_save_dir + '"' \
@@ -4490,22 +4587,35 @@ def batch_processing():
                                + acodec_stream_choices[acodec_stream.get()] + \
                                acodec_channel_choices[acodec_channel.get()] + audio_filter_setting + \
                                acodec_samplerate_choices[acodec_samplerate.get()] \
-                               + "-f wav - | " + '"' + f"{pathlib.Path.cwd()}{'/Apps/qaac/qaac64.exe'}" + '"' + " " \
+                               + "-f wav - -hide_banner -v error -stats | " + '"' \
+                               + f"{pathlib.Path.cwd()}{'/Apps/qaac/qaac64.exe'}" + '"' + " " \
                                + q_acodec_profile_choices[q_acodec_profile.get()] + \
                                q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() \
                                + qaac_nodither.get() + "--gain " + q_acodec_gain.get() + " " \
                                + q_acodec_quality_choices[q_acodec_quality.get()] + qaac_nodelay.get() \
                                + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
                                + qaac_threading.get() + qaac_limiter.get() + qaac_title_input \
-                               + qaac_custom_cmd_input + "- -o " + '"' + automatic_batch_save_dir + '/%~na.m4a"' + '"'
+                               + qaac_custom_cmd_input + silent + " - -o " + '"' \
+                               + automatic_batch_save_dir + '/%~na.m4a"' + ' & echo JOBDONE"'
             if shell_options.get() == "Default":
-                job = subprocess.Popen('cmd /c ' + finalcommand, stdout=subprocess.PIPE, stdin=subprocess.DEVNULL,
-                                       stderr=subprocess.STDOUT, universal_newlines=True,
+                next_job = 0
+                job = subprocess.Popen('cmd /c ' + finalcommand,
+                                       universal_newlines=True, stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                        creationflags=subprocess.CREATE_NO_WINDOW)
                 for line in job.stdout:
                     encode_window_progress.delete('1.0', END)
                     encode_window_progress.insert(END, line)
                     qaac_batch_job.set('Working')
+                    try:
+                        job_done = line.split()[0]
+                        if job_done == 'JOBDONE':
+                            next_job += 1
+                        percent = '{:.1%}'.format(next_job / int(extension_counter)).split('.', 1)[0]
+                        app_progress_bar['value'] = int(percent)
+                    except:
+                        pass
+                sleep(2)
                 window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand)
@@ -4529,13 +4639,24 @@ def batch_processing():
                            + flac_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " + \
                            '"' + automatic_batch_save_dir + '/%~na.flac"' + " -hide_banner"
             if shell_options.get() == "Default":
-                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                next_job = 0
+                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats & echo JOBDONE"',
+                                       universal_newlines=True, stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                        creationflags=subprocess.CREATE_NO_WINDOW)
                 for line in job.stdout:
                     encode_window_progress.delete('1.0', END)
                     encode_window_progress.insert(END, line)
                     flac_batch_job.set('Working')
+                    try:
+                        job_done = line.split()[0]
+                        if job_done == 'JOBDONE':
+                            next_job += 1
+                        percent = '{:.1%}'.format(next_job / int(extension_counter)).split('.', 1)[0]
+                        app_progress_bar['value'] = int(percent)
+                    except:
+                        pass
+                sleep(2)
                 window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4557,13 +4678,24 @@ def batch_processing():
                            + "-sn -vn -map_chapters -1 -map_metadata -1 " + \
                            '"' + automatic_batch_save_dir + '/%~na.m4a"' + " -hide_banner"
             if shell_options.get() == "Default":
-                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+                next_job = 0
+                job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats & echo JOBDONE"',
+                                       universal_newlines=True, stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                        creationflags=subprocess.CREATE_NO_WINDOW)
                 for line in job.stdout:
                     encode_window_progress.delete('1.0', END)
                     encode_window_progress.insert(END, line)
                     alac_batch_job.set('Working')
+                    try:
+                        job_done = line.split()[0]
+                        if job_done == 'JOBDONE':
+                            next_job += 1
+                        percent = '{:.1%}'.format(next_job / int(extension_counter)).split('.', 1)[0]
+                        app_progress_bar['value'] = int(percent)
+                    except:
+                        pass
+                sleep(2)
                 window.destroy()
             elif shell_options.get() == "Debug":
                 subprocess.Popen('cmd /k ' + finalcommand + '"')
