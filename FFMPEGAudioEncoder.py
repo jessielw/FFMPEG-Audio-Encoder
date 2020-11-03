@@ -4586,7 +4586,8 @@ def startaudiojob():
         finalcommand = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
                        acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[acodec_channel.get()] + \
                        acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting + \
-                       "-f caf - -hide_banner -v error -stats |" + fdkaac + " " + acodec_profile_choices[acodec_profile.get()] + \
+                       "-f caf - -hide_banner -v error -stats |" \
+                       + fdkaac + " " + acodec_profile_choices[acodec_profile.get()] + \
                        fdkaac_title_input + fdkaac_custom_cmd_input + \
                        afterburnervar.get() + crccheck.get() + moovbox.get() \
                        + sbrdelay.get() + headerperiod.get() + \
