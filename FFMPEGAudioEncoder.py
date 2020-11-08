@@ -4363,14 +4363,12 @@ def startaudiojob():
 
     if shell_options.get() == "Default":
         global total_duration
-        mediainfocli_cmd = '"' + mediainfocli + " " + '--Inform="General;%Duration%"' \
-                           + " " + VideoInputQuoted + '"'
+        mediainfocli_cmd = '"' + mediainfocli + " " + '--Inform="General;%Duration%"' + " " + VideoInputQuoted + '"'
         mediainfo_duration = subprocess.Popen('cmd /c ' + mediainfocli_cmd, creationflags=subprocess.CREATE_NO_WINDOW,
-                                           universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                           universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                            stdin=subprocess.PIPE)
         stdout, stderr = mediainfo_duration.communicate()
         total_duration = stdout[:-4]
-        print(total_duration)
 
         def close_encode():
             confirm_exit = messagebox.askyesno(title='Prompt',
@@ -4416,17 +4414,16 @@ def startaudiojob():
             job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
-            try:
-                for line in job.stdout:
-                    encode_window_progress.delete('1.0', END)
-                    encode_window_progress.insert(END, line)
-                    time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
-                    progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
-                    percent = '{:.1%}'.format(progress/int(total_duration)).split('.',1)[0]
-                    app_progress_bar['value'] = int(percent)
-            except:
+            for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
+                try:
+                    time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
+                    progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
+                    percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
+                    app_progress_bar['value'] = int(percent)
+                except:
+                    pass
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4448,17 +4445,16 @@ def startaudiojob():
             job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
-            try:
-                for line in job.stdout:
-                    encode_window_progress.delete('1.0', END)
-                    encode_window_progress.insert(END, line)
+            for line in job.stdout:
+                encode_window_progress.delete('1.0', END)
+                encode_window_progress.insert(END, line)
+                try:
                     time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
-            except:
-                encode_window_progress.delete('1.0', END)
-                encode_window_progress.insert(END, line)
+                except:
+                    pass
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4483,17 +4479,16 @@ def startaudiojob():
             job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT,stdin=subprocess.DEVNULL, universal_newlines=True,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
-            try:
-                for line in job.stdout:
-                    encode_window_progress.delete('1.0', END)
-                    encode_window_progress.insert(END, line)
+            for line in job.stdout:
+                encode_window_progress.delete('1.0', END)
+                encode_window_progress.insert(END, line)
+                try:
                     time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
-            except:
-                encode_window_progress.delete('1.0', END)
-                encode_window_progress.insert(END, line)
+                except:
+                    pass
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4513,17 +4508,16 @@ def startaudiojob():
             job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
-            try:
-                for line in job.stdout:
-                    encode_window_progress.delete('1.0', END)
-                    encode_window_progress.insert(END, line)
+            for line in job.stdout:
+                encode_window_progress.delete('1.0', END)
+                encode_window_progress.insert(END, line)
+                try:
                     time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
-            except:
-                encode_window_progress.delete('1.0', END)
-                encode_window_progress.insert(END, line)
+                except:
+                    pass
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4540,17 +4534,16 @@ def startaudiojob():
             job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
-            try:
-                for line in job.stdout:
-                    encode_window_progress.delete('1.0', END)
-                    encode_window_progress.insert(END, line)
+            for line in job.stdout:
+                encode_window_progress.delete('1.0', END)
+                encode_window_progress.insert(END, line)
+                try:
                     time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
-            except:
-                encode_window_progress.delete('1.0', END)
-                encode_window_progress.insert(END, line)
+                except:
+                    pass
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4586,17 +4579,16 @@ def startaudiojob():
             job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
-            try:
-                for line in job.stdout:
-                    encode_window_progress.delete('1.0', END)
-                    encode_window_progress.insert(END, line)
+            for line in job.stdout:
+                encode_window_progress.delete('1.0', END)
+                encode_window_progress.insert(END, line)
+                try:
                     time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
-            except:
-                encode_window_progress.delete('1.0', END)
-                encode_window_progress.insert(END, line)
+                except:
+                    pass
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4623,17 +4615,16 @@ def startaudiojob():
             job = subprocess.Popen('cmd /c ' + finalcommand, stdout=subprocess.PIPE, stdin=subprocess.DEVNULL,
                                    stderr=subprocess.STDOUT, universal_newlines=True,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
-            try:
-                for line in job.stdout:
-                    encode_window_progress.delete('1.0', END)
-                    encode_window_progress.insert(END, line)
+            for line in job.stdout:
+                encode_window_progress.delete('1.0', END)
+                encode_window_progress.insert(END, line)
+                try:
                     time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
-            except:
-                encode_window_progress.delete('1.0', END)
-                encode_window_progress.insert(END, line)
+                except:
+                    pass
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand)
@@ -4675,17 +4666,16 @@ def startaudiojob():
             job = subprocess.Popen('cmd /c ' + finalcommand, stdout=subprocess.PIPE, stdin=subprocess.DEVNULL,
                                    stderr=subprocess.STDOUT, universal_newlines=True,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
-            try:
-                for line in job.stdout:
-                    encode_window_progress.delete('1.0', END)
-                    encode_window_progress.insert(END, line)
+            for line in job.stdout:
+                encode_window_progress.delete('1.0', END)
+                encode_window_progress.insert(END, line)
+                try:
                     time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
-            except:
-                encode_window_progress.delete('1.0', END)
-                encode_window_progress.insert(END, line)
+                except:
+                    pass
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand)
@@ -4706,17 +4696,16 @@ def startaudiojob():
             job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
-            try:
-                for line in job.stdout:
-                    encode_window_progress.delete('1.0', END)
-                    encode_window_progress.insert(END, line)
+            for line in job.stdout:
+                encode_window_progress.delete('1.0', END)
+                encode_window_progress.insert(END, line)
+                try:
                     time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
-            except:
-                encode_window_progress.delete('1.0', END)
-                encode_window_progress.insert(END, line)
+                except:
+                    pass
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4734,17 +4723,16 @@ def startaudiojob():
             job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
-            try:
-                for line in job.stdout:
-                    encode_window_progress.delete('1.0', END)
-                    encode_window_progress.insert(END, line)
+            for line in job.stdout:
+                encode_window_progress.delete('1.0', END)
+                encode_window_progress.insert(END, line)
+                try:
                     time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
-            except:
-                encode_window_progress.delete('1.0', END)
-                encode_window_progress.insert(END, line)
+                except:
+                    pass
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
