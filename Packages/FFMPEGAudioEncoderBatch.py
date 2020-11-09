@@ -11,7 +11,7 @@ from time import sleep
 
 # Bundled Apps Quoted -------------------------------
 if shutil.which('ffmpeg') != None:
-    ffmpeg = str(pathlib.Path(shutil.which('ffmpeg')))
+    ffmpeg = '"' + str(pathlib.Path(shutil.which('ffmpeg'))) + '"'
 elif shutil.which('ffmpeg') == None:
     ffmpeg = str(pathlib.Path("Apps/FFMPEG/ffmpeg.exe"))
 mediainfo = '"Apps/MediaInfo/MediaInfo.exe"'
