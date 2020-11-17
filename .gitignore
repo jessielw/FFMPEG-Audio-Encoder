@@ -5,3 +5,4 @@ dist/
 Apps/
 __pycache__/
 FFMPEGAudioEncoder.spec
+config.ini
