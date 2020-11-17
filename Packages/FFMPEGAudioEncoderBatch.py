@@ -9,19 +9,6 @@ from tkinter import ttk
 from time import sleep
 from configparser import ConfigParser
 
-# Bundled Apps Quoted -------------------------------
-config_file = 'Runtime/config.ini'  # Creates (if doesn't exist) and defines location of config.ini
-config = ConfigParser()
-config.read(config_file)
-
-ffmpeg = config['ffmpeg_path']['path']
-mediainfocli = config['mediainfocli_path']['path']
-mediainfo = config['mediainfogui_path']['path']
-fdkaac = '"Apps/fdkaac/fdkaac.exe"'
-qaac = '"Apps/qaac/qaac64.exe"'
-mpv_player = config['mpv_player_path']['path']
-# -------------------------------------- Bundled Apps
-
 # Batch Processing Window ---------------------------------------------------------------------------------------------
 def batch_exit_function():
     global example_cmd_output, ac3_batch_job, aac_batch_job, dts_batch_job, opus_batch_job, \
@@ -58,6 +45,18 @@ def batch_exit_function():
 
 def batch_processing():
     global batch_processing_window, batch_widow
+
+    # Bundled Apps Quoted -------------------------------
+    config_file = 'Runtime/config.ini'  # Creates (if doesn't exist) and defines location of config.ini
+    config = ConfigParser()
+    config.read(config_file)
+
+    ffmpeg = config['ffmpeg_path']['path']
+    fdkaac = '"Apps/fdkaac/fdkaac.exe"'
+    qaac = '"Apps/qaac/qaac64.exe"'
+
+    # -------------------------------------- Bundled Apps
+
     batch_processing_window = Toplevel()
     batch_processing_window.title('Batch Processing Window')
     batch_processing_window.configure(background="#434547")
