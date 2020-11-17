@@ -80,7 +80,6 @@ mediainfo = config['mediainfogui_path']['path']
 fdkaac = '"Apps/fdkaac/fdkaac.exe"'
 qaac = '"Apps/qaac/qaac64.exe"'
 mpv_player = config['mpv_player_path']['path']
-
 # -------------------------------------- Bundled Apps
 
 # Open InputFile with portable MediaInfo ------------------------------------------------------------------------------
@@ -4457,12 +4456,15 @@ def startaudiojob():
 
     if shell_options.get() == "Default":
         global total_duration
-        mediainfocli_cmd = '"' + mediainfocli + " " + '--Inform="General;%Duration%"' + " " + VideoInputQuoted + '"'
-        mediainfo_duration = subprocess.Popen('cmd /c ' + mediainfocli_cmd, creationflags=subprocess.CREATE_NO_WINDOW,
+        ffmpeg_cmd = '"' + ffmpeg + " -i " + VideoInputQuoted + ' -hide_banner -stats"'
+        ffmpeg_duration = subprocess.Popen('cmd /c ' + ffmpeg_cmd, creationflags=subprocess.CREATE_NO_WINDOW,
                                            universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                            stdin=subprocess.PIPE)
-        stdout, stderr = mediainfo_duration.communicate()
-        total_duration = stdout[:-4]
+        stdout, stderr = ffmpeg_duration.communicate()
+        times_index = int(stdout.split().index('Duration:')) + 1  # Finds the string 'Duration' and adds 1 to the index
+        ffmpeg_total_time = stdout.split()[times_index].rsplit('.', 1)[0]  # Removes mili-seconds from string
+        total_duration = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(ffmpeg_total_time.split(":")))))
+        #  total_duration converts 00:00:00 to seconds for progress bars
 
         def close_encode():
             confirm_exit = messagebox.askyesno(title='Prompt',
@@ -4731,7 +4733,7 @@ def startaudiojob():
         else:
             silent = ' '
         if q_acodec_profile.get() == "True VBR":
-            finalcommand = ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
+            finalcommand = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
                            + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] \
                            + acodec_channel_choices[acodec_channel.get()] + audio_filter_setting \
                            + acodec_samplerate_choices[acodec_samplerate.get()] \
@@ -4743,7 +4745,7 @@ def startaudiojob():
                            + qaac_nodelay.get() \
                            + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
                            + qaac_threading.get() + qaac_limiter.get() + qaac_title_input + qaac_custom_cmd_input \
-                           + silent + " - -o " + VideoOutputQuoted
+                           + silent + " - -o " + VideoOutputQuoted + '"'
         else:
             finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted \
                            + acodec_stream_choices[acodec_stream.get()] + \
@@ -4958,6 +4960,88 @@ open_batch_processing_window.bind("<Leave>", open_batch_processing_window_hover_
 # Checks for App Folder and Sub-Directories - Creates Folders if they are missing -------------------------------------
 directory_check()
 # -------------------------------------------------------------------------------------------------------- Folder Check
+
+# Checks config for bundled app paths path ---------------
+def check_ffmpeg():
+    global ffmpeg
+    # FFMPEG --------------------------------------------------------------
+    if shutil.which('ffmpeg') != None:
+        ffmpeg = '"' + str(pathlib.Path(shutil.which('ffmpeg'))).lower() + '"'
+        messagebox.showinfo(title='Prompt!', message='ffmpeg.exe found on system PATH, '
+                                                     'automatically setting path to location.\n\n'
+                                                     'Note: This can be changed in the config.ini file'
+                                                     ' or in the Options menu')
+        if pathlib.Path("Apps/ffmpeg/ffmpeg.exe").exists():
+            rem_ffmpeg = messagebox.askyesno(title='Delete Included ffmpeg?',
+                                             message='Would you like to delete the included FFMPEG?')
+            if rem_ffmpeg == True:
+                try:
+                    shutil.rmtree(str(pathlib.Path("Apps/ffmpeg")))
+                except:
+                    pass
+        config.set('ffmpeg_path', 'path', ffmpeg)
+        with open(config_file, 'w') as configfile:
+            config.write(configfile)
+    elif ffmpeg == '' and shutil.which('ffmpeg') == None:
+        messagebox.showinfo(title='Info', message='Program will use the included '
+                                                  '"ffmpeg.exe" located in the "Apps" folder')
+        ffmpeg = '"' + str(pathlib.Path("Apps/ffmpeg/ffmpeg.exe")) + '"'
+        try:
+            config.set('ffmpeg_path', 'path', ffmpeg)
+            with open(config_file, 'w') as configfile:
+                config.write(configfile)
+        except:
+            pass
+    # FFMPEG ------------------------------------------------------------------
+
+def check_mediainfocli():
+    global mediainfocli
+    # mediainfocli -------------------------------------------------------------
+    if mediainfocli == '' or not pathlib.Path(mediainfocli.replace('"', '')).exists():
+        mediainfocli = '"' + str(pathlib.Path('Apps/MediaInfoCLI/MediaInfo.exe')) + '"'
+        try:
+            config.set('mediainfocli_path', 'path', mediainfocli)
+            with open(config_file, 'w') as configfile:
+                config.write(configfile)
+        except:
+            pass
+    # mediainfocli ----------------------------------------------------------
+
+def check_mpv_player():
+    global mpv_player
+    # mpv_player -------------------------------------------------------------
+    if mpv_player == '' or not pathlib.Path(mpv_player.replace('"', '')).exists():
+        mpv_player = '"' + str(pathlib.Path('Apps/mpv/mpv.exe')) + '"'
+        try:
+            config.set('mpv_player_path', 'path', mpv_player)
+            with open(config_file, 'w') as configfile:
+                config.write(configfile)
+        except:
+            pass
+    # mpv_player ----------------------------------------------------------
+
+def check_mediainfogui():
+    global mediainfo
+    # check_mediainfogui -------------------------------------------------------------
+    if mediainfo == '' or not pathlib.Path(mediainfo.replace('"', '')).exists():
+        mediainfo = '"' + str(pathlib.Path('Apps/MediaInfo/MediaInfo.exe')) + '"'
+        try:
+            config.set('mediainfogui_path', 'path', mediainfo)
+            with open(config_file, 'w') as configfile:
+                config.write(configfile)
+        except:
+            pass
+    # check_mediainfogui ----------------------------------------------------------
+
+if config['ffmpeg_path']['path'] == '' or not pathlib.Path(ffmpeg.replace('"', '')).exists():
+    check_ffmpeg()
+if config['mediainfocli_path']['path'] == '' or not pathlib.Path(mediainfocli.replace('"', '')).exists():
+    check_mediainfocli()
+if config['mpv_player_path']['path'] == '' or not pathlib.Path(mpv_player.replace('"', '')).exists():
+    check_mpv_player()
+if config['mediainfogui_path']['path'] == '' or not pathlib.Path(mediainfo.replace('"', '')).exists():
+    check_mediainfogui()
+# Checks config for bundled app paths path ---------------
 
 # Download and unzip required apps to the needed folders --------------------------------------------------------------
 def downloadfiles():
@@ -5254,102 +5338,7 @@ else:
 
 # -------------------------------------------------------------------------------------------- Checks for required apps
 
-# Checks config for bundled app paths path ---------------
-def check_ffmpeg():
-    global ffmpeg
-    # FFMPEG --------------------------------------------------------------
-    if shutil.which('ffmpeg') != None:
-        ffmpeg = '"' + str(pathlib.Path(shutil.which('ffmpeg'))).lower() + '"'
-        messagebox.showinfo(title='Prompt!', message='ffmpeg.exe found on system PATH, '
-                                                     'automatically setting path to location.\n\n'
-                                                     '           Note: This can be changed in the config.ini file')
-        rem_ffmpeg = messagebox.askyesno(title='Delete Included ffmpeg?',
-                                         message='Would you like to delete the included FFMPEG?')
-        if rem_ffmpeg == True:
-            shutil.rmtree(str(pathlib.Path("Apps/ffmpeg")))
-        try:
-            config.set('ffmpeg_path', 'path', ffmpeg)
-            with open(config_file, 'w') as configfile:
-                config.write(configfile)
-        except:
-            pass
-    elif ffmpeg == '' and shutil.which('ffmpeg') == None:
-        messagebox.showinfo(title='Info', message='Program will use the included '
-                                                  '"ffmpeg.exe" located in the "Apps" folder')
-        ffmpeg = '"' + str(pathlib.Path("Apps/ffmpeg/ffmpeg.exe")) + '"'
-        try:
-            config.set('ffmpeg_path', 'path', ffmpeg)
-            with open(config_file, 'w') as configfile:
-                config.write(configfile)
-        except:
-            pass
-    # FFMPEG ------------------------------------------------------------------
 
-def check_mediainfocli():
-    global mediainfocli
-    # mediainfocli -------------------------------------------------------------
-    if shutil.which('MediaInfo') != None:
-        mediainfocli = '"' + str(pathlib.Path(shutil.which('MediaInfo'))).lower() + '"'
-        messagebox.showinfo(title='Prompt!', message='MediaInfo.exe found on system PATH, '
-                                                     'automatically setting path to location.\n\n'
-                                                     '         Note: This can be changed in the config.ini file')
-        rem_mediainfocli = messagebox.askyesno(title='Delete Included MediaInfo?',
-                                         message='Would you like to delete the included MediaInfo?')
-        if rem_mediainfocli == True:
-            shutil.rmtree(str(pathlib.Path("Apps/MediaInfoCLI")))
-        try:
-            config.set('mediainfocli_path', 'path', mediainfocli)
-            with open(config_file, 'w') as configfile:
-                config.write(configfile)
-        except:
-            pass
-    elif mediainfocli == '' and shutil.which('MediaInfo') == None:
-            messagebox.showinfo(title='Info', message='Program will use the included '
-                                                      '"MediaInfo.exe" located in the "Apps" folder')
-            mediainfocli = '"' + str(pathlib.Path('Apps/MediaInfoCLI/MediaInfo.exe')) + '"'
-            try:
-                config.set('mediainfocli_path', 'path', mediainfocli)
-                with open(config_file, 'w') as configfile:
-                    config.write(configfile)
-            except:
-                pass
-    # mediainfocli ----------------------------------------------------------
-
-def check_mpv_player():
-    global mpv_player
-    # mpv_player -------------------------------------------------------------
-    if mpv_player == '' or not pathlib.Path(mpv_player.replace('"', '')).exists():
-        mpv_player = '"' + str(pathlib.Path('Apps/mpv/mpv.exe')) + '"'
-        try:
-            config.set('mpv_player_path', 'path', mpv_player)
-            with open(config_file, 'w') as configfile:
-                config.write(configfile)
-        except:
-            pass
-    # mpv_player ----------------------------------------------------------
-
-def check_mediainfogui():
-    global mediainfo
-    # check_mediainfogui -------------------------------------------------------------
-    if mediainfo == '' or not pathlib.Path(mediainfo.replace('"', '')).exists():
-        mediainfo = '"' + str(pathlib.Path('Apps/MediaInfo/MediaInfo.exe')) + '"'
-        try:
-            config.set('mediainfogui_path', 'path', mediainfo)
-            with open(config_file, 'w') as configfile:
-                config.write(configfile)
-        except:
-            pass
-    # check_mediainfogui ----------------------------------------------------------
-
-if config['ffmpeg_path']['path'] == '' or not pathlib.Path(ffmpeg.replace('"', '')).exists():
-    check_ffmpeg()
-if config['mediainfocli_path']['path'] == '' or not pathlib.Path(mediainfocli.replace('"', '')).exists():
-    check_mediainfocli()
-if config['mpv_player_path']['path'] == '' or not pathlib.Path(mpv_player.replace('"', '')).exists():
-    check_mpv_player()
-if config['mediainfogui_path']['path'] == '' or not pathlib.Path(mediainfo.replace('"', '')).exists():
-    check_mediainfogui()
-# Checks config for bundled app paths path ---------------
 
 # End Loop ------------------------------------------------------------------------------------------------------------
 root.mainloop()
