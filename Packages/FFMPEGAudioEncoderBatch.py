@@ -4,21 +4,22 @@ import subprocess
 import pathlib
 import tkinter.scrolledtext as scrolledtextwidget
 from TkinterDnD2 import *
-import shutil
 import threading
 from tkinter import ttk
 from time import sleep
+from configparser import ConfigParser
 
 # Bundled Apps Quoted -------------------------------
-if shutil.which('ffmpeg') != None:
-    ffmpeg = str(pathlib.Path(shutil.which('ffmpeg')))
-elif shutil.which('ffmpeg') == None:
-    ffmpeg = str(pathlib.Path("Apps/FFMPEG/ffmpeg.exe"))
-mediainfo = '"Apps/MediaInfo/MediaInfo.exe"'
-mediainfocli = '"Apps/MediaInfoCLI/MediaInfo.exe"'
+config_file = 'Runtime/config.ini'  # Creates (if doesn't exist) and defines location of config.ini
+config = ConfigParser()
+config.read(config_file)
+
+ffmpeg = config['ffmpeg_path']['path']
+mediainfocli = config['mediainfocli_path']['path']
+mediainfo = config['mediainfogui_path']['path']
 fdkaac = '"Apps/fdkaac/fdkaac.exe"'
 qaac = '"Apps/qaac/qaac64.exe"'
-mpv_player = '"Apps/mpv/mpv.exe"'
+mpv_player = config['mpv_player_path']['path']
 # -------------------------------------- Bundled Apps
 
 # Batch Processing Window ---------------------------------------------------------------------------------------------
@@ -4240,8 +4241,7 @@ def batch_processing():
             ac3_batch_job.set('Working')
             finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                            + automatic_batch_save_dir + '"' \
-                           +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                           '"' + ffmpeg + '"' \
+                           +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + ffmpeg \
                            + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                            + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] \
                            + acodec_bitrate_choices[acodec_bitrate.get()] + \
@@ -4282,8 +4282,7 @@ def batch_processing():
                 bitrate_or_quality = f"-q:a {aac_quality_spinbox.get()} "
             finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                            + automatic_batch_save_dir + '"' \
-                           +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                           '"' + ffmpeg + '"' \
+                           +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + ffmpeg \
                            + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                            + acodec_stream_choices[acodec_stream.get()] + \
                            encoder_dropdownmenu_choices[encoder.get()] + bitrate_or_quality + \
@@ -4321,8 +4320,7 @@ def batch_processing():
             if dts_settings.get() == 'DTS Encoder':
                 finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                                + automatic_batch_save_dir + '"' \
-                               +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                               '"' + ffmpeg + '"' \
+                               +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + ffmpeg \
                                + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                                + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
                                + "-b:a " + dts_bitrate_spinbox.get() + "k " \
@@ -4334,8 +4332,7 @@ def batch_processing():
             else:
                 finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                                + automatic_batch_save_dir + '"' \
-                               +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                               '"' + ffmpeg + '"' \
+                               +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + ffmpeg \
                                + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                                + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
                                + dts_custom_cmd_input + "-sn -vn -map_chapters -1 " \
@@ -4369,8 +4366,7 @@ def batch_processing():
             opus_batch_job.set('Working')
             finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                            + automatic_batch_save_dir + '"' \
-                           +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                           '"' + ffmpeg + '"' \
+                           +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + ffmpeg \
                            + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                            + acodec_stream_choices[acodec_stream.get()] + \
                            encoder_dropdownmenu_choices[encoder.get()] + \
@@ -4411,8 +4407,7 @@ def batch_processing():
             mp3_batch_job.set('Working')
             finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                            + automatic_batch_save_dir + '"' \
-                           +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                           '"' + ffmpeg + '"' \
+                           +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + ffmpeg \
                            + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                            + acodec_stream_choices[acodec_stream.get()] \
                            + encoder_dropdownmenu_choices[encoder.get()] + \
@@ -4452,8 +4447,7 @@ def batch_processing():
             eac3_batch_job.set('Working')
             finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                            + automatic_batch_save_dir + '"' \
-                           +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                           '"' + ffmpeg + '"' \
+                           +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + ffmpeg \
                            + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                            + acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] \
                            + "-b:a " + eac3_spinbox.get() + acodec_channel_choices[acodec_channel.get()] \
@@ -4512,8 +4506,7 @@ def batch_processing():
             fdkaac_batch_job.set('Working')
             finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                            + automatic_batch_save_dir + '"' \
-                           +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                           '"' + ffmpeg + '"' \
+                           +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + ffmpeg \
                            + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                            + acodec_stream_choices[acodec_stream.get()] \
                            + acodec_channel_choices[acodec_channel.get()] + \
@@ -4564,8 +4557,7 @@ def batch_processing():
             if q_acodec_profile.get() == "True VBR":
                 finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                                + automatic_batch_save_dir + '"' \
-                               +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                               '"' + ffmpeg + '"' \
+                               +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + ffmpeg \
                                + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                                + acodec_stream_choices[acodec_stream.get()] \
                                + acodec_channel_choices[acodec_channel.get()] + audio_filter_setting \
@@ -4582,8 +4574,7 @@ def batch_processing():
             else:
                 finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                                + automatic_batch_save_dir + '"' \
-                               +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                               '"' + ffmpeg + '"' \
+                               +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + ffmpeg \
                                + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                                + acodec_stream_choices[acodec_stream.get()] + \
                                acodec_channel_choices[acodec_channel.get()] + audio_filter_setting + \
@@ -4627,8 +4618,7 @@ def batch_processing():
             flac_batch_job.set('Working')
             finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                            + automatic_batch_save_dir + '"' \
-                           +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                           '"' + ffmpeg + '"' \
+                           +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + ffmpeg \
                            + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                            + acodec_stream_choices[acodec_stream.get()] \
                            + encoder_dropdownmenu_choices[encoder.get()] + \
@@ -4668,8 +4658,7 @@ def batch_processing():
             alac_batch_job.set('Working')
             finalcommand = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '"' \
                            + automatic_batch_save_dir + '"' \
-                           +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + \
-                           '"' + ffmpeg + '"' \
+                           +' & for %a in ' + extension_dropdownmenu_choices[extension.get()] + ' do ' + ffmpeg \
                            + ' -y -analyzeduration 100M -probesize 50M -i "%a" ' \
                            + acodec_stream_choices[acodec_stream.get()] \
                            + encoder_dropdownmenu_choices[encoder.get()] + \
