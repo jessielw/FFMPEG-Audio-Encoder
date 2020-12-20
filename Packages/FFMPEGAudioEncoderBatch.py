@@ -44,7 +44,7 @@ def batch_exit_function():
                                           parent=batch_processing_window)
 
 def batch_processing():
-    global batch_processing_window, batch_widow
+    global batch_processing_window, batch_widow, check_shell_options
 
     # Bundled Apps Quoted -------------------------------
     config_file = 'Runtime/config.ini'  # Creates (if doesn't exist) and defines location of config.ini
@@ -78,25 +78,13 @@ def batch_processing():
     batch_processing_window.grid_rowconfigure(2, weight=1)
     batch_processing_window.grid_rowconfigure(3, weight=1)
 
-    # Menu Items and Sub-Bars -----------------------------------------------------------------------------------------
-    my_menu_bar = Menu(batch_processing_window, tearoff=0)
-    batch_processing_window.config(menu=my_menu_bar)
-
-    file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-    my_menu_bar.add_cascade(label='File', menu=file_menu)
-    file_menu.add_command(label='Exit', command=batch_processing_window.destroy)
-
-    options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-    my_menu_bar.add_cascade(label='Options', menu=options_menu)
-
-    options_submenu = Menu(batch_processing_window, tearoff=0, activebackground='dim grey')
-    options_menu.add_cascade(label='Shell Options', menu=options_submenu)
-    shell_options = StringVar()
-    shell_options.set('Default')
-    options_submenu.add_radiobutton(label='Shell Closes Automatically', variable=shell_options, value="Default")
-    options_submenu.add_radiobutton(label='Shell Stays Open (Debug)', variable=shell_options, value="Debug")
-
-    # ----------------------------------------------------------------------------------------- Menu Items and Sub-Bars
+    def check_shell_options():  # Function to check 'shell_options' from main GUI
+        global shell_options
+        config.read(config_file)
+        shell_options = StringVar()
+        shell_options.set(config['debug_option']['option'])
+        print(shell_options.get())
+    check_shell_options()
 
     def open_batch_dir_hover(e):
         open_batch_dir["bg"] = "grey"
@@ -4152,6 +4140,7 @@ def batch_processing():
 
     # Start Batch Job -------------------------------------------------------------------------------------------------
     def startbatchaudiojob():
+        check_shell_options()
         global automatic_batch_save_dir, automatic_batch_save_dir_quoted, ac3_batch_job, aac_batch_job, \
             dts_batch_job, opus_batch_job, mp3_batch_job, eac3_batch_job, fdkaac_batch_job, qaac_batch_job, \
             flac_batch_job, alac_batch_job
