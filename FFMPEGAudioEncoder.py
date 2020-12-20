@@ -38,7 +38,7 @@ def root_exit_function():
             root.destroy()
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v3.1")
+root.title("FFMPEG Audio Encoder v3.2")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 210
@@ -63,16 +63,34 @@ config.read(config_file)
 try:  # Create config parameters
     config.add_section('ffmpeg_path')
     config.set('ffmpeg_path', 'path', '')
+except:
+    pass
+try:
     config.add_section('mpv_player_path')
     config.set('mpv_player_path', 'path', '')
+except:
+    pass
+try:
     config.add_section('mediainfogui_path')
     config.set('mediainfogui_path', 'path', '')
+except:
+    pass
+try:
     config.add_section('mediainfocli_path')
     config.set('mediainfocli_path', 'path', '')
+except:
+    pass
+try:
+    config.add_section('debug_option')
+    config.set('debug_option', 'option', '')
+except:
+    pass
+try:
     with open(config_file, 'w') as configfile:
         config.write(configfile)
 except:
-    pass
+    messagebox.showinfo(title='Error', message='Could Not Write to config.ini file, delete and try again')
+
 
 ffmpeg = config['ffmpeg_path']['path']
 mediainfocli = config['mediainfocli_path']['path']
@@ -121,9 +139,23 @@ my_menu_bar.add_cascade(label='Options', menu=options_menu)
 options_submenu = Menu(root, tearoff=0, activebackground='dim grey')
 options_menu.add_cascade(label='Shell Options', menu=options_submenu)
 shell_options = StringVar()
-shell_options.set('Default')
-options_submenu.add_radiobutton(label='Shell Closes Automatically', variable=shell_options, value="Default")
-options_submenu.add_radiobutton(label='Shell Stays Open (Debug)', variable=shell_options, value="Debug")
+shell_options.set(config['debug_option']['option'])
+if shell_options.get() == '':
+    shell_options.set('Default')
+elif shell_options.get() != '':
+    shell_options.set(config['debug_option']['option'])
+def update_shell_option():
+    try:
+        config.set('debug_option', 'option', shell_options.get())
+        with open(config_file, 'w') as configfile:
+            config.write(configfile)
+    except:
+        pass
+update_shell_option()
+options_submenu.add_radiobutton(label='Shell Closes Automatically', variable=shell_options,
+                                value="Default", command=update_shell_option)
+options_submenu.add_radiobutton(label='Shell Stays Open (Debug)', variable=shell_options,
+                                value="Debug", command=update_shell_option)
 
 options_menu.add_separator()
 
