@@ -621,7 +621,6 @@ def openaudiowindow():
     # ---------------------------------------------------------------------------------------------------- combines -af
 
     # 'Apply' button function -----------------------------------------------------------------------------------------
-
     def gotosavefile():
         audio_window.destroy()
         output_button.config(state=NORMAL)
@@ -632,24 +631,48 @@ def openaudiowindow():
         except:
             pass
 
+    # ----------------------------------------------------------------------------------------- 'Apply' button function
 
-        # Work to "remember" window settings
-        config_profile = ConfigParser()
-        config_profile.read(config_profile_ini)
-        if encoder.get() == "AC3":
+    # Profile Functions -----------------------------------------------------------------------------------------------
+    def save_profile():  # Function to save current settings in codec window
+        if encoder.get() == 'AC3':
             config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_bitrate', acodec_bitrate.get())
             config_profile.set('FFMPEG AC3 - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
             config_profile.set('FFMPEG AC3 - SETTINGS', 'ffmpeg_gain', ffmpeg_gain.get())
             config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_channel', acodec_channel.get())
             config_profile.set('FFMPEG AC3 - SETTINGS', 'samplerate',acodec_samplerate.get())
             config_profile.set('FFMPEG AC3 - SETTINGS', 'tempo', acodec_atempo.get())
-
         with open(config_profile_ini, 'w') as configfile_two:
             config_profile.write(configfile_two)
 
+    def reset_profile():  # This function resets settings to "default"
+        msg = messagebox.askyesno(title='Prompt', message='Are you sure you want to reset to default settings?',
+                                  parent=audio_window)
+        if msg == True:
+            if encoder.get() == 'AC3':
+                config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_bitrate', '224k')
+                config_profile.set('FFMPEG AC3 - SETTINGS', 'dolbyprologicii', '')
+                config_profile.set('FFMPEG AC3 - SETTINGS', 'ffmpeg_gain', '0')
+                config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_channel', 'Original')
+                config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_stream', 'Track 1')
+                config_profile.set('FFMPEG AC3 - SETTINGS', 'samplerate', 'Original')
+                config_profile.set('FFMPEG AC3 - SETTINGS', 'tempo', 'Original')
+            if encoder.get() == 'AAC':
+                config_profile.set('FFMPEG AAC - SETTINGS', 'dolbyprologicii', '')
+                config_profile.set('FFMPEG AAC - SETTINGS', 'ffmpeg_gain', '0')
+                config_profile.set('FFMPEG AAC - SETTINGS', 'aac_bitrate', '192')
+                config_profile.set('FFMPEG AAC - SETTINGS', 'aac_vbr_toggle', '-c:a ')
+                config_profile.set('FFMPEG AAC - SETTINGS', 'aac_channel', 'Original')
+                config_profile.set('FFMPEG AAC - SETTINGS', 'aac_stream', 'Track 1')
+                config_profile.set('FFMPEG AAC - SETTINGS', 'samplerate', 'Original')
+                config_profile.set('FFMPEG AAC - SETTINGS', 'tempo', 'Original')
 
-    # ----------------------------------------------------------------------------------------- 'Apply' button function
+            with open(config_profile_ini, 'w') as configfile_two:
+                config_profile.write(configfile_two)
+            audio_window.destroy()
 
+
+    # ----------------------------------------------------------------------------------------------- Profile Functions
 
     # Show Streams Inside Audio Settings Window -----------------------------------------------------------------------
     def show_streams_mediainfo():  # Stream Viewer
@@ -708,12 +731,15 @@ def openaudiowindow():
 
             my_menu_bar = Menu(audio_window, tearoff=0)
             audio_window.config(menu=my_menu_bar)
-
             file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
             my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
             file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
             file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
                                   command=mpv_gui_audio_window)
+            options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+            my_menu_bar.add_cascade(label='Options', menu=options_menu)
+            options_menu.add_command(label='Save Current Settings', command=save_profile)
+            options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
 
             for n in range(3):
                 audio_window.grid_columnconfigure(n, weight=1)
