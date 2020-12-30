@@ -6,3 +6,4 @@ Apps/
 __pycache__/
 FFMPEGAudioEncoder.spec
 config.ini
+profiles.ini
