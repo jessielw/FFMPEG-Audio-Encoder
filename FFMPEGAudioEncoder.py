@@ -38,7 +38,7 @@ def root_exit_function():
             root.destroy()
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v3.2")
+root.title("FFMPEG Audio Encoder v3.3 BETA")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 210
@@ -55,7 +55,7 @@ for n in range(4):
 for n in range(4):
     root.grid_rowconfigure(n, weight=1)
 
-# Bundled Apps Quoted -------------------------------
+# Bundled Apps Quoted -------------------------------------------------------------------------------------------------
 config_file = 'Runtime/config.ini'  # Creates (if doesn't exist) and defines location of config.ini
 config = ConfigParser()
 config.read(config_file)
@@ -98,7 +98,53 @@ mediainfo = config['mediainfogui_path']['path']
 fdkaac = '"Apps/fdkaac/fdkaac.exe"'
 qaac = '"Apps/qaac/qaac64.exe"'
 mpv_player = config['mpv_player_path']['path']
-# -------------------------------------- Bundled Apps
+# -------------------------------------------------------------------------------------------------------- Bundled Apps
+
+# ------------------------------------------------------------------------------------------------------ Profile Config
+
+config_profile_ini = 'Runtime/profiles.ini'  # Creates (if doesn't exist) and defines location of profile.ini
+config_profile = ConfigParser()
+config_profile.read(config_profile_ini)
+
+# AAC settings ---------------------------------------------------
+try:  # Create config parameters
+    config_profile.add_section('FFMPEG AAC - SETTINGS')
+except:
+    pass
+config_profile.set('FFMPEG AAC - SETTINGS', 'dolbyprologicii', '')
+config_profile.set('FFMPEG AAC - SETTINGS', 'ffmpeg_gain', '0')
+config_profile.set('FFMPEG AAC - SETTINGS', 'aac_bitrate', '192')
+config_profile.set('FFMPEG AAC - SETTINGS', 'aac_vbr_toggle', '-c:a ')
+config_profile.set('FFMPEG AAC - SETTINGS', 'aac_channel', 'Original')
+config_profile.set('FFMPEG AAC - SETTINGS', 'aac_stream', 'Track 1')
+config_profile.set('FFMPEG AAC - SETTINGS', 'samplerate', 'Original')
+config_profile.set('FFMPEG AAC - SETTINGS', 'tempo', 'Original')
+# --------------------------------------------------- AAC Settings
+# AC3 settings --------------------------------------------------- # Create config parameters
+if not config_profile.has_section('FFMPEG AC3 - SETTINGS'):
+    config_profile.add_section('FFMPEG AC3 - SETTINGS')
+if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'ac3_bitrate'):
+    config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_bitrate', '224k')
+if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'dolbyprologicii'):
+    config_profile.set('FFMPEG AC3 - SETTINGS', 'dolbyprologicii', '')
+if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'ffmpeg_gain'):
+    config_profile.set('FFMPEG AC3 - SETTINGS', 'ffmpeg_gain', '0')
+if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'ac3_channel'):
+    config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_channel', 'Original')
+if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'ac3_stream'):
+    config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_stream', 'Track 1')
+if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'samplerate'):
+    config_profile.set('FFMPEG AC3 - SETTINGS', 'samplerate', 'Original')
+if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'tempo'):
+    config_profile.set('FFMPEG AC3 - SETTINGS', 'tempo', 'Original')
+# --------------------------------------------------- AC3 Settings
+try:
+    with open(config_profile_ini, 'w') as configfile_two:
+        config_profile.write(configfile_two)
+except:
+    messagebox.showinfo(title='Error', message='Could Not Write to profiles.ini file, delete and try again')
+
+# Profile Config ------------------------------------------------------------------------------------------------------
 
 # Open InputFile with portable MediaInfo ------------------------------------------------------------------------------
 def mediainfogui():
@@ -574,6 +620,8 @@ def openaudiowindow():
 
     # ---------------------------------------------------------------------------------------------------- combines -af
 
+    # 'Apply' button function -----------------------------------------------------------------------------------------
+
     def gotosavefile():
         audio_window.destroy()
         output_button.config(state=NORMAL)
@@ -583,6 +631,25 @@ def openaudiowindow():
             cmd_line_window.withdraw()
         except:
             pass
+
+
+        # Work to "remember" window settings
+        config_profile = ConfigParser()
+        config_profile.read(config_profile_ini)
+        if encoder.get() == "AC3":
+            config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_bitrate', acodec_bitrate.get())
+            config_profile.set('FFMPEG AC3 - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
+            config_profile.set('FFMPEG AC3 - SETTINGS', 'ffmpeg_gain', ffmpeg_gain.get())
+            config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_channel', acodec_channel.get())
+            config_profile.set('FFMPEG AC3 - SETTINGS', 'samplerate',acodec_samplerate.get())
+            config_profile.set('FFMPEG AC3 - SETTINGS', 'tempo', acodec_atempo.get())
+
+        with open(config_profile_ini, 'w') as configfile_two:
+            config_profile.write(configfile_two)
+
+
+    # ----------------------------------------------------------------------------------------- 'Apply' button function
+
 
     # Show Streams Inside Audio Settings Window -----------------------------------------------------------------------
     def show_streams_mediainfo():  # Stream Viewer
@@ -618,6 +685,9 @@ def openaudiowindow():
             stream_window.grid_columnconfigure(0, weight=1)
 
     # ---------------------------------------------------------------------------------------------------- Show Streams
+
+    config_profile = ConfigParser()
+    config_profile.read(config_profile_ini)
 
     # AC3 Window ------------------------------------------------------------------------------------------------------
     global audio_window
@@ -710,7 +780,7 @@ def openaudiowindow():
                                       '512k': "-b:a 512k ",
                                       '576k': "-b:a 576k ",
                                       '640k': "-b:a 640k "}
-            acodec_bitrate.set('224k')  # set the default option
+            acodec_bitrate.set(config_profile['FFMPEG AC3 - SETTINGS']['ac3_bitrate'])  # set the default option
             acodec_bitrate_menu_label = Label(audio_window, text="Bitrate :", background="#434547", foreground="white")
             acodec_bitrate_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
             acodec_bitrate_menu = OptionMenu(audio_window, acodec_bitrate, *acodec_bitrate_choices.keys())
@@ -746,7 +816,7 @@ def openaudiowindow():
                                       '4.0 (Quad)': "-ac 4 ",
                                       '5.0 (Surround)': "-ac 5 ",
                                       '5.1 (Surround)': "-ac 6 "}
-            acodec_channel.set('Original')  # set the default option
+            acodec_channel.set(config_profile['FFMPEG AC3 - SETTINGS']['ac3_channel'])  # set the default option
             achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
             achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
             achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
@@ -763,12 +833,14 @@ def openaudiowindow():
             dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                       variable=dolby_pro_logic_ii, state=DISABLED,
                                                       onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
+            if acodec_channel.get() == '2 (Stereo)':
+                dolby_pro_logic_ii_checkbox.configure(state=NORMAL)
             dolby_pro_logic_ii_checkbox.grid(row=4, column=2, columnspan=1, rowspan=1, padx=10, pady=(20, 5),
                                              sticky=N + S + E + W)
             dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                                   activeforeground="white", selectcolor="#434547",
                                                   font=("Helvetica", 11))
-            dolby_pro_logic_ii.set("")
+            dolby_pro_logic_ii.set(config_profile['FFMPEG AC3 - SETTINGS']['dolbyprologicii'])
             # -------------------------------------------------------------------------------------------------- DPL II
 
             # Audio Gain Selection ------------------------------------------------------------------------------------
@@ -782,7 +854,7 @@ def openaudiowindow():
             ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                           buttonbackground="black", width=15, readonlybackground="#23272A")
             ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            ffmpeg_gain.set(0)
+            ffmpeg_gain.set(int(config_profile['FFMPEG AC3 - SETTINGS']['ffmpeg_gain']))
             # ---------------------------------------------------------------------------------------------------- Gain
 
             # Audio Sample Rate Selection -----------------------------------------------------------------------------
@@ -791,7 +863,7 @@ def openaudiowindow():
                                          '32000 Hz': "-ar 32000 ",
                                          '44100 Hz': "-ar 44100 ",
                                          '48000 Hz': "-ar 48000 "}
-            acodec_samplerate.set('Original')  # set the default option
+            acodec_samplerate.set(config_profile['FFMPEG AC3 - SETTINGS']['samplerate'])  # set the default option
             acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547",
                                             foreground="white")
             acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -849,7 +921,7 @@ def openaudiowindow():
             acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
             acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1)
             acodec_atempo_menu.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-            acodec_atempo.set('Original')
+            acodec_atempo.set(config_profile['FFMPEG AC3 - SETTINGS']['tempo'])
             acodec_atempo_menu["menu"].configure(activebackground="dim grey")
             acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
             acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
