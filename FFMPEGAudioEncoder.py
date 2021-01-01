@@ -38,7 +38,7 @@ def root_exit_function():
             root.destroy()
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v3.3 BETA")
+root.title("FFMPEG Audio Encoder v3.31 BETA")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 210
@@ -649,7 +649,6 @@ def openaudiowindow():
         if encoder.get() == 'AAC':
             config_profile.set('FFMPEG AAC - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
             config_profile.set('FFMPEG AAC - SETTINGS', 'ffmpeg_gain', ffmpeg_gain.get())
-            config_profile.set('FFMPEG AAC - SETTINGS', 'ffmpeg_gain', '0')
             if aac_vbr_toggle.get() == "-c:a ":
                 config_profile.set('FFMPEG AAC - SETTINGS', 'aac_bitrate', aac_bitrate_spinbox.get())
             if aac_vbr_toggle.get() == "-q:a ":
