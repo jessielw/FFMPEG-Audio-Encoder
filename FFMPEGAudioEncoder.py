@@ -106,19 +106,25 @@ config_profile_ini = 'Runtime/profiles.ini'  # Creates (if doesn't exist) and de
 config_profile = ConfigParser()
 config_profile.read(config_profile_ini)
 
-# AAC settings ---------------------------------------------------
-try:  # Create config parameters
+# AAC settings --------------------------------------------------- # Create config parameters
+if not config_profile.has_section('FFMPEG AAC - SETTINGS'):
     config_profile.add_section('FFMPEG AAC - SETTINGS')
-except:
-    pass
-config_profile.set('FFMPEG AAC - SETTINGS', 'dolbyprologicii', '')
-config_profile.set('FFMPEG AAC - SETTINGS', 'ffmpeg_gain', '0')
-config_profile.set('FFMPEG AAC - SETTINGS', 'aac_bitrate', '192')
-config_profile.set('FFMPEG AAC - SETTINGS', 'aac_vbr_toggle', '-c:a ')
-config_profile.set('FFMPEG AAC - SETTINGS', 'aac_channel', 'Original')
-config_profile.set('FFMPEG AAC - SETTINGS', 'aac_stream', 'Track 1')
-config_profile.set('FFMPEG AAC - SETTINGS', 'samplerate', 'Original')
-config_profile.set('FFMPEG AAC - SETTINGS', 'tempo', 'Original')
+if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'dolbyprologicii'):
+    config_profile.set('FFMPEG AAC - SETTINGS', 'dolbyprologicii', '')
+if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'ffmpeg_gain'):
+    config_profile.set('FFMPEG AAC - SETTINGS', 'ffmpeg_gain', '0')
+if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'aac_bitrate'):
+    config_profile.set('FFMPEG AAC - SETTINGS', 'aac_bitrate', '192')
+if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'aac_vbr_quality'):
+    config_profile.set('FFMPEG AAC - SETTINGS', 'aac_vbr_quality', '2')
+if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'aac_vbr_toggle'):
+    config_profile.set('FFMPEG AAC - SETTINGS', 'aac_vbr_toggle', '-c:a')
+if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'aac_channel'):
+    config_profile.set('FFMPEG AAC - SETTINGS', 'aac_channel', 'Original')
+if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'samplerate'):
+    config_profile.set('FFMPEG AAC - SETTINGS', 'samplerate', 'Original')
+if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'tempo'):
+    config_profile.set('FFMPEG AAC - SETTINGS', 'tempo', 'Original')
 # --------------------------------------------------- AAC Settings
 # AC3 settings --------------------------------------------------- # Create config parameters
 if not config_profile.has_section('FFMPEG AC3 - SETTINGS'):
@@ -131,8 +137,6 @@ if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'ffmpeg_gain'):
     config_profile.set('FFMPEG AC3 - SETTINGS', 'ffmpeg_gain', '0')
 if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'ac3_channel'):
     config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_channel', 'Original')
-if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'ac3_stream'):
-    config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_stream', 'Track 1')
 if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'samplerate'):
     config_profile.set('FFMPEG AC3 - SETTINGS', 'samplerate', 'Original')
 if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'tempo'):
@@ -640,12 +644,27 @@ def openaudiowindow():
             config_profile.set('FFMPEG AC3 - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
             config_profile.set('FFMPEG AC3 - SETTINGS', 'ffmpeg_gain', ffmpeg_gain.get())
             config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_channel', acodec_channel.get())
-            config_profile.set('FFMPEG AC3 - SETTINGS', 'samplerate',acodec_samplerate.get())
+            config_profile.set('FFMPEG AC3 - SETTINGS', 'samplerate', acodec_samplerate.get())
             config_profile.set('FFMPEG AC3 - SETTINGS', 'tempo', acodec_atempo.get())
+        if encoder.get() == 'AAC':
+            config_profile.set('FFMPEG AAC - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
+            config_profile.set('FFMPEG AAC - SETTINGS', 'ffmpeg_gain', ffmpeg_gain.get())
+            config_profile.set('FFMPEG AAC - SETTINGS', 'ffmpeg_gain', '0')
+            if aac_vbr_toggle.get() == "-c:a ":
+                config_profile.set('FFMPEG AAC - SETTINGS', 'aac_bitrate', aac_bitrate_spinbox.get())
+            if aac_vbr_toggle.get() == "-q:a ":
+                config_profile.set('FFMPEG AAC - SETTINGS', 'aac_vbr_quality', aac_quality_spinbox.get())
+            # config_profile.set('FFMPEG AAC - SETTINGS', 'aac_bitrate', aac_bitrate_spinbox.get())
+            # config_profile.set('FFMPEG AAC - SETTINGS', 'aac_vbr_quality', aac_quality_spinbox.get())
+            config_profile.set('FFMPEG AAC - SETTINGS', 'aac_vbr_toggle', aac_vbr_toggle.get())
+            config_profile.set('FFMPEG AAC - SETTINGS', 'aac_channel', acodec_channel.get())
+            config_profile.set('FFMPEG AAC - SETTINGS', 'samplerate', acodec_samplerate.get())
+            config_profile.set('FFMPEG AAC - SETTINGS', 'tempo', acodec_atempo.get())
+
         with open(config_profile_ini, 'w') as configfile_two:
             config_profile.write(configfile_two)
 
-    def reset_profile():  # This function resets settings to "default"
+    def reset_profile():  # This function resets settings to 'default'
         msg = messagebox.askyesno(title='Prompt', message='Are you sure you want to reset to default settings?',
                                   parent=audio_window)
         if msg == True:
@@ -654,22 +673,23 @@ def openaudiowindow():
                 config_profile.set('FFMPEG AC3 - SETTINGS', 'dolbyprologicii', '')
                 config_profile.set('FFMPEG AC3 - SETTINGS', 'ffmpeg_gain', '0')
                 config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_channel', 'Original')
-                config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_stream', 'Track 1')
                 config_profile.set('FFMPEG AC3 - SETTINGS', 'samplerate', 'Original')
                 config_profile.set('FFMPEG AC3 - SETTINGS', 'tempo', 'Original')
             if encoder.get() == 'AAC':
                 config_profile.set('FFMPEG AAC - SETTINGS', 'dolbyprologicii', '')
                 config_profile.set('FFMPEG AAC - SETTINGS', 'ffmpeg_gain', '0')
                 config_profile.set('FFMPEG AAC - SETTINGS', 'aac_bitrate', '192')
-                config_profile.set('FFMPEG AAC - SETTINGS', 'aac_vbr_toggle', '-c:a ')
+                config_profile.set('FFMPEG AAC - SETTINGS', 'aac_vbr_quality', '2')
+                config_profile.set('FFMPEG AAC - SETTINGS', 'aac_vbr_toggle', '-c:a')
                 config_profile.set('FFMPEG AAC - SETTINGS', 'aac_channel', 'Original')
-                config_profile.set('FFMPEG AAC - SETTINGS', 'aac_stream', 'Track 1')
                 config_profile.set('FFMPEG AAC - SETTINGS', 'samplerate', 'Original')
                 config_profile.set('FFMPEG AAC - SETTINGS', 'tempo', 'Original')
 
             with open(config_profile_ini, 'w') as configfile_two:
                 config_profile.write(configfile_two)
-            audio_window.destroy()
+            audio_window.destroy()  # Closes Audio Window
+            sleep(.25)  # Sleeps the program for 1/4th of a second
+            openaudiowindow()  # Re-Opens the Audio Window with the 'Default' settings
 
 
     # ----------------------------------------------------------------------------------------------- Profile Functions
@@ -975,6 +995,10 @@ def openaudiowindow():
         file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
         file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
                               command=mpv_gui_audio_window)
+        options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+        my_menu_bar.add_cascade(label='Options', menu=options_menu)
+        options_menu.add_command(label='Save Current Settings', command=save_profile)
+        options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
 
         for n in range(3):
             audio_window.grid_columnconfigure(n, weight=1)
@@ -983,8 +1007,7 @@ def openaudiowindow():
         audio_window.grid_rowconfigure(10, weight=1)
 
         def view_command():  # Views Command --------------------------------------------------------------------------
-            global cmd_label
-            global cmd_line_window
+            global cmd_label, cmd_line_window, example_cmd_output
             audio_filter_function()
             if aac_vbr_toggle.get() == "-c:a ":
                 example_cmd_output = acodec_stream_choices[acodec_stream.get()] + \
@@ -1073,16 +1096,41 @@ def openaudiowindow():
         aac_title.set("")
         # ------------------------------------------------------------------------------------------------- Track Title
 
+        # Audio Channel Selection -------------------------------------------------------------------------------------
+        acodec_channel = StringVar(audio_window)
+        acodec_channel_choices = {'Original': "",
+                                  '1 (Mono)': "-ac 1 ",
+                                  '2 (Stereo)': "-ac 2 ",
+                                  '2.1 (Stereo)': "-ac 3 ",
+                                  '4.0 (Surround)': "-ac 4 ",
+                                  '5.0 (Surround)': "-ac 5 ",
+                                  '5.1 (Surround)': "-ac 6 ",
+                                  '6.1 (Surround)': "-ac 7 ",
+                                  '7.1 (Surround)': "-ac 8 "}
+        acodec_channel.set(config_profile['FFMPEG AAC - SETTINGS']['aac_channel'])  # set the default option
+        achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
+        achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
+        achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
+        achannel_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        achannel_menu.grid(row=1, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        achannel_menu["menu"].configure(activebackground="dim grey")
+        achannel_menu.bind("<Enter>", achannel_menu_hover)
+        achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
+        acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
+        # ------------------------------------------------------------------------------------- Audio Channel Selection
+
         # Dolby Pro Logic II ------------------------------------------------------------------------------------------
         dolby_pro_logic_ii = StringVar()
         dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                   variable=dolby_pro_logic_ii, state=DISABLED,
                                                   onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
+        if acodec_channel.get() == '2 (Stereo)':
+            dolby_pro_logic_ii_checkbox.configure(state=NORMAL)
         dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=1, padx=10, pady=(15, 15),
                                          sticky=N + S + E + W)
         dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                               activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
-        dolby_pro_logic_ii.set("")
+        dolby_pro_logic_ii.set(config_profile['FFMPEG AAC - SETTINGS']['dolbyprologicii'])
         # ------------------------------------------------------------------------------------------------------ DPL II
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
@@ -1096,7 +1144,7 @@ def openaudiowindow():
         ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                       buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_gain_spinbox.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_gain.set(0)
+        ffmpeg_gain.set(int(config_profile['FFMPEG AAC - SETTINGS']['ffmpeg_gain']))
         # -------------------------------------------------------------------------------------------------------- Gain
 
         # Audio Bitrate Spinbox ---------------------------------------------------------------------------------------
@@ -1111,13 +1159,13 @@ def openaudiowindow():
         aac_acodec_bitrate_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                              buttonbackground="black", width=15, readonlybackground="#23272A")
         aac_acodec_bitrate_spinbox.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        aac_bitrate_spinbox.set(192)
+        aac_bitrate_spinbox.set(int(config_profile['FFMPEG AAC - SETTINGS']['aac_bitrate']))
         # --------------------------------------------------------------------------------------- Audio Bitrate Spinbox
 
         # Vbr Toggle --------------------------------------------------------------------------------------------------
         global aac_vbr_toggle
         aac_vbr_toggle = StringVar()
-        aac_vbr_toggle.set("-c:a ")
+        aac_vbr_toggle.set(config_profile['FFMPEG AAC - SETTINGS']['aac_vbr_toggle'] + ' ')
 
         def aac_vbr_trace(*args):  # Swap Spin Box Between CBR and VBR
             if aac_vbr_toggle.get() == "-c:a ":
@@ -1131,8 +1179,8 @@ def openaudiowindow():
                 aac_acodec_bitrate_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                                      buttonbackground="black", width=15, readonlybackground="#23272A")
                 aac_acodec_bitrate_spinbox.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-                aac_bitrate_spinbox.set(192)
-            elif aac_vbr_toggle.get() == "-q:a ":  # This enables VBR Spinbox ------------------------------------------
+                aac_bitrate_spinbox.set(int(config_profile['FFMPEG AAC - SETTINGS']['aac_bitrate']))
+            elif aac_vbr_toggle.get() == "-q:a ":  # This enables VBR Spinbox -----------------------------------------
                 global aac_quality_spinbox
                 aac_quality_spinbox = StringVar()
                 aac_acodec_quality_spinbox_label = Label(audio_window, text="VBR Quality :", background="#434547",
@@ -1144,7 +1192,7 @@ def openaudiowindow():
                 aac_acodec_quality_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                                      buttonbackground="black", width=15, readonlybackground="#23272A")
                 aac_acodec_quality_spinbox.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-                aac_quality_spinbox.set(2)
+                aac_quality_spinbox.set(float(config_profile['FFMPEG AAC - SETTINGS']['aac_vbr_quality']))
                 # ----------------------------------------------------------------------------------------- VBR Spinbox
 
         aac_vbr_toggle_checkbox = Checkbutton(audio_window, text=' Variable\n Bit-Rate', variable=aac_vbr_toggle,
@@ -1152,31 +1200,9 @@ def openaudiowindow():
         aac_vbr_toggle_checkbox.grid(row=4, column=1, columnspan=1, rowspan=2, padx=10, pady=3, sticky=N + S + E + W)
         aac_vbr_toggle_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                           activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
+        aac_vbr_trace()
         aac_vbr_toggle.trace('w', aac_vbr_trace)
         # -------------------------------------------------------------------------------------------------- Vbr Toggle
-
-        # Audio Channel Selection -------------------------------------------------------------------------------------
-        acodec_channel = StringVar(audio_window)
-        acodec_channel_choices = {'Original': "",
-                                  '1 (Mono)': "-ac 1 ",
-                                  '2 (Stereo)': "-ac 2 ",
-                                  '2.1 (Stereo)': "-ac 3 ",
-                                  '4.0 (Surround)': "-ac 4 ",
-                                  '5.0 (Surround)': "-ac 5 ",
-                                  '5.1 (Surround)': "-ac 6 ",
-                                  '6.1 (Surround)': "-ac 7 ",
-                                  '7.1 (Surround)': "-ac 8 "}
-        acodec_channel.set('Original')  # set the default option
-        achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
-        achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
-        achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
-        achannel_menu.config(background="#23272A", foreground="white", highlightthickness=1)
-        achannel_menu.grid(row=1, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-        achannel_menu["menu"].configure(activebackground="dim grey")
-        achannel_menu.bind("<Enter>", achannel_menu_hover)
-        achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
-        acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
-        # ------------------------------------------------------------------------------------- Audio Channel Selection
 
         # Audio Stream Selection --------------------------------------------------------------------------------------
         acodec_stream = StringVar(audio_window)
@@ -1206,7 +1232,7 @@ def openaudiowindow():
                                      '32000 Hz': "-ar 32000 ",
                                      '44100 Hz': "-ar 44100 ",
                                      '48000 Hz': "-ar 48000 "}
-        acodec_samplerate.set('Original')  # set the default option
+        acodec_samplerate.set(config_profile['FFMPEG AAC - SETTINGS']['samplerate'])  # set the default option
         acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547", foreground="white")
         acodec_samplerate_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate, *acodec_samplerate_choices.keys())
@@ -1243,7 +1269,7 @@ def openaudiowindow():
         acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
         acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=10)
         acodec_atempo_menu.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-        acodec_atempo.set('Original')
+        acodec_atempo.set(config_profile['FFMPEG AAC - SETTINGS']['tempo'])
         acodec_atempo_menu["menu"].configure(activebackground="dim grey")
         acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
         acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
