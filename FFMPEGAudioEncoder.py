@@ -38,7 +38,7 @@ def root_exit_function():
             root.destroy()
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v3.31 BETA")
+root.title("FFMPEG Audio Encoder v3.32 BETA")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 210
@@ -142,6 +142,22 @@ if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'samplerate'):
 if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'tempo'):
     config_profile.set('FFMPEG AC3 - SETTINGS', 'tempo', 'Original')
 # --------------------------------------------------- AC3 Settings
+# DTS settings --------------------------------------------------- # Create config parameters
+if not config_profile.has_section('FFMPEG DTS - SETTINGS'):
+    config_profile.add_section('FFMPEG DTS - SETTINGS')
+if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'dts_bitrate'):
+    config_profile.set('FFMPEG DTS - SETTINGS', 'dts_bitrate', '448')
+if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'dolbyprologicii'):
+    config_profile.set('FFMPEG DTS - SETTINGS', 'dolbyprologicii', '')
+if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'ffmpeg_gain'):
+    config_profile.set('FFMPEG DTS - SETTINGS', 'ffmpeg_gain', '0')
+if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'dts_channel'):
+    config_profile.set('FFMPEG DTS - SETTINGS', 'dts_channel', 'Original')
+if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'samplerate'):
+    config_profile.set('FFMPEG DTS - SETTINGS', 'samplerate', 'Original')
+if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'tempo'):
+    config_profile.set('FFMPEG DTS - SETTINGS', 'tempo', 'Original')
+# --------------------------------------------------- DTS Settings
 try:
     with open(config_profile_ini, 'w') as configfile_two:
         config_profile.write(configfile_two)
@@ -653,12 +669,17 @@ def openaudiowindow():
                 config_profile.set('FFMPEG AAC - SETTINGS', 'aac_bitrate', aac_bitrate_spinbox.get())
             if aac_vbr_toggle.get() == "-q:a ":
                 config_profile.set('FFMPEG AAC - SETTINGS', 'aac_vbr_quality', aac_quality_spinbox.get())
-            # config_profile.set('FFMPEG AAC - SETTINGS', 'aac_bitrate', aac_bitrate_spinbox.get())
-            # config_profile.set('FFMPEG AAC - SETTINGS', 'aac_vbr_quality', aac_quality_spinbox.get())
             config_profile.set('FFMPEG AAC - SETTINGS', 'aac_vbr_toggle', aac_vbr_toggle.get())
             config_profile.set('FFMPEG AAC - SETTINGS', 'aac_channel', acodec_channel.get())
             config_profile.set('FFMPEG AAC - SETTINGS', 'samplerate', acodec_samplerate.get())
             config_profile.set('FFMPEG AAC - SETTINGS', 'tempo', acodec_atempo.get())
+        if encoder.get() == 'DTS' and dts_settings.get() == 'DTS Encoder':
+            config_profile.set('FFMPEG DTS - SETTINGS', 'dts_bitrate', dts_bitrate_spinbox.get())
+            config_profile.set('FFMPEG DTS - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
+            config_profile.set('FFMPEG DTS - SETTINGS', 'ffmpeg_gain', ffmpeg_gain.get())
+            config_profile.set('FFMPEG DTS - SETTINGS', 'dts_channel', acodec_channel.get())
+            config_profile.set('FFMPEG DTS - SETTINGS', 'samplerate', acodec_samplerate.get())
+            config_profile.set('FFMPEG DTS - SETTINGS', 'tempo', acodec_atempo.get())
 
         with open(config_profile_ini, 'w') as configfile_two:
             config_profile.write(configfile_two)
@@ -683,6 +704,13 @@ def openaudiowindow():
                 config_profile.set('FFMPEG AAC - SETTINGS', 'aac_channel', 'Original')
                 config_profile.set('FFMPEG AAC - SETTINGS', 'samplerate', 'Original')
                 config_profile.set('FFMPEG AAC - SETTINGS', 'tempo', 'Original')
+            if encoder.get() == 'DTS':
+                config_profile.set('FFMPEG DTS - SETTINGS', 'dts_bitrate', '448')
+                config_profile.set('FFMPEG DTS - SETTINGS', 'dolbyprologicii', '')
+                config_profile.set('FFMPEG DTS - SETTINGS', 'ffmpeg_gain', '0')
+                config_profile.set('FFMPEG DTS - SETTINGS', 'dts_channel', 'Original')
+                config_profile.set('FFMPEG DTS - SETTINGS', 'samplerate', 'Original')
+                config_profile.set('FFMPEG DTS - SETTINGS', 'tempo', 'Original')
 
             with open(config_profile_ini, 'w') as configfile_two:
                 config_profile.write(configfile_two)
@@ -1280,8 +1308,8 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('DTS Settings')
         audio_window.configure(background="#434547")
-        window_height = 400
-        window_width = 500
+        window_height = 420
+        window_width = 550
         screen_width = audio_window.winfo_screenwidth()
         screen_height = audio_window.winfo_screenheight()
         x_coordinate = int((screen_width / 2) - (window_width / 2))
@@ -1296,6 +1324,10 @@ def openaudiowindow():
         file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
         file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
                               command=mpv_gui_audio_window)
+        options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+        my_menu_bar.add_cascade(label='Options', menu=options_menu)
+        options_menu.add_command(label='Save Current Settings', command=save_profile)
+        options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
 
         for n in range(3):
             audio_window.grid_columnconfigure(n, weight=1)
@@ -1306,29 +1338,22 @@ def openaudiowindow():
         def dts_setting_choice_trace(*args):
             if dts_settings.get() == 'DTS Encoder':
                 achannel_menu.config(state=NORMAL)
-                acodec_channel.set('2 (Stereo)')
+                acodec_channel.set(config_profile['FFMPEG DTS - SETTINGS']['dts_channel'])
                 ffmpeg_gain_spinbox.config(state=NORMAL)
-                ffmpeg_gain.set(0)
+                ffmpeg_gain.set(int(config_profile['FFMPEG DTS - SETTINGS']['ffmpeg_gain']))
                 acodec_samplerate_menu.config(state=NORMAL)
-                acodec_samplerate.set('Original')
+                acodec_samplerate.set(config_profile['FFMPEG DTS - SETTINGS']['samplerate'])
                 dts_acodec_bitrate_spinbox.config(state=NORMAL)
-                dts_bitrate_spinbox.set(448)
+                dts_bitrate_spinbox.set(int(config_profile['FFMPEG DTS - SETTINGS']['dts_bitrate']))
                 acodec_atempo_menu.config(state=NORMAL)
-                acodec_atempo.set('Original')
+                acodec_atempo.set(config_profile['FFMPEG DTS - SETTINGS']['tempo'])
             else:
-                acodec_channel.set('2 (Stereo)')
                 achannel_menu.config(state=DISABLED)
-                ffmpeg_gain.set(0)
                 ffmpeg_gain_spinbox.config(state=DISABLED)
-                acodec_samplerate.set('Original')
                 acodec_samplerate_menu.config(state=DISABLED)
-                dts_bitrate_spinbox.set('')
                 dts_acodec_bitrate_spinbox.config(state=DISABLED)
-                dolby_pro_logic_ii.set('')
                 dolby_pro_logic_ii_checkbox.config(state=DISABLED)
-                acodec_atempo.set('Original')
                 acodec_atempo_menu.config(state=DISABLED)
-
 
         # Views Command -----------------------------------------------------------------------------------------------
         def view_command():
@@ -1413,78 +1438,15 @@ def openaudiowindow():
         dts_acodec_bitrate_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                              buttonbackground="black", width=15, readonlybackground="#23272A")
         dts_acodec_bitrate_spinbox.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        dts_bitrate_spinbox.set("")
+        dts_bitrate_spinbox.set(int(config_profile['FFMPEG DTS - SETTINGS']['dts_bitrate']))
         # --------------------------------------------------------------------------------------- Audio Bitrate Spinbox
-
-        # Dolby Pro Logic II ------------------------------------------------------------------------------------------
-        dolby_pro_logic_ii = StringVar()
-        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
-                                                  variable=dolby_pro_logic_ii, state=DISABLED,
-                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue='')
-        dolby_pro_logic_ii_checkbox.grid(row=6, column=0, columnspan=1, rowspan=1, padx=10, pady=(10, 3),
-                                         sticky=N + S + E + W)
-        dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
-                                              activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
-        dolby_pro_logic_ii.set("")
-        # ------------------------------------------------------------------------------------------------------ DPL II
-
-        # Audio Gain Selection ----------------------------------------------------------------------------------------
-        ffmpeg_gain = StringVar()
-        ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
-                                  foreground="white")
-        ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
-                               sticky=N + S + E + W)
-        ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                      wrap=True, textvariable=ffmpeg_gain, state=DISABLED)
-        ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
-                                      buttonbackground="black", width=15, readonlybackground="#23272A",
-                                      disabledbackground='grey')
-        ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_gain.set(0)
-        # -------------------------------------------------------------------------------------------------------- Gain
-
-        # Audio Sample Rate Selection ---------------------------------------------------------------------------------
-        acodec_samplerate = StringVar(audio_window)
-        acodec_samplerate_choices = {'Original': "",
-                                     '16000 Hz': "-ar 16000 ",
-                                     '22050 Hz': "-ar 22050 ",
-                                     '24000 Hz': "-ar 24000 ",
-                                     '32000 Hz': "-ar 32000 ",
-                                     '44100 Hz': "-ar 44100 ",
-                                     '48000 Hz': "-ar 48000 "}
-        acodec_samplerate.set('Original')  # set the default option
-        acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547", foreground="white")
-        acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate, *acodec_samplerate_choices.keys())
-        acodec_samplerate_menu.config(background="#23272A", foreground="white", highlightthickness=1, state=DISABLED)
-        acodec_samplerate_menu.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
-        acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
-        acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
-        # --------------------------------------------------------------------------------- Audio Sample Rate Selection
-
-        # Audio Stream Selection --------------------------------------------------------------------------------------
-        acodec_stream = StringVar(audio_window)
-        acodec_stream_choices = acodec_stream_track_counter
-        acodec_stream.set('Track 1')
-        acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
-        acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
-        acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
-        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1)
-        acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-        acodec_stream_menu["menu"].configure(activebackground="dim grey")
-        acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
-        acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
-        acodec_stream.trace('w', track_number_mpv)
-        track_number_mpv()
-        # ------------------------------------------------------------------------------------------------ Audio Stream
 
         # Audio Channel Selection -------------------------------------------------------------------------------------
         acodec_channel = StringVar(audio_window)
         acodec_channel_choices = {'(Mono)': "-ac 1 ",
                                   '2 (Stereo)': "-ac 2 ",
                                   'Original': ""}
-        acodec_channel.set('2 (Stereo)')  # set the default option
+        acodec_channel.set(config_profile['FFMPEG DTS - SETTINGS']['dts_channel'])  # set the default option
         achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
         achannel_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W + E + N + S)
         achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
@@ -1512,7 +1474,72 @@ def openaudiowindow():
         dts_settings.trace('w', dts_setting_choice_trace)
         # ------------------------------------------------------------------------------------------------ DTS Encoders
 
-       # Audio Atempo Selection ---------------------------------------------------------------------------------------
+        # Dolby Pro Logic II ------------------------------------------------------------------------------------------
+        dolby_pro_logic_ii = StringVar()
+        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
+                                                  variable=dolby_pro_logic_ii, state=DISABLED,
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue='')
+        if acodec_channel.get() == '2 (Stereo)' and dts_settings.get() == 'DTS Encoder':
+            dolby_pro_logic_ii_checkbox.configure(state=NORMAL)
+        dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=2, padx=10, pady=(10, 3),
+                                         sticky=N + S + E + W)
+        dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                              activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
+        dolby_pro_logic_ii.set(config_profile['FFMPEG DTS - SETTINGS']['dolbyprologicii'])
+        # ------------------------------------------------------------------------------------------------------ DPL II
+
+        # Audio Gain Selection ----------------------------------------------------------------------------------------
+        ffmpeg_gain = StringVar()
+        ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
+                                  foreground="white")
+        ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
+                               sticky=N + S + E + W)
+        ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
+                                      wrap=True, textvariable=ffmpeg_gain, state=DISABLED)
+        ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+                                      buttonbackground="black", width=15, readonlybackground="#23272A",
+                                      disabledbackground='grey')
+        ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_gain.set(int(config_profile['FFMPEG DTS - SETTINGS']['ffmpeg_gain']))
+        # -------------------------------------------------------------------------------------------------------- Gain
+
+        # Audio Sample Rate Selection ---------------------------------------------------------------------------------
+        acodec_samplerate = StringVar(audio_window)
+        acodec_samplerate_choices = {'Original': "",
+                                     '16000 Hz': "-ar 16000 ",
+                                     '22050 Hz': "-ar 22050 ",
+                                     '24000 Hz': "-ar 24000 ",
+                                     '32000 Hz': "-ar 32000 ",
+                                     '44100 Hz': "-ar 44100 ",
+                                     '48000 Hz': "-ar 48000 "}
+        acodec_samplerate.set(config_profile['FFMPEG DTS - SETTINGS']['samplerate'])  # set the default option
+        acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547", foreground="white")
+        acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate, *acodec_samplerate_choices.keys())
+        acodec_samplerate_menu.config(background="#23272A", foreground="white", highlightthickness=1, state=DISABLED)
+        acodec_samplerate_menu.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
+        acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
+        acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
+        # --------------------------------------------------------------------------------- Audio Sample Rate Selection
+
+        # Audio Stream Selection --------------------------------------------------------------------------------------
+        acodec_stream = StringVar(audio_window)
+        acodec_stream_choices = acodec_stream_track_counter
+        acodec_stream.set('Track 1')
+        acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
+        acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
+        acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
+        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        acodec_stream_menu["menu"].configure(activebackground="dim grey")
+        acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
+        acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+        acodec_stream.trace('w', track_number_mpv)
+        track_number_mpv()
+        # ------------------------------------------------------------------------------------------------ Audio Stream
+
+        # Audio Atempo Selection ---------------------------------------------------------------------------------------
         acodec_atempo = StringVar(audio_window)
         acodec_atempo_choices = {'Original': '',
                                  '23.976 to 24': '"atempo=23.976/24"',
@@ -1538,7 +1565,7 @@ def openaudiowindow():
         acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
         acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1, state=DISABLED)
         acodec_atempo_menu.grid(row=5, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-        acodec_atempo.set('Original')
+        acodec_atempo.set(config_profile['FFMPEG DTS - SETTINGS']['tempo'])
         acodec_atempo_menu["menu"].configure(activebackground="dim grey")
         acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
         acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
