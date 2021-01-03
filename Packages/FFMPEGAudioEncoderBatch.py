@@ -87,7 +87,6 @@ def batch_processing():
         config.read(config_file)
         shell_options = StringVar()
         shell_options.set(config['debug_option']['option'])
-        print(shell_options.get())
     check_shell_options()
 
     def open_batch_dir_hover(e):
@@ -1029,8 +1028,8 @@ def batch_processing():
             audio_window = Toplevel()
             audio_window.title('DTS Settings')
             audio_window.configure(background="#434547")
-            window_height = 400
-            window_width = 500
+            window_height = 420
+            window_width = 550
             screen_width = audio_window.winfo_screenwidth()
             screen_height = audio_window.winfo_screenheight()
             x_cordinate = int((screen_width / 2) - (window_width / 2))
@@ -1052,27 +1051,21 @@ def batch_processing():
             def dts_setting_choice_trace(*args):
                 if dts_settings.get() == 'DTS Encoder':
                     achannel_menu.config(state=NORMAL)
-                    acodec_channel.set('2 (Stereo)')
+                    acodec_channel.set(config_profile['FFMPEG DTS - SETTINGS']['dts_channel'])
                     ffmpeg_gain_spinbox.config(state=NORMAL)
-                    ffmpeg_gain.set(0)
+                    ffmpeg_gain.set(int(config_profile['FFMPEG DTS - SETTINGS']['ffmpeg_gain']))
                     acodec_samplerate_menu.config(state=NORMAL)
-                    acodec_samplerate.set('Original')
+                    acodec_samplerate.set(config_profile['FFMPEG DTS - SETTINGS']['samplerate'])
                     dts_acodec_bitrate_spinbox.config(state=NORMAL)
-                    dts_bitrate_spinbox.set(448)
+                    dts_bitrate_spinbox.set(int(config_profile['FFMPEG DTS - SETTINGS']['dts_bitrate']))
                     acodec_atempo_menu.config(state=NORMAL)
-                    acodec_atempo.set('Original')
+                    acodec_atempo.set(config_profile['FFMPEG DTS - SETTINGS']['tempo'])
                 else:
-                    acodec_channel.set('2 (Stereo)')
                     achannel_menu.config(state=DISABLED)
-                    ffmpeg_gain.set(0)
                     ffmpeg_gain_spinbox.config(state=DISABLED)
-                    acodec_samplerate.set('Original')
                     acodec_samplerate_menu.config(state=DISABLED)
-                    dts_bitrate_spinbox.set('')
                     dts_acodec_bitrate_spinbox.config(state=DISABLED)
-                    dolby_pro_logic_ii.set('')
                     dolby_pro_logic_ii_checkbox.config(state=DISABLED)
-                    acodec_atempo.set('Original')
                     acodec_atempo_menu.config(state=DISABLED)
 
             # Views Command -------------------------------------------------------------------------------------------
@@ -1159,79 +1152,15 @@ def batch_processing():
             dts_acodec_bitrate_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                                  buttonbackground="black", width=15, readonlybackground="#23272A")
             dts_acodec_bitrate_spinbox.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            dts_bitrate_spinbox.set("")
+            dts_bitrate_spinbox.set(int(config_profile['FFMPEG DTS - SETTINGS']['dts_bitrate']))
             # -------------------------------------------------------------------------------- Audio Bitrate Spinbox
-
-            # Dolby Pro Logic II --------------------------------------------------------------------------------
-            dolby_pro_logic_ii = StringVar()
-            dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
-                                                      variable=dolby_pro_logic_ii, state=DISABLED,
-                                                      onvalue='"aresample=matrix_encoding=dplii"', offvalue='')
-            dolby_pro_logic_ii_checkbox.grid(row=6, column=0, columnspan=1, rowspan=1, padx=10, pady=(10, 3),
-                                             sticky=N + S + E + W)
-            dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
-                                                  activeforeground="white", selectcolor="#434547",
-                                                  font=("Helvetica", 11))
-            dolby_pro_logic_ii.set("")
-            # ----------------------------------------------------------------------------------------------- DPL II
-
-            # Audio Gain Selection -------------------------------------------------------------------------------
-            ffmpeg_gain = StringVar()
-            ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
-                                      foreground="white")
-            ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
-                                   sticky=N + S + E + W)
-            ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                          wrap=True, textvariable=ffmpeg_gain, state=DISABLED)
-            ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
-                                          buttonbackground="black", width=15, readonlybackground="#23272A",
-                                          disabledbackground='grey')
-            ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            ffmpeg_gain.set(0)
-            # ---------------------------------------------------------------------------------------------------- Gain
-
-            # Audio Sample Rate Selection --------------------------------------------------------------------------
-            acodec_samplerate = StringVar(audio_window)
-            acodec_samplerate_choices = {'Original': "",
-                                         '16000 Hz': "-ar 16000 ",
-                                         '22050 Hz': "-ar 22050 ",
-                                         '24000 Hz': "-ar 24000 ",
-                                         '32000 Hz': "-ar 32000 ",
-                                         '44100 Hz': "-ar 44100 ",
-                                         '48000 Hz': "-ar 48000 "}
-            acodec_samplerate.set('Original')  # set the default option
-            acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547",
-                                            foreground="white")
-            acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate, *acodec_samplerate_choices.keys())
-            acodec_samplerate_menu.config(background="#23272A", foreground="white", highlightthickness=1,
-                                          state=DISABLED)
-            acodec_samplerate_menu.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
-            acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
-            acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
-            # ---------------------------------------------------------------------------- Audio Sample Rate Selection
-
-            # Audio Stream Selection -----------------------------------------------------------------------------
-            acodec_stream = StringVar(audio_window)
-            acodec_stream_choices = acodec_stream_batch_choices
-            acodec_stream.set('Track 1')
-            acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
-            acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
-            acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
-            acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1)
-            acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-            acodec_stream_menu["menu"].configure(activebackground="dim grey")
-            acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
-            acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
-            # ---------------------------------------------------------------------------------------- Audio Stream
 
             # Audio Channel Selection ------------------------------------------------------------------------------
             acodec_channel = StringVar(audio_window)
             acodec_channel_choices = {'(Mono)': "-ac 1 ",
                                       '2 (Stereo)': "-ac 2 ",
                                       'Original': ""}
-            acodec_channel.set('2 (Stereo)')  # set the default option
+            acodec_channel.set(config_profile['FFMPEG DTS - SETTINGS']['dts_channel'])  # set the default option
             achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
             achannel_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W + E + N + S)
             achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
@@ -1259,6 +1188,72 @@ def batch_processing():
             dts_settings.trace('w', dts_setting_choice_trace)
             # ----------------------------------------------------------------------------------------- DTS Encoders
 
+            # Dolby Pro Logic II ----------------------------------------------------------------------------------
+            dolby_pro_logic_ii = StringVar()
+            dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
+                                                      variable=dolby_pro_logic_ii, state=DISABLED,
+                                                      onvalue='"aresample=matrix_encoding=dplii"', offvalue='')
+            if acodec_channel.get() == '2 (Stereo)' and dts_settings.get() == 'DTS Encoder':
+                dolby_pro_logic_ii_checkbox.configure(state=NORMAL)
+            dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=2, padx=10, pady=(10, 3),
+                                             sticky=N + S + E + W)
+            dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                                  activeforeground="white", selectcolor="#434547",
+                                                  font=("Helvetica", 11))
+            dolby_pro_logic_ii.set(config_profile['FFMPEG DTS - SETTINGS']['dolbyprologicii'])
+            # ------------------------------------------------------------------------------------------------ DPL II
+
+            # Audio Gain Selection -------------------------------------------------------------------------------
+            ffmpeg_gain = StringVar()
+            ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
+                                      foreground="white")
+            ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
+                                   sticky=N + S + E + W)
+            ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
+                                          wrap=True, textvariable=ffmpeg_gain, state=DISABLED)
+            ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+                                          buttonbackground="black", width=15, readonlybackground="#23272A",
+                                          disabledbackground='grey')
+            ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+            ffmpeg_gain.set(int(config_profile['FFMPEG DTS - SETTINGS']['ffmpeg_gain']))
+            # ---------------------------------------------------------------------------------------------------- Gain
+
+            # Audio Sample Rate Selection --------------------------------------------------------------------------
+            acodec_samplerate = StringVar(audio_window)
+            acodec_samplerate_choices = {'Original': "",
+                                         '16000 Hz': "-ar 16000 ",
+                                         '22050 Hz': "-ar 22050 ",
+                                         '24000 Hz': "-ar 24000 ",
+                                         '32000 Hz': "-ar 32000 ",
+                                         '44100 Hz': "-ar 44100 ",
+                                         '48000 Hz': "-ar 48000 "}
+            acodec_samplerate.set(config_profile['FFMPEG DTS - SETTINGS']['samplerate'])  # set the default option
+            acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547",
+                                            foreground="white")
+            acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+            acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate, *acodec_samplerate_choices.keys())
+            acodec_samplerate_menu.config(background="#23272A", foreground="white", highlightthickness=1,
+                                          state=DISABLED)
+            acodec_samplerate_menu.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+            acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
+            acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
+            acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
+            # ---------------------------------------------------------------------------- Audio Sample Rate Selection
+
+            # Audio Stream Selection -----------------------------------------------------------------------------
+            acodec_stream = StringVar(audio_window)
+            acodec_stream_choices = acodec_stream_batch_choices
+            acodec_stream.set('Track 1')
+            acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
+            acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
+            acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
+            acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+            acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+            acodec_stream_menu["menu"].configure(activebackground="dim grey")
+            acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
+            acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+            # ---------------------------------------------------------------------------------------- Audio Stream
+
             # Audio Atempo Selection --------------------------------------------------------------------------------
             acodec_atempo = StringVar(audio_window)
             acodec_atempo_choices = {'Original': '',
@@ -1285,7 +1280,7 @@ def batch_processing():
             acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
             acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1, state=DISABLED)
             acodec_atempo_menu.grid(row=5, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-            acodec_atempo.set('Original')
+            acodec_atempo.set(config_profile['FFMPEG DTS - SETTINGS']['tempo'])
             acodec_atempo_menu["menu"].configure(activebackground="dim grey")
             acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
             acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
