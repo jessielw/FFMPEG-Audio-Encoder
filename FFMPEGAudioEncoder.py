@@ -38,7 +38,7 @@ def root_exit_function():
             root.destroy()
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v3.32 BETA")
+root.title("FFMPEG Audio Encoder v3.33 BETA")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 210
@@ -158,6 +158,14 @@ if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'samplerate'):
 if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'tempo'):
     config_profile.set('FFMPEG DTS - SETTINGS', 'tempo', 'Original')
 # --------------------------------------------------- DTS Settings
+# Auto Encode Last Used Options ------------------------------------ # Create config parameters
+if not config_profile.has_section('Auto Encode'):
+    config_profile.add_section('Auto Encode')
+if not config_profile.has_option('Auto Encode', 'codec'):
+    config_profile.set('Auto Encode', 'codec', '')
+if not config_profile.has_option('Auto Encode', 'command'):
+    config_profile.set('Auto Encode', 'command', '')
+# ------------------------------------- Auto Encode Last Used Options
 try:
     with open(config_profile_ini, 'w') as configfile_two:
         config_profile.write(configfile_two)
@@ -307,6 +315,13 @@ my_menu_bar.add_cascade(label='Tools', menu=tools_submenu)
 tools_submenu.add_command(label="MediaInfo", command=mediainfogui)
 tools_submenu.add_command(label="MPV (Media Player)", command=mpv_gui_main_gui)
 tools_submenu.add_command(label="Youtube-DL-Gui", command=youtube_dl_launcher_for_ffmpegaudioencoder)
+tools_submenu.add_separator()
+
+def batch_processing_command():
+    batch_processing()
+    root.wm_state("iconic")  # Minimizes main window while it opens batch_processing window
+
+tools_submenu.add_command(label='Batch Processing', command=batch_processing_command)
 
 help_menu = Menu(my_menu_bar, tearoff=0, activebackground="dim grey")
 my_menu_bar.add_cascade(label="Help", menu=help_menu)
@@ -345,6 +360,7 @@ def encoder_changed(*args):
         audiosettings_button.configure(state=NORMAL)
         command_line_button.config(state=DISABLED)
         start_audio_button.config(state=DISABLED)
+        auto_encode_last_options.configure(state=DISABLED)
         autosavefilename = VideoOut.name
 
 
@@ -4335,6 +4351,7 @@ def file_input():
         output_button.config(state=DISABLED)
         encoder_menu.config(state=DISABLED)
         audiosettings_button.configure(state=DISABLED)
+        auto_encode_last_options.configure(state=DISABLED)
 
 
 # ---------------------------------------------------------------------------------------------------------- File Input
@@ -4342,45 +4359,45 @@ def file_input():
 # File Output ---------------------------------------------------------------------------------------------------------
 def file_save():
     global VideoOutput
-    if encoder.get() == "AAC":
+    if encoder.get() == "AAC" or config_profile['Auto Encode']['codec'] == 'AAC':
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".mp4", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("AAC", "*.mp4"), ("All Files", "*.*")))
-    elif encoder.get() == "AC3":
+    elif encoder.get() == "AC3" or config_profile['Auto Encode']['codec'] == 'AC3':
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".ac3", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("AC3", "*.ac3"), ("All Files", "*.*")))
-    elif encoder.get() == "DTS":
+    elif encoder.get() == "DTS" or config_profile['Auto Encode']['codec'] == 'DTS':
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".dts", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("DTS", "*.dts"), ("All Files", "*.*")))
-    elif encoder.get() == "Opus":
+    elif encoder.get() == "Opus" or config_profile['Auto Encode']['codec'] == 'Opus':
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".opus", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("Opus", "*.opus"), ("All Files", "*.*")))
-    elif encoder.get() == "MP3":
+    elif encoder.get() == "MP3" or config_profile['Auto Encode']['codec'] == 'MP3':
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".mp3", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("MP3", "*.mp3"), ("All Files", "*.*")))
-    elif encoder.get() == "E-AC3":
+    elif encoder.get() == "E-AC3" or config_profile['Auto Encode']['codec'] == 'E-AC3':
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".ac3", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("E-AC3", "*.ac3"), ("All Files", "*.*")))
-    elif encoder.get() == "FDK-AAC":
+    elif encoder.get() == "FDK-AAC" or config_profile['Auto Encode']['codec'] == 'FDK-AAC':
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".m4a", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("AAC", "*.m4a"), ("All Files", "*.*")))
-    elif encoder.get() == "QAAC":
+    elif encoder.get() == "QAAC" or config_profile['Auto Encode']['codec'] == 'QAAC':
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".m4a", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("AAC", "*.m4a"), ("All Files", "*.*")))
 
-    elif encoder.get() == "FLAC":
+    elif encoder.get() == "FLAC" or config_profile['Auto Encode']['codec'] == 'FLAC':
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".flac", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("FLAC", "*.flac"), ("All Files", "*.*")))
 
-    elif encoder.get() == "ALAC":
+    elif encoder.get() == "ALAC" or config_profile['Auto Encode']['codec'] == 'ALAC':
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".m4a", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("ALAC", "*.m4a"), ("All Files", "*.*")))
@@ -4416,12 +4433,12 @@ def audiosettings_button_hover_leave(e):
     audiosettings_button["bg"] = "#23272A"
 
 
-def open_batch_processing_window_hover(e):
-    open_batch_processing_window["bg"] = "grey"
+def auto_encode_last_options_hover(e):
+    auto_encode_last_options["bg"] = "grey"
 
 
-def open_batch_processing_window_hover_leave(e):
-    open_batch_processing_window["bg"] = "#23272A"
+def auto_encode_last_options_hover_leave(e):
+    auto_encode_last_options["bg"] = "#23272A"
 
 def start_audio_button_hover(e):
     start_audio_button["bg"] = "grey"
@@ -4627,7 +4644,7 @@ def print_command_line():
 # Start Audio Job -----------------------------------------------------------------------------------------------------
 def startaudiojob():
     global example_cmd_output, ac3_job, aac_job, dts_job, opus_job, mp3_job, eac3_job, \
-        fdkaac_job, qaac_job, flac_job, alac_job
+        fdkaac_job, qaac_job, flac_job, alac_job, auto_or_manual
     # Quote File Input/Output Paths------------
     VideoInputQuoted = '"' + VideoInput + '"'
     VideoOutputQuoted = '"' + VideoOutput + '"'
@@ -4679,6 +4696,12 @@ def startaudiojob():
         app_progress_bar = ttk.Progressbar(window, orient=HORIZONTAL, mode='determinate')
         app_progress_bar.grid(row=2, pady=(10, 10), padx=15, sticky=E + W)
 
+        def update_last_codec_command():  # Updates 'profiles.ini' last used codec/commands
+            config_profile.set('Auto Encode', 'codec', encoder.get())
+            config_profile.set('Auto Encode', 'command', str(last_used_command))
+            with open(config_profile_ini, 'w') as configfile_two:
+                config_profile.write(configfile_two)
+
     # AC3 Start Job ---------------------------------------------------------------------------------------------------
     if encoder.get() == "AC3":
         finalcommand = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
@@ -4688,11 +4711,22 @@ def startaudiojob():
                        acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
                        + "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input + \
                        VideoOutputQuoted + " -hide_banner"
-
+        last_used_command = acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
+                       acodec_bitrate_choices[acodec_bitrate.get()] + \
+                       acodec_channel_choices[acodec_channel.get()] + \
+                       acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
+                       + "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input
         if shell_options.get() == "Default":
-            job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', universal_newlines=True,
+            if auto_or_manual == 'manual':
+                command = finalcommand
+            elif auto_or_manual == 'auto':
+                command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
+                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
+                          + ' ' + VideoOutputQuoted + ' -hide_banner'
+            job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
+            update_last_codec_command()
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
@@ -4720,10 +4754,22 @@ def startaudiojob():
                        + "-sn -vn -map_chapters -1 -map_metadata -1 " \
                        + aac_custom_cmd_input \
                        + aac_title_input + VideoOutputQuoted + " -hide_banner"
+        last_used_command = acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
+                       bitrate_or_quality + acodec_channel_choices[acodec_channel.get()] + \
+                       acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
+                       + "-sn -vn -map_chapters -1 -map_metadata -1 " \
+                       + aac_custom_cmd_input + aac_title_input
         if shell_options.get() == "Default":
-            job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+            if auto_or_manual == 'manual':
+                command = finalcommand
+            elif auto_or_manual == 'auto':
+                command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
+                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
+                          + ' ' + VideoOutputQuoted + ' -hide_banner'
+            job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
+                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
+            update_last_codec_command()
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
@@ -5017,7 +5063,6 @@ def startaudiojob():
             subprocess.Popen('cmd /k ' + finalcommand + '"')
     # ------------------------------------------------------------------------------------------------------------ ALAC
 
-
 # Buttons Main Gui ----------------------------------------------------------------------------------------------------
 encoder_menu.bind("<Enter>", encoder_menu_hover)
 encoder_menu.bind("<Leave>", encoder_menu_hover_leave)
@@ -5030,6 +5075,7 @@ audiosettings_button.bind("<Leave>", audiosettings_button_hover_leave)
 
 
 def input_button_commands():
+    global autosavefilename, VideoInput
     encoder.set('Set Codec')
     audiosettings_button.configure(state=DISABLED)
     output_entry.configure(state=NORMAL)
@@ -5039,9 +5085,33 @@ def input_button_commands():
     input_entry.delete(0, END)
     input_entry.configure(state=DISABLED)
     encoder_menu.configure(state=DISABLED)
-    output_button.configure(state=DISABLED)
+    output_button.configure(state=NORMAL)
     command_line_button.configure(state=DISABLED)
     file_input()
+    if config_profile['Auto Encode']['codec'] == '':
+        auto_encode_last_options.configure(state=DISABLED)
+    else:
+        auto_encode_last_options.configure(state=NORMAL)
+        if config_profile['Auto Encode']['codec'] == 'AAC':
+            VideoOut = VideoInput.with_suffix('.NEW.mp4')
+        elif config_profile['Auto Encode']['codec'] == 'AC3' or config_profile['Auto Encode']['codec'] == 'E-AC3':
+            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.ac3'
+        elif config_profile['Auto Encode']['codec'] == "DTS":
+            VideoOut = VideoInput.with_suffix('.NEW.dts')
+        elif config_profile['Auto Encode']['codec'] == "Opus":
+            VideoOut = VideoInput.with_suffix('.NEW.opus')
+        elif config_profile['Auto Encode']['codec'] == 'MP3':
+            VideoOut = VideoInput.with_suffix('.NEW.mp3')
+        elif config_profile['Auto Encode']['codec'] == "FDK-AAC" or \
+                config_profile['Auto Encode']['codec'] == "QAAC" or config_profile['Auto Encode']['codec'] == "ALAC":
+            VideoOut = VideoInput.with_suffix('.NEW.m4a')
+        elif config_profile['Auto Encode']['codec'] == "FLAC":
+            VideoOut = VideoInput.with_suffix('.NEW.flac')
+        output_entry.configure(state=NORMAL)
+        output_entry.delete(0, END)
+        output_entry.insert(0, VideoOut)
+        output_entry.configure(state=DISABLED)
+        autosavefilename = pathlib.Path(VideoOut).name
 
 
 def drop_input(event):
@@ -5049,10 +5119,7 @@ def drop_input(event):
 
 
 def update_file_input(*args):
-    global VideoInput
-    global track_count
-    global autofilesave_dir_path
-    global VideoInputQuoted
+    global VideoInput, track_count, autofilesave_dir_path, VideoInputQuoted, autosavefilename
     input_entry.configure(state=NORMAL)
     input_entry.delete(0, END)
     VideoInput = str(input_dnd.get()).replace("{", "").replace("}", "")
@@ -5083,13 +5150,36 @@ def update_file_input(*args):
         output_entry.configure(state=DISABLED)
         encoder.set("Set Codec")
         audiosettings_button.configure(state=DISABLED)
-        output_button.configure(state=DISABLED)
+        output_button.configure(state=NORMAL)
         start_audio_button.configure(state=DISABLED)
         encoder_menu.configure(state=NORMAL)
+        if config_profile['Auto Encode']['codec'] == '':
+            auto_encode_last_options.configure(state=DISABLED)
+        else:
+            auto_encode_last_options.configure(state=NORMAL)
+            if config_profile['Auto Encode']['codec'] == 'AAC':
+                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.mp4'
+            elif config_profile['Auto Encode']['codec'] == 'AC3' or config_profile['Auto Encode']['codec'] == 'E-AC3':
+                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.ac3'
+            elif config_profile['Auto Encode']['codec'] == "DTS":
+                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.dts'
+            elif config_profile['Auto Encode']['codec'] == "Opus":
+                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.opus'
+            elif config_profile['Auto Encode']['codec'] == 'MP3':
+                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.mp3'
+            elif config_profile['Auto Encode']['codec'] == "FDK-AAC" or \
+                    config_profile['Auto Encode']['codec'] == "QAAC" or config_profile['Auto Encode']['codec'] == "ALAC":
+                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.m4a'
+            elif config_profile['Auto Encode']['codec'] == "FLAC":
+                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.flac'
+            output_entry.configure(state=NORMAL)
+            output_entry.delete(0, END)
+            output_entry.insert(0, VideoOut)
+            output_entry.configure(state=DISABLED)
+            autosavefilename = pathlib.Path(VideoOut).name
     else:
         messagebox.showinfo(title="Wrong File Type", message="Try Again With a Supported File Type!\n\nIf this is a "
                                                              "file that should be supported, please let me know.")
-
 
 input_dnd = StringVar()
 input_dnd.trace('w', update_file_input)
@@ -5117,27 +5207,38 @@ output_button.bind("<Leave>", output_button_hover_leave)
 # Print Final Command Line
 command_line_button = Button(root, text="Show\nCommand", command=print_command_line, state=DISABLED, foreground="white",
                              background="#23272A", borderwidth="3")
-command_line_button.grid(row=3, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
+command_line_button.grid(row=1, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
 command_line_button.bind("<Enter>", command_line_button_hover)
 command_line_button.bind("<Leave>", command_line_button_hover_leave)
 
-# Start Audio Job
+# Start Audio Job: Manual
+def start_audio_job_manual():
+    global auto_or_manual
+    auto_or_manual = 'manual'
+    threading.Thread(target=startaudiojob).start()
 start_audio_button = Button(root, text="Start Audio Job",
-                            command=lambda: threading.Thread(target=startaudiojob).start(),
-                            state=DISABLED, foreground="white", background="#23272A", borderwidth="3")
+                            command=start_audio_job_manual, state=DISABLED, foreground="white", background="#23272A",
+                            borderwidth="3")
 start_audio_button.grid(row=3, column=1, columnspan=3, padx=5, pady=5, sticky=N + S + E + W)
 start_audio_button.bind("<Enter>", start_audio_button_hover)
 start_audio_button.bind("<Leave>", start_audio_button_hover_leave)
 
-def batch_processing_command():
-    batch_processing()
-    root.wm_state("iconic")  # Minimizes main window while it opens batch_processing window
-
-open_batch_processing_window = Button(root, text="Batch\nProcess", command=batch_processing_command, foreground="white",
-                             background="#23272A", borderwidth="3")
-open_batch_processing_window.grid(row=1, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
-open_batch_processing_window.bind("<Enter>", open_batch_processing_window_hover)
-open_batch_processing_window.bind("<Leave>", open_batch_processing_window_hover_leave)
+# Start Audio Job: Auto
+def encode_last_used_setting():
+    global auto_or_manual, audio_window, acodec_stream_track_counter
+    auto_or_manual = 'auto'
+    acodec_stream_track_counter = {}
+    for i in range(int(str.split(track_count)[-1])):
+        acodec_stream_track_counter[f'Track {i + 1}'] = f' -map 0:a:{i} '
+    encoder.set(config_profile['Auto Encode']['codec'])
+    openaudiowindow()
+    audio_window.destroy()
+    threading.Thread(target=startaudiojob).start()
+auto_encode_last_options = Button(root, text="Auto Encode:\nLast Used Options", command=encode_last_used_setting,
+                                      foreground="white", background="#23272A", borderwidth="3", state=DISABLED)
+auto_encode_last_options.grid(row=3, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
+auto_encode_last_options.bind("<Enter>", auto_encode_last_options_hover)
+auto_encode_last_options.bind("<Leave>", auto_encode_last_options_hover_leave)
 
 # Checks for App Folder and Sub-Directories - Creates Folders if they are missing -------------------------------------
 directory_check()
