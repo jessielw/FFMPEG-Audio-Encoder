@@ -38,7 +38,7 @@ def root_exit_function():
             root.destroy()
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v3.33 BETA")
+root.title("FFMPEG Audio Encoder v3.34 BETA")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 210
@@ -244,7 +244,6 @@ def set_ffmpeg_path():
         config.set('ffmpeg_path', 'path', ffmpeg)
         with open(config_file, 'w') as configfile:
             config.write(configfile)
-    print(path)
 
 options_menu.add_command(label='Set path to FFMPEG', command=set_ffmpeg_path)
 
@@ -368,10 +367,18 @@ def encoder_changed(*args):
 
 # Uses MediaInfo CLI to get total audio track count and gives us a total track count ----------------------------------
 def track_count(*args):  # Thanks for helping me shorten this 'gmes78'
-    global acodec_stream_track_counter
+    global acodec_stream_track_counter, t_info
+    mediainfocli_cmd_info = '"' + mediainfocli + " " + '--Output="Audio;' \
+                            + " |  %Format%  |  %Channel(s)% Channels  |  %BitRate/String% ," \
+                            + '"' + " " + VideoInputQuoted + '"'
+    mediainfo_count = subprocess.Popen('cmd /c ' + mediainfocli_cmd_info, creationflags=subprocess.CREATE_NO_WINDOW,
+                                       universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                       stdin=subprocess.PIPE)
+    stdout, stderr = mediainfo_count.communicate()
+    t_info = stdout.split(',')[:-1]
     acodec_stream_track_counter = {}
     for i in range(int(str.split(track_count)[-1])):
-        acodec_stream_track_counter[f'Track {i + 1}'] = f' -map 0:a:{i} '
+        acodec_stream_track_counter[f'Track #{i + 1} {t_info[i]}'] = f' -map 0:a:{i} '
 
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -739,7 +746,13 @@ def openaudiowindow():
 
     # Show Streams Inside Audio Settings Window -----------------------------------------------------------------------
     def show_streams_mediainfo():  # Stream Viewer
-        commands = '"' + mediainfocli + ' --Output="Audio;Track #:..............................%ID%\\nFormat:..' + \
+        global track_count
+        if int(track_count) == 1:
+            stream_id_type = '1'
+        else:
+            stream_id_type = '%StreamKindPos%'
+        commands = '"' + mediainfocli + ' --Output="Audio;Track #:..............................' \
+                                        f'{stream_id_type}\\nFormat:..' + \
                    '..............................%Format%\\nDuration:.........................' + \
                    '.....%Duration/String2%\\nBit Rate Mode:.....................%BitRate_Mode/String%\\nBitrate:.' + \
                    '................................%BitRate/String%\\nSampling Rate:................' + \
@@ -883,11 +896,12 @@ def openaudiowindow():
             # Audio Stream Selection ----------------------------------------------------------------------------------
             acodec_stream = StringVar(audio_window)
             acodec_stream_choices = acodec_stream_track_counter
-            acodec_stream.set('Track 1')  # set the default option
+            acodec_stream.set(next(iter(acodec_stream_track_counter)))  # set the default option
             acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
             acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
             acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
-            acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+            acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1,
+                                      width=12, anchor='w')
             acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
             acodec_stream_menu["menu"].configure(activebackground="dim grey")
             acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
@@ -1250,11 +1264,12 @@ def openaudiowindow():
         # Audio Stream Selection --------------------------------------------------------------------------------------
         acodec_stream = StringVar(audio_window)
         acodec_stream_choices = acodec_stream_track_counter
-        acodec_stream.set('Track 1')
+        acodec_stream.set(next(iter(acodec_stream_track_counter)))
+        next(iter(acodec_stream_track_counter))
         acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
         acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
         acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
-        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=12, anchor='w')
         acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         acodec_stream_menu["menu"].configure(activebackground="dim grey")
         acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
@@ -1542,11 +1557,11 @@ def openaudiowindow():
         # Audio Stream Selection --------------------------------------------------------------------------------------
         acodec_stream = StringVar(audio_window)
         acodec_stream_choices = acodec_stream_track_counter
-        acodec_stream.set('Track 1')
+        acodec_stream.set(next(iter(acodec_stream_track_counter)))
         acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
         acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
         acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
-        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=12, anchor='w')
         acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         acodec_stream_menu["menu"].configure(activebackground="dim grey")
         acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
@@ -1829,11 +1844,11 @@ def openaudiowindow():
         # Audio Stream Selection --------------------------------------------------------------------------------------
         acodec_stream = StringVar(audio_window)
         acodec_stream_choices = acodec_stream_track_counter
-        acodec_stream.set('Track 1')
+        acodec_stream.set(next(iter(acodec_stream_track_counter)))
         acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
         acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
         acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
-        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=12, anchor='w')
         acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         acodec_stream_menu["menu"].configure(activebackground="dim grey")
         acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
@@ -2123,11 +2138,11 @@ def openaudiowindow():
         # Audio Stream Selection --------------------------------------------------------------------------------------
         acodec_stream = StringVar(audio_window)
         acodec_stream_choices = acodec_stream_track_counter
-        acodec_stream.set('Track 1')
+        acodec_stream.set(next(iter(acodec_stream_track_counter)))
         acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
         acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
         acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
-        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=12, anchor='w')
         acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         acodec_stream_menu["menu"].configure(activebackground="dim grey")
         acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
@@ -2383,11 +2398,11 @@ def openaudiowindow():
         # Audio Stream Selection --------------------------------------------------------------------------------------
         acodec_stream = StringVar(audio_window)
         acodec_stream_choices = acodec_stream_track_counter
-        acodec_stream.set('Track 1')
+        acodec_stream.set(next(iter(acodec_stream_track_counter)))
         acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
         acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
         acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
-        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=12, anchor='w')
         acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         acodec_stream_menu["menu"].configure(activebackground="dim grey")
         acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
@@ -2948,11 +2963,11 @@ def openaudiowindow():
         # Audio Stream Selection --------------------------------------------------------------------------------------
         acodec_stream = StringVar(audio_window)
         acodec_stream_choices = acodec_stream_track_counter
-        acodec_stream.set('Track 1')  # set the default option
+        acodec_stream.set(next(iter(acodec_stream_track_counter)))  # set the default option
         acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
         acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
         acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
-        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=12, anchor='w')
         acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         acodec_stream_menu["menu"].configure(activebackground="dim grey")
         acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
@@ -3431,11 +3446,11 @@ def openaudiowindow():
         # Audio Stream Selection --------------------------------------------------------------------------------------
         acodec_stream = StringVar(audio_window)
         acodec_stream_choices = acodec_stream_track_counter
-        acodec_stream.set('Track 1')  # set the default option
+        acodec_stream.set(next(iter(acodec_stream_track_counter)))  # set the default option
         acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
         acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
         acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
-        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=12, anchor='w')
         acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         acodec_stream_menu["menu"].configure(activebackground="dim grey")
         acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
@@ -3813,11 +3828,12 @@ def openaudiowindow():
             # Audio Stream Selection ----------------------------------------------------------------------------------
             acodec_stream = StringVar(audio_window)
             acodec_stream_choices = acodec_stream_track_counter
-            acodec_stream.set('Track 1')  # set the default option
+            acodec_stream.set(next(iter(acodec_stream_track_counter)))  # set the default option
             acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
             acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
             acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
-            acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15)
+            acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1,
+                                      width=15, anchor='w')
             acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
             acodec_stream_menu["menu"].configure(activebackground="dim grey")
             acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
@@ -4106,11 +4122,12 @@ def openaudiowindow():
             # Audio Stream Selection ------------------------------------------------------------------------------
             acodec_stream = StringVar(audio_window)
             acodec_stream_choices = acodec_stream_track_counter
-            acodec_stream.set('Track 1')
+            acodec_stream.set(next(iter(acodec_stream_track_counter)))
             acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
             acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
             acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
-            acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15)
+            acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1,
+                                      width=15, anchor='w')
             acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
             acodec_stream_menu["menu"].configure(activebackground="dim grey")
             acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
