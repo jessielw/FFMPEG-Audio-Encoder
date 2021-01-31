@@ -38,7 +38,7 @@ def root_exit_function():
             root.destroy()
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v3.34 BETA")
+root.title("FFMPEG Audio Encoder v3.35 BETA")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 210
@@ -5110,20 +5110,20 @@ def input_button_commands():
     else:
         auto_encode_last_options.configure(state=NORMAL)
         if config_profile['Auto Encode']['codec'] == 'AAC':
-            VideoOut = VideoInput.with_suffix('.NEW.mp4')
+            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.mp4'
         elif config_profile['Auto Encode']['codec'] == 'AC3' or config_profile['Auto Encode']['codec'] == 'E-AC3':
             VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.ac3'
         elif config_profile['Auto Encode']['codec'] == "DTS":
-            VideoOut = VideoInput.with_suffix('.NEW.dts')
+            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.dts'
         elif config_profile['Auto Encode']['codec'] == "Opus":
-            VideoOut = VideoInput.with_suffix('.NEW.opus')
+            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.opus'
         elif config_profile['Auto Encode']['codec'] == 'MP3':
-            VideoOut = VideoInput.with_suffix('.NEW.mp3')
+            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.mp3'
         elif config_profile['Auto Encode']['codec'] == "FDK-AAC" or \
                 config_profile['Auto Encode']['codec'] == "QAAC" or config_profile['Auto Encode']['codec'] == "ALAC":
-            VideoOut = VideoInput.with_suffix('.NEW.m4a')
+            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.m4a'
         elif config_profile['Auto Encode']['codec'] == "FLAC":
-            VideoOut = VideoInput.with_suffix('.NEW.flac')
+            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.flac'
         output_entry.configure(state=NORMAL)
         output_entry.delete(0, END)
         output_entry.insert(0, VideoOut)
