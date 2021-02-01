@@ -38,7 +38,7 @@ def root_exit_function():
             root.destroy()
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v3.35 BETA")
+root.title("FFMPEG Audio Encoder v3.36 BETA")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 220
@@ -208,6 +208,30 @@ if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_cpl_start_ban
 if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'tempo'):
     config_profile.set('FFMPEG E-AC3 - SETTINGS', 'tempo', 'Original')
 # --------------------------------------------------- E-AC3 Settings
+# Opus settings --------------------------------------------------- # Create config parameters
+if not config_profile.has_section('FFMPEG Opus - SETTINGS'):
+    config_profile.add_section('FFMPEG Opus - SETTINGS')
+if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'opus_bitrate'):
+    config_profile.set('FFMPEG Opus - SETTINGS', 'opus_bitrate', '160k')
+if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'samplerate'):
+    config_profile.set('FFMPEG Opus - SETTINGS', 'samplerate', 'Original')
+if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'acodec_vbr'):
+    config_profile.set('FFMPEG Opus - SETTINGS', 'acodec_vbr', 'VBR: On')
+if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'acodec_application'):
+    config_profile.set('FFMPEG Opus - SETTINGS', 'acodec_application', 'Audio')
+if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'frame_duration'):
+    config_profile.set('FFMPEG Opus - SETTINGS', 'frame_duration', '20')
+if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'packet_loss'):
+    config_profile.set('FFMPEG Opus - SETTINGS', 'packet_loss', '0')
+if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'acodec_channel'):
+    config_profile.set('FFMPEG Opus - SETTINGS', 'acodec_channel', '2 (Stereo)')
+if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'dolbyprologicii'):
+    config_profile.set('FFMPEG Opus - SETTINGS', 'dolbyprologicii', '')
+if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'ffmpeg_gain'):
+    config_profile.set('FFMPEG Opus - SETTINGS', 'ffmpeg_gain', '0')
+if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'tempo'):
+    config_profile.set('FFMPEG Opus - SETTINGS', 'tempo', 'Original')
+# --------------------------------------------------- Opus Settings
 # Auto Encode Last Used Options ------------------------------------ # Create config parameters
 if not config_profile.has_section('Auto Encode'):
     config_profile.add_section('Auto Encode')
@@ -777,6 +801,17 @@ def openaudiowindow():
             config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_channel_coupling', channel_coupling.get())
             config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_cpl_start_band', cpl_start_band.get())
             config_profile.set('FFMPEG E-AC3 - SETTINGS', 'tempo', acodec_atempo.get())
+        if encoder.get() == 'Opus':
+            config_profile.set('FFMPEG Opus - SETTINGS', 'opus_bitrate', acodec_bitrate.get())
+            config_profile.set('FFMPEG Opus - SETTINGS', 'samplerate', acodec_samplerate.get())
+            config_profile.set('FFMPEG Opus - SETTINGS', 'acodec_vbr', acodec_vbr.get())
+            config_profile.set('FFMPEG Opus - SETTINGS', 'acodec_application', acodec_application.get())
+            config_profile.set('FFMPEG Opus - SETTINGS', 'frame_duration', frame_duration.get())
+            config_profile.set('FFMPEG Opus - SETTINGS', 'packet_loss', packet_loss.get())
+            config_profile.set('FFMPEG Opus - SETTINGS', 'acodec_channel', acodec_channel.get())
+            config_profile.set('FFMPEG Opus - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
+            config_profile.set('FFMPEG Opus - SETTINGS', 'ffmpeg_gain', ffmpeg_gain.get())
+            config_profile.set('FFMPEG Opus - SETTINGS', 'tempo', acodec_atempo.get())
 
         with open(config_profile_ini, 'w') as configfile_two:
             config_profile.write(configfile_two)
@@ -832,6 +867,17 @@ def openaudiowindow():
                 config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_channel_coupling', '-1')
                 config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_cpl_start_band', '-1')
                 config_profile.set('FFMPEG E-AC3 - SETTINGS', 'tempo', 'Original')
+            if encoder.get() == 'Opus':
+                config_profile.set('FFMPEG Opus - SETTINGS', 'opus_bitrate', '160k')
+                config_profile.set('FFMPEG Opus - SETTINGS', 'samplerate', 'Original')
+                config_profile.set('FFMPEG Opus - SETTINGS', 'acodec_vbr', 'VBR: On')
+                config_profile.set('FFMPEG Opus - SETTINGS', 'acodec_application', 'Audio')
+                config_profile.set('FFMPEG Opus - SETTINGS', 'frame_duration', '20')
+                config_profile.set('FFMPEG Opus - SETTINGS', 'packet_loss', '0')
+                config_profile.set('FFMPEG Opus - SETTINGS', 'acodec_channel', '2 (Stereo)')
+                config_profile.set('FFMPEG Opus - SETTINGS', 'dolbyprologicii', '')
+                config_profile.set('FFMPEG Opus - SETTINGS', 'ffmpeg_gain', '0')
+                config_profile.set('FFMPEG Opus - SETTINGS', 'tempo', 'Original')
 
             with open(config_profile_ini, 'w') as configfile_two:
                 config_profile.write(configfile_two)
@@ -1722,6 +1768,10 @@ def openaudiowindow():
         file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
         file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
                               command=mpv_gui_audio_window)
+        options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+        my_menu_bar.add_cascade(label='Options', menu=options_menu)
+        options_menu.add_command(label='Save Current Settings', command=save_profile)
+        options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
 
         advanced_label = Label(audio_window,
                                text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - - - - - - - - - - "
@@ -1807,7 +1857,7 @@ def openaudiowindow():
                                   '320k': "-b:a 320k ",
                                   '448k': "-b:a 448k ",
                                   '510k': "-b:a 510k "}
-        acodec_bitrate.set('160k')  # set the default option
+        acodec_bitrate.set(config_profile['FFMPEG Opus - SETTINGS']['opus_bitrate'])  # set the default option
         acodec_bitrate_menu_label = Label(audio_window, text="Quality :", background="#434547", foreground="white")
         acodec_bitrate_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
         acodec_bitrate_menu = OptionMenu(audio_window, acodec_bitrate, *acodec_bitrate_choices.keys())
@@ -1826,7 +1876,7 @@ def openaudiowindow():
                                      '16000 Hz': "-ar 16000 ",
                                      '24000 Hz': "-ar 24000 ",
                                      '48000 Hz': "-ar 48000 "}
-        acodec_samplerate.set('Original')  # set the default option
+        acodec_samplerate.set(config_profile['FFMPEG Opus - SETTINGS']['samplerate'])  # set the default option
         acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547", foreground="white")
         acodec_samplerate_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate, *acodec_samplerate_choices.keys())
@@ -1863,7 +1913,7 @@ def openaudiowindow():
         acodec_vbr_choices = {'VBR: On': "",
                               'VBR: Off': "-vbr 0 ",
                               'VBR: Constrained': "-vbr 2 "}
-        acodec_vbr.set('VBR: On')  # set the default option
+        acodec_vbr.set(config_profile['FFMPEG Opus - SETTINGS']['acodec_vbr'])  # set the default option
         acodec_vbr_menu_label = Label(audio_window, text="VBR :", background="#434547", foreground="white")
         acodec_vbr_menu_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
         acodec_vbr_menu = OptionMenu(audio_window, acodec_vbr, *acodec_vbr_choices.keys())
@@ -1879,7 +1929,7 @@ def openaudiowindow():
         acodec_application_choices = {'Audio': "",
                                       'VoIP': "-application 2048 ",
                                       'Low Delay': "-application 2051 "}
-        acodec_application.set('Audio')  # set the default option
+        acodec_application.set(config_profile['FFMPEG Opus - SETTINGS']['acodec_application'])  # set the def option
         acodec_application_menu_label = Label(audio_window, text="Application:\n*Default is 'Audio'*",
                                               background="#434547", foreground="white")
         acodec_application_menu_label.grid(row=8, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
@@ -1903,7 +1953,7 @@ def openaudiowindow():
         frame_duration_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                       buttonbackground="black")
         frame_duration_spinbox.grid(row=9, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        frame_duration.set(20)
+        frame_duration.set(int(config_profile['FFMPEG Opus - SETTINGS']['frame_duration']))  # default option
         # ---------------------------------------------------------------------------------------------- Frame Duration
 
         # Audio Packet Loss Spinbox --------------------------------------------------------------------------------
@@ -1917,7 +1967,7 @@ def openaudiowindow():
         packet_loss_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                    buttonbackground="black")
         packet_loss_spinbox.grid(row=9, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        packet_loss.set(0)
+        packet_loss.set(int(config_profile['FFMPEG Opus - SETTINGS']['packet_loss']))  # default option
         # ------------------------------------------------------------------------------------------------- Packet Loss
 
         # Audio Channel Selection -------------------------------------------------------------------------------------
@@ -1927,7 +1977,7 @@ def openaudiowindow():
                                   '5.1 (Surround)': "-ac 6 ",
                                   '6.1 (Surround)': "-ac 7 ",
                                   '7.1 (Surround)': "-ac 8 "}
-        acodec_channel.set('2 (Stereo)')
+        acodec_channel.set(config_profile['FFMPEG Opus - SETTINGS']['acodec_channel'])
         achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
         achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
         achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
@@ -1960,11 +2010,11 @@ def openaudiowindow():
         dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                   variable=dolby_pro_logic_ii,
                                                   onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
-        dolby_pro_logic_ii_checkbox.grid(row=6, column=0, columnspan=1, rowspan=1, padx=10, pady=(15, 5),
+        dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=2, padx=10, pady=(15, 5),
                                          sticky=N + S + E + W)
         dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                               activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
-        dolby_pro_logic_ii.set("")
+        dolby_pro_logic_ii.set(config_profile['FFMPEG Opus - SETTINGS']['dolbyprologicii'])
         # ------------------------------------------------------------------------------------------------------ DPL II
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
@@ -1978,7 +2028,7 @@ def openaudiowindow():
         ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                       buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_gain.set(0)
+        ffmpeg_gain.set(int(config_profile['FFMPEG Opus - SETTINGS']['ffmpeg_gain']))
         # -------------------------------------------------------------------------------------------------------- Gain
 
         # Audio Atempo Selection ---------------------------------------------------------------------------------------
@@ -2007,7 +2057,7 @@ def openaudiowindow():
         acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
         acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1)
         acodec_atempo_menu.grid(row=5, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-        acodec_atempo.set('Original')
+        acodec_atempo.set(config_profile['FFMPEG Opus - SETTINGS']['tempo'])
         acodec_atempo_menu["menu"].configure(activebackground="dim grey")
         acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
         acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
@@ -4835,16 +4885,16 @@ def startaudiojob():
                        acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
                        + "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input
         if shell_options.get() == "Default":
-            if auto_or_manual == 'manual':
+            if auto_or_manual == 'auto':
                 command = finalcommand
-            elif auto_or_manual == 'auto':
+                update_last_codec_command()
+            elif auto_or_manual == 'manual':
                 command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
                           + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
                           + ' ' + VideoOutputQuoted + ' -hide_banner'
             job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
-            update_last_codec_command()
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
@@ -4878,16 +4928,16 @@ def startaudiojob():
                        + "-sn -vn -map_chapters -1 -map_metadata -1 " \
                        + aac_custom_cmd_input + aac_title_input
         if shell_options.get() == "Default":
-            if auto_or_manual == 'manual':
+            if auto_or_manual == 'auto':
                 command = finalcommand
-            elif auto_or_manual == 'auto':
+                update_last_codec_command()
+            elif auto_or_manual == 'manual':
                 command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
                           + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
                           + ' ' + VideoOutputQuoted + ' -hide_banner'
             job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
-            update_last_codec_command()
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
@@ -4928,16 +4978,16 @@ def startaudiojob():
                                 dts_settings_choices[dts_settings.get()] \
                                 + dts_custom_cmd_input + "-sn -vn -map_chapters -1 "
         if shell_options.get() == "Default":
-            if auto_or_manual == 'manual':
+            if auto_or_manual == 'auto':
                 command = finalcommand
-            elif auto_or_manual == 'auto':
+                update_last_codec_command()
+            elif auto_or_manual == 'manual':
                 command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
                           + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
                           + ' ' + VideoOutputQuoted + ' -hide_banner'
             job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
-            update_last_codec_command()
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
@@ -4963,9 +5013,23 @@ def startaudiojob():
                        acodec_samplerate_choices[acodec_samplerate.get()] + \
                        audio_filter_setting + "-sn -vn -map_chapters -1 -map_metadata -1 " \
                        + opus_custom_cmd_input + VideoOutputQuoted + " -hide_banner"
+        last_used_command = acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
+                            acodec_vbr_choices[acodec_vbr.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + \
+                            acodec_channel_choices[acodec_channel.get()] + \
+                            acodec_application_choices[acodec_application.get()] + "-packet_loss " + \
+                            packet_loss.get() + " -frame_duration " + frame_duration.get() + " " + \
+                            acodec_samplerate_choices[acodec_samplerate.get()] + \
+                            audio_filter_setting + "-sn -vn -map_chapters -1 -map_metadata -1 "
         if shell_options.get() == "Default":
-            job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+            if auto_or_manual == 'auto':
+                command = finalcommand
+                update_last_codec_command()
+            elif auto_or_manual == 'manual':
+                command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
+                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
+                          + ' ' + VideoOutputQuoted + ' -hide_banner'
+            job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
+                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
@@ -5431,7 +5495,7 @@ command_line_button.bind("<Leave>", command_line_button_on_leave)
 # Start Audio Job: Manual -----------------------------------------------------------------------
 def start_audio_job_manual():
     global auto_or_manual
-    auto_or_manual = 'manual'
+    auto_or_manual = 'auto'
     threading.Thread(target=startaudiojob).start()
 start_audio_button = Button(root, text="Start Audio Job",
                             command=start_audio_job_manual, state=DISABLED, foreground="white", background="#23272A",
@@ -5453,7 +5517,7 @@ start_audio_button.bind("<Leave>", start_audio_button_on_leave)
 # Start Audio Job: Auto -----------------------------------------------------------------------------
 def encode_last_used_setting():
     global auto_or_manual, audio_window, acodec_stream_track_counter
-    auto_or_manual = 'auto'
+    auto_or_manual = 'manual'
     acodec_stream_track_counter = {}
     for i in range(int(str.split(track_count)[-1])):
         acodec_stream_track_counter[f'Track {i + 1}'] = f' -map 0:a:{i} '
