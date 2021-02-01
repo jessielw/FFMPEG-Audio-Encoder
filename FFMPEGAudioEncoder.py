@@ -5081,15 +5081,36 @@ def startaudiojob():
     # ------------------------------------------------------------------------------------------------------------ ALAC
 
 # Buttons Main Gui ----------------------------------------------------------------------------------------------------
+# Encoder Menu Enter/Leave Binds ----------------------------------------------------------------
 encoder_menu.bind("<Enter>", encoder_menu_hover)
 encoder_menu.bind("<Leave>", encoder_menu_hover_leave)
 
+def encoder_menu_on_enter(e):
+    status_label.configure(text='Select Audio Codec...')
+
+def encoder_menu_on_leave(e):
+    status_label.configure(text='')
+
+encoder_menu.bind("<Enter>", encoder_menu_on_enter)
+encoder_menu.bind("<Leave>", encoder_menu_on_leave)
+# ---------------------------------------------------------------- # Encoder Menu Enter/Leave Binds
+
+# Audio Settings Button --------------------------------------------------------------------------
 audiosettings_button = Button(root, text="Audio Settings", command=openaudiowindow, foreground="white",
                               background="#23272A", state=DISABLED, borderwidth="3")
 audiosettings_button.grid(row=1, column=3, columnspan=2, padx=5, pady=5, sticky=N + S + W + E)
 audiosettings_button.bind("<Enter>", audiosettings_button_hover)
 audiosettings_button.bind("<Leave>", audiosettings_button_hover_leave)
 
+def audiosettings_button_on_enter(e):
+    status_label.configure(text='Click To Configure Selected Audio Codec...')
+
+def audiosettings_button_on_leave(e):
+    status_label.configure(text='')
+
+audiosettings_button.bind("<Enter>", audiosettings_button_on_enter)
+audiosettings_button.bind("<Leave>", audiosettings_button_on_leave)
+# --------------------------------------------------------------------------- # Audio Settings Button
 
 def input_button_commands():
     global autosavefilename, VideoInput
@@ -5200,6 +5221,8 @@ def update_file_input(*args):
 
 input_dnd = StringVar()
 input_dnd.trace('w', update_file_input)
+
+# Input Button/Entry Box ----------------------------------------------------------------------
 input_button = tk.Button(root, text="Open File", command=input_button_commands, foreground="white",
                          background="#23272A", borderwidth="3")
 input_button.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
@@ -5208,27 +5231,58 @@ input_button.dnd_bind('<<Drop>>', drop_input)
 input_button.bind("<Enter>", input_button_hover)
 input_button.bind("<Leave>", input_button_hover_leave)
 
-input_entry = Entry(root, width=35, borderwidth=4, background="#CACACA")
+input_entry = Entry(root, width=35, borderwidth=4, background="#CACACA", state=DISABLED)
 input_entry.grid(row=0, column=1, columnspan=3, padx=5, pady=5, sticky=S + E + W)
 input_entry.drop_target_register(DND_FILES)
 input_entry.dnd_bind('<<Drop>>', drop_input)
 
+def input_button_on_enter(e):
+    status_label.configure(text='Click To Open File...')
+
+def input_button_on_leave(e):
+    status_label.configure(text='')
+
+input_button.bind("<Enter>", input_button_on_enter)
+input_button.bind("<Leave>", input_button_on_leave)
+# ------------------------------------------------------------------------- Input Button/Entry Box
+
+# Output Button/Entry Box ------------------------------------------------------------------------
 output_button = Button(root, text="Save File", command=file_save, state=DISABLED, foreground="white",
                        background="#23272A", borderwidth="3")
 output_button.grid(row=2, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
-output_entry = Entry(root, width=35, borderwidth=4, background="#CACACA")
+output_entry = Entry(root, width=35, borderwidth=4, background="#CACACA", state=DISABLED)
 output_entry.grid(row=2, column=1, columnspan=3, padx=5, pady=5, sticky=S + E + W)
 output_button.bind("<Enter>", output_button_hover)
 output_button.bind("<Leave>", output_button_hover_leave)
 
-# Print Final Command Line
+def output_button_on_enter(e):
+    status_label.configure(text='Click To Specify Save Location...')
+
+def output_button_on_leave(e):
+    status_label.configure(text='')
+
+output_button.bind("<Enter>", output_button_on_enter)
+output_button.bind("<Leave>", output_button_on_leave)
+# ---------------------------------------------------------------------- # Output Button/Entry Box
+
+# Print Final Command Line ---------------------------------------------------------------------
 command_line_button = Button(root, text="Show\nCommand", command=print_command_line, state=DISABLED, foreground="white",
                              background="#23272A", borderwidth="3")
 command_line_button.grid(row=1, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
 command_line_button.bind("<Enter>", command_line_button_hover)
 command_line_button.bind("<Leave>", command_line_button_hover_leave)
 
-# Start Audio Job: Manual
+def command_line_button_on_enter(e):
+    status_label.configure(text='Click To Show Full Command...')
+
+def command_line_button_on_leave(e):
+    status_label.configure(text='')
+
+command_line_button.bind("<Enter>", command_line_button_on_enter)
+command_line_button.bind("<Leave>", command_line_button_on_leave)
+# ----------------------------------------------------------------------- Print Final Command Line
+
+# Start Audio Job: Manual -----------------------------------------------------------------------
 def start_audio_job_manual():
     global auto_or_manual
     auto_or_manual = 'manual'
@@ -5240,7 +5294,17 @@ start_audio_button.grid(row=3, column=1, columnspan=3, padx=5, pady=5, sticky=N 
 start_audio_button.bind("<Enter>", start_audio_button_hover)
 start_audio_button.bind("<Leave>", start_audio_button_hover_leave)
 
-# Start Audio Job: Auto
+def start_audio_button_on_enter(e):
+    status_label.configure(text='Click To Start Job...')
+
+def start_audio_button_on_leave(e):
+    status_label.configure(text='')
+
+start_audio_button.bind("<Enter>", start_audio_button_on_enter)
+start_audio_button.bind("<Leave>", start_audio_button_on_leave)
+# --------------------------------------------------------------------------- Start Audio Job: Manual
+
+# Start Audio Job: Auto -----------------------------------------------------------------------------
 def encode_last_used_setting():
     global auto_or_manual, audio_window, acodec_stream_track_counter
     auto_or_manual = 'auto'
@@ -5256,6 +5320,55 @@ auto_encode_last_options = Button(root, text="Auto Encode:\nLast Used Options", 
 auto_encode_last_options.grid(row=3, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
 auto_encode_last_options.bind("<Enter>", auto_encode_last_options_hover)
 auto_encode_last_options.bind("<Leave>", auto_encode_last_options_hover_leave)
+def popup_auto_e_b_menu(e):  # Function for mouse button 3 (right click) to pop up menu
+    global rightclick_on_off
+    try:
+        if rightclick_on_off == 1:
+            auto_encode_button_menu.tk_popup(e.x_root, e.y_root)  # This gets the posision of 'e' on the root widget
+    except NameError:
+        pass
+
+def show_auto_encode_command(*args):  # Opens a new window with 'Auto Encode' command
+    try:
+        global show_auto_command_window
+        show_auto_command_window.destroy()  # Destroys existing auto command window before continuing to make a new one
+    except:
+        pass
+
+    show_auto_command_window = Toplevel(root)  # auto command window (shows auto encoding command)
+    show_auto_command_window.title("Audio Streams")
+    show_auto_command_window.configure(background="#434547")
+    Label(show_auto_command_window, text="---------- Auto Encode Command ----------", font=("Times New Roman", 16),
+          background='#434547', foreground="white").grid(column=0, row=0)
+    text_area = scrolledtextwidget.ScrolledText(show_auto_command_window, width=60, height=5, tabs=10, spacing2=3,
+                                                spacing1=2, spacing3=3)
+    text_area.grid(column=0, pady=10, padx=10)
+    text_area.insert(INSERT, config_profile['Auto Encode']['command'])
+    text_area.configure(font=("Helvetica", 12))
+    text_area.configure(state=DISABLED)
+    show_auto_command_window.grid_columnconfigure(0, weight=1)
+
+auto_encode_button_menu = Menu(root, tearoff=False)  # This is the right click menu for the auto_encode_button
+auto_encode_button_menu.add_command(label='Show Command', command=show_auto_encode_command)
+def auto_encode_last_options_on_enter(e):
+    global rightclick_on_off
+    status_label.configure(text='Right Click For More Options...')
+    rightclick_on_off = 1
+
+def auto_encode_last_options_on_leave(e):
+    global rightclick_on_off
+    status_label.configure(text='')
+    rightclick_on_off = 0
+
+auto_encode_last_options.bind("<Enter>", auto_encode_last_options_on_enter)
+auto_encode_last_options.bind("<Leave>", auto_encode_last_options_on_leave)
+root.bind('<Button-3>', popup_auto_e_b_menu)  # Uses mouse button 3 (right click) to pop up menu
+# --------------------------------------------------------------------------- Start Audio Job: Auto
+
+# Status Label at bottom of main GUI -----------------------------------------------------------------
+status_label = Label(root, text='', bd=2, relief=SUNKEN, anchor=E, background='grey', foreground="white")
+status_label.grid(column=0, row=4, columnspan=4, sticky=W + E)
+# ----------------------------------------------------------------- Status Label at bottom of main GUI
 
 # Checks for App Folder and Sub-Directories - Creates Folders if they are missing -------------------------------------
 directory_check()
