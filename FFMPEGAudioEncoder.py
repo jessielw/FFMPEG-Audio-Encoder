@@ -158,6 +158,56 @@ if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'samplerate'):
 if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'tempo'):
     config_profile.set('FFMPEG DTS - SETTINGS', 'tempo', 'Original')
 # --------------------------------------------------- DTS Settings
+# E-AC3 settings --------------------------------------------------- # Create config parameters
+if not config_profile.has_section('FFMPEG E-AC3 - SETTINGS'):
+    config_profile.add_section('FFMPEG E-AC3 - SETTINGS')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_bitrate'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_bitrate', '448k')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_channel'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_channel', 'Original')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_gain'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_gain', '0')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'samplerate'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'samplerate', 'Original')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_per_frame_metadata'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_per_frame_metadata', 'Default')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_mixing_level'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_mixing_level', '-1')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_room_type'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_room_type', 'Default')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_copyright_bit'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_copyright_bit', '-1')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dialogue_level'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dialogue_level', '-31')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_surround_mode'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_surround_mode', 'Default')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_original_bitstream'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_original_bitstream', '-1')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_downmix_mode'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_downmix_mode', 'Default')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lt_rt_center_mix'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lt_rt_center_mix', '-1')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lt_rt_surround_mix'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lt_rt_surround_mix', '-1')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lo_ro_center_mix'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lo_ro_center_mix', '-1')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lo_ro_surround_mix'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lo_ro_surround_mix', '-1')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dolby_surround_ex_mode'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dolby_surround_ex_mode', 'Default')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dolby_headphone_mode'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dolby_headphone_mode', 'Default')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_a_d_converter_type'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_a_d_converter_type', 'Default')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_stereo_rematrixing'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dolby_stereo_rematrixing', 'Default')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_channel_coupling'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_channel_coupling', '-1')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_cpl_start_band'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_cpl_start_band', '-1')
+if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'tempo'):
+    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'tempo', 'Original')
+# --------------------------------------------------- E-AC3 Settings
 # Auto Encode Last Used Options ------------------------------------ # Create config parameters
 if not config_profile.has_section('Auto Encode'):
     config_profile.add_section('Auto Encode')
@@ -703,6 +753,30 @@ def openaudiowindow():
             config_profile.set('FFMPEG DTS - SETTINGS', 'dts_channel', acodec_channel.get())
             config_profile.set('FFMPEG DTS - SETTINGS', 'samplerate', acodec_samplerate.get())
             config_profile.set('FFMPEG DTS - SETTINGS', 'tempo', acodec_atempo.get())
+        if encoder.get() == 'E-AC3':
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_bitrate', eac3_spinbox.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_channel', acodec_channel.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_gain', ffmpeg_gain.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'samplerate', acodec_samplerate.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_per_frame_metadata', per_frame_metadata.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_mixing_level', eac3_mixing_level.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_room_type', room_type.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_copyright_bit', copyright_bit.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dialogue_level', dialogue_level.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_surround_mode', dolby_headphone_mode.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_original_bitstream', original_bit_stream.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_downmix_mode', downmix_mode.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lt_rt_center_mix', lt_rt_center_mix.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lt_rt_surround_mix', lt_rt_surround_mix.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lo_ro_center_mix', lo_ro_center_mix.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lo_ro_surround_mix', lo_ro_surround_mix.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dolby_surround_ex_mode', dolby_surround_ex_mode.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dolby_headphone_mode', dolby_headphone_mode.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_a_d_converter_type', a_d_converter_type.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dolby_stereo_rematrixing', stereo_rematrixing.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_channel_coupling', channel_coupling.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_cpl_start_band', cpl_start_band.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'tempo', acodec_atempo.get())
 
         with open(config_profile_ini, 'w') as configfile_two:
             config_profile.write(configfile_two)
@@ -734,6 +808,30 @@ def openaudiowindow():
                 config_profile.set('FFMPEG DTS - SETTINGS', 'dts_channel', 'Original')
                 config_profile.set('FFMPEG DTS - SETTINGS', 'samplerate', 'Original')
                 config_profile.set('FFMPEG DTS - SETTINGS', 'tempo', 'Original')
+            if encoder.get() == 'E-AC3':
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_bitrate', '448k')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_channel', 'Original')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_gain', '0')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'samplerate', 'Original')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_per_frame_metadata', 'Default')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_mixing_level', '-1')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_room_type', 'Default')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_copyright_bit', '-1')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dialogue_level', '-31')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_surround_mode', 'Default')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_original_bitstream', '-1')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_downmix_mode', 'Default')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lt_rt_center_mix', '-1')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lt_rt_surround_mix', '-1')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lo_ro_center_mix', '-1')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lo_ro_surround_mix', '-1')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dolby_surround_ex_mode', 'Default')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dolby_headphone_mode', 'Default')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_a_d_converter_type', 'Default')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dolby_stereo_rematrixing', 'Default')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_channel_coupling', '-1')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_cpl_start_band', '-1')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'tempo', 'Original')
 
             with open(config_profile_ini, 'w') as configfile_two:
                 config_profile.write(configfile_two)
@@ -2250,12 +2348,15 @@ def openaudiowindow():
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
-
         file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
         my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
         file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
         file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
                               command=mpv_gui_audio_window)
+        options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+        my_menu_bar.add_cascade(label='Options', menu=options_menu)
+        options_menu.add_command(label='Save Current Settings', command=save_profile)
+        options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
 
         for n in range(3):
             audio_window.grid_columnconfigure(n, weight=1)
@@ -2372,7 +2473,7 @@ def openaudiowindow():
         q_acodec_quality_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", width=10, readonlybackground="#23272A")
         q_acodec_quality_spinbox.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        eac3_spinbox.set("448k ")
+        eac3_spinbox.set(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_bitrate'] + ' ')
         # ----------------------------------------------------------------------------------------------------- Bitrate
 
         # Audio Channel Selection -------------------------------------------------------------------------------------
@@ -2384,7 +2485,7 @@ def openaudiowindow():
                                   '4.0 (Quad)': "-ac 4 ",
                                   '5.0 (Quad)': "-ac 5 ",
                                   '5.1 (Surround)': "-ac 6 "}
-        acodec_channel.set('Original')  # set the default option
+        acodec_channel.set(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_channel'])  # set the default option
         achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
         achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
         achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
@@ -2422,7 +2523,7 @@ def openaudiowindow():
         ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                       buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_gain.set(0)
+        ffmpeg_gain.set(int(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_gain']))
         # -------------------------------------------------------------------------------------------------------- Gain
 
         # Audio Sample Rate Selection ---------------------------------------------------------------------------------
@@ -2431,7 +2532,7 @@ def openaudiowindow():
                                      '32000 Hz': "-ar 32000 ",
                                      '44100 Hz': "-ar 44100 ",
                                      '48000 Hz': "-ar 48000 "}
-        acodec_samplerate.set('Original')  # set the default option
+        acodec_samplerate.set(config_profile['FFMPEG E-AC3 - SETTINGS']['samplerate'])  # set the default option
         acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547", foreground="white")
         acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate, *acodec_samplerate_choices.keys())
@@ -2448,7 +2549,7 @@ def openaudiowindow():
         per_frame_metadata_choices = {'Default': "",
                                       'True': "-per_frame_metadata true ",
                                       'False': "-per_frame_metadata false "}
-        per_frame_metadata.set('Default')  # set the default option
+        per_frame_metadata.set(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_per_frame_metadata'])  # set def option
         per_frame_metadata_label = Label(audio_window, text="Per Frame Metadata :", background="#434547",
                                          foreground="white")
         per_frame_metadata_label.grid(row=5, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -2470,7 +2571,7 @@ def openaudiowindow():
         eac3_mixing_level_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                          buttonbackground="black", width=10, readonlybackground="#23272A")
         eac3_mixing_level_spinbox.grid(row=6, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        eac3_mixing_level.set(-1)
+        eac3_mixing_level.set(int(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_mixing_level']))
         # ------------------------------------------------------------------------------------------------ Mixing Level
 
         # Room Type Selection -----------------------------------------------------------------------------------------
@@ -2480,7 +2581,7 @@ def openaudiowindow():
                              'Not Indicated': "-room_type 0 ",
                              'Large': "-room_type 1 ",
                              'Small': "-room_type 2 "}
-        room_type.set('Default')  # set the default option
+        room_type.set(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_room_type'])  # set the default option
         room_type_label = Label(audio_window, text="Room Type :", background="#434547", foreground="white")
         room_type_label.grid(row=5, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         room_type_menu = OptionMenu(audio_window, room_type, *room_type_choices.keys())
@@ -2501,7 +2602,7 @@ def openaudiowindow():
         copyright_bit_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                      buttonbackground="black", width=10, readonlybackground="#23272A")
         copyright_bit_spinbox.grid(row=8, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        copyright_bit.set(-1)
+        copyright_bit.set(int(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_copyright_bit']))
         # --------------------------------------------------------------------------------------------------- Copyright
 
         # Dialogue Level Spinbox --------------------------------------------------------------------------------------
@@ -2515,7 +2616,7 @@ def openaudiowindow():
         dialogue_level_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                       buttonbackground="black", width=10, readonlybackground="#23272A")
         dialogue_level_spinbox.grid(row=8, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        dialogue_level.set(-31)
+        dialogue_level.set(int(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_dialogue_level']))
         # ---------------------------------------------------------------------------------------------- Dialogue Level
 
         # Dolby Surround Mode Selection -------------------------------------------------------------------------------
@@ -2525,7 +2626,7 @@ def openaudiowindow():
                                        'Not Indicated': "-dsur_mode 0 ",
                                        'On': "-dsur_mode 1 ",
                                        'Off': "-dsur_mode 2 "}
-        dolby_surround_mode.set('Default')  # set the default option
+        dolby_surround_mode.set(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_surround_mode'])  # set the def option
         dolby_surround_mode_label = Label(audio_window, text="Dolby Surround Mode :", background="#434547",
                                           foreground="white")
         dolby_surround_mode_label.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -2548,7 +2649,7 @@ def openaudiowindow():
         original_bit_stream_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                            buttonbackground="black", width=10, readonlybackground="#23272A")
         original_bit_stream_spinbox.grid(row=10, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        original_bit_stream.set(-1)
+        original_bit_stream.set(int(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_original_bitstream']))  # default
         # -------------------------------------------------------------------------------------------------- Bit Stream
 
         # Downmix Mode Selection --------------------------------------------------------------------------------------
@@ -2559,7 +2660,7 @@ def openaudiowindow():
                                 'Lt/RT Downmix': "-dmix_mode 1 ",
                                 'Lo/Ro Downmix': "-dmix_mode 2 ",
                                 'Dolby Pro Logic II': "-dmix_mode 3 "}
-        downmix_mode.set('Default')  # set the default option
+        downmix_mode.set(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_downmix_mode'])  # set the default option
         downmix_mode_label = Label(audio_window, text="Stereo Downmix Mode :", background="#434547",
                                    foreground="white")
         downmix_mode_label.grid(row=9, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -2582,7 +2683,7 @@ def openaudiowindow():
         lt_rt_center_mix_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", width=10, readonlybackground="#23272A")
         lt_rt_center_mix_spinbox.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        lt_rt_center_mix.set(-1)
+        lt_rt_center_mix.set(float(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_lt_rt_center_mix']))  # default
         # -------------------------------------------------------------------------------------- Lt/Rt Center Mix Level
 
         # Lt/Rt Surround Mix Level Spinbox ----------------------------------------------------------------------------
@@ -2596,7 +2697,7 @@ def openaudiowindow():
         lt_rt_surround_mix_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                           buttonbackground="black", width=10, readonlybackground="#23272A")
         lt_rt_surround_mix_spinbox.grid(row=12, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        lt_rt_surround_mix.set(-1)
+        lt_rt_surround_mix.set(float(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_lt_rt_surround_mix']))  # default
         # ------------------------------------------------------------------------------------ Lt/Rt Surround Mix Level
 
         # Lo/Ro Center Mix Level Spinbox ------------------------------------------------------------------------------
@@ -2610,7 +2711,7 @@ def openaudiowindow():
         lo_ro_center_mix_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", width=10, readonlybackground="#23272A")
         lo_ro_center_mix_spinbox.grid(row=12, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        lo_ro_center_mix.set(-1)
+        lo_ro_center_mix.set(float(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_lo_ro_center_mix']))  # default
         # -------------------------------------------------------------------------------------- Lo/Ro Center Mix Level
 
         # Lo/Ro Surround Mix Level Spinbox ----------------------------------------------------------------------------
@@ -2624,7 +2725,7 @@ def openaudiowindow():
         lo_ro_surround_mix_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                           buttonbackground="black", width=10, readonlybackground="#23272A")
         lo_ro_surround_mix_spinbox.grid(row=12, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        lo_ro_surround_mix.set(-1)
+        lo_ro_surround_mix.set(float(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_lo_ro_surround_mix']))
         # ------------------------------------------------------------------------------------ Lo/Ro Surround Mix Level
 
         # Dolby Surround EX Mode Selection ----------------------------------------------------------------------------
@@ -2635,7 +2736,7 @@ def openaudiowindow():
                                           'On': "-dsurex_mode 2 ",
                                           'Off': "-dsurex_mode 1 ",
                                           'Dolby Pro Login IIz': "-dsurex_mode 3 "}
-        dolby_surround_ex_mode.set('Default')  # set the default option
+        dolby_surround_ex_mode.set(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_dolby_surround_ex_mode'])  # def
         dolby_surround_ex_mode_label = Label(audio_window, text="Dolby Surround EX Mode :", background="#434547",
                                              foreground="white")
         dolby_surround_ex_mode_label.grid(row=13, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -2655,7 +2756,7 @@ def openaudiowindow():
                                         'Not Indicated': "-dheadphone_mode 0 ",
                                         'On': "-dheadphone_mode 2 ",
                                         'Off': "-dheadphone_mode 1 "}
-        dolby_headphone_mode.set('Default')  # set the default option
+        dolby_headphone_mode.set(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_dolby_headphone_mode'])  # default
         dolby_headphone_mode_label = Label(audio_window, text="Dolby Headphone Mode :", background="#434547",
                                            foreground="white")
         dolby_headphone_mode_label.grid(row=13, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -2673,7 +2774,7 @@ def openaudiowindow():
         a_d_converter_type_choices = {'Default': "",
                                       'Standard': "-ad_conv_type 0 ",
                                       'HDCD': "-ad_conv_type 1 "}
-        a_d_converter_type.set('Default')  # set the default option
+        a_d_converter_type.set(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_a_d_converter_type'])  # set default
         a_d_converter_type_label = Label(audio_window, text="A/D Converter Type :", background="#434547",
                                          foreground="white")
         a_d_converter_type_label.grid(row=13, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -2691,7 +2792,7 @@ def openaudiowindow():
         stereo_rematrixing_choices = {'Default': "",
                                       'True': "-stereo_rematrixing true ",
                                       'False': "-stereo_rematrixing false "}
-        stereo_rematrixing.set('Default')  # set the default option
+        stereo_rematrixing.set(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_dolby_stereo_rematrixing'])  # default
         stereo_rematrixing_label = Label(audio_window, text="Stereo Rematrixing :", background="#434547",
                                          foreground="white")
         stereo_rematrixing_label.grid(row=15, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -2714,7 +2815,7 @@ def openaudiowindow():
         channel_coupling_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", width=10, readonlybackground="#23272A")
         channel_coupling_spinbox.grid(row=16, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        channel_coupling.set(-1)
+        channel_coupling.set(int(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_channel_coupling']))  # default
         # -------------------------------------------------------------------------------------------- Channel Coupling
 
         # Channel CPL Band Spinbox ------------------------------------------------------------------------------------
@@ -2728,7 +2829,7 @@ def openaudiowindow():
         cpl_start_band_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                       buttonbackground="black", width=10, readonlybackground="#23272A")
         cpl_start_band_spinbox.grid(row=16, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        cpl_start_band.set(-1)
+        cpl_start_band.set(int(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_cpl_start_band']))
         # -------------------------------------------------------------------------------------------- Channel CPL Band
 
         # Audio Atempo Selection --------------------------------------------------------------------------------------
@@ -2757,7 +2858,7 @@ def openaudiowindow():
         acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
         acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1)
         acodec_atempo_menu.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-        acodec_atempo.set('Original')
+        acodec_atempo.set(config_profile['FFMPEG E-AC3 - SETTINGS']['tempo'])
         acodec_atempo_menu["menu"].configure(activebackground="dim grey")
         acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
         acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
@@ -4812,15 +4913,31 @@ def startaudiojob():
                            + audio_filter_setting + dts_custom_cmd_input \
                            + "-sn -vn -map_chapters -1 " \
                            + VideoOutputQuoted + " -hide_banner"
-        else:
+            last_used_command = acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
+                                 + "-b:a " + dts_bitrate_spinbox.get() + "k " \
+                                 + acodec_channel_choices[acodec_channel.get()] \
+                                 + acodec_samplerate_choices[acodec_samplerate.get()] \
+                                 + audio_filter_setting + dts_custom_cmd_input \
+                                 + "-sn -vn -map_chapters -1 "
+        elif dts_settings.get() != 'DTS Encoder':
             finalcommand = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted \
                            + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
                            + dts_custom_cmd_input + "-sn -vn -map_chapters -1 " \
                            + VideoOutputQuoted + " -hide_banner"
+            last_used_command = acodec_stream_choices[acodec_stream.get()] + \
+                                dts_settings_choices[dts_settings.get()] \
+                                + dts_custom_cmd_input + "-sn -vn -map_chapters -1 "
         if shell_options.get() == "Default":
-            job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT,stdin=subprocess.DEVNULL, universal_newlines=True,
+            if auto_or_manual == 'manual':
+                command = finalcommand
+            elif auto_or_manual == 'auto':
+                command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
+                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
+                          + ' ' + VideoOutputQuoted + ' -hide_banner'
+            job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
+                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
+            update_last_codec_command()
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
@@ -4896,8 +5013,7 @@ def startaudiojob():
                        acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] \
                        + "-b:a " + eac3_spinbox.get() + acodec_channel_choices[acodec_channel.get()] \
                        + acodec_samplerate_choices[acodec_samplerate.get()] \
-                       + audio_filter_setting + "-sn -vn -map_chapters -1 -map_metadata -1 " \
-                       + eac3_custom_cmd_input \
+                       + audio_filter_setting + eac3_custom_cmd_input \
                        + per_frame_metadata_choices[per_frame_metadata.get()] \
                        + "-mixing_level " + eac3_mixing_level.get() + " " \
                        + room_type_choices[room_type.get()] \
@@ -4915,12 +5031,42 @@ def startaudiojob():
                        + a_d_converter_type_choices[a_d_converter_type.get()] \
                        + stereo_rematrixing_choices[stereo_rematrixing.get()] \
                        + "-channel_coupling " + channel_coupling.get() + " " \
-                       + "-cpl_start_band " + cpl_start_band.get() + " " + \
-                       VideoOutputQuoted + " -hide_banner"
+                       + "-cpl_start_band " + cpl_start_band.get() + " " \
+                       + "-sn -vn -map_chapters -1 -map_metadata -1 " + VideoOutputQuoted + " -hide_banner"
+        last_used_command = acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] \
+                            + "-b:a " + eac3_spinbox.get() + acodec_channel_choices[acodec_channel.get()] \
+                            + acodec_samplerate_choices[acodec_samplerate.get()] \
+                            + audio_filter_setting + eac3_custom_cmd_input \
+                            + per_frame_metadata_choices[per_frame_metadata.get()] \
+                            + "-mixing_level " + eac3_mixing_level.get() + " " \
+                            + room_type_choices[room_type.get()] \
+                            + "-copyright " + copyright_bit.get() + " " \
+                            + "-dialnorm " + dialogue_level.get() + " " \
+                            + dolby_surround_mode_choices[dolby_surround_mode.get()] \
+                            + "-original " + original_bit_stream.get() + " " \
+                            + downmix_mode_choices[downmix_mode.get()] \
+                            + "-ltrt_cmixlev " + lt_rt_center_mix.get() + " " \
+                            + "-ltrt_surmixlev " + lt_rt_surround_mix.get() + " " \
+                            + "-loro_cmixlev " + lo_ro_center_mix.get() + " " \
+                            + "-loro_surmixlev " + lo_ro_surround_mix.get() + " " \
+                            + dolby_surround_ex_mode_choices[dolby_surround_ex_mode.get()] \
+                            + dolby_headphone_mode_choices[dolby_headphone_mode.get()] \
+                            + a_d_converter_type_choices[a_d_converter_type.get()] \
+                            + stereo_rematrixing_choices[stereo_rematrixing.get()] \
+                            + "-channel_coupling " + channel_coupling.get() + " " \
+                            + "-cpl_start_band " + cpl_start_band.get() + " " \
+                            + "-sn -vn -map_chapters -1 "
         if shell_options.get() == "Default":
-            job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+            if auto_or_manual == 'manual':
+                command = finalcommand
+            elif auto_or_manual == 'auto':
+                command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
+                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
+                          + ' ' + VideoOutputQuoted + ' -hide_banner'
+            job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
+                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
+            update_last_codec_command()
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
