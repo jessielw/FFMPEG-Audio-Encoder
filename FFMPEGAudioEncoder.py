@@ -38,7 +38,7 @@ def root_exit_function():
             root.destroy()
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v3.36 BETA")
+root.title("FFMPEG Audio Encoder v3.37 BETA")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 220
@@ -232,6 +232,43 @@ if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'ffmpeg_gain'):
 if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'tempo'):
     config_profile.set('FFMPEG Opus - SETTINGS', 'tempo', 'Original')
 # --------------------------------------------------- Opus Settings
+# FDK-AAC settings --------------------------------------------------- # Create config parameters
+if not config_profile.has_section('FDK-AAC - SETTINGS'):
+    config_profile.add_section('FDK-AAC - SETTINGS')
+if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_bitrate'):
+    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_bitrate', 'CBR: 192k')
+if not config_profile.has_option('FDK-AAC - SETTINGS', 'acodec_channel'):
+    config_profile.set('FDK-AAC - SETTINGS', 'acodec_channel', 'Original')
+if not config_profile.has_option('FDK-AAC - SETTINGS', 'dolbyprologicii'):
+    config_profile.set('FDK-AAC - SETTINGS', 'dolbyprologicii', '')
+if not config_profile.has_option('FDK-AAC - SETTINGS', 'ffmpeg_gain'):
+    config_profile.set('FDK-AAC - SETTINGS', 'ffmpeg_gain', '0')
+if not config_profile.has_option('FDK-AAC - SETTINGS', 'samplerate'):
+    config_profile.set('FDK-AAC - SETTINGS', 'samplerate', 'Original')
+if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_profile'):
+    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_profile', 'AAC LC (Default)')
+if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_lowdelay'):
+    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_lowdelay', 'Disable SBR on ELD (DEF)')
+if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_sbr_ratio'):
+    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_sbr_ratio', 'Library Default')
+if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_gapless'):
+    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_gapless', 'iTunSMPB (Def)')
+if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_transport_format'):
+    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_transport_format', 'M4A (Def)')
+if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_afterburner'):
+    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_afterburner', '-a1')
+if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_crccheck'):
+    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_crccheck', '')
+if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_headerperiod'):
+    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_headerperiod', '')
+if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_sbrdelay'):
+    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_sbrdelay', '')
+if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_moovbox'):
+    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_moovbox', '')
+if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_tempo'):
+    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_tempo', 'Original')
+
+# --------------------------------------------------- FDK-AAC Settings
 # Auto Encode Last Used Options ------------------------------------ # Create config parameters
 if not config_profile.has_section('Auto Encode'):
     config_profile.add_section('Auto Encode')
@@ -812,6 +849,23 @@ def openaudiowindow():
             config_profile.set('FFMPEG Opus - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
             config_profile.set('FFMPEG Opus - SETTINGS', 'ffmpeg_gain', ffmpeg_gain.get())
             config_profile.set('FFMPEG Opus - SETTINGS', 'tempo', acodec_atempo.get())
+        if encoder.get() == 'FDK-AAC':
+            config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_bitrate', acodec_bitrate.get())
+            config_profile.set('FDK-AAC - SETTINGS', 'acodec_channel', acodec_channel.get())
+            config_profile.set('FDK-AAC - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
+            config_profile.set('FDK-AAC - SETTINGS', 'ffmpeg_gain', ffmpeg_gain.get())
+            config_profile.set('FDK-AAC - SETTINGS', 'samplerate', acodec_samplerate.get())
+            config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_profile', acodec_profile.get())
+            config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_lowdelay', acodec_lowdelay.get())
+            config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_sbr_ratio', acodec_sbr_ratio.get())
+            config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_gapless', acodec_gapless_mode.get())
+            config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_transport_format', acodec_transport_format.get())
+            config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_afterburner', afterburnervar.get())
+            config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_crccheck', crccheck.get())
+            config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_headerperiod', headerperiod.get())
+            config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_sbrdelay', sbrdelay.get())
+            config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_moovbox', moovbox.get())
+            config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_tempo', acodec_atempo.get())
 
         with open(config_profile_ini, 'w') as configfile_two:
             config_profile.write(configfile_two)
@@ -878,6 +932,23 @@ def openaudiowindow():
                 config_profile.set('FFMPEG Opus - SETTINGS', 'dolbyprologicii', '')
                 config_profile.set('FFMPEG Opus - SETTINGS', 'ffmpeg_gain', '0')
                 config_profile.set('FFMPEG Opus - SETTINGS', 'tempo', 'Original')
+            if encoder.get() == 'FDK-AAC':
+                config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_bitrate', 'CBR: 192k')
+                config_profile.set('FDK-AAC - SETTINGS', 'acodec_channel', 'Original')
+                config_profile.set('FDK-AAC - SETTINGS', 'dolbyprologicii', '')
+                config_profile.set('FDK-AAC - SETTINGS', 'ffmpeg_gain', '0')
+                config_profile.set('FDK-AAC - SETTINGS', 'samplerate', 'Original')
+                config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_profile', 'AAC LC (Default)')
+                config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_lowdelay', 'Disable SBR on ELD (DEF)')
+                config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_sbr_ratio', 'Library Default')
+                config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_gapless', 'iTunSMPB (Def)')
+                config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_transport_format', 'M4A (Def)')
+                config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_afterburner', '-a0')
+                config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_crccheck', '')
+                config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_headerperiod', '')
+                config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_sbrdelay', '')
+                config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_moovbox', '')
+                config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_tempo', 'Original')
 
             with open(config_profile_ini, 'w') as configfile_two:
                 config_profile.write(configfile_two)
@@ -2010,6 +2081,8 @@ def openaudiowindow():
         dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                   variable=dolby_pro_logic_ii,
                                                   onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
+        if acodec_channel.get() == '2 (Stereo)':
+            dolby_pro_logic_ii_checkbox.configure(state=NORMAL)
         dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=2, padx=10, pady=(15, 5),
                                          sticky=N + S + E + W)
         dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
@@ -2303,8 +2376,9 @@ def openaudiowindow():
         dolby_pro_logic_ii = StringVar()
         dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                   variable=dolby_pro_logic_ii, state=DISABLED,
-                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="",
-                                                  command=audio_filter_function)
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
+        if acodec_channel.get() == '2 (Stereo)':
+            dolby_pro_logic_ii_checkbox.configure(state=NORMAL)
         dolby_pro_logic_ii_checkbox.grid(row=4, column=0, columnspan=1, rowspan=1, padx=10, pady=(15, 3),
                                          sticky=N + S + E + W)
         dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
@@ -2930,12 +3004,15 @@ def openaudiowindow():
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
-
         file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
         my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
         file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
         file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
                               command=mpv_gui_audio_window)
+        options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+        my_menu_bar.add_cascade(label='Options', menu=options_menu)
+        options_menu.add_command(label='Save Current Settings', command=save_profile)
+        options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
 
         for n in range(3):
             audio_window.grid_columnconfigure(n, weight=1)
@@ -3080,7 +3157,7 @@ def openaudiowindow():
                                   'VBR: 3': "-m3 ",
                                   'VBR: 4': "-m4 ",
                                   'VBR: 5': "-m5 "}
-        acodec_bitrate.set('CBR: 192k')  # set the default option
+        acodec_bitrate.set(config_profile['FDK-AAC - SETTINGS']['fdk_aac_bitrate'])  # set the default option
         acodec_bitrate_menu_label = Label(audio_window, text="Quality :", background="#434547", foreground="white")
         acodec_bitrate_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
         acodec_bitrate_menu = OptionMenu(audio_window, acodec_bitrate, *acodec_bitrate_choices.keys())
@@ -3099,7 +3176,7 @@ def openaudiowindow():
                                   '5.1 (Surround)': "-ac 6 ",
                                   '6.1 (Surround)': "-ac 7 ",
                                   '7.1 (Surround)': "-ac 8 "}
-        acodec_channel.set('Original')  # set the default option
+        acodec_channel.set(config_profile['FDK-AAC - SETTINGS']['acodec_channel'])  # set the default option
         achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
         achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
         achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
@@ -3131,12 +3208,14 @@ def openaudiowindow():
         dolby_pro_logic_ii = StringVar()
         dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                   variable=dolby_pro_logic_ii, state=DISABLED,
-                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue='')
+        if acodec_channel.get() == '2 (Stereo)':
+            dolby_pro_logic_ii_checkbox.configure(state=NORMAL)
         dolby_pro_logic_ii_checkbox.grid(row=10, column=2, columnspan=1, rowspan=1, padx=10, pady=3,
                                          sticky=N + S + E + W)
         dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                               activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
-        dolby_pro_logic_ii.set("")
+        dolby_pro_logic_ii.set(config_profile['FDK-AAC - SETTINGS']['dolbyprologicii'])
         # ------------------------------------------------------------------------------------------------------ DPL II
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
@@ -3150,7 +3229,7 @@ def openaudiowindow():
         ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                       buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_gain.set(0)
+        ffmpeg_gain.set(int(config_profile['FDK-AAC - SETTINGS']['ffmpeg_gain']))
         # -------------------------------------------------------------------------------------------------------- Gain
 
         # Audio Sample Rate Selection ---------------------------------------------------------------------------------
@@ -3162,7 +3241,7 @@ def openaudiowindow():
                                      '48000 Hz': "-ar 48000 ",
                                      '88200 Hz': "-ar 88200 ",
                                      '96000 Hz': "-ar 96000 "}
-        acodec_samplerate.set('Original')  # set the default option
+        acodec_samplerate.set(config_profile['FDK-AAC - SETTINGS']['samplerate'])  # set the default option
         acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547", foreground="white")
         acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate, *acodec_samplerate_choices.keys())
@@ -3220,7 +3299,7 @@ def openaudiowindow():
                                   'HE-AAC V2 (SBR+PS)': "-p29 ",
                                   'AAC LD': "-p23 ",
                                   'AAC ELD': "-p39 "}
-        acodec_profile.set('AAC LC (Default)')  # set the default option
+        acodec_profile.set(config_profile['FDK-AAC - SETTINGS']['fdk_aac_profile'])  # set the default option
         acodec_profile_label = Label(audio_window, text="Profile :", background="#434547", foreground="white")
         acodec_profile_label.grid(row=5, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         acodec_profile_menu = OptionMenu(audio_window, acodec_profile, *acodec_profile_choices.keys())
@@ -3238,7 +3317,7 @@ def openaudiowindow():
         acodec_lowdelay_choices = {'Disable SBR on ELD (DEF)': "-L0 ",
                                    'ELD SBR Auto Conf': "-L-1 ",
                                    'Enable SBR on ELD': "-L1 "}
-        acodec_lowdelay.set('Disable SBR on ELD (DEF)')  # set the default option
+        acodec_lowdelay.set(config_profile['FDK-AAC - SETTINGS']['fdk_aac_lowdelay'])  # set the default option
         acodec_lowdelay_label = Label(audio_window, text="Lowdelay SBR :", background="#434547", foreground="white")
         acodec_lowdelay_label.grid(row=5, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         acodec_lowdelay_menu = OptionMenu(audio_window, acodec_lowdelay, *acodec_lowdelay_choices.keys())
@@ -3253,10 +3332,10 @@ def openaudiowindow():
         global acodec_sbr_ratio
         global acodec_sbr_ratio_choices
         acodec_sbr_ratio = StringVar(audio_window)
-        acodec_sbr_ratio_choices = {'Libary Default': "-s0 ",
+        acodec_sbr_ratio_choices = {'Library Default': "-s0 ",
                                     'Downsampled SBR (ELD+SBR Def)': "-s1 ",
                                     'Dual-Rate SBR (HE-AAC-Def)': "-s2 "}
-        acodec_sbr_ratio.set('Libary Default')  # set the default option
+        acodec_sbr_ratio.set(config_profile['FDK-AAC - SETTINGS']['fdk_aac_sbr_ratio'])  # set the default option
         acodec_sbr_ratio_label = Label(audio_window, text="SBR Ratio :", background="#434547", foreground="white")
         acodec_sbr_ratio_label.grid(row=5, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         acodec_sbr_ratio_menu = OptionMenu(audio_window, acodec_sbr_ratio, *acodec_sbr_ratio_choices.keys())
@@ -3274,7 +3353,7 @@ def openaudiowindow():
         acodec_gapless_mode_choices = {'iTunSMPB (Def)': "-G0 ",
                                        'ISO Standard (EDTS+SGPD)': "-G1 ",
                                        'Both': "-G2 "}
-        acodec_gapless_mode.set('iTunSMPB (Def)')  # set the default option
+        acodec_gapless_mode.set(config_profile['FDK-AAC - SETTINGS']['fdk_aac_gapless'])  # set the default option
         acodec_gapless_mode_label = Label(audio_window, text="SBR Ratio :", background="#434547", foreground="white")
         acodec_gapless_mode_label.grid(row=7, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         acodec_gapless_mode_menu = OptionMenu(audio_window, acodec_gapless_mode, *acodec_gapless_mode_choices.keys())
@@ -3295,7 +3374,7 @@ def openaudiowindow():
                                            'LATM MCP=1': "-f6 ",
                                            'LATM MCP=0': "-f7 ",
                                            'LOAS/LATM (LATM w/in LOAS)': "-f10 "}
-        acodec_transport_format.set('M4A (Def)')  # set the default option
+        acodec_transport_format.set(config_profile['FDK-AAC - SETTINGS']['fdk_aac_transport_format'])  # default option
         acodec_transport_format_label = Label(audio_window, text="Transport Format :", background="#434547",
                                               foreground="white")
         acodec_transport_format_label.grid(row=7, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -3311,7 +3390,7 @@ def openaudiowindow():
         # Misc Checkboxes - Afterburner -------------------------------------------------------------------------------
         global afterburnervar
         afterburnervar = StringVar()
-        afterburnervar.set("-a1 ")
+        afterburnervar.set(config_profile['FDK-AAC - SETTINGS']['fdk_aac_afterburner'] + ' ')
         afterburner_checkbox = Checkbutton(audio_window, text='Afterburner', variable=afterburnervar, onvalue="-a1 ",
                                            offvalue="-a0 ")
         afterburner_checkbox.grid(row=8, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -3322,7 +3401,7 @@ def openaudiowindow():
         # Misc Checkboxes - Add CRC Check on ADTS Header --------------------------------------------------------------
         global crccheck
         crccheck = StringVar()
-        crccheck.set("")
+        crccheck.set(config_profile['FDK-AAC - SETTINGS']['fdk_aac_crccheck'] + ' ')
         crccheck_checkbox = Checkbutton(audio_window, text='CRC Check on\n ADTS Header', variable=crccheck,
                                         onvalue="-C ", offvalue="")
         crccheck_checkbox.grid(row=9, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -3333,7 +3412,7 @@ def openaudiowindow():
         # Misc Checkboxes - Header Period -----------------------------------------------------------------------------
         global headerperiod
         headerperiod = StringVar()
-        headerperiod.set("")
+        headerperiod.set(config_profile['FDK-AAC - SETTINGS']['fdk_aac_headerperiod'] + ' ')
         headerperiod_checkbox = Checkbutton(audio_window, text='Header Period', variable=headerperiod,
                                             onvalue="-h ", offvalue="")
         headerperiod_checkbox.grid(row=9, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -3344,7 +3423,7 @@ def openaudiowindow():
         # Misc Checkboxes - Include SBR Delay -------------------------------------------------------------------------
         global sbrdelay
         sbrdelay = StringVar()
-        sbrdelay.set("")
+        sbrdelay.set(config_profile['FDK-AAC - SETTINGS']['fdk_aac_sbrdelay'] + ' ')
         sbrdelay_checkbox = Checkbutton(audio_window, text='SBR Delay', variable=sbrdelay,
                                         onvalue="--include-sbr-delay ", offvalue="")
         sbrdelay_checkbox.grid(row=9, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -3355,7 +3434,7 @@ def openaudiowindow():
         # Misc Checkboxes - Place Moov Box Before Mdat Box ------------------------------------------------------------
         global moovbox
         moovbox = StringVar()
-        moovbox.set("")
+        moovbox.set(config_profile['FDK-AAC - SETTINGS']['fdk_aac_moovbox'] + ' ')
         moovbox_checkbox = Checkbutton(audio_window, text='Place Moov Box Before Mdat Box', variable=moovbox,
                                        onvalue="--moov-before-mdat ", offvalue="")
         moovbox_checkbox.grid(row=10, column=0, columnspan=2, padx=10, pady=3, sticky=N + S + E + W)
@@ -3389,7 +3468,7 @@ def openaudiowindow():
         acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
         acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1)
         acodec_atempo_menu.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-        acodec_atempo.set('Original')
+        acodec_atempo.set(config_profile['FDK-AAC - SETTINGS']['fdk_aac_tempo'])
         acodec_atempo_menu["menu"].configure(activebackground="dim grey")
         acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
         acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
@@ -3565,8 +3644,9 @@ def openaudiowindow():
         dolby_pro_logic_ii = StringVar()
         dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                   variable=dolby_pro_logic_ii, state=DISABLED,
-                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="",
-                                                  command=audio_filter_function)
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
+        if acodec_channel.get() == '2 (Stereo)':
+            dolby_pro_logic_ii_checkbox.configure(state=NORMAL)
         dolby_pro_logic_ii_checkbox.grid(row=5, column=2, columnspan=1, rowspan=1, padx=10, pady=3,
                                          sticky=N + S + E + W)
         dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
@@ -4019,6 +4099,8 @@ def openaudiowindow():
             dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                       variable=dolby_pro_logic_ii, state=DISABLED,
                                                       onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
+            if acodec_channel.get() == '2 (Stereo)':
+                dolby_pro_logic_ii_checkbox.configure(state=NORMAL)
             dolby_pro_logic_ii_checkbox.grid(row=4, column=2, columnspan=1, rowspan=1, padx=10, pady=(20, 5),
                                              sticky=N + S + E + W)
             dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white",
@@ -4316,6 +4398,8 @@ def openaudiowindow():
             dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                       variable=dolby_pro_logic_ii, state=DISABLED,
                                                       onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
+            if acodec_channel.get() == '2 (Stereo)':
+                dolby_pro_logic_ii_checkbox.configure(state=NORMAL)
             dolby_pro_logic_ii_checkbox.grid(row=0, column=2, columnspan=1, rowspan=2, padx=10, pady=(20, 5),
                                              sticky=N + S + E + W)
             dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white",
@@ -5121,16 +5205,16 @@ def startaudiojob():
                             + "-cpl_start_band " + cpl_start_band.get() + " " \
                             + "-sn -vn -map_chapters -1 "
         if shell_options.get() == "Default":
-            if auto_or_manual == 'manual':
+            if auto_or_manual == 'auto':
                 command = finalcommand
-            elif auto_or_manual == 'auto':
+                update_last_codec_command()
+            elif auto_or_manual == 'manual':
                 command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
                           + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
                           + ' ' + VideoOutputQuoted + ' -hide_banner'
             job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
-            update_last_codec_command()
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
@@ -5163,9 +5247,28 @@ def startaudiojob():
                        acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] + \
                        acodec_transport_format_choices[acodec_transport_format.get()] + \
                        acodec_bitrate_choices[acodec_bitrate.get()] + silent + " - -o " + VideoOutputQuoted + '"'
+        last_used_command = acodec_stream_choices[acodec_stream.get()] \
+                            + acodec_channel_choices[acodec_channel.get()] \
+                            + acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting + \
+                            "-f caf - -hide_banner -v error -stats |" \
+                            + fdkaac + " " + acodec_profile_choices[acodec_profile.get()] + \
+                            fdkaac_title_input + fdkaac_custom_cmd_input + \
+                            afterburnervar.get() + crccheck.get() + moovbox.get() \
+                            + sbrdelay.get() + headerperiod.get() + \
+                            acodec_lowdelay_choices[acodec_lowdelay.get()] + \
+                            acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] + \
+                            acodec_transport_format_choices[acodec_transport_format.get()] + \
+                            acodec_bitrate_choices[acodec_bitrate.get()] + silent + " - -o "
         if shell_options.get() == "Default":
-            job = subprocess.Popen('cmd /c ' + finalcommand, stdout=subprocess.PIPE, stdin=subprocess.DEVNULL,
-                                   stderr=subprocess.STDOUT, universal_newlines=True,
+            if auto_or_manual == 'auto':
+                command = finalcommand
+                update_last_codec_command()
+            elif auto_or_manual == 'manual':
+                command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
+                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
+                          + ' ' + VideoOutputQuoted
+            job = subprocess.Popen('cmd /c ' + command, universal_newlines=True,
+                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
