@@ -41,8 +41,8 @@ root = TkinterDnD.Tk()
 root.title("FFMPEG Audio Encoder v3.35 BETA")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
-window_height = 210
-window_width = 450
+window_height = 220
+window_width = 460
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
 x_coordinate = int((screen_width / 2) - (window_width / 2))
@@ -5366,7 +5366,7 @@ root.bind('<Button-3>', popup_auto_e_b_menu)  # Uses mouse button 3 (right click
 # --------------------------------------------------------------------------- Start Audio Job: Auto
 
 # Status Label at bottom of main GUI -----------------------------------------------------------------
-status_label = Label(root, text='', bd=2, relief=SUNKEN, anchor=E, background='grey', foreground="white")
+status_label = Label(root, text='', bd=4, relief=SUNKEN, anchor=E, background='#717171', foreground="white")
 status_label.grid(column=0, row=4, columnspan=4, sticky=W + E)
 # ----------------------------------------------------------------- Status Label at bottom of main GUI
 
