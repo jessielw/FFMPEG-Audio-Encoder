@@ -5002,6 +5002,10 @@ def startaudiojob():
             with open(config_profile_ini, 'w') as configfile_two:
                 config_profile.write(configfile_two)
 
+        def reset_main_gui():  # This resets the Main Gui back to default settings
+            encoder.set('Set Codec')
+            audiosettings_button.configure(state=DISABLED)
+
     # AC3 Start Job ---------------------------------------------------------------------------------------------------
     if encoder.get() == "AC3":
         finalcommand = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
@@ -5027,6 +5031,8 @@ def startaudiojob():
             job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
+            if auto_or_manual == 'manual':
+                reset_main_gui()
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
@@ -5070,6 +5076,8 @@ def startaudiojob():
             job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
+            if auto_or_manual == 'manual':
+                reset_main_gui()
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
@@ -5120,6 +5128,8 @@ def startaudiojob():
             job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
+            if auto_or_manual == 'manual':
+                reset_main_gui()
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
@@ -5163,6 +5173,8 @@ def startaudiojob():
             job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
+            if auto_or_manual == 'manual':
+                reset_main_gui()
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
@@ -5201,6 +5213,8 @@ def startaudiojob():
             job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
+            if auto_or_manual == 'manual':
+                reset_main_gui()
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
