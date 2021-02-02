@@ -267,8 +267,31 @@ if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_moovbox'):
     config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_moovbox', '')
 if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_tempo'):
     config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_tempo', 'Original')
-
 # --------------------------------------------------- FDK-AAC Settings
+# MP3 settings --------------------------------------------------- # Create config parameters
+if not config_profile.has_section('FFMPEG MP3 - SETTINGS'):
+    config_profile.add_section('FFMPEG MP3 - SETTINGS')
+if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'acodec_bitrate'):
+    config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_bitrate', 'VBR: -V 0')
+if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'acodec_channel'):
+    config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_channel', 'Original')
+if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'mp3_vbr'):
+    config_profile.set('FFMPEG MP3 - SETTINGS', 'mp3_vbr', '-q:a')
+if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'mp3_abr'):
+    config_profile.set('FFMPEG MP3 - SETTINGS', 'mp3_abr', '')
+if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'dolbyprologicii'):
+    config_profile.set('FFMPEG MP3 - SETTINGS', 'dolbyprologicii', '')
+if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'ffmpeg_gain'):
+    config_profile.set('FFMPEG MP3 - SETTINGS', 'ffmpeg_gain', '0')
+if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'samplerate'):
+    config_profile.set('FFMPEG MP3 - SETTINGS', 'samplerate', 'Original')
+if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'tempo'):
+    config_profile.set('FFMPEG MP3 - SETTINGS', 'tempo', 'Original')
+if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_vbr'):
+    config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_vbr', '')
+if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_cbr_abr'):
+    config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_cbr_abr', '')
+# --------------------------------------------------- MP3 Settings
 # Auto Encode Last Used Options ------------------------------------ # Create config parameters
 if not config_profile.has_section('Auto Encode'):
     config_profile.add_section('Auto Encode')
@@ -866,6 +889,19 @@ def openaudiowindow():
             config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_sbrdelay', sbrdelay.get())
             config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_moovbox', moovbox.get())
             config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_tempo', acodec_atempo.get())
+        if encoder.get() == 'MP3':
+            config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_bitrate', acodec_bitrate.get())
+            config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_channel', acodec_channel.get())
+            config_profile.set('FFMPEG MP3 - SETTINGS', 'mp3_vbr', mp3_vbr.get())
+            config_profile.set('FFMPEG MP3 - SETTINGS', 'mp3_abr', mp3_abr.get())
+            config_profile.set('FFMPEG MP3 - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
+            config_profile.set('FFMPEG MP3 - SETTINGS', 'ffmpeg_gain', ffmpeg_gain.get())
+            config_profile.set('FFMPEG MP3 - SETTINGS', 'samplerate', acodec_samplerate.get())
+            config_profile.set('FFMPEG MP3 - SETTINGS', 'tempo', acodec_atempo.get())
+            if mp3_vbr.get() == '-q:a':
+                config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_vbr', acodec_bitrate.get())
+            if mp3_vbr.get() == 'off':
+                config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_cbr_abr', acodec_bitrate.get())
 
         with open(config_profile_ini, 'w') as configfile_two:
             config_profile.write(configfile_two)
@@ -949,6 +985,17 @@ def openaudiowindow():
                 config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_sbrdelay', '')
                 config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_moovbox', '')
                 config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_tempo', 'Original')
+            if encoder.get() == 'MP3':
+                config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_bitrate', 'VBR: -V 0')
+                config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_channel', 'Original')
+                config_profile.set('FFMPEG MP3 - SETTINGS', 'mp3_vbr', '-q:a')
+                config_profile.set('FFMPEG MP3 - SETTINGS', 'mp3_abr', '')
+                config_profile.set('FFMPEG MP3 - SETTINGS', 'dolbyprologicii', '')
+                config_profile.set('FFMPEG MP3 - SETTINGS', 'ffmpeg_gain', '0')
+                config_profile.set('FFMPEG MP3 - SETTINGS', 'samplerate', 'Original')
+                config_profile.set('FFMPEG MP3 - SETTINGS', 'tempo', 'Original')
+                config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_vbr', '')
+                config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_cbr_abr', '')
 
             with open(config_profile_ini, 'w') as configfile_two:
                 config_profile.write(configfile_two)
@@ -2158,12 +2205,22 @@ def openaudiowindow():
         file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
         file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
                               command=mpv_gui_audio_window)
+        options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+        my_menu_bar.add_cascade(label='Options', menu=options_menu)
+        options_menu.add_command(label='Save Current Settings', command=save_profile)
+        options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
 
         for n in range(3):
             audio_window.grid_columnconfigure(n, weight=1)
         for n in range(5):
             audio_window.grid_rowconfigure(n, weight=1)
         audio_window.grid_rowconfigure(7, weight=1)
+
+        def update_cfg_mp3():
+            config_profile.set('FFMPEG MP3 - SETTINGS', 'mp3_vbr', mp3_vbr.get())
+            config_profile.set('FFMPEG MP3 - SETTINGS', 'mp3_abr', mp3_abr.get())
+            with open(config_profile_ini, 'w') as configfile_two:
+                config_profile.write(configfile_two)
 
         # Using VBR or CBR/ABR ----------------------------------------------------------------------------------------
         def mp3_bitrate_type(*args):
@@ -2177,7 +2234,9 @@ def openaudiowindow():
             def acodec_bitrate_menu_hover_leave(e):
                 acodec_bitrate_menu["bg"] = "#23272A"
 
-            if mp3_vbr.get() == '-q:a ':
+            acodec_bitrate = StringVar()
+
+            if mp3_vbr.get() == '-q:a':
                 mp3_abr.set("")
                 mp3_abr_checkbox.config(state=DISABLED)
 
@@ -2189,7 +2248,10 @@ def openaudiowindow():
                                           'VBR: -V 5': '-q:a 5 ',
                                           'VBR: -V 6': '-q:a 6 ',
                                           'VBR: -V 7': '-q:a 7 '}
-                acodec_bitrate.set('VBR: -V 0')
+                if config_profile['FFMPEG MP3 - SETTINGS']['acodec_bitrate_vbr'] == '':
+                    acodec_bitrate.set('VBR: -V 0')
+                else:
+                    acodec_bitrate.set(config_profile['FFMPEG MP3 - SETTINGS']['acodec_bitrate_vbr'])
                 acodec_bitrate_menu_label = Label(audio_window, text="Quality :", background="#434547",
                                                   foreground="white")
                 acodec_bitrate_menu_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
@@ -2202,7 +2264,7 @@ def openaudiowindow():
 
             elif mp3_vbr.get() == 'off':
                 mp3_abr_checkbox.config(state=NORMAL)
-                mp3_abr.set("")
+                mp3_abr.set(config_profile['FFMPEG MP3 - SETTINGS']['mp3_abr'] + ' ')
                 acodec_bitrate_choices = {'8k': '-b:a 8k ',
                                           '16k': '-b:a 16k ',
                                           '24k': '-b:a 24k ',
@@ -2219,7 +2281,10 @@ def openaudiowindow():
                                           '224k': '-b:a 224k ',
                                           '256k': '-b:a 256k ',
                                           '320k': '-b:a 320k '}
-                acodec_bitrate.set('192k')
+                if config_profile['FFMPEG MP3 - SETTINGS']['acodec_bitrate_cbr_abr'] == '':
+                    acodec_bitrate.set('192k')
+                else:
+                    acodec_bitrate.set(config_profile['FFMPEG MP3 - SETTINGS']['acodec_bitrate_cbr_abr'])
                 acodec_bitrate_menu_label = Label(audio_window, text="Bitrate :", background="#434547",
                                                   foreground="white")
                 acodec_bitrate_menu_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
@@ -2275,33 +2340,12 @@ def openaudiowindow():
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
         # ----------------------------------------------------------------------------------------------------- Buttons
 
-        # Audio VBR Menu ----------------------------------------------------------------------------------------------
-        acodec_bitrate = StringVar(audio_window)
-        acodec_bitrate_choices = {'VBR: -V 0': '-q:a 0 ',
-                                  'VBR: -V 1': '-q:a 1 ',
-                                  'VBR: -V 2': '-q:a 2 ',
-                                  'VBR: -V 3': '-q:a 3 ',
-                                  'VBR: -V 4': '-q:a 4 ',
-                                  'VBR: -V 5': '-q:a 5 ',
-                                  'VBR: -V 6': '-q:a 6 ',
-                                  'VBR: -V 7': '-q:a 7 '}
-        acodec_bitrate.set('VBR: -V 0')
-        acodec_bitrate_menu_label = Label(audio_window, text="Quality :", background="#434547", foreground="white")
-        acodec_bitrate_menu_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
-        acodec_bitrate_menu = OptionMenu(audio_window, acodec_bitrate, *acodec_bitrate_choices.keys())
-        acodec_bitrate_menu.config(background="#23272A", foreground="white", highlightthickness=1)
-        acodec_bitrate_menu.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-        acodec_bitrate_menu["menu"].configure(activebackground="dim grey")
-        acodec_bitrate_menu.bind("<Enter>", acodec_bitrate_menu_hover)
-        acodec_bitrate_menu.bind("<Leave>", acodec_bitrate_menu_hover_leave)
-        # --------------------------------------------------------------------------------------------------------- VBR
-
         # Audio Channel Selection -------------------------------------------------------------------------------------
         acodec_channel = StringVar(audio_window)
         acodec_channel_choices = {'Original': "",
                                   '1 (Mono)': "-ac 1 ",
                                   '2 (Stereo)': "-ac 2 "}
-        acodec_channel.set('Original')  # set the default option
+        acodec_channel.set(config_profile['FFMPEG MP3 - SETTINGS']['acodec_channel'])  # set the default option
         achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
         achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
         achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
@@ -2316,9 +2360,8 @@ def openaudiowindow():
         # VBR ---------------------------------------------------------------------------------------------------------
         global mp3_vbr
         mp3_vbr = StringVar()
-        mp3_vbr.set("-q:a ")
-        mp3_vbr_checkbox = Checkbutton(audio_window, text='VBR', variable=mp3_vbr, onvalue='-q:a ',
-                                       offvalue='off')
+        mp3_vbr.set(config_profile['FFMPEG MP3 - SETTINGS']['mp3_vbr'])
+        mp3_vbr_checkbox = Checkbutton(audio_window, text='VBR', variable=mp3_vbr, onvalue='-q:a', offvalue='off')
         mp3_vbr_checkbox.grid(row=4, column=1, rowspan=1, columnspan=1, padx=10, pady=(5, 0), sticky=N + S + E + W)
         mp3_vbr_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                    activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
@@ -2327,14 +2370,18 @@ def openaudiowindow():
 
         # ABR ---------------------------------------------------------------------------------------------------------
         global mp3_abr
+        def mp3_abr_toggle(*args):
+            update_cfg_mp3()
         mp3_abr = StringVar()
-        mp3_abr.set("")
+        mp3_abr.set(config_profile['FFMPEG MP3 - SETTINGS']['mp3_abr'] + ' ')
         mp3_abr_checkbox = Checkbutton(audio_window, text='ABR', variable=mp3_abr, onvalue="-abr 1 ",
                                        offvalue="", state=DISABLED)
+        if mp3_vbr.get() == 'off ':
+            mp3_abr_checkbox.configure(state=NORMAL)
         mp3_abr_checkbox.grid(row=4, column=2, rowspan=1, columnspan=1, padx=10, pady=(0, 5), sticky=N + S + E + W)
         mp3_abr_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                    activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
-
+        mp3_abr.trace('w', mp3_abr_toggle)
         # --------------------------------------------------------------------------------------------------------- ABR
 
         # Entry Box for Custom Command Line ---------------------------------------------------------------------------
@@ -2383,7 +2430,7 @@ def openaudiowindow():
                                          sticky=N + S + E + W)
         dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                               activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
-        dolby_pro_logic_ii.set("")
+        dolby_pro_logic_ii.set(config_profile['FFMPEG MP3 - SETTINGS']['dolbyprologicii'])
         # ------------------------------------------------------------------------------------------------------ DPL II
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
@@ -2397,8 +2444,8 @@ def openaudiowindow():
         ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                       buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_gain_spinbox.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_gain.set(int(config_profile['FFMPEG MP3 - SETTINGS']['ffmpeg_gain']))
         ffmpeg_gain.trace('w', audio_filter_function)
-        ffmpeg_gain.set(0)
         # -------------------------------------------------------------------------------------------------------- Gain
 
         # Audio Sample Rate Selection ---------------------------------------------------------------------------------
@@ -2413,7 +2460,7 @@ def openaudiowindow():
                                      '32000 Hz': "-ar 32000 ",
                                      '44100 Hz': "-ar 44100 ",
                                      '48000 Hz': "-ar 48000 "}
-        acodec_samplerate.set('Original')  # set the default option
+        acodec_samplerate.set(config_profile['FFMPEG MP3 - SETTINGS']['samplerate'])  # set the default option
         acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547", foreground="white")
         acodec_samplerate_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate, *acodec_samplerate_choices.keys())
@@ -2450,10 +2497,11 @@ def openaudiowindow():
         acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
         acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1)
         acodec_atempo_menu.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-        acodec_atempo.set('Original')
+        acodec_atempo.set(config_profile['FFMPEG MP3 - SETTINGS']['tempo'])
         acodec_atempo_menu["menu"].configure(activebackground="dim grey")
         acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
         acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
+        mp3_bitrate_type()
         # ------------------------------------------------------------------------------------------------ Audio Atempo
     # ------------------------------------------------------------------------------------------------------------- MP3
 
@@ -5137,9 +5185,21 @@ def startaudiojob():
                        + mp3_abr.get() + acodec_samplerate_choices[acodec_samplerate.get()] \
                        + audio_filter_setting + "-sn -vn -map_chapters -1 -map_metadata -1 " \
                        + mp3_custom_cmd_input + VideoOutputQuoted + " -hide_banner"
+        last_used_command = acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
+                            acodec_bitrate_choices[acodec_bitrate.get()] + acodec_channel_choices[acodec_channel.get()] \
+                            + mp3_abr.get() + acodec_samplerate_choices[acodec_samplerate.get()] \
+                            + audio_filter_setting + "-sn -vn -map_chapters -1 -map_metadata -1 " \
+                            + mp3_custom_cmd_input
         if shell_options.get() == "Default":
-            job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+            if auto_or_manual == 'auto':
+                command = finalcommand
+                update_last_codec_command()
+            elif auto_or_manual == 'manual':
+                command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
+                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
+                          + ' ' + VideoOutputQuoted + ' -hide_banner'
+            job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
+                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
