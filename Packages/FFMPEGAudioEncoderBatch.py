@@ -4078,7 +4078,7 @@ def batch_processing():
             batch_output_entry.insert(0, '"' + batch_save_directory + '"')
             batch_output_entry.configure(state=DISABLED)
         if not batch_save_directory:
-            batch_save_directory = str(input_dnd_batch.get() + '/Encoded').replace("{", "").replace("}", "")
+            batch_save_directory = str(input_dnd_batch.get() + '/Encoded')
             batch_output_entry.configure(state=NORMAL)
             batch_output_entry.delete(0, END)
             batch_output_entry.insert(0, '"' + batch_save_directory + '"')
@@ -4087,7 +4087,7 @@ def batch_processing():
     def drop_input_batch(event):
         global batch_input_directory_quoted, batch_save_directory, batch_input_directory
         input_dnd_batch.set(event.data)
-        batch_input_directory = str(input_dnd_batch.get()).replace("{", "").replace("}", "")
+        batch_input_directory = str(input_dnd_batch.get())
         batch_input_directory_quoted = '"' + batch_input_directory + '"'
         batch_input_entry.configure(state=NORMAL)
         batch_input_entry.delete(0, END)
@@ -4096,7 +4096,7 @@ def batch_processing():
             del batch_save_directory
         except:
             pass
-        batch_save_directory = str(input_dnd_batch.get() + '/Encoded').replace("{", "").replace("}", "")
+        batch_save_directory = str(input_dnd_batch.get() + '/Encoded')
         if batch_input_directory:
             autofilesave_batch_path_output_entry_box = pathlib.Path('"' + batch_input_directory + '/Encoded"')
             encoder_menu.config(state=NORMAL)
