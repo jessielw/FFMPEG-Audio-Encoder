@@ -292,6 +292,12 @@ if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_vbr'):
 if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_cbr_abr'):
     config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_cbr_abr', '')
 # --------------------------------------------------- MP3 Settings
+# QAAC settings --------------------------------------------------- # Create config parameters
+if not config_profile.has_section('FFMPEG QAAC - SETTINGS'):
+    config_profile.add_section('FFMPEG QAAC - SETTINGS')
+if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'acodec_bitrate'):
+    config_profile.set('FFMPEG QAAC - SETTINGS', 'acodec_bitrate', 'VBR: -V 0')
+# --------------------------------------------------- QAAC Settings
 # Auto Encode Last Used Options ------------------------------------ # Create config parameters
 if not config_profile.has_section('Auto Encode'):
     config_profile.add_section('Auto Encode')
@@ -5547,7 +5553,11 @@ def update_file_input(*args):
     global VideoInput, track_count, autofilesave_dir_path, VideoInputQuoted, autosavefilename
     input_entry.configure(state=NORMAL)
     input_entry.delete(0, END)
-    VideoInput = str(input_dnd.get()).replace("{", "").replace("}", "")
+    remove_brackets = str(input_dnd.get())
+    if remove_brackets.startswith('{') and remove_brackets.endswith('}'):
+        VideoInput = str(input_dnd.get())[1:-1]
+    else:
+        VideoInput = str(input_dnd.get())
     file_extension = pathlib.Path(VideoInput).suffix
     if file_extension == '.wav' or file_extension == '.mt2s' or file_extension == '.ac3' or \
             file_extension == '.mka' or \
