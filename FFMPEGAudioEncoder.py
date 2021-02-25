@@ -733,7 +733,7 @@ def openaudiowindow():
     # Get Selected Track Number for MPV Player ------------------------------------------------------------------------
     def track_number_mpv(*args):
         global mpv_track_number
-        mpv_track_number = str.split(acodec_stream.get()[-1])
+        mpv_track_number = str(acodec_stream.get().split()[1][-1])
 
     # ------------------------------------------------------------------------ Get Selected Track Number for MPV Player
 
