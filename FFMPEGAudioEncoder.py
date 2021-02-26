@@ -295,8 +295,40 @@ if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_cbr_ab
 # QAAC settings --------------------------------------------------- # Create config parameters
 if not config_profile.has_section('FFMPEG QAAC - SETTINGS'):
     config_profile.add_section('FFMPEG QAAC - SETTINGS')
-if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'acodec_bitrate'):
-    config_profile.set('FFMPEG QAAC - SETTINGS', 'acodec_bitrate', 'VBR: -V 0')
+if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'q_acodec_profile'):
+    config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_profile', 'True VBR')
+if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'dolbyprologicii'):
+    config_profile.set('FFMPEG QAAC - SETTINGS', 'dolbyprologicii', '')
+if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'acodec_channel'):
+    config_profile.set('FFMPEG QAAC - SETTINGS', 'acodec_channel', 'Original')
+if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'samplerate'):
+    config_profile.set('FFMPEG QAAC - SETTINGS', 'samplerate', 'Original')
+if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'q_acodec_quality'):
+    config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_quality', 'High (Default)')
+if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'q_acodec_quality_amnt'):
+    config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_quality_amnt', '109')
+if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'q_acodec_bitrate'):
+    config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_bitrate', '256')
+if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'q_acodec_gain'):
+    config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_gain', '0')
+if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'qaac_normalize'):
+    config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_normalize', '')
+if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'qaac_high_efficiency'):
+    config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_high_efficiency', '')
+if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'qaac_nodither'):
+    config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_nodither', '')
+if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'qaac_nodelay'):
+    config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_nodelay', '')
+if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'q_gapless_mode'):
+    config_profile.set('FFMPEG QAAC - SETTINGS', 'q_gapless_mode', 'iTunSMPB (Default)')
+if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'qaac_nooptimize'):
+    config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_nooptimize', '')
+if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'qaac_threading'):
+    config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_threading', '')
+if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'qaac_limiter'):
+    config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_limiter', '')
+if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'tempo'):
+    config_profile.set('FFMPEG QAAC - SETTINGS', 'tempo', 'Original')
 # --------------------------------------------------- QAAC Settings
 # Auto Encode Last Used Options ------------------------------------ # Create config parameters
 if not config_profile.has_section('Auto Encode'):
@@ -908,6 +940,24 @@ def openaudiowindow():
                 config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_vbr', acodec_bitrate.get())
             if mp3_vbr.get() == 'off':
                 config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_cbr_abr', acodec_bitrate.get())
+        if encoder.get() == 'QAAC':
+            config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_profile', q_acodec_profile.get())
+            config_profile.set('FFMPEG QAAC - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
+            config_profile.set('FFMPEG QAAC - SETTINGS', 'acodec_channel', acodec_channel.get())
+            config_profile.set('FFMPEG QAAC - SETTINGS', 'samplerate', acodec_samplerate.get())
+            config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_quality', q_acodec_quality.get())
+            config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_quality_amnt', q_acodec_quality_amnt.get())
+            config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_bitrate', q_acodec_bitrate.get())
+            config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_gain', q_acodec_gain.get())
+            config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_normalize', qaac_normalize.get())
+            config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_high_efficiency', qaac_high_efficiency.get())
+            config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_nodither', qaac_nodither.get())
+            config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_nodelay', qaac_nodelay.get())
+            config_profile.set('FFMPEG QAAC - SETTINGS', 'q_gapless_mode', q_gapless_mode.get())
+            config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_nooptimize', qaac_nooptimize.get())
+            config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_threading', qaac_threading.get())
+            config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_limiter', qaac_limiter.get())
+            config_profile.set('FFMPEG QAAC - SETTINGS', 'tempo', acodec_atempo.get())
 
         with open(config_profile_ini, 'w') as configfile_two:
             config_profile.write(configfile_two)
@@ -1002,6 +1052,24 @@ def openaudiowindow():
                 config_profile.set('FFMPEG MP3 - SETTINGS', 'tempo', 'Original')
                 config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_vbr', '')
                 config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_cbr_abr', '')
+            if encoder.get() == 'QAAC':
+                config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_profile', 'True VBR')
+                config_profile.set('FFMPEG QAAC - SETTINGS', 'dolbyprologicii', '')
+                config_profile.set('FFMPEG QAAC - SETTINGS', 'acodec_channel', 'Original')
+                config_profile.set('FFMPEG QAAC - SETTINGS', 'samplerate', 'Original')
+                config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_quality', 'High (Default)')
+                config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_quality_amnt', '109')
+                config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_bitrate', '256')
+                config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_gain', '0')
+                config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_normalize', '')
+                config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_high_efficiency', '')
+                config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_nodither', '')
+                config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_nodelay', '')
+                config_profile.set('FFMPEG QAAC - SETTINGS', 'q_gapless_mode', 'iTunSMPB (Default)')
+                config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_nooptimize', '')
+                config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_threading', '')
+                config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_limiter', '')
+                config_profile.set('FFMPEG QAAC - SETTINGS', 'tempo', 'Original')
 
             with open(config_profile_ini, 'w') as configfile_two:
                 config_profile.write(configfile_two)
@@ -3544,12 +3612,15 @@ def openaudiowindow():
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
-
         file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
         my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
         file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
         file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
                               command=mpv_gui_audio_window)
+        options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+        my_menu_bar.add_cascade(label='Options', menu=options_menu)
+        options_menu.add_command(label='Save Current Settings', command=save_profile)
+        options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
 
         for n in range(3):
             audio_window.grid_columnconfigure(n, weight=1)
@@ -3682,7 +3753,7 @@ def openaudiowindow():
                                     'Constrained VBR': "--cvbr ",
                                     'ABR': "--abr ",
                                     'CBR': "--cbr "}
-        q_acodec_profile.set('True VBR')  # set the default option
+        q_acodec_profile.set(config_profile['FFMPEG QAAC - SETTINGS']['q_acodec_profile'])  # set the default option
         q_acodec_profile.trace('w', quality_or_bitrate)
         q_acodec_profile_menu_label = Label(audio_window, text="Mode :", background="#434547", foreground="white")
         q_acodec_profile_menu_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
@@ -3693,20 +3764,6 @@ def openaudiowindow():
         q_acodec_profile_menu.bind("<Enter>", q_acodec_profile_hover)
         q_acodec_profile_menu.bind("<Leave>", q_acodec_profile_hover_leave)
         # ------------------------------------------------------------------------------------------ Audio Profile Menu
-
-        # Dolby Pro Logic II ------------------------------------------------------------------------------------------
-        dolby_pro_logic_ii = StringVar()
-        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
-                                                  variable=dolby_pro_logic_ii, state=DISABLED,
-                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
-        if acodec_channel.get() == '2 (Stereo)':
-            dolby_pro_logic_ii_checkbox.configure(state=NORMAL)
-        dolby_pro_logic_ii_checkbox.grid(row=5, column=2, columnspan=1, rowspan=1, padx=10, pady=3,
-                                         sticky=N + S + E + W)
-        dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
-                                              activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
-        dolby_pro_logic_ii.set("")
-        # ------------------------------------------------------------------------------------------------------ DPL II
 
         # Audio Channel Selection -------------------------------------------------------------------------------------
         acodec_channel = StringVar(audio_window)
@@ -3724,9 +3781,23 @@ def openaudiowindow():
         achannel_menu["menu"].configure(activebackground="dim grey")
         achannel_menu.bind("<Enter>", achannel_menu_hover)
         achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
+        acodec_channel.set(config_profile['FFMPEG QAAC - SETTINGS']['acodec_channel'])
         acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
-        acodec_channel.set('Original')
         # ----------------------------------------------------------------------------------------------- Audio Channel
+
+        # Dolby Pro Logic II ------------------------------------------------------------------------------------------
+        dolby_pro_logic_ii = StringVar()
+        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
+                                                  variable=dolby_pro_logic_ii, state=DISABLED,
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
+        if acodec_channel.get() == '2 (Stereo)':
+            dolby_pro_logic_ii_checkbox.configure(state=NORMAL)
+        dolby_pro_logic_ii_checkbox.grid(row=5, column=2, columnspan=1, rowspan=1, padx=10, pady=3,
+                                         sticky=N + S + E + W)
+        dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                              activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
+        dolby_pro_logic_ii.set(config_profile['FFMPEG QAAC - SETTINGS']['dolbyprologicii'])
+        # ------------------------------------------------------------------------------------------------------ DPL II
 
         # Audio Stream Selection --------------------------------------------------------------------------------------
         acodec_stream = StringVar(audio_window)
@@ -3792,7 +3863,7 @@ def openaudiowindow():
                                      '48000 Hz': "-ar 48000 ",
                                      '88200 Hz': "-ar 88200 ",
                                      '96000 Hz': "-ar 96000 "}
-        acodec_samplerate.set('Original')  # set the default option
+        acodec_samplerate.set(config_profile['FFMPEG QAAC - SETTINGS']['samplerate'])  # set the default option
         acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547", foreground="white")
         acodec_samplerate_label.grid(row=4, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate, *acodec_samplerate_choices.keys())
@@ -3810,7 +3881,7 @@ def openaudiowindow():
         q_acodec_quality_choices = {'High (Default)': "",
                                     'Medium': "--quality 1 ",
                                     'Low': "--quality 0 "}
-        q_acodec_quality.set('High (Default)')  # set the default option
+        q_acodec_quality.set(config_profile['FFMPEG QAAC - SETTINGS']['q_acodec_quality'])  # set the default option
         q_acodec_quality_label = Label(audio_window, text="Quality :", background="#434547", foreground="white")
         q_acodec_quality_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         q_acodec_quality_menu = OptionMenu(audio_window, q_acodec_quality, *q_acodec_quality_choices.keys())
@@ -3835,13 +3906,13 @@ def openaudiowindow():
                                         buttonbackground="black", disabledbackground='grey',
                                         readonlybackground="#23272A")
         q_acodec_quality_spinbox.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        q_acodec_quality_amnt.set('109')
+        q_acodec_quality_amnt.set(config_profile['FFMPEG QAAC - SETTINGS']['q_acodec_quality_amnt'])
         # ----------------------------------------------------------------------------------------------------- Quality
 
         # Audio Bitrate -----------------------------------------------------------------------------------------------
         global q_acodec_bitrate
         q_acodec_bitrate = StringVar(audio_window)
-        q_acodec_bitrate.set(256)  # set the default option
+        q_acodec_bitrate.set(int(config_profile['FFMPEG QAAC - SETTINGS']['q_acodec_bitrate']))  # set default
         q_acodec_bitrate_label = Label(audio_window, text="Bitrate :", background="#434547", foreground="white")
         q_acodec_bitrate_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         q_acodec_bitrate_spinbox = Spinbox(audio_window, from_=0, to=1280, justify=CENTER, wrap=True,
@@ -3862,13 +3933,13 @@ def openaudiowindow():
                                      buttonbackground="black", disabledbackground='grey')
         q_acodec_gain_spinbox.grid(row=5, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         q_acodec_gain.trace('w', qaac_gain_trace)
-        q_acodec_gain.set(0)
+        q_acodec_gain.set(int(config_profile['FFMPEG QAAC - SETTINGS']['q_acodec_gain']))
         # -------------------------------------------------------------------------------------------------------- Gain
 
         # Misc Checkboxes - Normalize ---------------------------------------------------------------------------------
         global qaac_normalize
         qaac_normalize = StringVar()
-        qaac_normalize.set("")
+        qaac_normalize.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_normalize'])
         qaac_normalize_checkbox = Checkbutton(audio_window, text='Normalize', variable=qaac_normalize,
                                               onvalue="--normalize ",
                                               offvalue="")
@@ -3880,7 +3951,7 @@ def openaudiowindow():
         # Misc Checkboxes - High Efficiency ---------------------------------------------------------------------------
         global qaac_high_efficiency
         qaac_high_efficiency = StringVar()
-        qaac_high_efficiency.set("")
+        qaac_high_efficiency.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_high_efficiency'])
         qaac_high_efficiency_checkbox = Checkbutton(audio_window, text='High Efficiency', variable=qaac_high_efficiency,
                                                     onvalue="--he ",
                                                     offvalue="", state=DISABLED)
@@ -3892,7 +3963,7 @@ def openaudiowindow():
         # Misc Checkboxes - No Dither When Quantizing to Lower Bit Depth ----------------------------------------------
         global qaac_nodither
         qaac_nodither = StringVar()
-        qaac_nodither.set("")
+        qaac_nodither.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_nodither'])
         qaac_nodither_checkbox = Checkbutton(audio_window, text='No Dither',
                                              variable=qaac_nodither, onvalue="--no-dither ",
                                              offvalue="")
@@ -3904,10 +3975,9 @@ def openaudiowindow():
         # Misc Checkboxes - No Delay ----------------------------------------------------------------------------------
         global qaac_nodelay
         qaac_nodelay = StringVar()
-        qaac_nodelay.set("")
+        qaac_nodelay.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_nodelay'])
         qaac_nodelay_checkbox = Checkbutton(audio_window, text='No Delay',
-                                            variable=qaac_nodelay, onvalue="--no-delay ",
-                                            offvalue="")
+                                            variable=qaac_nodelay, onvalue="--no-delay ", offvalue="")
         qaac_nodelay_checkbox.grid(row=7, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         qaac_nodelay_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                         activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
@@ -3917,10 +3987,10 @@ def openaudiowindow():
         global q_gapless_mode
         global q_gapless_mode_choices
         q_gapless_mode = StringVar(audio_window)
-        q_gapless_mode_choices = {'iTunSMPB (default)': "",
+        q_gapless_mode_choices = {'iTunSMPB (Default)': "",
                                   'ISO standard': "--gapless-mode 1 ",
                                   'Both': "--gapless-mode 2 "}
-        q_gapless_mode.set('iTunSMPB (default)')  # set the default option
+        q_gapless_mode.set(config_profile['FFMPEG QAAC - SETTINGS']['q_gapless_mode'])  # set the default option
         q_gapless_mode_label = Label(audio_window, text="Gapless Mode :", background="#434547", foreground="white")
         q_gapless_mode_label.grid(row=8, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         q_gapless_mode_menu = OptionMenu(audio_window, q_gapless_mode, *q_gapless_mode_choices.keys())
@@ -3934,7 +4004,7 @@ def openaudiowindow():
         # Misc Checkboxes - No Optimize -------------------------------------------------------------------------------
         global qaac_nooptimize
         qaac_nooptimize = StringVar()
-        qaac_nooptimize.set("")
+        qaac_nooptimize.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_nooptimize'])
         qaac_nooptimize_checkbox = Checkbutton(audio_window, text='No Optimize',
                                                variable=qaac_nooptimize, onvalue="--no-optimize ",
                                                offvalue="")
@@ -3946,10 +4016,9 @@ def openaudiowindow():
         # Misc Checkboxes - Threading ---------------------------------------------------------------------------------
         global qaac_threading
         qaac_threading = StringVar()
-        qaac_threading.set("")
+        qaac_threading.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_threading'])
         qaac_threading_checkbox = Checkbutton(audio_window, text='Threading',
-                                              variable=qaac_threading, onvalue="--threading ",
-                                              offvalue="")
+                                              variable=qaac_threading, onvalue="--threading ", offvalue="")
         qaac_threading_checkbox.grid(row=10, column=0, columnspan=1, padx=10, pady=(10,3), sticky=N + S + E + W)
         qaac_threading_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                           activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
@@ -3958,10 +4027,9 @@ def openaudiowindow():
         # Misc Checkboxes - Limiter -----------------------------------------------------------------------------------
         global qaac_limiter
         qaac_limiter = StringVar()
-        qaac_limiter.set("")
+        qaac_limiter.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_limiter'])
         qaac_limiter_checkbox = Checkbutton(audio_window, text='Limiter',
-                                            variable=qaac_limiter, onvalue="--limiter ",
-                                            offvalue="")
+                                            variable=qaac_limiter, onvalue="--limiter ", offvalue="")
         qaac_limiter_checkbox.grid(row=9, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         qaac_limiter_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                         activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
@@ -3993,7 +4061,7 @@ def openaudiowindow():
         acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
         acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1)
         acodec_atempo_menu.grid(row=9, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-        acodec_atempo.set('Original')
+        acodec_atempo.set(config_profile['FFMPEG QAAC - SETTINGS']['tempo'])
         acodec_atempo_menu["menu"].configure(activebackground="dim grey")
         acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
         acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
@@ -5384,6 +5452,18 @@ def startaudiojob():
                            + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
                            + qaac_threading.get() + qaac_limiter.get() + qaac_title_input + qaac_custom_cmd_input \
                            + silent + " - -o " + VideoOutputQuoted + '"'
+            last_used_command = acodec_stream_choices[acodec_stream.get()] \
+                                + acodec_channel_choices[acodec_channel.get()] + audio_filter_setting \
+                                + acodec_samplerate_choices[acodec_samplerate.get()] \
+                                + "-f wav - -hide_banner -v error -stats | " + qaac \
+                                + " " + q_acodec_profile_choices[q_acodec_profile.get()] \
+                                + q_acodec_quality_amnt.get() + " " + qaac_high_efficiency.get() \
+                                + qaac_normalize.get() + qaac_nodither.get() + "--gain " \
+                                + q_acodec_gain.get() + " " + q_acodec_quality_choices[q_acodec_quality.get()] \
+                                + qaac_nodelay.get() \
+                                + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
+                                + qaac_threading.get() + qaac_limiter.get() + qaac_title_input + qaac_custom_cmd_input \
+                                + silent + " - -o "
         else:
             finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted \
                            + acodec_stream_choices[acodec_stream.get()] + \
@@ -5397,9 +5477,27 @@ def startaudiojob():
                            + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
                            + qaac_threading.get() + qaac_limiter.get() + qaac_title_input \
                            + qaac_custom_cmd_input + silent + " - -o " + VideoOutputQuoted + '"'
+            last_used_command = acodec_stream_choices[acodec_stream.get()] + \
+                                acodec_channel_choices[acodec_channel.get()] + audio_filter_setting + \
+                                acodec_samplerate_choices[acodec_samplerate.get()] \
+                                + "-f wav - -hide_banner -v error -stats | " + qaac \
+                                + " " + q_acodec_profile_choices[q_acodec_profile.get()] + \
+                                q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() \
+                                + qaac_nodither.get() + "--gain " + q_acodec_gain.get() + " " \
+                                + q_acodec_quality_choices[q_acodec_quality.get()] + qaac_nodelay.get() \
+                                + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
+                                + qaac_threading.get() + qaac_limiter.get() + qaac_title_input \
+                                + qaac_custom_cmd_input + silent + " - -o "
         if shell_options.get() == "Default":
-            job = subprocess.Popen('cmd /c ' + finalcommand, stdout=subprocess.PIPE, stdin=subprocess.DEVNULL,
-                                   stderr=subprocess.STDOUT, universal_newlines=True,
+            if auto_or_manual == 'auto':
+                command = finalcommand
+                update_last_codec_command()
+            elif auto_or_manual == 'manual':
+                command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
+                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
+                          + ' ' + VideoOutputQuoted
+            job = subprocess.Popen('cmd /c ' + command, universal_newlines=True,
+                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
