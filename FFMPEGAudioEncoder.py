@@ -330,6 +330,28 @@ if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'qaac_limiter'):
 if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'tempo'):
     config_profile.set('FFMPEG QAAC - SETTINGS', 'tempo', 'Original')
 # --------------------------------------------------- QAAC Settings
+# FLAC settings --------------------------------------------------- # Create config parameters
+if not config_profile.has_section('FFMPEG FLAC - SETTINGS'):
+    config_profile.add_section('FFMPEG FLAC - SETTINGS')
+if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'acodec_bitrate'):
+    config_profile.set('FFMPEG FLAC - SETTINGS', 'acodec_bitrate', 'Level 5 - Default Quality')
+if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'acodec_channel'):
+    config_profile.set('FFMPEG FLAC - SETTINGS', 'acodec_channel', 'Original')
+if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'dolbyprologicii'):
+    config_profile.set('FFMPEG FLAC - SETTINGS', 'dolbyprologicii', '')
+if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'gain'):
+    config_profile.set('FFMPEG FLAC - SETTINGS', 'gain', '0')
+if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'samplerate'):
+    config_profile.set('FFMPEG FLAC - SETTINGS', 'samplerate', 'Original')
+if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'tempo'):
+    config_profile.set('FFMPEG FLAC - SETTINGS', 'tempo', 'Original')
+if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'flac_lpc_type'):
+    config_profile.set('FFMPEG FLAC - SETTINGS', 'flac_lpc_type', 'Default')
+if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'flac_coefficient'):
+    config_profile.set('FFMPEG FLAC - SETTINGS', 'flac_coefficient', '15')
+if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'flac_lpc_passes'):
+    config_profile.set('FFMPEG FLAC - SETTINGS', 'flac_lpc_passes', 'Default')
+# --------------------------------------------------- FLAC Settings
 # Auto Encode Last Used Options ------------------------------------ # Create config parameters
 if not config_profile.has_section('Auto Encode'):
     config_profile.add_section('Auto Encode')
@@ -958,6 +980,16 @@ def openaudiowindow():
             config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_threading', qaac_threading.get())
             config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_limiter', qaac_limiter.get())
             config_profile.set('FFMPEG QAAC - SETTINGS', 'tempo', acodec_atempo.get())
+        if encoder.get() == 'FLAC':
+            config_profile.set('FFMPEG FLAC - SETTINGS', 'acodec_bitrate', acodec_bitrate.get())
+            config_profile.set('FFMPEG FLAC - SETTINGS', 'acodec_channel', acodec_channel.get())
+            config_profile.set('FFMPEG FLAC - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
+            config_profile.set('FFMPEG FLAC - SETTINGS', 'gain', ffmpeg_gain.get())
+            config_profile.set('FFMPEG FLAC - SETTINGS', 'samplerate', acodec_samplerate.get())
+            config_profile.set('FFMPEG FLAC - SETTINGS', 'tempo', acodec_atempo.get())
+            config_profile.set('FFMPEG FLAC - SETTINGS', 'flac_lpc_type', acodec_flac_lpc_type.get())
+            config_profile.set('FFMPEG FLAC - SETTINGS', 'flac_coefficient', flac_acodec_coefficient.get())
+            config_profile.set('FFMPEG FLAC - SETTINGS', 'flac_lpc_passes', acodec_flac_lpc_passes.get())
 
         with open(config_profile_ini, 'w') as configfile_two:
             config_profile.write(configfile_two)
@@ -1070,6 +1102,16 @@ def openaudiowindow():
                 config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_threading', '')
                 config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_limiter', '')
                 config_profile.set('FFMPEG QAAC - SETTINGS', 'tempo', 'Original')
+            if encoder.get() == 'FLAC':
+                config_profile.set('FFMPEG FLAC - SETTINGS', 'acodec_bitrate', 'Level 5 - Default Quality')
+                config_profile.set('FFMPEG FLAC - SETTINGS', 'acodec_channel', 'Original')
+                config_profile.set('FFMPEG FLAC - SETTINGS', 'dolbyprologicii', '')
+                config_profile.set('FFMPEG FLAC - SETTINGS', 'gain', '0')
+                config_profile.set('FFMPEG FLAC - SETTINGS', 'samplerate', 'Original')
+                config_profile.set('FFMPEG FLAC - SETTINGS', 'tempo', 'Original')
+                config_profile.set('FFMPEG FLAC - SETTINGS', 'flac_lpc_type', 'Default')
+                config_profile.set('FFMPEG FLAC - SETTINGS', 'flac_coefficient', '15')
+                config_profile.set('FFMPEG FLAC - SETTINGS', 'flac_lpc_passes', 'Default')
 
             with open(config_profile_ini, 'w') as configfile_two:
                 config_profile.write(configfile_two)
@@ -4090,12 +4132,15 @@ def openaudiowindow():
 
             my_menu_bar = Menu(audio_window, tearoff=0)
             audio_window.config(menu=my_menu_bar)
-
             file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
             my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
             file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
             file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
                                   command=mpv_gui_audio_window)
+            options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+            my_menu_bar.add_cascade(label='Options', menu=options_menu)
+            options_menu.add_command(label='Save Current Settings', command=save_profile)
+            options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
 
             for n in range(3):
                 audio_window.grid_columnconfigure(n, weight=1)
@@ -4170,7 +4215,7 @@ def openaudiowindow():
                                       'Level 10 ......': "-compression_level 10 ",
                                       'Level 11 ......': "-compression_level 11 ",
                                       'Level 12 - Lowest Quality': "-compression_level 12 "}
-            acodec_bitrate.set('Level 5 - Default Quality')  # set the default option
+            acodec_bitrate.set(config_profile['FFMPEG FLAC - SETTINGS']['acodec_bitrate'])  # set the default option
             acodec_bitrate_menu_label = Label(audio_window, text="Compression Level :", background="#434547",
                                               foreground="white")
             acodec_bitrate_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
@@ -4208,7 +4253,7 @@ def openaudiowindow():
                                       '5.1 (Surround)': "-ac 6 ",
                                       '6.1 (Surround)': "-ac 7 ",
                                       '7.1 (Surround)': "-ac 8 "}
-            acodec_channel.set('Original')  # set the default option
+            acodec_channel.set(config_profile['FFMPEG FLAC - SETTINGS']['acodec_channel'])  # set the default option
             achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
             achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
             achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
@@ -4233,21 +4278,19 @@ def openaudiowindow():
                                                   activebackground="#434547",
                                                   activeforeground="white", selectcolor="#434547",
                                                   font=("Helvetica", 11))
-            dolby_pro_logic_ii.set("")
+            dolby_pro_logic_ii.set(config_profile['FFMPEG FLAC - SETTINGS']['dolbyprologicii'])
             # -------------------------------------------------------------------------------------------------- DPL II
 
             # Audio Gain Selection ------------------------------------------------------------------------------------
             ffmpeg_gain = StringVar()
-            ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
-                                      foreground="white")
-            ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
-                                   sticky=N + S + E + W)
+            ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547", foreground="white")
+            ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
                                           wrap=True, textvariable=ffmpeg_gain)
             ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                           buttonbackground="black", width=15, readonlybackground="#23272A")
             ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            ffmpeg_gain.set(0)
+            ffmpeg_gain.set(int(config_profile['FFMPEG FLAC - SETTINGS']['gain']))
             # ---------------------------------------------------------------------------------------------------- Gain
 
             # Audio Sample Rate Selection -----------------------------------------------------------------------------
@@ -4260,7 +4303,7 @@ def openaudiowindow():
                                          '44100 Hz': "-ar 44100 ",
                                          '48000 Hz': "-ar 48000 ",
                                          '96000 Hz': "-ar 96000 "}
-            acodec_samplerate.set('Original')  # set the default option
+            acodec_samplerate.set(config_profile['FFMPEG FLAC - SETTINGS']['samplerate'])  # set the default option
             acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547",
                                             foreground="white")
             acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -4270,7 +4313,6 @@ def openaudiowindow():
             acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
             acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
             acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
-
             # --------------------------------------------------------------------------------------------- Sample Rate
 
             # Entry Box for Custom Command Line -----------------------------------------------------------------------
@@ -4319,7 +4361,7 @@ def openaudiowindow():
             acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
             acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15)
             acodec_atempo_menu.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-            acodec_atempo.set('Original')
+            acodec_atempo.set(config_profile['FFMPEG FLAC - SETTINGS']['tempo'])
             acodec_atempo_menu["menu"].configure(activebackground="dim grey")
             acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
             acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
@@ -4333,7 +4375,7 @@ def openaudiowindow():
                                          'Fixed': "-lpc_type 1 ",
                                          'Levinson': "-lpc_type 2 ",
                                          'Cholesky': "-lpc_type 3 "}
-            acodec_flac_lpc_type.set('Default')  # set the default option
+            acodec_flac_lpc_type.set(config_profile['FFMPEG FLAC - SETTINGS']['flac_lpc_type'])  # set the default
             acodec_flac_lpc_type_label = Label(audio_window, text="LPC Algorithm :", background="#434547",
                                             foreground="white")
             acodec_flac_lpc_type_label.grid(row=6, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -4366,7 +4408,7 @@ def openaudiowindow():
                                          buttonbackground="black", disabledbackground='grey')
             flac_acodec_coefficient_spinbox.grid(row=7, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             flac_acodec_coefficient.trace('w', flac_acodec_coefficient_trace)
-            flac_acodec_coefficient.set(15)
+            flac_acodec_coefficient.set(int(config_profile['FFMPEG FLAC - SETTINGS']['flac_coefficient']))
             # -------------------------------------------------------------------------- FLAC LPC Coefficient Precision
 
             # LPC Passes ----------------------------------------------------------------------------------------------
@@ -4382,7 +4424,7 @@ def openaudiowindow():
                                               '8 Passes': "-lpc_passes 8 ",
                                               '9 Passes': "-lpc_passes 9 ",
                                               '10 Passes': "-lpc_passes 10 "}
-            acodec_flac_lpc_passes.set('Default')
+            acodec_flac_lpc_passes.set(config_profile['FFMPEG FLAC - SETTINGS']['flac_lpc_passes'])
             acodec_flac_lpc_passes_label = Label(audio_window, text="LPC Passes :", background="#434547",
                                             foreground="white")
             acodec_flac_lpc_passes_label.grid(row=6, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -5367,6 +5409,8 @@ def startaudiojob():
             job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
+            if auto_or_manual == 'manual':
+                reset_main_gui()
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
@@ -5422,6 +5466,8 @@ def startaudiojob():
             job = subprocess.Popen('cmd /c ' + command, universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
+            if auto_or_manual == 'manual':
+                reset_main_gui()
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
@@ -5503,6 +5549,8 @@ def startaudiojob():
             job = subprocess.Popen('cmd /c ' + command, universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
+            if auto_or_manual == 'manual':
+                reset_main_gui()
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
@@ -5528,11 +5576,27 @@ def startaudiojob():
                        + set_flac_acodec_coefficient \
                        + acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] \
                        + acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] \
-                       + flac_custom_cmd_input + " " + VideoOutputQuoted + " -hide_banner"
+                       + flac_custom_cmd_input + VideoOutputQuoted + " -hide_banner" + '"'
+        last_used_command =  acodec_stream_choices[acodec_stream.get()] \
+                            + encoder_dropdownmenu_choices[encoder.get()] + \
+                            acodec_bitrate_choices[acodec_bitrate.get()] + \
+                            acodec_channel_choices[acodec_channel.get()] + \
+                            acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
+                            + set_flac_acodec_coefficient + acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] \
+                            + acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] + flac_custom_cmd_input
         if shell_options.get() == "Default":
-            job = subprocess.Popen('cmd /c ' + finalcommand + " " + '-v error -stats"', stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, universal_newlines=True,
+            if auto_or_manual == 'auto':
+                command = finalcommand
+                update_last_codec_command()
+            elif auto_or_manual == 'manual':
+                command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
+                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
+                          + ' ' + VideoOutputQuoted
+            job = subprocess.Popen('cmd /c ' + command, universal_newlines=True,
+                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW)
+            if auto_or_manual == 'manual':
+                reset_main_gui()
             for line in job.stdout:
                 encode_window_progress.delete('1.0', END)
                 encode_window_progress.insert(END, line)
