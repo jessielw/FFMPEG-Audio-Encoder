@@ -3737,33 +3737,13 @@ def openaudiowindow():
                 q_acodec_bitrate_spinbox.configure(state=DISABLED)
                 qaac_high_efficiency.set("")
                 qaac_high_efficiency_checkbox.configure(state=DISABLED)
-            elif q_acodec_profile.get() == 'Constrained VBR' or q_acodec_profile.get() == 'ABR' or \
-                    q_acodec_profile.get() == 'CBR':
+            elif q_acodec_profile.get() != 'True VBR':
+                qaac_high_efficiency.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_high_efficiency'] + ' ')
                 q_acodec_quality_spinbox.configure(state=DISABLED)
                 q_acodec_bitrate_spinbox.configure(state=NORMAL)
                 qaac_high_efficiency_checkbox.configure(state=NORMAL)
 
         # ------------------------------------------------------------------------------------------ Quality or Bitrate
-
-        # Audio Profile Menu ------------------------------------------------------------------------------------------
-        global q_acodec_profile
-        global q_acodec_profile_choices
-        q_acodec_profile = StringVar(audio_window)
-        q_acodec_profile_choices = {'True VBR': "--tvbr ",
-                                    'Constrained VBR': "--cvbr ",
-                                    'ABR': "--abr ",
-                                    'CBR': "--cbr "}
-        q_acodec_profile.set(config_profile['FFMPEG QAAC - SETTINGS']['q_acodec_profile'])  # set the default option
-        q_acodec_profile.trace('w', quality_or_bitrate)
-        q_acodec_profile_menu_label = Label(audio_window, text="Mode :", background="#434547", foreground="white")
-        q_acodec_profile_menu_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
-        q_acodec_profile_menu = OptionMenu(audio_window, q_acodec_profile, *q_acodec_profile_choices.keys())
-        q_acodec_profile_menu.config(background="#23272A", foreground="white", highlightthickness=1)
-        q_acodec_profile_menu.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-        q_acodec_profile_menu["menu"].configure(activebackground="dim grey")
-        q_acodec_profile_menu.bind("<Enter>", q_acodec_profile_hover)
-        q_acodec_profile_menu.bind("<Leave>", q_acodec_profile_hover_leave)
-        # ------------------------------------------------------------------------------------------ Audio Profile Menu
 
         # Audio Channel Selection -------------------------------------------------------------------------------------
         acodec_channel = StringVar(audio_window)
@@ -3916,10 +3896,13 @@ def openaudiowindow():
         q_acodec_bitrate_label = Label(audio_window, text="Bitrate :", background="#434547", foreground="white")
         q_acodec_bitrate_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         q_acodec_bitrate_spinbox = Spinbox(audio_window, from_=0, to=1280, justify=CENTER, wrap=True,
-                                           textvariable=q_acodec_bitrate, width=13, state=DISABLED)
+                                           textvariable=q_acodec_bitrate, width=13)
         q_acodec_bitrate_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", disabledbackground='grey')
         q_acodec_bitrate_spinbox.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        def disable_enable_bitrate():
+            if q_acodec_profile.get() == 'True VBR':
+                q_acodec_bitrate_spinbox.configure(state=DISABLED)
         # ----------------------------------------------------------------------------------------------------- Bitrate
 
         # QAAC Gain ---------------------------------------------------------------------------------------------------
@@ -3939,10 +3922,9 @@ def openaudiowindow():
         # Misc Checkboxes - Normalize ---------------------------------------------------------------------------------
         global qaac_normalize
         qaac_normalize = StringVar()
-        qaac_normalize.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_normalize'])
+        qaac_normalize.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_normalize'] + ' ')
         qaac_normalize_checkbox = Checkbutton(audio_window, text='Normalize', variable=qaac_normalize,
-                                              onvalue="--normalize ",
-                                              offvalue="")
+                                              onvalue="--normalize ", offvalue="")
         qaac_normalize_checkbox.grid(row=10, column=1, columnspan=1, padx=10, pady=(10,3), sticky=N + S + E + W)
         qaac_normalize_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                           activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
@@ -3951,22 +3933,45 @@ def openaudiowindow():
         # Misc Checkboxes - High Efficiency ---------------------------------------------------------------------------
         global qaac_high_efficiency
         qaac_high_efficiency = StringVar()
-        qaac_high_efficiency.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_high_efficiency'])
         qaac_high_efficiency_checkbox = Checkbutton(audio_window, text='High Efficiency', variable=qaac_high_efficiency,
-                                                    onvalue="--he ",
-                                                    offvalue="", state=DISABLED)
+                                                    onvalue="--he ", offvalue="", state=DISABLED)
         qaac_high_efficiency_checkbox.grid(row=8, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         qaac_high_efficiency_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                                 activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+        qaac_high_efficiency.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_high_efficiency'] + ' ')
+        def enable_disable_he():
+            if q_acodec_profile.get() != 'True VBR':
+                qaac_high_efficiency_checkbox.configure(state=NORMAL)
         # --------------------------------------------------------------------------------------------- High Effeciency
+
+        # Audio Profile Menu ------------------------------------------------------------------------------------------
+        global q_acodec_profile
+        global q_acodec_profile_choices
+        q_acodec_profile = StringVar(audio_window)
+        q_acodec_profile_choices = {'True VBR': "--tvbr ",
+                                    'Constrained VBR': "--cvbr ",
+                                    'ABR': "--abr ",
+                                    'CBR': "--cbr "}
+        q_acodec_profile.trace('w', quality_or_bitrate)
+        q_acodec_profile.set(config_profile['FFMPEG QAAC - SETTINGS']['q_acodec_profile'])  # set the default option
+        q_acodec_profile_menu_label = Label(audio_window, text="Mode :", background="#434547", foreground="white")
+        q_acodec_profile_menu_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
+        q_acodec_profile_menu = OptionMenu(audio_window, q_acodec_profile, *q_acodec_profile_choices.keys())
+        q_acodec_profile_menu.config(background="#23272A", foreground="white", highlightthickness=1)
+        q_acodec_profile_menu.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        q_acodec_profile_menu["menu"].configure(activebackground="dim grey")
+        q_acodec_profile_menu.bind("<Enter>", q_acodec_profile_hover)
+        q_acodec_profile_menu.bind("<Leave>", q_acodec_profile_hover_leave)
+        enable_disable_he()
+        disable_enable_bitrate()
+        # ------------------------------------------------------------------------------------------ Audio Profile Menu
 
         # Misc Checkboxes - No Dither When Quantizing to Lower Bit Depth ----------------------------------------------
         global qaac_nodither
         qaac_nodither = StringVar()
-        qaac_nodither.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_nodither'])
+        qaac_nodither.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_nodither'] + ' ')
         qaac_nodither_checkbox = Checkbutton(audio_window, text='No Dither',
-                                             variable=qaac_nodither, onvalue="--no-dither ",
-                                             offvalue="")
+                                             variable=qaac_nodither, onvalue="--no-dither ", offvalue="")
         qaac_nodither_checkbox.grid(row=7, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         qaac_nodither_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                          activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
@@ -3975,7 +3980,7 @@ def openaudiowindow():
         # Misc Checkboxes - No Delay ----------------------------------------------------------------------------------
         global qaac_nodelay
         qaac_nodelay = StringVar()
-        qaac_nodelay.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_nodelay'])
+        qaac_nodelay.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_nodelay'] + ' ')
         qaac_nodelay_checkbox = Checkbutton(audio_window, text='No Delay',
                                             variable=qaac_nodelay, onvalue="--no-delay ", offvalue="")
         qaac_nodelay_checkbox.grid(row=7, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -4004,10 +4009,9 @@ def openaudiowindow():
         # Misc Checkboxes - No Optimize -------------------------------------------------------------------------------
         global qaac_nooptimize
         qaac_nooptimize = StringVar()
-        qaac_nooptimize.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_nooptimize'])
+        qaac_nooptimize.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_nooptimize'] + ' ')
         qaac_nooptimize_checkbox = Checkbutton(audio_window, text='No Optimize',
-                                               variable=qaac_nooptimize, onvalue="--no-optimize ",
-                                               offvalue="")
+                                               variable=qaac_nooptimize, onvalue="--no-optimize ", offvalue="")
         qaac_nooptimize_checkbox.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         qaac_nooptimize_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                            activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
@@ -4016,7 +4020,7 @@ def openaudiowindow():
         # Misc Checkboxes - Threading ---------------------------------------------------------------------------------
         global qaac_threading
         qaac_threading = StringVar()
-        qaac_threading.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_threading'])
+        qaac_threading.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_threading'] + ' ')
         qaac_threading_checkbox = Checkbutton(audio_window, text='Threading',
                                               variable=qaac_threading, onvalue="--threading ", offvalue="")
         qaac_threading_checkbox.grid(row=10, column=0, columnspan=1, padx=10, pady=(10,3), sticky=N + S + E + W)
@@ -4027,7 +4031,7 @@ def openaudiowindow():
         # Misc Checkboxes - Limiter -----------------------------------------------------------------------------------
         global qaac_limiter
         qaac_limiter = StringVar()
-        qaac_limiter.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_limiter'])
+        qaac_limiter.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_limiter'] + ' ')
         qaac_limiter_checkbox = Checkbutton(audio_window, text='Limiter',
                                             variable=qaac_limiter, onvalue="--limiter ", offvalue="")
         qaac_limiter_checkbox.grid(row=9, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
