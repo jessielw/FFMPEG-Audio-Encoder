@@ -5142,7 +5142,7 @@ def startaudiojob():
         window.grid_rowconfigure(0, weight=1)
         window.grid_rowconfigure(1, weight=1)
         window.protocol('WM_DELETE_WINDOW', close_window)
-        window.geometry("600x140")
+        window.geometry("640x140")
         encode_window_progress = Text(window, height=2, relief=SUNKEN, bd=3)
         encode_window_progress.grid(row=1, column=0, pady=(10, 6), padx=10, sticky=E + W)
         encode_window_progress.insert(END, '')
