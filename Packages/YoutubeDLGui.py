@@ -63,11 +63,6 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
 
     ffmpeg = config['ffmpeg_path']['path']
     youtube_dl_cli = config['youtubedl_path']['path']
-    # if shutil.which('youtube-dl') != None:  # Checks if youtube-dl is located on windows PATH
-    #     youtube_dl_cli = '"' + str(pathlib.Path(shutil.which('youtube-dl'))) + '"'
-    # elif shutil.which('youtube-dl') == None:
-    #     youtube_dl_cli = '"' + str(pathlib.Path("Apps/youtube-dl/youtube-dl.exe")) + '"'
-
     # --------------------------------------------------------------- Bundled Apps
 
     # Updates youtube-dl.exe -------------------------------------
@@ -229,7 +224,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
         save_entry.config(state=NORMAL)  #
         save_entry.delete(0, END)  # This function clears entry box in order to add new link to entry box
         save_entry.config(state=DISABLED)  #
-        VideoOutput = filedialog.askdirectory()  # Pop up window to choose a save directory location
+        VideoOutput = filedialog.askdirectory(parent=root)  # Pop up window to choose a save directory location
         if VideoOutput:
             save_for_entry = '"' + VideoOutput + '/"'  # Completes save directory and adds quotes
             save_entry.config(state=NORMAL)  #
