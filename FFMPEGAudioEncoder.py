@@ -5847,7 +5847,7 @@ input_entry.drop_target_register(DND_FILES)
 input_entry.dnd_bind('<<Drop>>', drop_input)
 
 def input_button_on_enter(e):
-    status_label.configure(text='Click To Open File...')
+    status_label.configure(text='Click To Open File or Drag and Drop...')
 
 def input_button_on_leave(e):
     status_label.configure(text='')
