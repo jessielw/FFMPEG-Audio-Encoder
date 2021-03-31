@@ -585,7 +585,7 @@ def track_count(*args):  # Thanks for helping me shorten this 'gmes78'
                             + '"' + " " + VideoInputQuoted + '"'
     mediainfo_count = subprocess.Popen('cmd /c ' + mediainfocli_cmd_info, creationflags=subprocess.CREATE_NO_WINDOW,
                                        universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                       stdin=subprocess.PIPE)
+                                       stdin=subprocess.PIPE, encoding="utf-8")
     stdout, stderr = mediainfo_count.communicate()
     t_info = stdout.split(',')[:-1]
     acodec_stream_track_counter = {}
@@ -1175,7 +1175,7 @@ def openaudiowindow():
                    '.........................%Language/String%\\n\\n" ' + VideoInputQuoted + '"'
         run = subprocess.Popen('cmd /c ' + commands, creationflags=subprocess.CREATE_NO_WINDOW, universal_newlines=True,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                               stdin=subprocess.PIPE, shell=True)
+                               stdin=subprocess.PIPE, shell=True, encoding="utf-8")
         try:
             global text_area
             text_area.delete("1.0", END)
@@ -4784,7 +4784,7 @@ def file_input():
                                + " " + VideoInputQuoted + '"'
             mediainfo_count = subprocess.Popen('cmd /c ' + mediainfocli_cmd, creationflags=subprocess.CREATE_NO_WINDOW,
                                                universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                               stdin=subprocess.PIPE)
+                                               stdin=subprocess.PIPE, encoding="utf-8")
             stdout, stderr = mediainfo_count.communicate()
             track_count = stdout
             input_entry.configure(state=NORMAL)
@@ -5111,7 +5111,7 @@ def startaudiojob():
         ffmpeg_cmd = '"' + ffmpeg + " -i " + VideoInputQuoted + ' -hide_banner -stats"'
         ffmpeg_duration = subprocess.Popen('cmd /c ' + ffmpeg_cmd, creationflags=subprocess.CREATE_NO_WINDOW,
                                            universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                           stdin=subprocess.PIPE)
+                                           stdin=subprocess.PIPE, encoding="utf-8")
         stdout, stderr = ffmpeg_duration.communicate()
         times_index = int(stdout.split().index('Duration:')) + 1  # Finds the string 'Duration' and adds 1 to the index
         ffmpeg_total_time = stdout.split()[times_index].rsplit('.', 1)[0]  # Removes mili-seconds from string
@@ -5183,7 +5183,7 @@ def startaudiojob():
                           + ' ' + VideoOutputQuoted + ' -hide_banner'
             job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                   creationflags=subprocess.CREATE_NO_WINDOW)
+                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
             if auto_or_manual == 'manual':
                 reset_main_gui()
             for line in job.stdout:
@@ -5228,7 +5228,7 @@ def startaudiojob():
                           + ' ' + VideoOutputQuoted + ' -hide_banner'
             job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                   creationflags=subprocess.CREATE_NO_WINDOW)
+                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
             if auto_or_manual == 'manual':
                 reset_main_gui()
             for line in job.stdout:
@@ -5280,7 +5280,7 @@ def startaudiojob():
                           + ' ' + VideoOutputQuoted + ' -hide_banner'
             job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                   creationflags=subprocess.CREATE_NO_WINDOW)
+                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
             if auto_or_manual == 'manual':
                 reset_main_gui()
             for line in job.stdout:
@@ -5325,7 +5325,7 @@ def startaudiojob():
                           + ' ' + VideoOutputQuoted + ' -hide_banner'
             job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                   creationflags=subprocess.CREATE_NO_WINDOW)
+                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
             if auto_or_manual == 'manual':
                 reset_main_gui()
             for line in job.stdout:
@@ -5365,7 +5365,7 @@ def startaudiojob():
                           + ' ' + VideoOutputQuoted + ' -hide_banner'
             job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                   creationflags=subprocess.CREATE_NO_WINDOW)
+                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
             if auto_or_manual == 'manual':
                 reset_main_gui()
             for line in job.stdout:
@@ -5441,7 +5441,7 @@ def startaudiojob():
                           + ' ' + VideoOutputQuoted + ' -hide_banner'
             job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                   creationflags=subprocess.CREATE_NO_WINDOW)
+                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
             if auto_or_manual == 'manual':
                 reset_main_gui()
             for line in job.stdout:
@@ -5498,7 +5498,7 @@ def startaudiojob():
                           + ' ' + VideoOutputQuoted
             job = subprocess.Popen('cmd /c ' + command, universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                   creationflags=subprocess.CREATE_NO_WINDOW)
+                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
             if auto_or_manual == 'manual':
                 reset_main_gui()
             for line in job.stdout:
@@ -5581,7 +5581,7 @@ def startaudiojob():
                           + ' ' + VideoOutputQuoted
             job = subprocess.Popen('cmd /c ' + command, universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                   creationflags=subprocess.CREATE_NO_WINDOW)
+                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
             if auto_or_manual == 'manual':
                 reset_main_gui()
             for line in job.stdout:
@@ -5627,7 +5627,7 @@ def startaudiojob():
                           + ' ' + VideoOutputQuoted
             job = subprocess.Popen('cmd /c ' + command, universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                   creationflags=subprocess.CREATE_NO_WINDOW)
+                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
             if auto_or_manual == 'manual':
                 reset_main_gui()
             for line in job.stdout:
@@ -5668,7 +5668,7 @@ def startaudiojob():
                           + ' ' + VideoOutputQuoted
             job = subprocess.Popen('cmd /c ' + command, universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                   creationflags=subprocess.CREATE_NO_WINDOW)
+                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
             if auto_or_manual == 'manual':
                 reset_main_gui()
             for line in job.stdout:
@@ -5771,6 +5771,7 @@ def update_file_input(*args):
         VideoInput = str(input_dnd.get())[1:-1]
     else:
         VideoInput = str(input_dnd.get())
+
     file_extension = pathlib.Path(VideoInput).suffix
     if file_extension == '.wav' or file_extension == '.mt2s' or file_extension == '.ac3' or \
             file_extension == '.mka' or \
@@ -5788,7 +5789,7 @@ def update_file_input(*args):
         mediainfocli_cmd = '"' + mediainfocli + " " + '--Output="General;%AudioCount%"' + " " + VideoInputQuoted + '"'
         mediainfo_count = subprocess.Popen('cmd /c ' + mediainfocli_cmd, creationflags=subprocess.CREATE_NO_WINDOW,
                                            universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                           stdin=subprocess.PIPE)
+                                           stdin=subprocess.PIPE, encoding="utf-8")
         stdout, stderr = mediainfo_count.communicate()
         track_count = stdout
         input_entry.insert(0, str(input_dnd.get()).replace("{", "").replace("}", ""))
