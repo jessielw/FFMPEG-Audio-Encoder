@@ -1,121 +1,139 @@
-from tkinter import *
-from tkinter import filedialog, StringVar
-from tkinter import ttk
-import subprocess
-from tkinter import scrolledtext
-import pyperclip
-import shutil
-import pathlib
-import threading
-from tkinter import messagebox
-from Packages.youtube_dl_about import openaboutwindow
-from tkinter import scrolledtext as scrolledtextwidget
-from configparser import ConfigParser
-
 def youtube_dl_launcher_for_ffmpegaudioencoder():
     global youtube_dl_cli, ffmpeg
-    # Main Gui & Windows --------------------------------------------------------
+    # Imports--------------------------------------------------------------------
 
-    def root_exit_function():  # Asks if the user is ready to exit
+    from tkinter import (filedialog, StringVar, Tk, Menu, E, W, N, S, LabelFrame, PhotoImage, NORMAL, END,
+                         DISABLED,
+                         Checkbutton, Label, ttk, scrolledtext, messagebox, OptionMenu, Toplevel, Text, SUNKEN,
+                         HORIZONTAL,
+                         WORD, Entry, Button, Frame, Spinbox, CENTER)
+    import subprocess, pyperclip, shutil, pathlib, threading, urllib.request
+    from Packages.youtube_dl_about import openaboutwindow
+    from configparser import ConfigParser
+    from time import sleep
+    # -------------------------------------------------------------------- Imports
+
+    # Main Gui & Windows ---------------------------------------------------------------------------------------
+    def main_exit_function():  # Asks if the user is ready to exit
         confirm_exit = messagebox.askyesno(title='Prompt', message="Are you sure you want to exit the program?\n\n"
                                                                    "     Note: This will end all current tasks!",
-                                           parent=root)
+                                           parent=main)
         if confirm_exit == False:
             pass
         elif confirm_exit == True:
             try:
                 subprocess.Popen(f"TASKKILL /F /im Youtube-DL-GUi.exe /T", creationflags=subprocess.CREATE_NO_WINDOW)
-                root.destroy()
+                main.destroy()
             except:
-                root.destroy()
+                main.destroy()
 
-    root = Toplevel()  # Main UI window
-    root.title("Youtube-DL-Gui v1.4")
-    root.configure(background="#434547")
-    window_height = 680
+    # Main UI window ---------------------------------------------------------------------------------------------
+    main = Toplevel()
+    main.title("Youtube-DL-Gui v1.35.3")
+    main.configure(background="#434547")
+    window_height = 500
     window_width = 720
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
+    screen_width = main.winfo_screenwidth()
+    screen_height = main.winfo_screenheight()
     x_coordinate = int((screen_width / 2) - (window_width / 2))
     y_coordinate = int((screen_height / 2) - (window_height / 2))
-    root.geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
-    root.protocol('WM_DELETE_WINDOW', root_exit_function)
+    main.geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
+    main.protocol('WM_DELETE_WINDOW', main_exit_function)
 
     for n in range(4):  # Loop to specify the needed column/row configures
-        root.grid_columnconfigure(n, weight=1)
+        main.grid_columnconfigure(n, weight=1)
     for n in range(5):
-        root.grid_rowconfigure(n, weight=1)
+        main.grid_rowconfigure(n, weight=1)
 
     # Bundled Apps ---------------------------------------------------------------
     config_file = 'Runtime/ytconfig.ini'  # Creates (if doesn't exist) and defines location of config.ini
     config = ConfigParser()
     config.read(config_file)
 
-    try:  # Create config parameters
+    if not config.has_section('ffmpeg_path'):
         config.add_section('ffmpeg_path')
+    if not config.has_option('ffmpeg_path', 'path'):
         config.set('ffmpeg_path', 'path', '')
+    if not config.has_section('youtubedl_path'):
         config.add_section('youtubedl_path')
+    if not config.has_option('youtubedl_path', 'path'):
         config.set('youtubedl_path', 'path', '')
+    try:
         with open(config_file, 'w') as configfile:
             config.write(configfile)
     except:
-        pass
+        messagebox.showinfo(parent=main, title='Error',
+                            message='Could Not Write to config.ini file\nDelete and Try Again')
+
+    pathlib.Path('Apps/youtube-dl').mkdir(parents=True, exist_ok=True)  # Make directory if needed
+    pathlib.Path('Apps/ffmpeg').mkdir(parents=True, exist_ok=True)  # Make directory if needed
 
     ffmpeg = config['ffmpeg_path']['path']
     youtube_dl_cli = config['youtubedl_path']['path']
+
     # --------------------------------------------------------------- Bundled Apps
 
     # Updates youtube-dl.exe -------------------------------------
     def check_for_update():
         command = '"' + youtube_dl_cli + '" --update'
         if shell_options.get() == 'Default':
-            subprocess.Popen('cmd /c' + command)
+            main.wm_attributes('-alpha', 0.7)
+            yt_update = subprocess.check_output('cmd /c' + command, creationflags=subprocess.CREATE_NO_WINDOW)
+            messagebox.showinfo(parent=main, title='Info', message=yt_update)
+            main.wm_attributes('-alpha', 1.0)
         elif shell_options.get() == 'Debug':
             subprocess.Popen('cmd /k' + command)
 
     #  ------------------------------------- Updates youtube-dl.exe
 
     # Menu Items and Sub-Bars ---------------------------------------------------------------------------------------------
-    my_menu_bar = Menu(root, tearoff=0)
-    root.config(menu=my_menu_bar)
+    my_menu_bar = Menu(main, tearoff=0)
+    main.config(menu=my_menu_bar)
 
     file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
     my_menu_bar.add_cascade(label='File', menu=file_menu)
-    file_menu.add_command(label='Exit', command=root_exit_function)
+    file_menu.add_command(label='Exit', command=main_exit_function)
 
     options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
     my_menu_bar.add_cascade(label='Options', menu=options_menu)
 
-    options_submenu = Menu(root, tearoff=0, activebackground='dim grey')
+    options_submenu = Menu(main, tearoff=0, activebackground='dim grey')
     options_menu.add_cascade(label='Shell Options', menu=options_submenu)
     shell_options = StringVar()
     shell_options.set('Default')
-    options_submenu.add_radiobutton(label='Shell Closes Automatically', variable=shell_options, value="Default")
-    options_submenu.add_radiobutton(label='Shell Stays Open (Debug)', variable=shell_options, value="Debug")
+    options_submenu.add_radiobutton(label='Progress Bars', variable=shell_options, value="Default")
+    options_submenu.add_radiobutton(label='CMD Shell (Debug)', variable=shell_options, value="Debug")
     options_menu.add_separator()
 
     def set_ffmpeg_path():
         global ffmpeg
         path = filedialog.askopenfilename(title='Select Location to "ffmpeg.exe"', initialdir='/',
-                                          filetypes=[('ffmpeg', 'ffmpeg.exe')])
-        if path == '':
-            pass
-        elif path != '':
+                                          filetypes=[('ffmpeg', 'ffmpeg.exe')], parent=main)
+        if not path:  # Closes program if 'Cancel' is selected when defining the path with message
+            if pathlib.Path(ffmpeg.replace('"', '')).exists():
+                pass
+            else:
+                messagebox.showerror(parent=main, title='Error', message='Program cannot function without ffmpeg!')
+                main.destroy()
+        if path:  # If 'Okay' is selected program will write path to ffmpeg to config.ini
             ffmpeg = '"' + str(pathlib.Path(path)) + '"'
             config.set('ffmpeg_path', 'path', ffmpeg)
             with open(config_file, 'w') as configfile:
                 config.write(configfile)
-        print(path)
 
     options_menu.add_command(label='Set path to FFMPEG', command=set_ffmpeg_path)
 
     def set_youtubedl_path():
         global youtube_dl_cli
-        path = filedialog.askopenfilename(title='Select Location to "youtube-dl.exe"', initialdir='/',
+        path = filedialog.askopenfilename(parent=main, title='Select Location to "youtube-dl.exe"', initialdir='/',
                                           filetypes=[('youtube-dl', 'youtube-dl.exe')])
-        if path == '':
-            pass
-        elif path != '':
+        if not path:  # Closes program if 'Cancel' is selected when defining the path with message
+            if pathlib.Path(youtube_dl_cli.replace('"', '')).exists():
+                pass
+            else:
+                messagebox.showerror(parent=main, title='Error', message='Program cannot function without youtube-dl!')
+                main.destroy()
+        if path:  # If 'Okay' is selected program will write path to youtube-dl to config.ini
             youtube_dl_cli = '"' + str(pathlib.Path(path)) + '"'
             config.set('youtubedl_path', 'path', youtube_dl_cli)
             with open(config_file, 'w') as configfile:
@@ -138,13 +156,44 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
                 messagebox.showinfo(title='Prompt', message='Please restart the program')
             except:
                 pass
-            root.destroy()
+            main.destroy()
 
     options_menu.add_command(label='Reset Configuration File', command=reset_config)
 
     tools_submenu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
     my_menu_bar.add_cascade(label='Tools', menu=tools_submenu)
     tools_submenu.add_command(label="Check for Youtube-DL CLI updates", command=check_for_update)
+    tools_submenu.add_separator()
+
+    # Function and GUI button to 'Show All Formats' -----------------------------------------------------------------------
+    def show_formats():
+        global download_link, stream_window
+        try:
+            command = '"' + youtube_dl_cli + ' -F ' + download_link + '"'
+            run = subprocess.Popen('cmd /c ' + command, creationflags=subprocess.CREATE_NO_WINDOW,
+                                   universal_newlines=True,
+                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
+            try:
+                stream_window.destroy()
+            except:
+                pass
+            stream_window = Toplevel()
+            stream_window.title("All Formats")
+            stream_window.configure(background="#434547")
+            Label(stream_window, text='- ' * 30 + 'Formats ' + '- ' * 30, font=("Times New Roman", 16),
+                  background='#434547', foreground="white").grid(column=0, row=0)
+            show_format_text = scrolledtext.ScrolledText(stream_window, width=120, height=35, tabs=10)
+            show_format_text.grid(column=0, pady=10, padx=10)
+            show_format_text.configure(state=NORMAL)
+            for line in run.stdout:
+                show_format_text.insert(END, line)
+            show_format_text.configure(state=DISABLED)
+        except NameError:
+            messagebox.showerror(title='Error', message='Please Paste a Video Link First')
+
+    # -------------------------------------------------------------------------------------------------------- Show Formats
+
+    tools_submenu.add_command(label="List Avaliable Formats", command=show_formats)
 
     help_menu = Menu(my_menu_bar, tearoff=0, activebackground="dim grey")
     my_menu_bar.add_cascade(label="Help", menu=help_menu)
@@ -153,8 +202,8 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
     # --------------------------------------------------------------------------------------------- Menu Items and Sub-Bars
 
     # Link Frame ----------------------------------------------------------------------------------------------------------
-    link_frame = LabelFrame(root, text=' Paste Link ')
-    link_frame.grid(row=0, columnspan=4, sticky=E + W + N + S, padx=20, pady=(10, 10))
+    link_frame = LabelFrame(main, text=' Paste Link ')
+    link_frame.grid(row=0, columnspan=4, sticky=E + W, padx=20, pady=(10, 10))
     link_frame.configure(fg="white", bg="#434547", bd=3)
 
     link_frame.rowconfigure(1, weight=1)
@@ -163,44 +212,17 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
 
     # ---------------------------------------------------------------------------------------------------------- Link Frame
 
-    # General Frame ------------------------------------------------------------------------------------------------------
-    general_frame = LabelFrame(root, text=' General Settings ')
-    general_frame.grid(row=1, columnspan=4, sticky=E + W + N + S, padx=20, pady=(10, 10))
-    general_frame.configure(fg="white", bg="#434547", bd=3)
+    # Notebook Frame ------------------------------------------------------------------------------------------------------
+    tabs = ttk.Notebook(main, height=200)
+    tabs.grid(row=1, column=0, columnspan=4, sticky=E + W + N + S, padx=20, pady=(10, 0))
+    general_frame = Frame(tabs, background="#434547")
+    video_frame = Frame(tabs, background="#434547")
+    audio_frame = Frame(tabs, background="#434547")
+    tabs.add(general_frame, text='  General Settings  ')
+    tabs.add(video_frame, text='  Video Settings  ')
+    tabs.add(audio_frame, text='  Audio Settings  ')
 
-    general_frame.rowconfigure(0, weight=1)
-    general_frame.rowconfigure(1, weight=1)
-    general_frame.columnconfigure(0, weight=1)
-    general_frame.columnconfigure(1, weight=1)
-    general_frame.columnconfigure(2, weight=1)
-
-    # ------------------------------------------------------------------------------------------------------- General Frame
-
-    # Audio Frame ---------------------------------------------------------------------------------------------------------
-    audio_frame = LabelFrame(root, text=' Audio Settings ')
-    audio_frame.grid(row=3, columnspan=4, sticky=E + W + N + S, padx=20, pady=(10, 10))
-    audio_frame.configure(fg="white", bg="#434547", bd=3)
-
-    audio_frame.rowconfigure(0, weight=1)
-    audio_frame.columnconfigure(0, weight=1)
-    audio_frame.columnconfigure(1, weight=1)
-    audio_frame.columnconfigure(2, weight=1)
-    audio_frame.columnconfigure(3, weight=1)
-
-    # --------------------------------------------------------------------------------------------------------- Audio Frame
-
-    # Video Frame ---------------------------------------------------------------------------------------------------------
-    video_frame = LabelFrame(root, text=' Video Settings ')
-    video_frame.grid(row=2, columnspan=4, sticky=E + W + N + S, padx=20, pady=(10, 10))
-    video_frame.configure(fg="white", bg="#434547", bd=3)
-
-    # audio_frame.rowconfigure(0, weight=1)
-    # audio_frame.columnconfigure(0, weight=1)
-    # audio_frame.columnconfigure(1, weight=1)
-    # audio_frame.columnconfigure(2, weight=1)
-    # audio_frame.columnconfigure(3, weight=1)
-
-    # --------------------------------------------------------------------------------------------------------- Video Frame
+    # ------------------------------------------------------------------------------------------------------ Notebook Frame
 
     # Add Link to variable ------------------------------------------------------------------------------------------------
     def apply_link():
@@ -224,7 +246,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
         save_entry.config(state=NORMAL)  #
         save_entry.delete(0, END)  # This function clears entry box in order to add new link to entry box
         save_entry.config(state=DISABLED)  #
-        VideoOutput = filedialog.askdirectory(parent=root)  # Pop up window to choose a save directory location
+        VideoOutput = filedialog.askdirectory(parent=main)  # Pop up window to choose a save directory location
         if VideoOutput:
             save_for_entry = '"' + VideoOutput + '/"'  # Completes save directory and adds quotes
             save_entry.config(state=NORMAL)  #
@@ -251,6 +273,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
             audio_quality_menu.config(state=NORMAL)
             audio_quality.set('5 - Default')
             audio_quality_menu.config(state=DISABLED)
+            tabs.tab(2, state=DISABLED)
         elif video_only.get() != 'on':
             metadata_from_title_checkbox.config(state=NORMAL)
             metadata_from_title.set('')
@@ -260,6 +283,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
             highest_quality_audio_only.set('')
             audio_quality_menu.config(state=NORMAL)
             audio_quality.set('5 - Default')
+            tabs.tab(2, state=NORMAL)
 
     # ------------------------------------------------------------------------------------------------- Audio Only Function
     def highest_quality_audio_only_toggle():
@@ -277,8 +301,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
     # Video Only Checkbutton ----------------------------------------------------------------------------------------------
     video_only = StringVar()
     video_only_checkbox = Checkbutton(video_frame, text='Best Video + Audio\nSingle File', variable=video_only,
-                                      onvalue='on',
-                                      offvalue='', command=set_video_only)
+                                      onvalue='on', offvalue='', command=set_video_only, takefocus=False)
     video_only_checkbox.grid(row=0, column=0, columnspan=1, rowspan=1, padx=10, pady=6, sticky=N + S + E + W)
     video_only_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                   activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
@@ -290,7 +313,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
     highest_quality_audio_only = StringVar()
     highest_quality_audio_only_checkbox = Checkbutton(audio_frame, text='Extract Audio Only\nNo Encode',
                                                       variable=highest_quality_audio_only, onvalue='on', offvalue='',
-                                                      command=highest_quality_audio_only_toggle)
+                                                      command=highest_quality_audio_only_toggle, takefocus=False)
     highest_quality_audio_only_checkbox.grid(row=0, column=0, columnspan=1, rowspan=1, padx=10, pady=3,
                                              sticky=N + S + E + W)
     highest_quality_audio_only_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
@@ -305,7 +328,8 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
     metadata_from_title_checkbox = Checkbutton(audio_frame, text='Add Meta-Data\nFrom Title',
                                                variable=metadata_from_title,
                                                onvalue='--add-metadata --metadata-from-title "%(artist)s" ',
-                                               offvalue='')
+                                               offvalue='',
+                                               takefocus=False)
     metadata_from_title_checkbox.grid(row=1, column=0, columnspan=1, rowspan=1, padx=10, pady=3, sticky=N + S + E + W)
     metadata_from_title_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                            activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
@@ -321,7 +345,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
     def audio_format_menu_hover_leave(e):
         audio_format_menu["bg"] = "#23272A"
 
-    audio_format = StringVar(root)
+    audio_format = StringVar(main)
     audio_format_choices = {'WAV': '--audio-format wav ',
                             'AAC': '--audio-format aac ',
                             'FLAC': '--audio-format flac ',
@@ -350,7 +374,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
     def download_rate_menu_hover_leave(e):
         download_rate_menu["bg"] = "#23272A"
 
-    download_rate = StringVar(root)
+    download_rate = StringVar(main)
     download_rate_choices = {'Unlimited': '',
                              '10 - KiB      (Slowest)': '-r 10K ',
                              '50 - KiB': '-r 50K ',
@@ -381,7 +405,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
     # No Continue Checkbutton ---------------------------------------------------------------------------------------------
     no_continue = StringVar()
     no_continue_checkbox = Checkbutton(general_frame, text='Resume\nDownload', variable=no_continue,
-                                       onvalue='', offvalue='--no-continue ')
+                                       onvalue='', offvalue='--no-continue ', takefocus=False)
     no_continue_checkbox.grid(row=0, column=1, columnspan=1, rowspan=1, padx=10, pady=3, sticky=N + S + E + W)
     no_continue_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                    activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
@@ -392,7 +416,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
     # No Part Checkbutton -------------------------------------------------------------------------------------------------
     no_part = StringVar()
     no_part_checkbox = Checkbutton(general_frame, text="Don't Use\n.part Files", variable=no_part,
-                                   onvalue='--no-part ', offvalue='')
+                                   onvalue='--no-part ', offvalue='', takefocus=False)
     no_part_checkbox.grid(row=0, column=2, columnspan=1, rowspan=1, padx=10, pady=3, sticky=N + S + E + W)
     no_part_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
@@ -403,13 +427,37 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
     # Youtube-Subtitle Checkbutton ----------------------------------------------------------------------------------------
     yt_subtitle = StringVar()
     yt_subtitle_checkbox = Checkbutton(general_frame, text="Auto Write Subs\n(Youtube Only / If Aval)",
-                                       variable=yt_subtitle, onvalue='--write-auto-sub ', offvalue='')
+                                       variable=yt_subtitle, onvalue='--write-auto-sub ', offvalue='', takefocus=False)
     yt_subtitle_checkbox.grid(row=1, column=1, columnspan=1, rowspan=1, padx=10, pady=3, sticky=N + S + E + W)
     yt_subtitle_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                    activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
     yt_subtitle.set('')
 
     # ---------------------------------------------------------------------------------------------------- Youtube Subtitle
+
+    # dl_playlist Checkbutton ---------------------------------------------------------------------------------------------
+    dl_playlist = StringVar()
+    dl_playlist_checkbox = Checkbutton(general_frame, text="Only Download Single\nFile From Playlist",
+                                       variable=dl_playlist, onvalue='--no-playlist', offvalue='--yes-playlist',
+                                       takefocus=False)
+    dl_playlist_checkbox.grid(row=1, column=2, columnspan=1, rowspan=1, padx=10, pady=3, sticky=N + S + E + W)
+    dl_playlist_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                   activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+    dl_playlist.set('--yes-playlist')
+
+    # --------------------------------------------------------------------------------------------------------- dl_playlist
+
+    # Skip Unavaliable Checkbutton ----------------------------------------------------------------------------------------
+    ignore_errors = StringVar()
+    ignore_errors_checkbox = Checkbutton(general_frame, text="Skip Unavailable\nVideos",
+                                         variable=ignore_errors, onvalue='-i', offvalue='',
+                                         takefocus=False)
+    ignore_errors_checkbox.grid(row=2, column=2, columnspan=1, rowspan=1, padx=10, pady=3, sticky=N + S + E + W)
+    ignore_errors_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                     activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+    ignore_errors.set('-i')
+
+    # ---------------------------------------------------------------------------------------- Skip Unavaliable Checkbutton
 
     # Audio Quality Selection ---------------------------------------------------------------------------------------------
     def audio_quality_menu_hover(e):
@@ -419,7 +467,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
     def audio_quality_menu_hover_leave(e):
         audio_quality_menu["bg"] = "#23272A"
 
-    audio_quality = StringVar(root)
+    audio_quality = StringVar(main)
     audio_quality_choices = {'0 - Best': '--audio-quality 0 -x ',
                              '1': '--audio-quality 1 -x ',
                              '2': '--audio-quality 2 -x ',
@@ -460,8 +508,8 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
         example_cmd_output = '--console-title ' \
                              + audio_format_selection + audio_quality_selection \
                              + download_rate_choices[download_rate.get()] + no_continue.get() + no_part.get() \
-                             + yt_subtitle.get() + metadata_from_title.get() \
-                             + '-o ' + '"' + '\n\n' + VideoOutput + '/%(title)s.%(ext)s' \
+                             + yt_subtitle.get() + metadata_from_title.get() + dl_playlist.get() + ' ' \
+                             + ignore_errors.get() + ' -o ' + '"' + '\n\n' + VideoOutput + '/%(title)s.%(ext)s' \
                              + '" ' + '\n\n' + download_link
 
         try:
@@ -485,6 +533,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
 
     # Start Job -----------------------------------------------------------------------------------------------------------
     def start_job():
+        global custom_job, output_name, audio_spinbox_var, video_spinbox_var
         if shell_options.get() == 'Default':  # This allows the program to spawn new windows and provide real time progress
             def close_encode():
                 confirm_exit = messagebox.askyesno(title='Prompt',
@@ -499,7 +548,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
                 thread = threading.Thread(target=close_encode)
                 thread.start()
 
-            window = Toplevel(root)
+            window = Toplevel(main)
             window.title(download_link)
             window.configure(background="#434547")
             encode_label = Label(window, text='- ' * 22 + 'Progress ' + '- ' * 22,
@@ -516,20 +565,27 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
             app_progress_bar = ttk.Progressbar(window, orient=HORIZONTAL, mode='determinate')
             app_progress_bar.grid(row=2, columnspan=2, pady=(10, 10), padx=15, sticky=E + W)
 
-        if video_only.get() != 'on':
-            if highest_quality_audio_only.get() == 'on':
-                audio_format_selection = '--audio-format best -x '
+        if custom_job == 'On':  # Code required for custom job selection
+            command = '"' + youtube_dl_cli + ' --ffmpeg-location ' + ffmpeg + ' --console-title' \
+                      + ' -o ' + '"' + output_name + '" ' + '-f ' + video_spinbox_var.get() \
+                      + '+' + audio_spinbox_var.get() + ' ' + '--merge-output-format mkv ' + download_link + '"'
+
+        if custom_job == 'Off':  # All jobs that aren't part of the custom job window
+            if video_only.get() != 'on':
+                if highest_quality_audio_only.get() == 'on':
+                    audio_format_selection = '--audio-format best -x '
+                    audio_quality_selection = ''
+                elif highest_quality_audio_only.get() != 'on':
+                    audio_format_selection = audio_format_choices[audio_format.get()]
+                    audio_quality_selection = audio_quality_choices[audio_quality.get()]
+            elif video_only.get() == 'on':
+                audio_format_selection = ''
                 audio_quality_selection = ''
-            elif highest_quality_audio_only.get() != 'on':
-                audio_format_selection = audio_format_choices[audio_format.get()]
-                audio_quality_selection = audio_quality_choices[audio_quality.get()]
-        elif video_only.get() == 'on':
-            audio_format_selection = ''
-            audio_quality_selection = ''
-        command = '"' + youtube_dl_cli + ' --ffmpeg-location ' + ffmpeg + ' --console-title ' + audio_format_selection \
-                  + audio_quality_selection + metadata_from_title.get() + download_rate_choices[download_rate.get()] \
-                  + no_continue.get() + no_part.get() + yt_subtitle.get() \
-                  + '-o ' + '"' + VideoOutput + '/%(title)s.%(ext)s' + '" ' + download_link + '"'
+            command = '"' + youtube_dl_cli + ' --ffmpeg-location ' + ffmpeg + ' --console-title ' \
+                      + audio_format_selection + audio_quality_selection + metadata_from_title.get() \
+                      + download_rate_choices[download_rate.get()] + no_continue.get() + no_part.get() \
+                      + yt_subtitle.get() + dl_playlist.get() + ' ' + ignore_errors.get() \
+                      + ' -o ' + '"' + VideoOutput + '/%(title)s.%(ext)s' + '" ' + download_link + '"'
         if shell_options.get() == "Default":
             job = subprocess.Popen('cmd /c ' + command, universal_newlines=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
@@ -588,12 +644,12 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
         text_area.config(foreground="black")
         text_area.delete(1.0, END)
 
-    m = Menu(root, tearoff=0)  # Pop up menu for 'Paste'
+    m = Menu(main, tearoff=0)  # Pop up menu for 'Paste'
     m.add_command(label="Paste", command=paste_clipboard)
 
     def do_popup(event):
         try:
-            m.tk_popup(event.x_root, event.y_root)
+            m.tk_popup(event.x_main, event.y_main)
         finally:
             m.grab_release()
 
@@ -622,13 +678,13 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
     def save_btn_hover_leave(e):
         save_btn["bg"] = "#8b0000"
 
-    save_btn = Button(root, text="Save Directory", command=file_save, foreground="white", background="#8b0000",
+    save_btn = Button(main, text="Save Directory", command=file_save, foreground="white", background="#8b0000",
                       state=DISABLED)
     save_btn.grid(row=4, column=0, columnspan=1, padx=10, pady=(15, 0), sticky=W + E)
     save_btn.bind("<Enter>", save_btn_hover)
     save_btn.bind("<Leave>", save_btn_hover_leave)
 
-    save_entry = Entry(root, borderwidth=4, background="#CACACA", state=DISABLED)
+    save_entry = Entry(main, borderwidth=4, background="#CACACA", state=DISABLED)
     save_entry.grid(row=4, column=1, columnspan=3, padx=10, pady=(15, 0), sticky=W + E)
 
     def start_job_btn_hover(e):
@@ -637,7 +693,12 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
     def start_job_btn_hover_leave(e):
         start_job_btn["bg"] = "#8b0000"
 
-    start_job_btn = Button(root, text="Start Job", command=lambda: threading.Thread(target=start_job).start(),
+    def normal_job_start():  # Sets the custom_job variable and starts the job process
+        global custom_job
+        custom_job = 'Off'
+        threading.Thread(target=start_job).start()
+
+    start_job_btn = Button(main, text="Start Job", command=normal_job_start,
                            foreground="white", background="#8b0000", state=DISABLED)
     start_job_btn.grid(row=5, column=3, columnspan=1, padx=10, pady=(15, 15), sticky=N + S + W + E)
     start_job_btn.bind("<Enter>", start_job_btn_hover)
@@ -649,37 +710,11 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
     def command_line_btn_hover_leave(e):
         command_line_btn["bg"] = "#8b0000"
 
-    command_line_btn = Button(root, text="View Command", command=view_command, foreground="white", background="#8b0000",
+    command_line_btn = Button(main, text="View Command", command=view_command, foreground="white", background="#8b0000",
                               state=DISABLED)
     command_line_btn.grid(row=5, column=0, columnspan=1, padx=10, pady=(15, 15), sticky=N + S + W + E)
     command_line_btn.bind("<Enter>", command_line_btn_hover)
     command_line_btn.bind("<Leave>", command_line_btn_hover_leave)
-
-    # Function and GUI button to 'Show All Formats' -----------------------------------------------------------------------
-    def show_formats():
-        global download_link
-        command = '"' + youtube_dl_cli + ' -F ' + download_link + '"'
-        run = subprocess.Popen('cmd /c ' + command, creationflags=subprocess.CREATE_NO_WINDOW, universal_newlines=True,
-                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
-        try:
-            global show_format_text
-            show_format_text.configure(state=NORMAL)
-            show_format_text.delete('1.0', END)
-            for line in run.stdout:
-                show_format_text.insert(END, line)
-            show_format_text.configure(state=DISABLED)
-        except:
-            stream_window = Toplevel()
-            stream_window.title("All Formats")
-            stream_window.configure(background="#434547")
-            Label(stream_window, text='- ' * 30 + 'Progress ' + '- ' * 30, font=("Times New Roman", 16),
-                  background='#434547', foreground="white").grid(column=0, row=0)
-            show_format_text = scrolledtextwidget.ScrolledText(stream_window, width=120, height=35, tabs=10)
-            show_format_text.grid(column=0, pady=10, padx=10)
-            show_format_text.configure(state=NORMAL)
-            for line in run.stdout:
-                show_format_text.insert(END, line)
-            show_format_text.configure(state=DISABLED)
 
     def list_all_formats_hover(e):
         list_all_formats["bg"] = "grey"
@@ -687,14 +722,82 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
     def list_all_formats_hover_leave(e):
         list_all_formats["bg"] = "#8b0000"
 
-    list_all_formats = Button(root, text="Show All Formats",
-                              command=lambda: threading.Thread(target=show_formats).start(),
+    # Function and GUI button to 'Show All Formats' -----------------------------------------------------------------------
+    def custom_format():
+        global download_link, stream_window, audio_spinbox_var, video_spinbox_var
+        try:
+            command = '"' + youtube_dl_cli + ' -F ' + download_link + '"'
+            run = subprocess.Popen('cmd /c ' + command, creationflags=subprocess.CREATE_NO_WINDOW,
+                                   universal_newlines=True,
+                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
+            try:
+                stream_window.destroy()
+            except:
+                pass
+            stream_window = Toplevel()
+            stream_window.title('Custom Download Options')
+            stream_window.configure(background="#434547")
+            show_format_text = scrolledtext.ScrolledText(stream_window, width=120, height=25, tabs=10)
+            show_format_text.grid(column=0, pady=10, padx=10, row=1, columnspan=3)
+            show_format_text.configure(state=NORMAL)
+            show_format_text.insert(END, '- - - - - Match the format code on the left '
+                                         'in the video/audio boxes for desired outcome - - - - -\n\n\n', 'centered')
+            show_format_text.tag_configure("centered", justify="center", font=("Times New Roman", 16))
+            v_label = Label(stream_window, text='Video Selction', background='#434547', foreground="white")
+            v_label.grid(column=1, row=2, columnspan=2)
+            a_label = Label(stream_window, text='Audio Selction', background='#434547', foreground="white")
+            a_label.grid(column=2, row=2, columnspan=1)
+            video_spinbox_var = StringVar()
+            video_spinbox = Spinbox(stream_window, from_=0, to=1000, increment=1.0, justify=CENTER,
+                                    wrap=True, textvariable=video_spinbox_var)
+            video_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+                                    buttonbackground="#8b0000", width=15, readonlybackground="#23272A")
+            video_spinbox.grid(row=3, column=1, columnspan=2, padx=10, pady=3)
+            audio_spinbox_var = StringVar()
+            audio_spinbox = Spinbox(stream_window, from_=0, to=1000, increment=1.0, justify=CENTER,
+                                    wrap=True, textvariable=audio_spinbox_var)
+            audio_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+                                    buttonbackground="#8b0000", width=15, readonlybackground="#23272A")
+            audio_spinbox.grid(row=3, column=2, columnspan=1, padx=10, pady=3)
+
+            def start_audio_job_custom():
+                global custom_job, output_name
+                custom_job = 'On'
+                output_name = filedialog.asksaveasfilename(parent=stream_window, title='Save File Name', initialdir='/',
+                                                           initialfile='Custom_Download', defaultextension='')
+                if output_name:
+                    threading.Thread(target=start_job).start()
+
+            start_custom_button = Button(stream_window, text="Start Audio Job",
+                                         command=start_audio_job_custom, foreground="white", background="#8b0000",
+                                         borderwidth="3")
+            start_custom_button.grid(row=3, column=2, columnspan=3, padx=10, pady=5, sticky=E)
+
+            def start_custom_button_hover(e):
+                start_custom_button["bg"] = "grey"
+
+            def start_custom_button_hover_leave(e):
+                start_custom_button["bg"] = "#8b0000"
+
+            start_custom_button.bind("<Enter>", start_custom_button_hover)
+            start_custom_button.bind("<Leave>", start_custom_button_hover_leave)
+            for line in run.stdout:
+                show_format_text.insert(END, line)
+                show_format_text.insert(END, '-------------------------' * 6 + '\n', 'boldfont')
+                show_format_text.tag_configure("boldfont", font=("ArialBlack"))
+            show_format_text.configure(state=DISABLED)
+        except NameError:
+            messagebox.showerror(title='Error', message='Please Paste a Video Link First')
+
+    # -------------------------------------------------------------------------------------------------------- Show Formats
+
+    list_all_formats = Button(main, text="Custom Download",
+                              command=lambda: threading.Thread(target=custom_format).start(),
                               foreground="white", background="#8b0000", state=DISABLED)
     list_all_formats.grid(row=5, column=1, columnspan=2, padx=10, pady=(15, 15), sticky=N + S + W + E)
     list_all_formats.bind("<Enter>", list_all_formats_hover)
     list_all_formats.bind("<Leave>", list_all_formats_hover_leave)
 
-    # -------------------------------------------------------------------------------------------------------- Show Formats
     # --------------------------------------------------------------------------------------------- Buttons and Entry Box's
 
     # Checks config for bundled app paths path ---------------
@@ -718,16 +821,16 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
             config.set('ffmpeg_path', 'path', ffmpeg)
             with open(config_file, 'w') as configfile:
                 config.write(configfile)
-        elif ffmpeg == '' and shutil.which('ffmpeg') == None:
+        elif pathlib.Path("Apps/ffmpeg/ffmpeg.exe").exists():
             messagebox.showinfo(title='Info', message='Program will use the included '
                                                       '"ffmpeg.exe" located in the "Apps" folder')
             ffmpeg = '"' + str(pathlib.Path("Apps/ffmpeg/ffmpeg.exe")) + '"'
-            try:
-                config.set('ffmpeg_path', 'path', ffmpeg)
-                with open(config_file, 'w') as configfile:
-                    config.write(configfile)
-            except:
-                pass
+        try:
+            config.set('ffmpeg_path', 'path', ffmpeg)
+            with open(config_file, 'w') as configfile:
+                config.write(configfile)
+        except:
+            pass
         # FFMPEG ------------------------------------------------------------------
 
     def check_youtubedl():
@@ -748,3 +851,134 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
     if config['youtubedl_path']['path'] == '' or not pathlib.Path(youtube_dl_cli.replace('"', '')).exists():
         check_youtubedl()
 
+    # Checks if needed executables are found by the program -----------------------------------------
+    def downloadfiles():
+        def open_window():
+            global window_message
+
+            def dw_exit_function():
+                confirm_exit = messagebox.askyesno(title='Prompt',
+                                                   message="Are you sure you want to exit the program?\n"
+                                                           "\nYou could potentially corrupt some required"
+                                                           " applications\n\nIf this happens delete the "
+                                                           "'Apps' folder and restart the program",
+                                                   parent=main)
+                if confirm_exit == False:
+                    pass
+                elif confirm_exit == True:
+                    main.destroy()
+
+            window_message = Toplevel(master=main)
+            window_message.title('Download')
+            window_message.configure(background="#434547")
+            window_height = 80
+            window_width = 340
+            screen_width = window_message.winfo_screenwidth()
+            screen_height = window_message.winfo_screenheight()
+            x_coordinate = int((screen_width / 2) - (window_width / 2))
+            y_coordinate = int((screen_height / 2) - (window_height / 2))
+            window_message.geometry(
+                f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")  # Window for download
+            window_message.protocol('WM_DELETE_WINDOW', dw_exit_function)
+            window_message.transient(main)
+            window_message.grab_set()
+
+        # FFMPEG check -------------------------------------------------------------------
+        if not pathlib.Path(config['ffmpeg_path']['path'].replace('"', '')).is_file():
+            ffmpeg_error = messagebox.askyesnocancel(parent=main, title='FFMPEG Not Found',
+                                                     message="            Navigate to 'ffmpeg.exe'\n\n"
+                                                             "If you do not have it select 'No' to download")
+            if ffmpeg_error == False:  # If ffmpeg_error msgbox 'No' is selected
+                open_window()
+                lbl = Label(window_message, text='Downloading ffmpeg.7z', bg='#434547', fg='white', font=(None, 18))
+                lbl.pack(expand=True, fill='x', padx=10)  # Download window label
+                app_progress_bar = ttk.Progressbar(window_message, orient=HORIZONTAL, mode='determinate', )
+                app_progress_bar.pack(fill='x', expand=True, padx=10)  # spawns progress bar
+
+                def Download_Progress(block_num, block_size, total_size):
+                    progress = int((block_num * block_size / total_size) * 100)
+                    app_progress_bar['value'] = int(
+                        progress)  # get download progress and convert it into the visual bar
+
+                pathlib.Path('Apps/temp').mkdir(parents=True, exist_ok=True)  # Makes directory 'temp'
+                urllib.request.urlretrieve('https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z',
+                                           'Apps/temp/ffmpeg-git-full.7z',
+                                           reporthook=Download_Progress)  # Downloads .7z
+                sleep(2)  # Halts the program for 2 seconds
+                lbl.configure(text='Extracting ffmpeg.exe')  # Update label
+                app_progress_bar['value'] = int(0)  # Sets progress bar back to 0%
+                sleep(2)  # Halts the program for 2 seconds
+                command = '"' + '"Apps/7z/7za.exe" e ' \
+                          + '"Apps/temp/ffmpeg-git-full.7z" "-oApps/ffmpeg" ffmpeg.exe -r' + '"'
+                subprocess.Popen('cmd /c' + command,
+                                 creationflags=subprocess.CREATE_NO_WINDOW)  # Command to extract .7z
+                app_progress_bar['value'] = int(50)  # Pushes generic percentage to the progressbar
+                sleep(1)  # Halts the program for 1 second
+                app_progress_bar['value'] = int(100)  # Pushes generic percentage to the progressbar
+                lbl.configure(text='Extraction Complete!')  # Updates label
+                sleep(1)  # Halts the program for 1 second
+                check_ffmpeg()  # Runs the check_ffmpeg to look for ffmpeg/write where it is to the config file
+                if pathlib.Path(config['ffmpeg_path']['path'].replace('"', '')).is_file():
+                    lbl.configure(text=config['ffmpeg_path']['path'])  # Uses the written config 'ffmpeg_path' on label
+                    sleep(2)  # Halts the program for 2 seconds
+                    window_message.destroy()  # Closes the download window
+                if not pathlib.Path(config['ffmpeg_path']['path'].replace('"', '')).is_file():
+                    messagebox.showinfo(parent=main, title='Info', message='Could not download file')  # Error
+                shutil.rmtree('Apps/temp', ignore_errors=True)
+            elif ffmpeg_error == True:  # If user selects 'Yes,' this runs the function to define the path
+                set_ffmpeg_path()
+            elif ffmpeg_error == None:
+                main.destroy()  # If user selects 'Cancel,' the main program closes
+
+        # -------------------------------------------------------------------- FFMPEG check
+
+        # youtube-dl check ---------------------------------------------------------------------
+        if not pathlib.Path(config['youtubedl_path']['path'].replace('"', '')).is_file():
+            youtubedl_error = messagebox.askyesnocancel(parent=main, title='youtube-dl Not Found',
+                                                        message="                   Navigate to 'youtube-dl.exe'\n\n"
+                                                                "If you do not have it select 'No' to download automatically")
+            if youtubedl_error == False:  # If user selects 'No' on messagebox prompt
+                open_window()
+                lbl = Label(window_message, text='Downloading youtube-dl', bg='#434547', fg='white', font=(None, 18))
+                lbl.pack(expand=True, fill='x', padx=10)  # Download window label
+                app_progress_bar = ttk.Progressbar(window_message, orient=HORIZONTAL, mode='determinate', )
+                app_progress_bar.pack(fill='x', expand=True, padx=10)  # spawns progress bar
+
+                def Download_Progress(block_num, block_size, total_size):
+                    progress = int((block_num * block_size / total_size) * 100)
+                    app_progress_bar['value'] = int(
+                        progress)  # get download progress and convert it into the visual bar
+
+                try:
+                    urllib.request.urlretrieve('https://youtube-dl.org/downloads/latest/youtube-dl.exe',
+                                               'Apps/youtube-dl/youtube-dl.exe', reporthook=Download_Progress)
+                except urllib.error.HTTPError:
+                    messagebox.showinfo(parent=main, title='Info', message='Could Not Download youtube-dl.exe!!')
+                    main.destroy()  # Tries to download latest youtube-dl from main website
+
+                check_youtubedl()  # Runs the function to write youtube-dl to path if needed again after download
+                if pathlib.Path(config['youtubedl_path']['path'].replace('"', '')).is_file():
+                    lbl.configure(text='Downloaded Completed')
+                    sleep(2)
+                    window_message.destroy()
+                if not pathlib.Path(config['youtubedl_path']['path'].replace('"', '')).is_file():
+                    messagebox.showinfo(parent=main, title='Info', message='Could not download file')  # Error
+
+            elif youtubedl_error == True:
+                set_youtubedl_path()  # If user selects 'Yes,' this runs the function to define the path
+            elif youtubedl_error == None:
+                main.destroy()  # If user selects 'Cancel,' the main program closes
+
+        main.wm_attributes('-alpha', 1.0)  # Remove transparency at the end of download jobs
+
+    if pathlib.Path(ffmpeg.replace('"', '')).exists() and pathlib.Path(youtube_dl_cli.replace('"', '')).exists():
+        pass
+    else:
+        main.wm_attributes('-alpha', 0.5)  # Makes main transparent during download jobs
+        threading.Thread(target=downloadfiles, daemon=True).start()
+    # ----------------------------------------------------------------------------- youtube-dl check
+    # Checks if needed executables are found by the program -----------------------------------------
+
+    # End Loop ------------------------------------------------------------------------------------------------------------
+    main.mainloop()
+    # ------------------------------------------------------------------------------------------------------------ End Loop
