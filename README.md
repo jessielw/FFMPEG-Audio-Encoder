@@ -3,8 +3,6 @@
 ## Supported Operating Systems ##
 Windows 7 **(x64)**, Windows 8 **(x64)**, and Windows 10 **(x64)**
 
-In order to run this program on a x86 system you would need to change all binaries in the `Apps` folder to 32-Bit with the same names as the files you are replacing. The GUI itself can be ran in a x86/32-Bit environment, but the apps that it calls onto are mostly 64-bit.
-
 # How to use #
 ## Main Gui ##
 1. Extract program from archive to a folder of your choice or Run program from the archive
@@ -37,7 +35,7 @@ In order to run this program on a x86 system you would need to change all binari
 
 ## Guide to building the program yourself: (Windows)
 1.) **List of required files**
-- Latest version of Python (Python 3+)
+- Latest version of Python (Python 3.8.8 (or under to maintain windows 7/8 support))
 - Something to build the program, I use Pyinstaller
   - Open CMD Prompt and use run command `pip install PyInstaller` to install Pyinstaller
 - You'll need to manually add TkinterDND for the program to function correctly (Tkinter does not natively support drag and drop)
