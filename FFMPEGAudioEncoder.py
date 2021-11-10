@@ -12,7 +12,7 @@ from time import sleep
 import threading
 import shutil
 from Packages.DirectoryCheck import directory_check
-from Packages.YoutubeDLGui import youtube_dl_launcher_for_ffmpegaudioencoder
+from Packages.SimpleYoutubeDLGui import youtube_dl_launcher_for_ffmpegaudioencoder
 from Packages.FFMPEGAudioEncoderBatch import batch_processing
 from Packages.About import openaboutwindow
 from configparser import ConfigParser
@@ -32,7 +32,7 @@ def root_exit_function():
             root.destroy()
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v3.35")
+root.title("FFMPEG Audio Encoder v3.36")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 220
