@@ -37,10 +37,10 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
             main.iconphoto(True, PhotoImage(file="Runtime/Images/Youtube-DL-Gui.png"))
         if combined_with_ffmpeg_audio_encoder:
             main = Toplevel()  # Make toplevel loop if NOT standalone
-        main.title("Simple-Youtube-DL-Gui v1.1")
+        main.title("Simple-Youtube-DL-Gui v1.2")
         main.configure(background="#434547")
         window_height = 500
-        window_width = 600
+        window_width = 610
         screen_width = main.winfo_screenwidth()
         screen_height = main.winfo_screenheight()
         x_coordinate = int((screen_width / 2) - (window_width / 2))
@@ -243,6 +243,8 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
             if video_only.get() == 'on':  # If video checkbutton is checked enable video options menu and set audio off
                 highest_quality_audio_only.set('')
                 video_menu_options_menu.config(state=NORMAL)
+                audio_menu_options_menu.config(state=DISABLED)
+                audio_menu_options.set('Extract Only')
             if video_only.get() != 'on':  # If not checked, set video_only to on
                 video_only.set('on')  # This prevents you from being able to de-select the check button
 
@@ -251,12 +253,13 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
             if highest_quality_audio_only.get() == 'on':  # If audio checkbutton is checked
                 video_only.set('')  # enables video options menu and set audio to off
                 video_menu_options_menu.config(state=DISABLED)
+                audio_menu_options_menu.config(state=NORMAL)
             if highest_quality_audio_only.get() != 'on':  # If not checked, set audio_only to on
                 highest_quality_audio_only.set('on')  # This prevents you from being able to de-select the check button
 
         # Video Only Checkbutton --------------------------------------------------------------------------------------
         video_only = StringVar()
-        video_only_checkbox = Checkbutton(options_frame, text='Best Video + Audio\nSingle File', variable=video_only,
+        video_only_checkbox = Checkbutton(options_frame, text='Best Video + Audio\nMuxed File', variable=video_only,
                                           onvalue='on', offvalue='', command=set_video_only, takefocus=False)
         video_only_checkbox.grid(row=0, column=1, columnspan=1, rowspan=1, padx=10, pady=6, sticky=N + S + E + W)
         video_only_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
@@ -267,7 +270,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
 
         # Highest Quality Audio Only ----------------------------------------------------------------------------------
         highest_quality_audio_only = StringVar()
-        highest_quality_audio_only_checkbox = Checkbutton(options_frame, text='Best Audio Only',
+        highest_quality_audio_only_checkbox = Checkbutton(options_frame, text='Audio Only',
                                                           variable=highest_quality_audio_only, onvalue='on',
                                                           offvalue='', command=highest_quality_audio_only_toggle,
                                                           takefocus=False)
@@ -358,6 +361,33 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
 
         # ----------------------------------------------------------------------------------------------- Video Options
 
+        # Audio Options -----------------------------------------------------------------------------------------------
+        def audio_menu_options_menu_hover(e):
+            audio_menu_options_menu["bg"] = "grey"
+            audio_menu_options_menu["activebackground"] = "grey"
+
+        def audio_menu_options_menu_hover_leave(e):
+            audio_menu_options_menu["bg"] = "#23272A"
+
+        audio_menu_options = StringVar(main)
+        audio_menu_options_choices = {'Extract Only': '',
+                                      'Encode to mp3': 'mp3',
+                                      'Encode to flac': 'flac',
+                                      'Encode to m4a': 'm4a',
+                                      'Encode to opus': 'opus',
+                                      'Encode to vorbis': 'vorbis',
+                                      'Encode to wav': 'wav'}
+        audio_menu_options_menu = OptionMenu(options_frame, audio_menu_options, *audio_menu_options_choices.keys())
+        audio_menu_options_menu.config(background="#23272A", foreground="white", highlightthickness=1,
+                                       width=15, anchor=W, state=DISABLED)
+        audio_menu_options_menu.grid(row=1, column=2, columnspan=1, padx=10, pady=(3, 20))
+        audio_menu_options.set('Extract Only')
+        audio_menu_options_menu["menu"].configure(activebackground="dim grey")
+        audio_menu_options_menu.bind("<Enter>", audio_menu_options_menu_hover)
+        audio_menu_options_menu.bind("<Leave>", audio_menu_options_menu_hover_leave)
+
+        # ----------------------------------------------------------------------------------------------- Audio Options
+
         # Add Link to variable ----------------------------------------------------------------------------------------
         def apply_link():
             global download_link, link_input_label, extracted_title_name
@@ -371,7 +401,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
             link_entry.config(state=DISABLED)  #
             save_btn.config(state=NORMAL)  #
             try:  # The code below checks link input for the title and adds it to a variable for use with the gui
-                with yt_dlp.YoutubeDL() as ydl:
+                with yt_dlp.YoutubeDL({'noplaylist': True}) as ydl:
                     dl_link_input = ydl.extract_info(download_link, download=False)
                     string_one = sub('[^a-zA-Z0-9 \n]', '', dl_link_input['title'])
                     string_two = " ".join(string_one.split())
@@ -448,22 +478,42 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
                             'merge_output_format': 'mkv',
                             'final_ext': 'mkv',
                             'outtmpl': str(pathlib.Path(VideoOutput)) + '/%(title)s.%(ext)s',
-                            'ffmpeg_location': str(ffmpeg),
+                            'ffmpeg_location': str(pathlib.Path(ffmpeg)),
                             'logger': MyLogger(),
                             "progress_with_newline": True,
-                            'format': video_menu_options_choices[video_menu_options.get()]}
-            else:  # If "Best Video..." is NOT selected then use these options for ytb-dl
-                ydl_opts = {'ratelimit': download_rate_choices[download_rate.get()],
-                            'progress_hooks': [my_hook],
+                            'format': video_menu_options_choices[video_menu_options.get()],
+                            'prefer_ffmpeg': True}
+
+            if video_only.get() != 'on' and audio_menu_options.get() == 'Extract Only':
+                # If "Best Video..." is NOT selected and "Audio Menu" is set to Extract Only
+                ydl_opts = {'ratelimit': download_rate_choices[download_rate.get()], 'progress_hooks': [my_hook],
                             'noplaylist': True,
                             'overwrites': True,
                             'outtmpl': str(pathlib.Path(VideoOutput)) + '/%(title)s.%(ext)s',
-                            'ffmpeg_location': str(ffmpeg),
+                            'ffmpeg_location': str(pathlib.Path(ffmpeg)),
                             'logger': MyLogger(),
                             "progress_with_newline": True,
                             'format': 'bestaudio/best',
                             'extractaudio': True,
-                            'audioformat': 'opus'}
+                            'prefer_ffmpeg': True}
+
+            if video_only.get() != 'on' and audio_menu_options.get() != 'Extract Only':
+                # If "Best Video..." is NOT selected and "Audio Menu" is set to encode to another codec
+                ydl_opts = {'ratelimit': download_rate_choices[download_rate.get()], 'progress_hooks': [my_hook],
+                            'noplaylist': True,
+                            'overwrites': True,
+                            'outtmpl': str(pathlib.Path(VideoOutput)) + '/%(title)s.%(ext)s',
+                            'ffmpeg_location': str(pathlib.Path(ffmpeg)),
+                            'logger': MyLogger(),
+                            "progress_with_newline": True,
+                            'format': 'bestaudio/best',
+                            'extractaudio': True,
+                            'prefer_ffmpeg': True,
+                            'postprocessors': [{
+                                'key': 'FFmpegExtractAudio',
+                                'preferredcodec': audio_menu_options_choices[audio_menu_options.get()],
+                                'preferredquality': '0'
+                            }]}
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:  # Block of code needed to process the link/file
                 ydl.download([download_link])
