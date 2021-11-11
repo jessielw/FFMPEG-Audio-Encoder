@@ -127,9 +127,12 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
                 messagebox.showinfo(title='Error', message='Could Not Write to config.ini file, delete and try again')
         # --------------------------------------------------- This creates the config file if on the standalone version
 
-        ffmpeg = config['ffmpeg_path']['path']  # Sets path to ffmpeg from config.ini
+        if not combined_with_ffmpeg_audio_encoder:
+            ffmpeg = pathlib.Path(config['ffmpeg_path']['path'])  # Sets path to ffmpeg from config.ini'
+        if combined_with_ffmpeg_audio_encoder:
+            ffmpeg = pathlib.Path(config['ffmpeg_path']['path'].replace('"', ''))  # Sets path to ffmpeg from config.ini
 
-        # Code needed to add location of ffmpeg.exe in the event it's missing for standalone version -----------------
+        # Code needed to add location of ffmpeg.exe in the event it's missing for standalone version ------------------
         if not combined_with_ffmpeg_audio_encoder:
             if not pathlib.Path(ffmpeg).is_file():  # Checks config for bundled app paths path ------------------------
                 def check_ffmpeg():  # FFMPEG -------------------------------------------------------------------------
@@ -445,7 +448,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
                             'merge_output_format': 'mkv',
                             'final_ext': 'mkv',
                             'outtmpl': str(pathlib.Path(VideoOutput)) + '/%(title)s.%(ext)s',
-                            'ffmpeg_location': str(pathlib.Path(config['ffmpeg_path']['path'])),
+                            'ffmpeg_location': str(ffmpeg),
                             'logger': MyLogger(),
                             "progress_with_newline": True,
                             'format': video_menu_options_choices[video_menu_options.get()]}
@@ -455,7 +458,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
                             'noplaylist': True,
                             'overwrites': True,
                             'outtmpl': str(pathlib.Path(VideoOutput)) + '/%(title)s.%(ext)s',
-                            'ffmpeg_location': str(pathlib.Path(config['ffmpeg_path']['path'])),
+                            'ffmpeg_location': str(ffmpeg),
                             'logger': MyLogger(),
                             "progress_with_newline": True,
                             'format': 'bestaudio/best',
@@ -553,5 +556,5 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
 
 # Code needed for Standalone Release----------------------------------------------------------------------------------
 if not combined_with_ffmpeg_audio_encoder:
-    youtube_dl_launcher_for_ffmpeguaudioencoder()
+    youtube_dl_launcher_for_ffmpegaudioencoder()
 # ------------------------------------------------------------------------------------------ Code needed for Standalone
