@@ -1,5 +1,10 @@
+# Code needed for Standalone Release-----------------------------------------------------------------------------------
+combined_with_ffmpeg_audio_encoder = True  # If combined with FFMPEG...Gui set this to 'True'
+
+
+# ------------------------------------------------------------------------------------------ Code needed for Standalone
+
 def youtube_dl_launcher_for_ffmpegaudioencoder():
-    global youtube_dl_cli, ffmpeg, main
     # Imports----------------------------------------------------------------------------------------------------------
     from tkinter import (filedialog, StringVar, Menu, E, W, N, S, LabelFrame, NORMAL, END,
                          DISABLED, Checkbutton, Label, ttk, scrolledtext, messagebox, OptionMenu,
@@ -7,6 +12,9 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
     import pyperclip, pathlib, threading, yt_dlp
     from re import sub
     from configparser import ConfigParser
+
+    global main
+
     # --------------------------------------------------------------------------------------------------------- Imports
 
     # Main Gui & Windows ----------------------------------------------------------------------------------------------
@@ -23,8 +31,13 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
             main.lift()  # If youtube-dl-gui window exists then bring to top of all other windows
 
     except:  # If youtube-dl-gui does not exist, create it...
-        main = Toplevel()
-        main.title("Simple-Youtube-DL-Gui v1.0")
+        if not combined_with_ffmpeg_audio_encoder:
+            from tkinter import Tk, PhotoImage
+            main = Tk()  # Make full tkinter loop if standalone
+            main.iconphoto(True, PhotoImage(file="Runtime/Images/Youtube-DL-Gui.png"))
+        if combined_with_ffmpeg_audio_encoder:
+            main = Toplevel()  # Make toplevel loop if NOT standalone
+        main.title("Simple-Youtube-DL-Gui v1.1")
         main.configure(background="#434547")
         window_height = 500
         window_width = 600
@@ -40,13 +53,135 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
         for n in range(5):
             main.grid_rowconfigure(n, weight=1)
 
+        # The entire top bar/menu is only present during standalone version -------------------------------------------
+        if not combined_with_ffmpeg_audio_encoder:
+            my_menu_bar = Menu(main, tearoff=0)
+            main.config(menu=my_menu_bar)
+            file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+            my_menu_bar.add_cascade(label='File', menu=file_menu)
+            file_menu.add_command(label='Exit', command=main_exit_function)  # Exits the program
+            options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+            my_menu_bar.add_cascade(label='Options', menu=options_menu)
+
+            def set_ffmpeg_path():
+                global ffmpeg
+                path = filedialog.askopenfilename(title='Select Location to "ffmpeg.exe"', initialdir='/',
+                                                  filetypes=[('ffmpeg', 'ffmpeg.exe')])
+                if path == '':
+                    pass
+                elif path != '':
+                    ffmpeg = str(pathlib.Path(path))
+                    config.set('ffmpeg_path', 'path', ffmpeg)
+                    with open(config_file, 'w') as configfile:
+                        config.write(configfile)
+
+            options_menu.add_command(label='Set path to FFMPEG', command=set_ffmpeg_path)
+
+            options_menu.add_separator()
+
+            def reset_config():
+                msg = messagebox.askyesno(title='Warning',
+                                          message='Are you sure you want to reset the config.ini file settings?')
+                if not msg:
+                    pass
+                if msg:
+                    try:
+                        config.set('ffmpeg_path', 'path', '')
+                        with open(config_file, 'w') as configfile:
+                            config.write(configfile)
+                        messagebox.showinfo(title='Prompt', message='Please restart the program')
+                    except:
+                        pass
+                    main.destroy()
+
+            options_menu.add_command(label='Reset Configuration File', command=reset_config)
+
+            from Packages.about import openaboutwindow
+
+            def open_browser_for_ffmpeg():
+                import webbrowser
+                webbrowser.open_new_tab('https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-essentials.7z')
+
+            help_menu = Menu(my_menu_bar, tearoff=0, activebackground="dim grey")
+            my_menu_bar.add_cascade(label="Help", menu=help_menu)
+            help_menu.add_command(label="Download FFMPEG", command=open_browser_for_ffmpeg)
+            help_menu.add_separator()
+            help_menu.add_command(label="About", command=openaboutwindow)
+        # ------------------------------------------- The entire top bar/menu is only present during standalone version
+
         # Bundled Apps ------------------------------------------------------------------------------------------------
-        config_file = 'Runtime/config.ini'  # Creates (if doesn't exist) and defines location of config.ini
+        config_file = 'Runtime/config.ini'  # Defines location of config.ini
         config = ConfigParser()
         config.read(config_file)
-        ffmpeg = config['ffmpeg_path']['path']  # Sets path to ffmpeg (this is initially created by ffmpegaudioencoder)
 
+        # This creates the config file if on the standalone version ---------------------------------------------------
+        if not combined_with_ffmpeg_audio_encoder:
+            if not config.has_section('ffmpeg_path'):  # Create config parameters
+                config.add_section('ffmpeg_path')
+            if not config.has_option('ffmpeg_path', 'path'):
+                config.set('ffmpeg_path', 'path', '')
+            try:
+                with open(config_file, 'w') as configfile:
+                    config.write(configfile)
+            except:
+                messagebox.showinfo(title='Error', message='Could Not Write to config.ini file, delete and try again')
+        # --------------------------------------------------- This creates the config file if on the standalone version
+
+        ffmpeg = config['ffmpeg_path']['path']  # Sets path to ffmpeg from config.ini
+
+        # Code needed to add location of ffmpeg.exe in the event it's missing for standalone version -----------------
+        if not combined_with_ffmpeg_audio_encoder:
+            if not pathlib.Path(ffmpeg).is_file():  # Checks config for bundled app paths path ------------------------
+                def check_ffmpeg():  # FFMPEG -------------------------------------------------------------------------
+                    global ffmpeg
+                    import shutil
+
+                    def write_path_to_ffmpeg():  # Writes path to ffmpeg to the config.ini file
+                        try:
+                            config.set('ffmpeg_path', 'path', ffmpeg)
+                            with open(config_file, 'w') as configfile:
+                                config.write(configfile)
+                        except:
+                            pass
+
+                    if shutil.which('ffmpeg') is not None:
+                        ffmpeg = str(pathlib.Path(shutil.which('ffmpeg'))).lower()
+                        messagebox.showinfo(title='Prompt!', message='ffmpeg.exe found on system PATH, '
+                                                                     'automatically setting path to location.\n\n'
+                                                                     'Note: This can be changed in the config.ini file'
+                                                                     ' or in the Options menu')
+                        if pathlib.Path("Apps/ffmpeg/ffmpeg.exe").is_file():
+                            rem_ffmpeg = messagebox.askyesno(title='Delete Included ffmpeg?',
+                                                             message='Would you like to delete the included FFMPEG?')
+                            if rem_ffmpeg:
+                                try:
+                                    shutil.rmtree(str(pathlib.Path("Apps/ffmpeg")))
+                                except:
+                                    pass
+                        write_path_to_ffmpeg()
+                    elif pathlib.Path("Apps/ffmpeg/ffmpeg.exe").is_file():
+                        messagebox.showinfo(title='Info', message='Program will use the included '
+                                                                  '"ffmpeg.exe" located in the "Apps" folder')
+                        ffmpeg = str(pathlib.Path("Apps/ffmpeg/ffmpeg.exe"))
+                        write_path_to_ffmpeg()
+                    else:
+                        error_prompt = messagebox.askyesno(title='Error!',
+                                                           message='Cannot find ffmpeg, '
+                                                                   'please navigate to "ffmpeg.exe"')
+                        if not error_prompt:
+                            messagebox.showerror(title='Error!',
+                                                 message='Program requires ffmpeg.exe to work correctly')
+                            main.destroy()
+                        if error_prompt:
+                            set_ffmpeg_path()
+                            if not pathlib.Path(ffmpeg).is_file():
+                                messagebox.showerror(title='Error!',
+                                                     message='Program requires ffmpeg.exe to work correctly')
+                                main.destroy()
+
+                check_ffmpeg()  # FFMPEG ------------------------------------------------------------------------------
         # ------------------------------------------------------------------------------------------------ Bundled Apps
+        # ------------------ Code needed to add location of ffmpeg.exe in the event it's missing for standalone version
 
         # Link Frame --------------------------------------------------------------------------------------------------
         link_frame = LabelFrame(main, text=' Paste Link ')
@@ -102,7 +237,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
 
         # Best Video Function -----------------------------------------------------------------------------------------
         def set_video_only():
-            if video_only.get() == 'on':  # If video checkbutton is checked, enable video options menu and set audio off
+            if video_only.get() == 'on':  # If video checkbutton is checked enable video options menu and set audio off
                 highest_quality_audio_only.set('')
                 video_menu_options_menu.config(state=NORMAL)
             if video_only.get() != 'on':  # If not checked, set video_only to on
@@ -310,7 +445,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
                             'merge_output_format': 'mkv',
                             'final_ext': 'mkv',
                             'outtmpl': str(pathlib.Path(VideoOutput)) + '/%(title)s.%(ext)s',
-                            'ffmpeg_location': str(pathlib.Path(config['ffmpeg_path']['path'])).replace('"', ''),
+                            'ffmpeg_location': str(pathlib.Path(config['ffmpeg_path']['path'])),
                             'logger': MyLogger(),
                             "progress_with_newline": True,
                             'format': video_menu_options_choices[video_menu_options.get()]}
@@ -320,7 +455,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
                             'noplaylist': True,
                             'overwrites': True,
                             'outtmpl': str(pathlib.Path(VideoOutput)) + '/%(title)s.%(ext)s',
-                            'ffmpeg_location': str(pathlib.Path(config['ffmpeg_path']['path'])).replace('"', ''),
+                            'ffmpeg_location': str(pathlib.Path(config['ffmpeg_path']['path'])),
                             'logger': MyLogger(),
                             "progress_with_newline": True,
                             'format': 'bestaudio/best',
@@ -414,3 +549,9 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
         # End Loop ----------------------------------------------------------------------------------------------------
         main.mainloop()
         # ---------------------------------------------------------------------------------------------------- End Loop
+
+
+# Code needed for Standalone Release----------------------------------------------------------------------------------
+if not combined_with_ffmpeg_audio_encoder:
+    youtube_dl_launcher_for_ffmpeguaudioencoder()
+# ------------------------------------------------------------------------------------------ Code needed for Standalone
