@@ -22,9 +22,7 @@ def root_exit_function():
     confirm_exit = messagebox.askyesno(title='Prompt', message="Are you sure you want to exit the program?\n\n"
                                                                "     Note: This will end all current tasks!",
                                        parent=root)
-    if confirm_exit == False:
-        pass
-    elif confirm_exit == True:
+    if confirm_exit:
         try:
             subprocess.Popen(f"TASKKILL /F /im FFMPEGAudioEncoder.exe /T", creationflags=subprocess.CREATE_NO_WINDOW)
             root.destroy()
@@ -514,7 +512,7 @@ tools_submenu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
 my_menu_bar.add_cascade(label='Tools', menu=tools_submenu)
 tools_submenu.add_command(label="MediaInfo", command=mediainfogui)
 tools_submenu.add_command(label="MPV (Media Player)", command=mpv_gui_main_gui)
-tools_submenu.add_command(label="Youtube-DL-Gui", command=youtube_dl_launcher_for_ffmpegaudioencoder)
+tools_submenu.add_command(label="Simple-Youtube-DL-Gui", command=youtube_dl_launcher_for_ffmpegaudioencoder)
 tools_submenu.add_separator()
 
 def batch_processing_command():
