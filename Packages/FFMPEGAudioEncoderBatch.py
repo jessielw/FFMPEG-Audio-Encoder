@@ -4086,7 +4086,7 @@ def batch_processing():
 
     def drop_input_batch(event):
         global batch_input_directory_quoted, batch_save_directory, batch_input_directory
-        input_dnd_batch.set(event.data)
+        input_dnd_batch.set(str(event.data.rstrip('}').lstrip('{')))
         batch_input_directory = str(input_dnd_batch.get())
         batch_input_directory_quoted = '"' + batch_input_directory + '"'
         batch_input_entry.configure(state=NORMAL)
@@ -4704,8 +4704,7 @@ def batch_processing():
         if encoder.get() == "AC3":
             example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
                                  + automatic_batch_save_dir + '"' \
-                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
-                                 '"' + '/Apps/FFMPEG/ffmpeg.exe' + '"' \
+                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + ffmpeg \
                                  + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
                                  + acodec_stream_choices[acodec_stream.get()] \
                                  + encoder_dropdownmenu_choices[encoder.get()] \
@@ -4724,8 +4723,7 @@ def batch_processing():
                 bitrate_or_quality = f"-q:a {aac_quality_spinbox.get()} "
             example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
                                  + automatic_batch_save_dir + '"' \
-                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
-                                 '"' + '/Apps/FFMPEG/ffmpeg.exe' + '"' \
+                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + ffmpeg \
                                  + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
                                  + acodec_stream_choices[acodec_stream.get()] + \
                                  encoder_dropdownmenu_choices[encoder.get()] + bitrate_or_quality + \
@@ -4740,8 +4738,7 @@ def batch_processing():
             if dts_settings.get() == 'DTS Encoder':
                 example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
                                      + automatic_batch_save_dir + '"' \
-                                     + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
-                                     '"' + '/Apps/FFMPEG/ffmpeg.exe' + '"' \
+                                     + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + ffmpeg \
                                      + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
                                      + acodec_stream_choices[acodec_stream.get()] \
                                      + dts_settings_choices[dts_settings.get()] \
@@ -4754,8 +4751,7 @@ def batch_processing():
             else:
                 example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
                                      + automatic_batch_save_dir + '"' \
-                                     + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
-                                     '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
+                                     + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + ffmpeg \
                                      + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
                                      + acodec_stream_choices[acodec_stream.get()] \
                                      + dts_settings_choices[dts_settings.get()] \
@@ -4766,8 +4762,7 @@ def batch_processing():
         elif encoder.get() == "Opus":
             example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
                                  + automatic_batch_save_dir + '"' \
-                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
-                                 '"' + '/Apps/FFMPEG/ffmpeg.exe' + '"' \
+                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + ffmpeg \
                                  + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
                                  + acodec_stream_choices[acodec_stream.get()] + \
                                  encoder_dropdownmenu_choices[encoder.get()] + \
@@ -4785,8 +4780,7 @@ def batch_processing():
         elif encoder.get() == "MP3":
             example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
                                  + automatic_batch_save_dir + '"' \
-                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
-                                 '"' + f"{pathlib.Path.cwd()}{'/Apps/FFMPEG/ffmpeg.exe'}" + '"' \
+                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + ffmpeg \
                                  + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
                                  + acodec_stream_choices[acodec_stream.get()] \
                                  + encoder_dropdownmenu_choices[encoder.get()] + \
@@ -4802,8 +4796,7 @@ def batch_processing():
         elif encoder.get() == "E-AC3":
             example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
                                  + automatic_batch_save_dir + '"' \
-                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
-                                 '"' + '/Apps/FFMPEG/ffmpeg.exe' + '"' \
+                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + ffmpeg \
                                  + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
                                  + acodec_stream_choices[acodec_stream.get()] \
                                  + encoder_dropdownmenu_choices[encoder.get()] \
@@ -4835,8 +4828,7 @@ def batch_processing():
         elif encoder.get() == "FDK-AAC":
             example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
                                  + automatic_batch_save_dir + '"' \
-                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
-                                 '"' + '/Apps/FFMPEG/ffmpeg.exe' + '"' \
+                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + ffmpeg \
                                  + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
                                  + acodec_stream_choices[acodec_stream.get()] \
                                  + acodec_channel_choices[acodec_channel.get()] + \
@@ -4857,8 +4849,7 @@ def batch_processing():
             if q_acodec_profile.get() == "True VBR":
                 example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
                                      + automatic_batch_save_dir + '"' \
-                                     + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
-                                     '"' + '/Apps/FFMPEG/ffmpeg.exe' + '"' \
+                                     + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + ffmpeg \
                                      + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
                                      + acodec_stream_choices[acodec_stream.get()] \
                                      + acodec_channel_choices[acodec_channel.get()] + audio_filter_setting \
@@ -4876,8 +4867,7 @@ def batch_processing():
             else:
                 example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
                                      + automatic_batch_save_dir + '"' \
-                                     + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
-                                     '"' + '/Apps/FFMPEG/ffmpeg.exe' + '"' \
+                                     + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + ffmpeg \
                                      + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
                                      + acodec_stream_choices[acodec_stream.get()] + \
                                      acodec_channel_choices[acodec_channel.get()] + audio_filter_setting + \
@@ -4896,8 +4886,7 @@ def batch_processing():
         if encoder.get() == "FLAC":
             example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
                                  + automatic_batch_save_dir + '"' \
-                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
-                                 '"' + '/Apps/FFMPEG/ffmpeg.exe' + '"' \
+                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + ffmpeg \
                                  + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
                                  + acodec_stream_choices[acodec_stream.get()] \
                                  + encoder_dropdownmenu_choices[encoder.get()] + \
@@ -4915,8 +4904,7 @@ def batch_processing():
         if encoder.get() == "ALAC":
             example_cmd_output = '"' + 'cd /d ' + batch_input_directory_quoted + ' & md ' + '\n \n' + '"' \
                                  + automatic_batch_save_dir + '"' \
-                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + \
-                                 '"' + '/Apps/FFMPEG/ffmpeg.exe' + '"' \
+                                 + ' & for %a in ' + extension.get() + '\n \n' + ' do ' + ffmpeg \
                                  + ' -analyzeduration 100M -probesize 50M -i "%a" ' + '\n \n' \
                                  + acodec_stream_choices[acodec_stream.get()] \
                                  + encoder_dropdownmenu_choices[encoder.get()] + \
