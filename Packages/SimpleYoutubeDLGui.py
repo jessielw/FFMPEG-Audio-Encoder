@@ -37,7 +37,7 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
             main.iconphoto(True, PhotoImage(file="Runtime/Images/Youtube-DL-Gui.png"))
         if combined_with_ffmpeg_audio_encoder:
             main = Toplevel()  # Make toplevel loop if NOT standalone
-        main.title("Simple-Youtube-DL-Gui v1.2")
+        main.title("Simple-Youtube-DL-Gui v1.21")
         main.configure(background="#434547")
         window_height = 500
         window_width = 610
@@ -127,10 +127,9 @@ def youtube_dl_launcher_for_ffmpegaudioencoder():
                 messagebox.showinfo(title='Error', message='Could Not Write to config.ini file, delete and try again')
         # --------------------------------------------------- This creates the config file if on the standalone version
 
-        if not combined_with_ffmpeg_audio_encoder:
-            ffmpeg = pathlib.Path(config['ffmpeg_path']['path'])  # Sets path to ffmpeg from config.ini'
-        if combined_with_ffmpeg_audio_encoder:
-            ffmpeg = pathlib.Path(config['ffmpeg_path']['path'].replace('"', ''))  # Sets path to ffmpeg from config.ini
+        # Define location of FFMPEG in a variable ---------------------------------------------------------------------
+        ffmpeg = pathlib.Path(config['ffmpeg_path']['path'].replace('"', ''))
+        # --------------------------------------------------------------------- Define location of FFMPEG in a variable
 
         # Code needed to add location of ffmpeg.exe in the event it's missing for standalone version ------------------
         if not combined_with_ffmpeg_audio_encoder:
