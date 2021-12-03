@@ -1159,7 +1159,8 @@ def openaudiowindow():
                    '................%ChannelLayout%\\nCompression Mode:.........' + \
                    '...%Compression_Mode/String%\\nStream Size:......................' + \
                    '..%StreamSize/String5%\\nTitle:....................................%Title%\\nLanguage:..' + \
-                   '.........................%Language/String%\\n\\n" ' + VideoInputQuoted + '"'
+                   '.........................%Language/String%\\n\\n" ' + \
+                   str(pathlib.Path(VideoInputQuoted.replace('&', '^&'))) + '"'
         run = subprocess.Popen('cmd /c ' + commands, creationflags=subprocess.CREATE_NO_WINDOW, universal_newlines=True,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                stdin=subprocess.PIPE, shell=True, encoding="utf-8")
