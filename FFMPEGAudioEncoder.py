@@ -30,7 +30,7 @@ def root_exit_function():
             root.destroy()
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v3.36.2")
+root.title("FFMPEG Audio Encoder v3.36.3")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 220
@@ -1163,10 +1163,12 @@ def openaudiowindow():
         run = subprocess.Popen('cmd /c ' + commands, creationflags=subprocess.CREATE_NO_WINDOW, universal_newlines=True,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                stdin=subprocess.PIPE, shell=True, encoding="utf-8")
+        clean_communicate_string = str(run.communicate()).replace(r'\n', '\n').replace('{', '').replace('}', '') \
+            .replace('(', '').replace(')', '').replace(',', '').replace("'", '')
         try:
             global text_area
             text_area.delete("1.0", END)
-            text_area.insert(END, run.communicate())
+            text_area.insert(END, clean_communicate_string)
         except:
             stream_window = Toplevel(audio_window)
             stream_window.title("Audio Streams")
@@ -1177,7 +1179,7 @@ def openaudiowindow():
                                                         spacing1=2,
                                                         spacing3=3)
             text_area.grid(column=0, pady=10, padx=10)
-            text_area.insert(INSERT, run.communicate())
+            text_area.insert(INSERT, clean_communicate_string)
             text_area.configure(font=("Helvetica", 12))
             text_area.configure(state=DISABLED)
             stream_window.grid_columnconfigure(0, weight=1)
