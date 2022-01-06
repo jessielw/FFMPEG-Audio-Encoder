@@ -4802,45 +4802,45 @@ def file_input():
 # File Output ---------------------------------------------------------------------------------------------------------
 def file_save():
     global VideoOutput
-    if encoder.get() == "AAC" or config_profile['Auto Encode']['codec'] == 'AAC':
+    if encoder.get() == "AAC":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".mp4", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("AAC", "*.mp4"), ("All Files", "*.*")))
-    elif encoder.get() == "AC3" or config_profile['Auto Encode']['codec'] == 'AC3':
+    elif encoder.get() == "AC3":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".ac3", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("AC3", "*.ac3"), ("All Files", "*.*")))
-    elif encoder.get() == "DTS" or config_profile['Auto Encode']['codec'] == 'DTS':
+    elif encoder.get() == "DTS":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".dts", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("DTS", "*.dts"), ("All Files", "*.*")))
-    elif encoder.get() == "Opus" or config_profile['Auto Encode']['codec'] == 'Opus':
+    elif encoder.get() == "Opus":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".opus", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("Opus", "*.opus"), ("All Files", "*.*")))
-    elif encoder.get() == "MP3" or config_profile['Auto Encode']['codec'] == 'MP3':
+    elif encoder.get() == "MP3":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".mp3", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("MP3", "*.mp3"), ("All Files", "*.*")))
-    elif encoder.get() == "E-AC3" or config_profile['Auto Encode']['codec'] == 'E-AC3':
+    elif encoder.get() == "E-AC3":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".ac3", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("E-AC3", "*.ac3"), ("All Files", "*.*")))
-    elif encoder.get() == "FDK-AAC" or config_profile['Auto Encode']['codec'] == 'FDK-AAC':
+    elif encoder.get() == "FDK-AAC":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".m4a", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("AAC", "*.m4a"), ("All Files", "*.*")))
-    elif encoder.get() == "QAAC" or config_profile['Auto Encode']['codec'] == 'QAAC':
+    elif encoder.get() == "QAAC":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".m4a", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("AAC", "*.m4a"), ("All Files", "*.*")))
 
-    elif encoder.get() == "FLAC" or config_profile['Auto Encode']['codec'] == 'FLAC':
+    elif encoder.get() == "FLAC":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".flac", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("FLAC", "*.flac"), ("All Files", "*.*")))
 
-    elif encoder.get() == "ALAC" or config_profile['Auto Encode']['codec'] == 'ALAC':
+    elif encoder.get() == "ALAC":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".m4a", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=(("ALAC", "*.m4a"), ("All Files", "*.*")))
