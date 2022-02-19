@@ -16,6 +16,8 @@ from Packages.SimpleYoutubeDLGui import youtube_dl_launcher_for_ffmpegaudioencod
 from Packages.FFMPEGAudioEncoderBatch import batch_processing
 from Packages.About import openaboutwindow
 from configparser import ConfigParser
+from ctypes import windll
+
 
 # Main Gui & Windows --------------------------------------------------------
 def root_exit_function():
@@ -26,11 +28,12 @@ def root_exit_function():
         try:
             subprocess.Popen(f"TASKKILL /F /im FFMPEGAudioEncoder.exe /T", creationflags=subprocess.CREATE_NO_WINDOW)
             root.destroy()
-        except:
+        except (Exception,):
             root.destroy()
 
+
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v3.36.4")
+root.title("FFMPEG Audio Encoder v3.37")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 window_height = 220
@@ -41,6 +44,13 @@ x_coordinate = int((screen_width / 2) - (window_width / 2))
 y_coordinate = int((screen_height / 2) - (window_height / 2))
 root.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
 root.protocol('WM_DELETE_WINDOW', root_exit_function)
+
+# Block of code to fix DPI awareness issues on Windows 7 or higher
+try:
+    windll.shcore.SetProcessDpiAwareness(2)  # if your Windows version >= 8.1
+except(Exception,):
+    windll.user32.SetProcessDPIAware()  # Windows 8.0 or less
+# Block of code to fix DPI awareness issues on Windows 7 or higher
 
 for n in range(4):
     root.grid_columnconfigure(n, weight=1)
@@ -75,9 +85,8 @@ if not config.has_option('debug_option', 'option'):
 try:
     with open(config_file, 'w') as configfile:
         config.write(configfile)
-except:
+except (Exception,):
     messagebox.showinfo(title='Error', message='Could Not Write to config.ini file, delete and try again')
-
 
 ffmpeg = config['ffmpeg_path']['path']
 mediainfocli = config['mediainfocli_path']['path']
@@ -368,8 +377,9 @@ if not config_profile.has_option('Auto Encode', 'command'):
 try:
     with open(config_profile_ini, 'w') as configfile_two:
         config_profile.write(configfile_two)
-except:
+except (Exception,):
     messagebox.showinfo(title='Error', message='Could Not Write to profiles.ini file, delete and try again')
+
 
 # Profile Config ------------------------------------------------------------------------------------------------------
 
@@ -379,7 +389,7 @@ def mediainfogui():
         VideoInputQuoted = '"' + VideoInput + '"'
         commands = mediainfo + " " + VideoInputQuoted
         subprocess.Popen(commands)
-    except:
+    except (Exception,):
         commands = mediainfo
         subprocess.Popen(commands)
 
@@ -392,9 +402,10 @@ def mpv_gui_main_gui():
         VideoInputQuoted = '"' + VideoInput + '"'
         commands = mpv_player + " " + VideoInputQuoted
         subprocess.Popen(commands)
-    except:
+    except (Exception,):
         commands = mpv_player
         subprocess.Popen(commands)
+
 
 # ----------------------------------------------------------------------------------------------------------------- mpv
 
@@ -417,13 +428,17 @@ if shell_options.get() == '':
     shell_options.set('Default')
 elif shell_options.get() != '':
     shell_options.set(config['debug_option']['option'])
+
+
 def update_shell_option():
     try:
         config.set('debug_option', 'option', shell_options.get())
         with open(config_file, 'w') as configfile:
             config.write(configfile)
-    except:
+    except (Exception,):
         pass
+
+
 update_shell_option()
 options_submenu.add_radiobutton(label='Progress Bars', variable=shell_options,
                                 value="Default", command=update_shell_option)
@@ -432,68 +447,68 @@ options_submenu.add_radiobutton(label='CMD Shell (Debug)', variable=shell_option
 
 options_menu.add_separator()
 
+
 def set_ffmpeg_path():
     global ffmpeg
     path = filedialog.askopenfilename(title='Select Location to "ffmpeg.exe"', initialdir='/',
                                       filetypes=[('ffmpeg', 'ffmpeg.exe')])
-    if path == '':
-        pass
-    elif path != '':
+    if path != '':
         ffmpeg = '"' + str(pathlib.Path(path)) + '"'
         config.set('ffmpeg_path', 'path', ffmpeg)
         with open(config_file, 'w') as configfile:
             config.write(configfile)
 
+
 options_menu.add_command(label='Set path to FFMPEG', command=set_ffmpeg_path)
+
 
 def set_mpv_player_path():
     global mpv_player
     path = filedialog.askopenfilename(title='Select Location to "mpv.exe"', initialdir='/',
                                       filetypes=[('mpv', 'mpv.exe')])
-    if path == '':
-        pass
-    elif path != '':
+    if path != '':
         mpv_player = '"' + str(pathlib.Path(path)) + '"'
         config.set('mpv_player_path', 'path', mpv_player)
         with open(config_file, 'w') as configfile:
             config.write(configfile)
 
+
 options_menu.add_command(label='Set path to MPV player', command=set_mpv_player_path)
+
 
 def set_mediainfogui_path():
     global mediainfo
     path = filedialog.askopenfilename(title='Select Location to "MediaInfo.exe"', initialdir='/',
                                       filetypes=[('MediaInfoGUI', 'MediaInfo.exe')])
-    if path == '':
-        pass
-    elif path != '':
+    if path != '':
         mediainfo = '"' + str(pathlib.Path(path)) + '"'
         config.set('mediainfogui_path', 'path', mediainfo)
         with open(config_file, 'w') as configfile:
             config.write(configfile)
 
+
 options_menu.add_command(label='Set path to MediaInfo - GUI', command=set_mediainfogui_path)
+
 
 def set_mediainfocli_path():
     global mediainfocli
     path = filedialog.askopenfilename(title='Select Location to "MediaInfo.exe"', initialdir='/',
                                       filetypes=[('MediaInfo', 'MediaInfo.exe')])
-    if path == '':
-        pass
-    elif path != '':
+    if path != '':
         mediainfocli = '"' + str(pathlib.Path(path)) + '"'
         config.set('mediainfocli_path', 'path', mediainfocli)
         with open(config_file, 'w') as configfile:
             config.write(configfile)
 
+
 options_menu.add_command(label='Set path to MediaInfo - CLI', command=set_mediainfocli_path)
 
 options_menu.add_separator()
+
+
 def reset_config():
     msg = messagebox.askyesno(title='Warning', message='Are you sure you want to reset the config.ini file settings?')
-    if msg == False:
-       pass
-    if msg == True:
+    if msg:
         try:
             config.set('ffmpeg_path', 'path', '')
             config.set('mpv_player_path', 'path', '')
@@ -502,9 +517,10 @@ def reset_config():
             with open(config_file, 'w') as configfile:
                 config.write(configfile)
             messagebox.showinfo(title='Prompt', message='Please restart the program')
-        except:
+        except (Exception,):
             pass
         root.destroy()
+
 
 options_menu.add_command(label='Reset Configuration File', command=reset_config)
 
@@ -515,9 +531,11 @@ tools_submenu.add_command(label="MPV (Media Player)", command=mpv_gui_main_gui)
 tools_submenu.add_command(label="Simple-Youtube-DL-Gui", command=youtube_dl_launcher_for_ffmpegaudioencoder)
 tools_submenu.add_separator()
 
+
 def batch_processing_command():
     batch_processing()
     root.wm_state("iconic")  # Minimizes main window while it opens batch_processing window
+
 
 tools_submenu.add_command(label='Batch Processing', command=batch_processing_command)
 
@@ -579,6 +597,7 @@ def track_count(*args):  # Thanks for helping me shorten this 'gmes78'
     for i in range(int(str.split(track_count)[-1])):
         acodec_stream_track_counter[f'Track #{i + 1} {t_info[i]}'] = f' -map 0:a:{i} '
 
+
 # ---------------------------------------------------------------------------------------------------------------------
 
 # Encoder Codec Drop Down ---------------------------------------------------------------------------------------------
@@ -609,9 +628,9 @@ codec_label.grid(row=1, column=1, columnspan=1, padx=5, pady=5, sticky=N + S + W
 # Audio Codec Window --------------------------------------------------------------------------------------------------
 def openaudiowindow():
     global acodec_bitrate, acodec_channel, acodec_channel_choices, acodec_bitrate_choices, acodec_stream, \
-    acodec_stream_choices, acodec_gain, acodec_gain_choices, dts_settings, dts_settings_choices, \
-    acodec_vbr_choices, acodec_vbr, acodec_samplerate, acodec_samplerate_choices, acodec_application, \
-    acodec_application_choices, acodec_profile, acodec_profile_choices, acodec_atempo, acodec_atempo_choices
+        acodec_stream_choices, acodec_gain, acodec_gain_choices, dts_settings, dts_settings_choices, \
+        acodec_vbr_choices, acodec_vbr, acodec_samplerate, acodec_samplerate_choices, acodec_application, \
+        acodec_application_choices, acodec_profile, acodec_profile_choices, acodec_atempo, acodec_atempo_choices
 
     def apply_button_hover(e):
         apply_button["bg"] = "grey"
@@ -806,6 +825,7 @@ def openaudiowindow():
 
     # Combines -af filter settings ------------------------------------------------------------------------------------
     global audio_filter_function
+
     def audio_filter_function(*args):
         global audio_filter_setting
         audio_filter_setting = ''
@@ -870,7 +890,7 @@ def openaudiowindow():
         command_line_button.config(state=NORMAL)
         try:
             cmd_line_window.withdraw()
-        except:
+        except (Exception,):
             pass
 
     # ----------------------------------------------------------------------------------------- 'Apply' button function
@@ -1010,7 +1030,7 @@ def openaudiowindow():
     def reset_profile():  # This function resets settings to 'default'
         msg = messagebox.askyesno(title='Prompt', message='Are you sure you want to reset to default settings?',
                                   parent=audio_window)
-        if msg == True:
+        if msg:
             if encoder.get() == 'AC3':
                 config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_bitrate', '224k')
                 config_profile.set('FFMPEG AC3 - SETTINGS', 'dolbyprologicii', '')
@@ -1140,7 +1160,6 @@ def openaudiowindow():
             sleep(.25)  # Sleeps the program for 1/4th of a second
             openaudiowindow()  # Re-Opens the Audio Window with the 'Default' settings
 
-
     # ----------------------------------------------------------------------------------------------- Profile Functions
 
     # Show Streams Inside Audio Settings Window -----------------------------------------------------------------------
@@ -1170,7 +1189,7 @@ def openaudiowindow():
             global text_area
             text_area.delete("1.0", END)
             text_area.insert(END, clean_communicate_string)
-        except:
+        except (Exception,):
             stream_window = Toplevel(audio_window)
             stream_window.title("Audio Streams")
             stream_window.configure(background="#434547")
@@ -1195,7 +1214,7 @@ def openaudiowindow():
     if encoder.get() == "AC3":
         try:
             audio_window.deiconify()
-        except:
+        except (Exception,):
             audio_window = Toplevel()
             audio_window.title('AC3 Settings')
             audio_window.configure(background="#434547")
@@ -1331,9 +1350,9 @@ def openaudiowindow():
             achannel_menu.bind("<Enter>", achannel_menu_hover)
             achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
             acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
-            # ----------------------------------------------------------------------------------------------- Audio Channel
+            # ------------------------------------------------------------------------------------------- Audio Channel
 
-            # Dolby Pro Logic II ------------------------------------------------------------------------------------------
+            # Dolby Pro Logic II --------------------------------------------------------------------------------------
             dolby_pro_logic_ii = StringVar()
             dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
                                                       variable=dolby_pro_logic_ii, state=DISABLED,
@@ -1519,11 +1538,11 @@ def openaudiowindow():
         # Entry Box for Custom Command Line ---------------------------------------------------------------------------
         def aac_cmd(*args):
             global aac_custom_cmd_input
-            if aac_custom_cmd.get() == (""):
-                aac_custom_cmd_input = ("")
+            if aac_custom_cmd.get() == '':
+                aac_custom_cmd_input = ''
             else:
                 cstmcmd = aac_custom_cmd.get()
-                aac_custom_cmd_input = cstmcmd + " "
+                aac_custom_cmd_input = cstmcmd + ' '
 
         aac_custom_cmd = StringVar()
         aac_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547",
@@ -1539,8 +1558,8 @@ def openaudiowindow():
         # Entry Box for Track Title -----------------------------------------------------------------------------------
         def aac_title_check(*args):
             global aac_title_input
-            if aac_title.get() == (""):
-                aac_title_input = ("")
+            if aac_title.get() == '':
+                aac_title_input = ''
             else:
                 title_cmd = aac_title.get()
                 aac_title_input = "-metadata:s:a:0 title=" + '"' + title_cmd + '"' + " "
@@ -2510,8 +2529,10 @@ def openaudiowindow():
 
         # ABR ---------------------------------------------------------------------------------------------------------
         global mp3_abr
+
         def mp3_abr_toggle(*args):
             update_cfg_mp3()
+
         mp3_abr = StringVar()
         mp3_abr.set(config_profile['FFMPEG MP3 - SETTINGS']['mp3_abr'] + ' ')
         mp3_abr_checkbox = Checkbutton(audio_window, text='ABR', variable=mp3_abr, onvalue="-abr 1 ",
@@ -2522,6 +2543,7 @@ def openaudiowindow():
         mp3_abr_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                    activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
         mp3_abr.trace('w', mp3_abr_toggle)
+
         # --------------------------------------------------------------------------------------------------------- ABR
 
         # Entry Box for Custom Command Line ---------------------------------------------------------------------------
@@ -2749,8 +2771,8 @@ def openaudiowindow():
         # Entry Box for Custom Command Line ---------------------------------------------------------------------------
         def eac3_cmd(*args):
             global eac3_custom_cmd_input
-            if eac3_custom_cmd.get() == (""):
-                eac3_custom_cmd_input = ("")
+            if eac3_custom_cmd.get() == "":
+                eac3_custom_cmd_input = ""
             else:
                 cstmcmd = eac3_custom_cmd.get()
                 eac3_custom_cmd_input = cstmcmd + " "
@@ -3859,6 +3881,7 @@ def openaudiowindow():
         acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
         acodec_stream.trace('w', track_number_mpv)
         track_number_mpv()
+
         # ------------------------------------------------------------------------------------------------ Audio Stream
 
         # Entry Box for Custom Command Line ---------------------------------------------------------------------------
@@ -3942,7 +3965,7 @@ def openaudiowindow():
         global q_acodec_quality_amnt
         q_acodec_quality_amnt = StringVar(audio_window)
         q_acodec_quality_amnt_choices = ('0', '9', '18', '27', '36', '45', '54', '63', '73',
-                                        '82', '91', '100', '109', '118', '127')
+                                         '82', '91', '100', '109', '118', '127')
         q_acodec_quality_spinbox_label = Label(audio_window, text="T-VBR Quality :", background="#434547",
                                                foreground="white")
         q_acodec_quality_spinbox_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -3966,9 +3989,11 @@ def openaudiowindow():
         q_acodec_bitrate_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", disabledbackground='grey')
         q_acodec_bitrate_spinbox.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+
         def disable_enable_bitrate():
             if q_acodec_profile.get() == 'True VBR':
                 q_acodec_bitrate_spinbox.configure(state=DISABLED)
+
         # ----------------------------------------------------------------------------------------------------- Bitrate
 
         # QAAC Gain ---------------------------------------------------------------------------------------------------
@@ -3991,7 +4016,7 @@ def openaudiowindow():
         qaac_normalize.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_normalize'] + ' ')
         qaac_normalize_checkbox = Checkbutton(audio_window, text='Normalize', variable=qaac_normalize,
                                               onvalue="--normalize ", offvalue="")
-        qaac_normalize_checkbox.grid(row=10, column=1, columnspan=1, padx=10, pady=(10,3), sticky=N + S + E + W)
+        qaac_normalize_checkbox.grid(row=10, column=1, columnspan=1, padx=10, pady=(10, 3), sticky=N + S + E + W)
         qaac_normalize_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                           activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
         # --------------------------------------------------------------------------------------------------- Normalize
@@ -4005,9 +4030,11 @@ def openaudiowindow():
         qaac_high_efficiency_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                                 activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
         qaac_high_efficiency.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_high_efficiency'] + ' ')
+
         def enable_disable_he():
             if q_acodec_profile.get() != 'True VBR':
                 qaac_high_efficiency_checkbox.configure(state=NORMAL)
+
         # --------------------------------------------------------------------------------------------- High Effeciency
 
         # Audio Profile Menu ------------------------------------------------------------------------------------------
@@ -4089,7 +4116,7 @@ def openaudiowindow():
         qaac_threading.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_threading'] + ' ')
         qaac_threading_checkbox = Checkbutton(audio_window, text='Threading',
                                               variable=qaac_threading, onvalue="--threading ", offvalue="")
-        qaac_threading_checkbox.grid(row=10, column=0, columnspan=1, padx=10, pady=(10,3), sticky=N + S + E + W)
+        qaac_threading_checkbox.grid(row=10, column=0, columnspan=1, padx=10, pady=(10, 3), sticky=N + S + E + W)
         qaac_threading_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                           activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
         # --------------------------------------------------------------------------------------------------- Threading
@@ -4142,7 +4169,7 @@ def openaudiowindow():
     if encoder.get() == "FLAC":
         try:
             audio_window.deiconify()
-        except:
+        except (Exception,):
             audio_window = Toplevel()
             audio_window.title('FLAC Settings')
             audio_window.configure(background="#434547")
@@ -4337,6 +4364,7 @@ def openaudiowindow():
             acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
             acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
             acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
+
             # --------------------------------------------------------------------------------------------- Sample Rate
 
             # Entry Box for Custom Command Line -----------------------------------------------------------------------
@@ -4350,8 +4378,8 @@ def openaudiowindow():
 
             flac_custom_cmd = StringVar()
             flac_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W,
-                                           background="#434547",
-                                           foreground="white")
+                                            background="#434547",
+                                            foreground="white")
             flac_cmd_entrybox_label.grid(row=8, column=0, columnspan=2, padx=10, pady=(15, 0), sticky=N + S + W + E)
             flac_cmd_entrybox = Entry(audio_window, textvariable=flac_custom_cmd, borderwidth=4, background="#CACACA")
             flac_cmd_entrybox.grid(row=9, column=0, columnspan=3, padx=10, pady=(0, 15), sticky=W + E)
@@ -4389,19 +4417,19 @@ def openaudiowindow():
             acodec_atempo_menu["menu"].configure(activebackground="dim grey")
             acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
             acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
-        # ------------------------------------------------------------------------------------------------ Audio Atempo
+            # ------------------------------------------------------------------------------------------------ Audio Atempo
 
             # LPC Algorithm Selection ---------------------------------------------------------------------------------
             global acodec_flac_lpc_type, acodec_flac_lpc_type_choices
             acodec_flac_lpc_type = StringVar(audio_window)
             acodec_flac_lpc_type_choices = {'Default': "",
-                                         'None': "-lpc_type 0 ",
-                                         'Fixed': "-lpc_type 1 ",
-                                         'Levinson': "-lpc_type 2 ",
-                                         'Cholesky': "-lpc_type 3 "}
+                                            'None': "-lpc_type 0 ",
+                                            'Fixed': "-lpc_type 1 ",
+                                            'Levinson': "-lpc_type 2 ",
+                                            'Cholesky': "-lpc_type 3 "}
             acodec_flac_lpc_type.set(config_profile['FFMPEG FLAC - SETTINGS']['flac_lpc_type'])  # set the default
             acodec_flac_lpc_type_label = Label(audio_window, text="LPC Algorithm :", background="#434547",
-                                            foreground="white")
+                                               foreground="white")
             acodec_flac_lpc_type_label.grid(row=6, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             acodec_flac_lpc_type_menu = OptionMenu(audio_window, acodec_flac_lpc_type,
                                                    *acodec_flac_lpc_type_choices.keys())
@@ -4423,13 +4451,14 @@ def openaudiowindow():
 
             global flac_acodec_coefficient
             flac_acodec_coefficient = StringVar(audio_window)
-            flac_acodec_coefficient_label = Label(audio_window, text="LPC Coefficient Precision :", background="#434547",
+            flac_acodec_coefficient_label = Label(audio_window, text="LPC Coefficient Precision :",
+                                                  background="#434547",
                                                   foreground="white")
             flac_acodec_coefficient_label.grid(row=6, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             flac_acodec_coefficient_spinbox = Spinbox(audio_window, from_=0, to=15, justify=CENTER, wrap=True,
-                                            textvariable=flac_acodec_coefficient, width=13)
+                                                      textvariable=flac_acodec_coefficient, width=13)
             flac_acodec_coefficient_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
-                                         buttonbackground="black", disabledbackground='grey')
+                                                   buttonbackground="black", disabledbackground='grey')
             flac_acodec_coefficient_spinbox.grid(row=7, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             flac_acodec_coefficient.trace('w', flac_acodec_coefficient_trace)
             flac_acodec_coefficient.set(int(config_profile['FFMPEG FLAC - SETTINGS']['flac_coefficient']))
@@ -4450,7 +4479,7 @@ def openaudiowindow():
                                               '10 Passes': "-lpc_passes 10 "}
             acodec_flac_lpc_passes.set(config_profile['FFMPEG FLAC - SETTINGS']['flac_lpc_passes'])
             acodec_flac_lpc_passes_label = Label(audio_window, text="LPC Passes :", background="#434547",
-                                            foreground="white")
+                                                 foreground="white")
             acodec_flac_lpc_passes_label.grid(row=6, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             acodec_flac_lpc_passes_menu = OptionMenu(audio_window, acodec_flac_lpc_passes,
                                                      *acodec_flac_lpc_passes_choices.keys())
@@ -4467,7 +4496,7 @@ def openaudiowindow():
     if encoder.get() == "ALAC":
         try:
             audio_window.deiconify()
-        except:
+        except (Exception,):
             audio_window = Toplevel()
             audio_window.title('ALAC Settings')
             audio_window.configure(background="#434547")
@@ -4639,6 +4668,7 @@ def openaudiowindow():
             acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
             acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
             acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
+
             # ----------------------------------------------------------------------------------------- Sample Rate
 
             # Entry Box for Custom Command Line -------------------------------------------------------------------
@@ -4693,6 +4723,7 @@ def openaudiowindow():
             acodec_atempo_menu["menu"].configure(activebackground="dim grey")
             acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
             acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
+
         # -------------------------------------------------------------------------------------------- Audio Atempo
 
         # Min-Prediction-Order ------------------------------------------------------------------------------------
@@ -4714,6 +4745,7 @@ def openaudiowindow():
         min_prediction_order_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                             buttonbackground="black", disabledbackground='grey')
         min_prediction_order_spinbox.grid(row=6, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+
         # ------------------------------------------------------------------------------------ Min-Prediction-Order
 
         # Max-Prediction-Order ------------------------------------------------------------------------------------
@@ -4738,6 +4770,7 @@ def openaudiowindow():
         # ------------------------------------------------------------------------------------ Max-Prediction-Order
     # -------------------------------------------------------------------------------------------------------- ALAC
 
+
 # ---------------------------------------------------------------------------------------------- End Audio Codec Window
 
 # File Input ----------------------------------------------------------------------------------------------------------
@@ -4750,11 +4783,11 @@ def file_input():
     global track_count
     VideoInput = filedialog.askopenfilename(initialdir="/", title="Select A File",
                                             filetypes=((
-                                                       "AAC, AC3, AVI, DTS, M4A, M4V, MKA, MKV, MOV, MP3, MP4, MPEG, "
-                                                       "MT2S, OGG, OGV, VOB, WAV, WEBM, FLAC, ALAC, EAC3, OPUS, AAX",
-                                                       "*.aac *.ac3 *.avi *.dts *.m4a *.m4v *.mka *.mkv *.mov *.mp3 "
-                                                       "*.mp4 *.mpeg *.mt2s *.ogg *.ogv *.vob *.wav *.webm *.flac "
-                                                       "*.alac *.eac3 *.opus *.aax"),
+                                                           "AAC, AC3, AVI, DTS, M4A, M4V, MKA, MKV, MOV, MP3, MP4, MPEG, "
+                                                           "MT2S, OGG, OGV, VOB, WAV, WEBM, FLAC, ALAC, EAC3, OPUS, AAX",
+                                                           "*.aac *.ac3 *.avi *.dts *.m4a *.m4v *.mka *.mkv *.mov *.mp3 "
+                                                           "*.mp4 *.mpeg *.mt2s *.ogg *.ogv *.vob *.wav *.webm *.flac "
+                                                           "*.alac *.eac3 *.opus *.aax"),
                                                        ("All Files", "*.*")))
     input_entry.configure(state=NORMAL)
     input_entry.delete(0, END)
@@ -4868,6 +4901,7 @@ def output_button_hover(e):
 def output_button_hover_leave(e):
     output_button["bg"] = "#23272A"
 
+
 def audiosettings_button_hover(e):
     audiosettings_button["bg"] = "grey"
 
@@ -4882,6 +4916,7 @@ def auto_encode_last_options_hover(e):
 
 def auto_encode_last_options_hover_leave(e):
     auto_encode_last_options["bg"] = "#23272A"
+
 
 def start_audio_button_hover(e):
     start_audio_button["bg"] = "grey"
@@ -5059,14 +5094,14 @@ def print_command_line():
     elif encoder.get() == "FLAC":
         example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted + \
                              "\n \n" + acodec_stream_choices[acodec_stream.get()] \
-                                     + encoder_dropdownmenu_choices[encoder.get()] + \
-                                     acodec_bitrate_choices[acodec_bitrate.get()] + \
-                                     acodec_channel_choices[acodec_channel.get()] + \
-                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
-                                     + set_flac_acodec_coefficient \
-                                     + acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] \
-                                     + acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] \
-                                     + flac_custom_cmd_input + "\n \n" + VideoOutputQuoted
+                             + encoder_dropdownmenu_choices[encoder.get()] + \
+                             acodec_bitrate_choices[acodec_bitrate.get()] + \
+                             acodec_channel_choices[acodec_channel.get()] + \
+                             acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
+                             + set_flac_acodec_coefficient \
+                             + acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] \
+                             + acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] \
+                             + flac_custom_cmd_input + "\n \n" + VideoOutputQuoted
     # ----------------------------------------------------------------------------------------------- FLAC Command Line
     # ALAC Command Line -----------------------------------------------------------------------------------------------
     elif encoder.get() == "ALAC":
@@ -5081,6 +5116,7 @@ def print_command_line():
     cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
     cmd_label.config(font=("Helvetica", 16))
     cmd_label.pack()
+
 
 # ---------------------------------------------------------------------------------------- Print Command Line from ROOT
 
@@ -5106,14 +5142,13 @@ def startaudiojob():
         times_index = int(stdout.split().index('Duration:')) + 1  # Finds the string 'Duration' and adds 1 to the index
         ffmpeg_total_time = stdout.split()[times_index].rsplit('.', 1)[0]  # Removes mili-seconds from string
         total_duration = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(ffmpeg_total_time.split(":")))))
+
         #  total_duration converts 00:00:00 to seconds for progress bars
 
         def close_encode():
             confirm_exit = messagebox.askyesno(title='Prompt',
                                                message="Are you sure you want to stop the encode?", parent=window)
-            if confirm_exit == False:
-                pass
-            elif confirm_exit == True:
+            if confirm_exit:
                 subprocess.Popen(f"TASKKILL /F /PID {job.pid} /T", creationflags=subprocess.CREATE_NO_WINDOW)
                 window.destroy()
 
@@ -5126,7 +5161,7 @@ def startaudiojob():
         window.configure(background="#434547")
         encode_label = Label(window, text="- - - - - - - - - - - - - - - - - - - - - - Progress - - "
                                           "- - - - - - - - - - - - - - - - - - - -",
-              font=("Times New Roman", 14), background='#434547', foreground="white")
+                             font=("Times New Roman", 14), background='#434547', foreground="white")
         encode_label.grid(column=0, row=0)
         window.grid_columnconfigure(0, weight=1)
         window.grid_rowconfigure(0, weight=1)
@@ -5159,10 +5194,10 @@ def startaudiojob():
                        + "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input + \
                        VideoOutputQuoted + " -hide_banner"
         last_used_command = acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
-                       acodec_bitrate_choices[acodec_bitrate.get()] + \
-                       acodec_channel_choices[acodec_channel.get()] + \
-                       acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
-                       + "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input
+                            acodec_bitrate_choices[acodec_bitrate.get()] + \
+                            acodec_channel_choices[acodec_channel.get()] + \
+                            acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
+                            + "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input
         if shell_options.get() == "Default":
             if auto_or_manual == 'auto':
                 command = finalcommand
@@ -5184,7 +5219,7 @@ def startaudiojob():
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
-                except:
+                except (Exception,):
                     pass
             window.destroy()
         elif shell_options.get() == "Debug":
@@ -5204,10 +5239,10 @@ def startaudiojob():
                        + aac_custom_cmd_input \
                        + aac_title_input + VideoOutputQuoted + " -hide_banner"
         last_used_command = acodec_stream_choices[acodec_stream.get()] + encoder_dropdownmenu_choices[encoder.get()] + \
-                       bitrate_or_quality + acodec_channel_choices[acodec_channel.get()] + \
-                       acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
-                       + "-sn -vn -map_chapters -1 -map_metadata -1 " \
-                       + aac_custom_cmd_input + aac_title_input
+                            bitrate_or_quality + acodec_channel_choices[acodec_channel.get()] + \
+                            acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
+                            + "-sn -vn -map_chapters -1 -map_metadata -1 " \
+                            + aac_custom_cmd_input + aac_title_input
         if shell_options.get() == "Default":
             if auto_or_manual == 'auto':
                 command = finalcommand
@@ -5229,7 +5264,7 @@ def startaudiojob():
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
-                except:
+                except (Exception,):
                     pass
             window.destroy()
         elif shell_options.get() == "Debug":
@@ -5247,11 +5282,11 @@ def startaudiojob():
                            + "-sn -vn -map_chapters -1 " \
                            + VideoOutputQuoted + " -hide_banner"
             last_used_command = acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
-                                 + "-b:a " + dts_bitrate_spinbox.get() + "k " \
-                                 + acodec_channel_choices[acodec_channel.get()] \
-                                 + acodec_samplerate_choices[acodec_samplerate.get()] \
-                                 + audio_filter_setting + dts_custom_cmd_input \
-                                 + "-sn -vn -map_chapters -1 "
+                                + "-b:a " + dts_bitrate_spinbox.get() + "k " \
+                                + acodec_channel_choices[acodec_channel.get()] \
+                                + acodec_samplerate_choices[acodec_samplerate.get()] \
+                                + audio_filter_setting + dts_custom_cmd_input \
+                                + "-sn -vn -map_chapters -1 "
         elif dts_settings.get() != 'DTS Encoder':
             finalcommand = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted \
                            + acodec_stream_choices[acodec_stream.get()] + dts_settings_choices[dts_settings.get()] \
@@ -5281,7 +5316,7 @@ def startaudiojob():
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
-                except:
+                except (Exception,):
                     pass
             window.destroy()
         elif shell_options.get() == "Debug":
@@ -5326,7 +5361,7 @@ def startaudiojob():
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
-                except:
+                except (Exception,):
                     pass
             window.destroy()
         elif shell_options.get() == "Debug":
@@ -5366,7 +5401,7 @@ def startaudiojob():
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
-                except:
+                except (Exception,):
                     pass
             window.destroy()
         elif shell_options.get() == "Debug":
@@ -5442,7 +5477,7 @@ def startaudiojob():
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
-                except:
+                except (Exception,):
                     pass
             window.destroy()
         elif shell_options.get() == "Debug":
@@ -5499,7 +5534,7 @@ def startaudiojob():
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
-                except:
+                except (Exception,):
                     pass
             window.destroy()
         elif shell_options.get() == "Debug":
@@ -5582,7 +5617,7 @@ def startaudiojob():
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
-                except:
+                except (Exception,):
                     pass
             window.destroy()
         elif shell_options.get() == "Debug":
@@ -5628,7 +5663,7 @@ def startaudiojob():
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
-                except:
+                except (Exception,):
                     pass
             window.destroy()
         elif shell_options.get() == "Debug":
@@ -5669,23 +5704,27 @@ def startaudiojob():
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
-                except:
+                except (Exception,):
                     pass
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
     # ------------------------------------------------------------------------------------------------------------ ALAC
 
+
 # Buttons Main Gui ----------------------------------------------------------------------------------------------------
 # Encoder Menu Enter/Leave Binds ----------------------------------------------------------------
 encoder_menu.bind("<Enter>", encoder_menu_hover)
 encoder_menu.bind("<Leave>", encoder_menu_hover_leave)
 
+
 def encoder_menu_on_enter(e):
     status_label.configure(text='Select Audio Codec...')
 
+
 def encoder_menu_on_leave(e):
     status_label.configure(text='')
+
 
 encoder_menu.bind("<Enter>", encoder_menu_on_enter)
 encoder_menu.bind("<Leave>", encoder_menu_on_leave)
@@ -5698,14 +5737,19 @@ audiosettings_button.grid(row=1, column=3, columnspan=2, padx=5, pady=5, sticky=
 audiosettings_button.bind("<Enter>", audiosettings_button_hover)
 audiosettings_button.bind("<Leave>", audiosettings_button_hover_leave)
 
+
 def audiosettings_button_on_enter(e):
     status_label.configure(text='Click To Configure Selected Audio Codec...')
+
 
 def audiosettings_button_on_leave(e):
     status_label.configure(text='')
 
+
 audiosettings_button.bind("<Enter>", audiosettings_button_on_enter)
 audiosettings_button.bind("<Leave>", audiosettings_button_on_leave)
+
+
 # --------------------------------------------------------------------------- # Audio Settings Button
 
 def input_button_commands():
@@ -5807,7 +5851,8 @@ def update_file_input(*args):
             elif config_profile['Auto Encode']['codec'] == 'MP3':
                 VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.mp3'
             elif config_profile['Auto Encode']['codec'] == "FDK-AAC" or \
-                    config_profile['Auto Encode']['codec'] == "QAAC" or config_profile['Auto Encode']['codec'] == "ALAC":
+                    config_profile['Auto Encode']['codec'] == "QAAC" or config_profile['Auto Encode'][
+                'codec'] == "ALAC":
                 VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.m4a'
             elif config_profile['Auto Encode']['codec'] == "FLAC":
                 VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.flac'
@@ -5819,6 +5864,7 @@ def update_file_input(*args):
     else:
         messagebox.showinfo(title="Wrong File Type", message="Try Again With a Supported File Type!\n\nIf this is a "
                                                              "file that should be supported, please let me know.")
+
 
 input_dnd = StringVar()
 input_dnd.trace('w', update_file_input)
@@ -5837,11 +5883,14 @@ input_entry.grid(row=0, column=1, columnspan=3, padx=5, pady=5, sticky=S + E + W
 input_entry.drop_target_register(DND_FILES)
 input_entry.dnd_bind('<<Drop>>', drop_input)
 
+
 def input_button_on_enter(e):
     status_label.configure(text='Click To Open File or Drag and Drop...')
 
+
 def input_button_on_leave(e):
     status_label.configure(text='')
+
 
 input_button.bind("<Enter>", input_button_on_enter)
 input_button.bind("<Leave>", input_button_on_leave)
@@ -5856,11 +5905,14 @@ output_entry.grid(row=2, column=1, columnspan=3, padx=5, pady=5, sticky=S + E + 
 output_button.bind("<Enter>", output_button_hover)
 output_button.bind("<Leave>", output_button_hover_leave)
 
+
 def output_button_on_enter(e):
     status_label.configure(text='Click To Specify Save Location...')
 
+
 def output_button_on_leave(e):
     status_label.configure(text='')
+
 
 output_button.bind("<Enter>", output_button_on_enter)
 output_button.bind("<Leave>", output_button_on_leave)
@@ -5873,14 +5925,19 @@ command_line_button.grid(row=1, column=0, columnspan=1, padx=5, pady=5, sticky=N
 command_line_button.bind("<Enter>", command_line_button_hover)
 command_line_button.bind("<Leave>", command_line_button_hover_leave)
 
+
 def command_line_button_on_enter(e):
     status_label.configure(text='Click To Show Full Command...')
+
 
 def command_line_button_on_leave(e):
     status_label.configure(text='')
 
+
 command_line_button.bind("<Enter>", command_line_button_on_enter)
 command_line_button.bind("<Leave>", command_line_button_on_leave)
+
+
 # ----------------------------------------------------------------------- Print Final Command Line
 
 # Start Audio Job: Manual -----------------------------------------------------------------------
@@ -5888,6 +5945,8 @@ def start_audio_job_manual():
     global auto_or_manual
     auto_or_manual = 'auto'
     threading.Thread(target=startaudiojob).start()
+
+
 start_audio_button = Button(root, text="Start Audio Job",
                             command=start_audio_job_manual, state=DISABLED, foreground="white", background="#23272A",
                             borderwidth="3")
@@ -5895,14 +5954,19 @@ start_audio_button.grid(row=3, column=1, columnspan=3, padx=5, pady=5, sticky=N 
 start_audio_button.bind("<Enter>", start_audio_button_hover)
 start_audio_button.bind("<Leave>", start_audio_button_hover_leave)
 
+
 def start_audio_button_on_enter(e):
     status_label.configure(text='Click To Start Job...')
+
 
 def start_audio_button_on_leave(e):
     status_label.configure(text='')
 
+
 start_audio_button.bind("<Enter>", start_audio_button_on_enter)
 start_audio_button.bind("<Leave>", start_audio_button_on_leave)
+
+
 # --------------------------------------------------------------------------- Start Audio Job: Manual
 
 # Start Audio Job: Auto -----------------------------------------------------------------------------
@@ -5916,11 +5980,15 @@ def encode_last_used_setting():
     openaudiowindow()
     audio_window.destroy()
     threading.Thread(target=startaudiojob).start()
+
+
 auto_encode_last_options = Button(root, text="Auto Encode:\nLast Used Options", command=encode_last_used_setting,
-                                      foreground="white", background="#23272A", borderwidth="3", state=DISABLED)
+                                  foreground="white", background="#23272A", borderwidth="3", state=DISABLED)
 auto_encode_last_options.grid(row=3, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
 auto_encode_last_options.bind("<Enter>", auto_encode_last_options_hover)
 auto_encode_last_options.bind("<Leave>", auto_encode_last_options_hover_leave)
+
+
 def popup_auto_e_b_menu(e):  # Function for mouse button 3 (right click) to pop up menu
     global rightclick_on_off
     try:
@@ -5929,11 +5997,12 @@ def popup_auto_e_b_menu(e):  # Function for mouse button 3 (right click) to pop 
     except NameError:
         pass
 
+
 def show_auto_encode_command(*args):  # Opens a new window with 'Auto Encode' command
     try:
         global show_auto_command_window
         show_auto_command_window.destroy()  # Destroys existing auto command window before continuing to make a new one
-    except:
+    except (Exception,):
         pass
 
     show_auto_command_window = Toplevel(root)  # auto command window (shows auto encoding command)
@@ -5949,17 +6018,22 @@ def show_auto_encode_command(*args):  # Opens a new window with 'Auto Encode' co
     text_area.configure(state=DISABLED)
     show_auto_command_window.grid_columnconfigure(0, weight=1)
 
+
 auto_encode_button_menu = Menu(root, tearoff=False)  # This is the right click menu for the auto_encode_button
 auto_encode_button_menu.add_command(label='Show Command', command=show_auto_encode_command)
+
+
 def auto_encode_last_options_on_enter(e):
     global rightclick_on_off
     status_label.configure(text='Right Click For More Options...')
     rightclick_on_off = 1
 
+
 def auto_encode_last_options_on_leave(e):
     global rightclick_on_off
     status_label.configure(text='')
     rightclick_on_off = 0
+
 
 auto_encode_last_options.bind("<Enter>", auto_encode_last_options_on_enter)
 auto_encode_last_options.bind("<Leave>", auto_encode_last_options_on_leave)
@@ -5973,6 +6047,8 @@ status_label.grid(column=0, row=4, columnspan=4, sticky=W + E)
 
 # Checks for App Folder and Sub-Directories - Creates Folders if they are missing -------------------------------------
 directory_check()
+
+
 # -------------------------------------------------------------------------------------------------------- Folder Check
 
 # Checks config for bundled app paths path ---------------
@@ -5991,7 +6067,7 @@ def check_ffmpeg():
             if rem_ffmpeg == True:
                 try:
                     shutil.rmtree(str(pathlib.Path("Apps/ffmpeg")))
-                except:
+                except (Exception,):
                     pass
         config.set('ffmpeg_path', 'path', ffmpeg)
         with open(config_file, 'w') as configfile:
@@ -6004,9 +6080,10 @@ def check_ffmpeg():
             config.set('ffmpeg_path', 'path', ffmpeg)
             with open(config_file, 'w') as configfile:
                 config.write(configfile)
-        except:
+        except (Exception,):
             pass
     # FFMPEG ------------------------------------------------------------------
+
 
 def check_mediainfocli():
     global mediainfocli
@@ -6017,9 +6094,10 @@ def check_mediainfocli():
             config.set('mediainfocli_path', 'path', mediainfocli)
             with open(config_file, 'w') as configfile:
                 config.write(configfile)
-        except:
+        except (Exception,):
             pass
     # mediainfocli ----------------------------------------------------------
+
 
 def check_mpv_player():
     global mpv_player
@@ -6030,9 +6108,10 @@ def check_mpv_player():
             config.set('mpv_player_path', 'path', mpv_player)
             with open(config_file, 'w') as configfile:
                 config.write(configfile)
-        except:
+        except (Exception,):
             pass
     # mpv_player ----------------------------------------------------------
+
 
 def check_mediainfogui():
     global mediainfo
@@ -6043,9 +6122,10 @@ def check_mediainfogui():
             config.set('mediainfogui_path', 'path', mediainfo)
             with open(config_file, 'w') as configfile:
                 config.write(configfile)
-        except:
+        except (Exception,):
             pass
     # check_mediainfogui ----------------------------------------------------------
+
 
 if not pathlib.Path(config['ffmpeg_path']['path'].replace('"', '')).is_file():
     check_ffmpeg()
