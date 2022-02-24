@@ -15,6 +15,7 @@ from Packages.DirectoryCheck import directory_check
 from Packages.SimpleYoutubeDLGui import youtube_dl_launcher_for_ffmpegaudioencoder
 from Packages.FFMPEGAudioEncoderBatch import batch_processing
 from Packages.About import openaboutwindow
+from Packages.config_params import create_config_params
 from configparser import ConfigParser
 from ctypes import windll
 
@@ -43,7 +44,6 @@ screen_height = root.winfo_screenheight()
 x_coordinate = int((screen_width / 2) - (window_width / 2))
 y_coordinate = int((screen_height / 2) - (window_height / 2))
 root.geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
-# root.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
 root.protocol('WM_DELETE_WINDOW', root_exit_function)
 
 # Block of code to fix DPI awareness issues on Windows 7 or higher
@@ -58,331 +58,71 @@ for n in range(4):
 for n in range(4):
     root.grid_rowconfigure(n, weight=1)
 
-# Bundled Apps Quoted -------------------------------------------------------------------------------------------------
+
+# Themes --------------------------------------------------------------------------------------------------------------
+# Hover over button theme ---------------------------------------
+class HoverButton(tk.Button):
+    def __init__(self, master, **kw):
+        tk.Button.__init__(self, master=master, **kw)
+        self.defaultBackground = self["background"]
+        self.bind("<Enter>", self.on_enter)
+        self.bind("<Leave>", self.on_leave)
+
+    def on_enter(self, e):
+        self['background'] = self['activebackground']
+        if self.cget('text') == 'Open File':
+            status_label.configure(text='Click To Open File or Drag and Drop...')
+        if self.cget('text') == 'Show\nCommand':
+            status_label.configure(text='Click To Show Full Command...')
+        if self.cget('text') == 'Save File':
+            status_label.configure(text='Click To Specify Save Location...')
+        if self.cget('text') == 'Auto Encode:\nLast Used Options':
+            global rightclick_on_off
+            status_label.configure(text='Right Click For More Options...')
+            rightclick_on_off = 1
+        if self.cget('text') == 'Audio Settings':
+            status_label.configure(text='Click To Configure Selected Audio Codec..')
+        if self.cget('text') == 'Start Audio Job':
+            status_label.configure(text='Click To Start Job..')
+
+    def on_leave(self, e):
+        self['background'] = self.defaultBackground
+        if self.cget('text') == 'Auto Encode:\nLast Used Options':
+            global rightclick_on_off
+            status_label.configure(text='Right Click For More Options...')
+            rightclick_on_off = 0
+            status_label.configure(text='')
+        else:
+            status_label.configure(text='')
+
+
+# --------------------------------------- Hover over button theme
+# -------------------------------------------------------------------------------------------------------------- Themes
+
+# ------------------------------------------------------------------------------------------------------- Config Parser
+create_config_params()  # Runs the funciton to define/create all the parameters in the needed .ini files
+# Defines the path to config.ini and opens it for reading/writing
 config_file = 'Runtime/config.ini'  # Creates (if doesn't exist) and defines location of config.ini
 config = ConfigParser()
 config.read(config_file)
 
-if not config.has_section('ffmpeg_path'):  # Create config parameters
-    config.add_section('ffmpeg_path')
-if not config.has_option('ffmpeg_path', 'path'):
-    config.set('ffmpeg_path', 'path', '')
-if not config.has_section('mpv_player_path'):
-    config.add_section('mpv_player_path')
-if not config.has_option('mpv_player_path', 'path'):
-    config.set('mpv_player_path', 'path', '')
-if not config.has_section('mediainfogui_path'):
-    config.add_section('mediainfogui_path')
-if not config.has_option('mediainfogui_path', 'path'):
-    config.set('mediainfogui_path', 'path', '')
-if not config.has_section('mediainfocli_path'):
-    config.add_section('mediainfocli_path')
-if not config.has_option('mediainfocli_path', 'path'):
-    config.set('mediainfocli_path', 'path', '')
-if not config.has_section('debug_option'):
-    config.add_section('debug_option')
-if not config.has_option('debug_option', 'option'):
-    config.set('debug_option', 'option', '')
-try:
-    with open(config_file, 'w') as configfile:
-        config.write(configfile)
-except (Exception,):
-    messagebox.showinfo(title='Error', message='Could Not Write to config.ini file, delete and try again')
+# Defines the path to profiles.ini and opens it for reading/writing
+config_profile_ini = 'Runtime/profiles.ini'  # Creates (if doesn't exist) and defines location of profile.ini
+config_profile = ConfigParser()
+config_profile.read(config_profile_ini)
+# Config Parser -------------------------------------------------------------------------------------------------------
 
+# Bundled Apps --------------------------------------------------------------------------------------------------------
 ffmpeg = config['ffmpeg_path']['path']
 mediainfocli = config['mediainfocli_path']['path']
 mediainfo = config['mediainfogui_path']['path']
 fdkaac = '"Apps/fdkaac/fdkaac.exe"'
 qaac = '"Apps/qaac/qaac64.exe"'
 mpv_player = config['mpv_player_path']['path']
+
+
 # -------------------------------------------------------------------------------------------------------- Bundled Apps
 
-# ------------------------------------------------------------------------------------------------------ Profile Config
-
-config_profile_ini = 'Runtime/profiles.ini'  # Creates (if doesn't exist) and defines location of profile.ini
-config_profile = ConfigParser()
-config_profile.read(config_profile_ini)
-
-# AAC settings --------------------------------------------------- # Create config parameters
-if not config_profile.has_section('FFMPEG AAC - SETTINGS'):
-    config_profile.add_section('FFMPEG AAC - SETTINGS')
-if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'dolbyprologicii'):
-    config_profile.set('FFMPEG AAC - SETTINGS', 'dolbyprologicii', '')
-if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'ffmpeg_gain'):
-    config_profile.set('FFMPEG AAC - SETTINGS', 'ffmpeg_gain', '0')
-if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'aac_bitrate'):
-    config_profile.set('FFMPEG AAC - SETTINGS', 'aac_bitrate', '192')
-if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'aac_vbr_quality'):
-    config_profile.set('FFMPEG AAC - SETTINGS', 'aac_vbr_quality', '2')
-if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'aac_vbr_toggle'):
-    config_profile.set('FFMPEG AAC - SETTINGS', 'aac_vbr_toggle', '-c:a')
-if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'aac_channel'):
-    config_profile.set('FFMPEG AAC - SETTINGS', 'aac_channel', 'Original')
-if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'samplerate'):
-    config_profile.set('FFMPEG AAC - SETTINGS', 'samplerate', 'Original')
-if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'tempo'):
-    config_profile.set('FFMPEG AAC - SETTINGS', 'tempo', 'Original')
-# --------------------------------------------------- AAC Settings
-# AC3 settings --------------------------------------------------- # Create config parameters
-if not config_profile.has_section('FFMPEG AC3 - SETTINGS'):
-    config_profile.add_section('FFMPEG AC3 - SETTINGS')
-if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'ac3_bitrate'):
-    config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_bitrate', '224k')
-if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'dolbyprologicii'):
-    config_profile.set('FFMPEG AC3 - SETTINGS', 'dolbyprologicii', '')
-if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'ffmpeg_gain'):
-    config_profile.set('FFMPEG AC3 - SETTINGS', 'ffmpeg_gain', '0')
-if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'ac3_channel'):
-    config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_channel', 'Original')
-if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'samplerate'):
-    config_profile.set('FFMPEG AC3 - SETTINGS', 'samplerate', 'Original')
-if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'tempo'):
-    config_profile.set('FFMPEG AC3 - SETTINGS', 'tempo', 'Original')
-# --------------------------------------------------- AC3 Settings
-# DTS settings --------------------------------------------------- # Create config parameters
-if not config_profile.has_section('FFMPEG DTS - SETTINGS'):
-    config_profile.add_section('FFMPEG DTS - SETTINGS')
-if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'dts_bitrate'):
-    config_profile.set('FFMPEG DTS - SETTINGS', 'dts_bitrate', '448')
-if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'dolbyprologicii'):
-    config_profile.set('FFMPEG DTS - SETTINGS', 'dolbyprologicii', '')
-if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'ffmpeg_gain'):
-    config_profile.set('FFMPEG DTS - SETTINGS', 'ffmpeg_gain', '0')
-if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'dts_channel'):
-    config_profile.set('FFMPEG DTS - SETTINGS', 'dts_channel', 'Original')
-if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'samplerate'):
-    config_profile.set('FFMPEG DTS - SETTINGS', 'samplerate', 'Original')
-if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'tempo'):
-    config_profile.set('FFMPEG DTS - SETTINGS', 'tempo', 'Original')
-# --------------------------------------------------- DTS Settings
-# E-AC3 settings --------------------------------------------------- # Create config parameters
-if not config_profile.has_section('FFMPEG E-AC3 - SETTINGS'):
-    config_profile.add_section('FFMPEG E-AC3 - SETTINGS')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_bitrate'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_bitrate', '448k')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_channel'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_channel', 'Original')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_gain'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_gain', '0')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'samplerate'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'samplerate', 'Original')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_per_frame_metadata'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_per_frame_metadata', 'Default')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_mixing_level'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_mixing_level', '-1')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_room_type'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_room_type', 'Default')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_copyright_bit'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_copyright_bit', '-1')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dialogue_level'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dialogue_level', '-31')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_surround_mode'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_surround_mode', 'Default')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_original_bitstream'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_original_bitstream', '-1')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_downmix_mode'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_downmix_mode', 'Default')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lt_rt_center_mix'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lt_rt_center_mix', '-1')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lt_rt_surround_mix'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lt_rt_surround_mix', '-1')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lo_ro_center_mix'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lo_ro_center_mix', '-1')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lo_ro_surround_mix'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_lo_ro_surround_mix', '-1')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dolby_surround_ex_mode'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dolby_surround_ex_mode', 'Default')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dolby_headphone_mode'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dolby_headphone_mode', 'Default')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_a_d_converter_type'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_a_d_converter_type', 'Default')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_stereo_rematrixing'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_dolby_stereo_rematrixing', 'Default')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_channel_coupling'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_channel_coupling', '-1')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_cpl_start_band'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_cpl_start_band', '-1')
-if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'tempo'):
-    config_profile.set('FFMPEG E-AC3 - SETTINGS', 'tempo', 'Original')
-# --------------------------------------------------- E-AC3 Settings
-# Opus settings --------------------------------------------------- # Create config parameters
-if not config_profile.has_section('FFMPEG Opus - SETTINGS'):
-    config_profile.add_section('FFMPEG Opus - SETTINGS')
-if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'opus_bitrate'):
-    config_profile.set('FFMPEG Opus - SETTINGS', 'opus_bitrate', '160k')
-if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'samplerate'):
-    config_profile.set('FFMPEG Opus - SETTINGS', 'samplerate', 'Original')
-if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'acodec_vbr'):
-    config_profile.set('FFMPEG Opus - SETTINGS', 'acodec_vbr', 'VBR: On')
-if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'acodec_application'):
-    config_profile.set('FFMPEG Opus - SETTINGS', 'acodec_application', 'Audio')
-if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'frame_duration'):
-    config_profile.set('FFMPEG Opus - SETTINGS', 'frame_duration', '20')
-if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'packet_loss'):
-    config_profile.set('FFMPEG Opus - SETTINGS', 'packet_loss', '0')
-if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'acodec_channel'):
-    config_profile.set('FFMPEG Opus - SETTINGS', 'acodec_channel', '2 (Stereo)')
-if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'dolbyprologicii'):
-    config_profile.set('FFMPEG Opus - SETTINGS', 'dolbyprologicii', '')
-if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'ffmpeg_gain'):
-    config_profile.set('FFMPEG Opus - SETTINGS', 'ffmpeg_gain', '0')
-if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'tempo'):
-    config_profile.set('FFMPEG Opus - SETTINGS', 'tempo', 'Original')
-# --------------------------------------------------- Opus Settings
-# FDK-AAC settings --------------------------------------------------- # Create config parameters
-if not config_profile.has_section('FDK-AAC - SETTINGS'):
-    config_profile.add_section('FDK-AAC - SETTINGS')
-if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_bitrate'):
-    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_bitrate', 'CBR: 192k')
-if not config_profile.has_option('FDK-AAC - SETTINGS', 'acodec_channel'):
-    config_profile.set('FDK-AAC - SETTINGS', 'acodec_channel', 'Original')
-if not config_profile.has_option('FDK-AAC - SETTINGS', 'dolbyprologicii'):
-    config_profile.set('FDK-AAC - SETTINGS', 'dolbyprologicii', '')
-if not config_profile.has_option('FDK-AAC - SETTINGS', 'ffmpeg_gain'):
-    config_profile.set('FDK-AAC - SETTINGS', 'ffmpeg_gain', '0')
-if not config_profile.has_option('FDK-AAC - SETTINGS', 'samplerate'):
-    config_profile.set('FDK-AAC - SETTINGS', 'samplerate', 'Original')
-if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_profile'):
-    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_profile', 'AAC LC (Default)')
-if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_lowdelay'):
-    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_lowdelay', 'Disable SBR on ELD (DEF)')
-if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_sbr_ratio'):
-    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_sbr_ratio', 'Library Default')
-if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_gapless'):
-    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_gapless', 'iTunSMPB (Def)')
-if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_transport_format'):
-    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_transport_format', 'M4A (Def)')
-if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_afterburner'):
-    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_afterburner', '-a1')
-if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_crccheck'):
-    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_crccheck', '')
-if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_headerperiod'):
-    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_headerperiod', '')
-if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_sbrdelay'):
-    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_sbrdelay', '')
-if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_moovbox'):
-    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_moovbox', '')
-if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_tempo'):
-    config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_tempo', 'Original')
-# --------------------------------------------------- FDK-AAC Settings
-# MP3 settings --------------------------------------------------- # Create config parameters
-if not config_profile.has_section('FFMPEG MP3 - SETTINGS'):
-    config_profile.add_section('FFMPEG MP3 - SETTINGS')
-if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'acodec_bitrate'):
-    config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_bitrate', 'VBR: -V 0')
-if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'acodec_channel'):
-    config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_channel', 'Original')
-if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'mp3_vbr'):
-    config_profile.set('FFMPEG MP3 - SETTINGS', 'mp3_vbr', '-q:a')
-if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'mp3_abr'):
-    config_profile.set('FFMPEG MP3 - SETTINGS', 'mp3_abr', '')
-if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'dolbyprologicii'):
-    config_profile.set('FFMPEG MP3 - SETTINGS', 'dolbyprologicii', '')
-if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'ffmpeg_gain'):
-    config_profile.set('FFMPEG MP3 - SETTINGS', 'ffmpeg_gain', '0')
-if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'samplerate'):
-    config_profile.set('FFMPEG MP3 - SETTINGS', 'samplerate', 'Original')
-if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'tempo'):
-    config_profile.set('FFMPEG MP3 - SETTINGS', 'tempo', 'Original')
-if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_vbr'):
-    config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_vbr', '')
-if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_cbr_abr'):
-    config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_cbr_abr', '')
-# --------------------------------------------------- MP3 Settings
-# QAAC settings --------------------------------------------------- # Create config parameters
-if not config_profile.has_section('FFMPEG QAAC - SETTINGS'):
-    config_profile.add_section('FFMPEG QAAC - SETTINGS')
-if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'q_acodec_profile'):
-    config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_profile', 'True VBR')
-if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'dolbyprologicii'):
-    config_profile.set('FFMPEG QAAC - SETTINGS', 'dolbyprologicii', '')
-if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'acodec_channel'):
-    config_profile.set('FFMPEG QAAC - SETTINGS', 'acodec_channel', 'Original')
-if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'samplerate'):
-    config_profile.set('FFMPEG QAAC - SETTINGS', 'samplerate', 'Original')
-if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'q_acodec_quality'):
-    config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_quality', 'High (Default)')
-if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'q_acodec_quality_amnt'):
-    config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_quality_amnt', '109')
-if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'q_acodec_bitrate'):
-    config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_bitrate', '256')
-if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'q_acodec_gain'):
-    config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_gain', '0')
-if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'qaac_normalize'):
-    config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_normalize', '')
-if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'qaac_high_efficiency'):
-    config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_high_efficiency', '')
-if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'qaac_nodither'):
-    config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_nodither', '')
-if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'qaac_nodelay'):
-    config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_nodelay', '')
-if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'q_gapless_mode'):
-    config_profile.set('FFMPEG QAAC - SETTINGS', 'q_gapless_mode', 'iTunSMPB (Default)')
-if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'qaac_nooptimize'):
-    config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_nooptimize', '')
-if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'qaac_threading'):
-    config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_threading', '')
-if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'qaac_limiter'):
-    config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_limiter', '')
-if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'tempo'):
-    config_profile.set('FFMPEG QAAC - SETTINGS', 'tempo', 'Original')
-# --------------------------------------------------- QAAC Settings
-# FLAC settings --------------------------------------------------- # Create config parameters
-if not config_profile.has_section('FFMPEG FLAC - SETTINGS'):
-    config_profile.add_section('FFMPEG FLAC - SETTINGS')
-if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'acodec_bitrate'):
-    config_profile.set('FFMPEG FLAC - SETTINGS', 'acodec_bitrate', 'Level 5 - Default Quality')
-if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'acodec_channel'):
-    config_profile.set('FFMPEG FLAC - SETTINGS', 'acodec_channel', 'Original')
-if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'dolbyprologicii'):
-    config_profile.set('FFMPEG FLAC - SETTINGS', 'dolbyprologicii', '')
-if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'gain'):
-    config_profile.set('FFMPEG FLAC - SETTINGS', 'gain', '0')
-if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'samplerate'):
-    config_profile.set('FFMPEG FLAC - SETTINGS', 'samplerate', 'Original')
-if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'tempo'):
-    config_profile.set('FFMPEG FLAC - SETTINGS', 'tempo', 'Original')
-if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'flac_lpc_type'):
-    config_profile.set('FFMPEG FLAC - SETTINGS', 'flac_lpc_type', 'Default')
-if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'flac_coefficient'):
-    config_profile.set('FFMPEG FLAC - SETTINGS', 'flac_coefficient', '15')
-if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'flac_lpc_passes'):
-    config_profile.set('FFMPEG FLAC - SETTINGS', 'flac_lpc_passes', 'Default')
-# --------------------------------------------------- FLAC Settings
-# ALAC settings --------------------------------------------------- # Create config parameters
-if not config_profile.has_section('FFMPEG ALAC - SETTINGS'):
-    config_profile.add_section('FFMPEG ALAC - SETTINGS')
-if not config_profile.has_option('FFMPEG ALAC - SETTINGS', 'acodec_channel'):
-    config_profile.set('FFMPEG ALAC - SETTINGS', 'acodec_channel', 'Original')
-if not config_profile.has_option('FFMPEG ALAC - SETTINGS', 'dolbyprologicii'):
-    config_profile.set('FFMPEG ALAC - SETTINGS', 'dolbyprologicii', '')
-if not config_profile.has_option('FFMPEG ALAC - SETTINGS', 'gain'):
-    config_profile.set('FFMPEG ALAC - SETTINGS', 'gain', '0')
-if not config_profile.has_option('FFMPEG ALAC - SETTINGS', 'samplerate'):
-    config_profile.set('FFMPEG ALAC - SETTINGS', 'samplerate', 'Original')
-if not config_profile.has_option('FFMPEG ALAC - SETTINGS', 'tempo'):
-    config_profile.set('FFMPEG ALAC - SETTINGS', 'tempo', 'Original')
-if not config_profile.has_option('FFMPEG ALAC - SETTINGS', 'alac_min_prediction_order'):
-    config_profile.set('FFMPEG ALAC - SETTINGS', 'alac_min_prediction_order', '4')
-if not config_profile.has_option('FFMPEG ALAC - SETTINGS', 'alac_max_prediction_order'):
-    config_profile.set('FFMPEG ALAC - SETTINGS', 'alac_max_prediction_order', '6')
-# --------------------------------------------------- ALAC Settings
-# Auto Encode Last Used Options ------------------------------------ # Create config parameters
-if not config_profile.has_section('Auto Encode'):
-    config_profile.add_section('Auto Encode')
-if not config_profile.has_option('Auto Encode', 'codec'):
-    config_profile.set('Auto Encode', 'codec', '')
-if not config_profile.has_option('Auto Encode', 'command'):
-    config_profile.set('Auto Encode', 'command', '')
-# ------------------------------------- Auto Encode Last Used Options
-try:
-    with open(config_profile_ini, 'w') as configfile_two:
-        config_profile.write(configfile_two)
-except (Exception,):
-    messagebox.showinfo(title='Error', message='Could Not Write to profiles.ini file, delete and try again')
-
-
-# Profile Config ------------------------------------------------------------------------------------------------------
 
 # Open InputFile with portable MediaInfo ------------------------------------------------------------------------------
 def mediainfogui():
@@ -515,6 +255,7 @@ def reset_config():
             config.set('mpv_player_path', 'path', '')
             config.set('mediainfocli_path', 'path', '')
             config.set('mediainfogui_path', 'path', '')
+            config.set('debug_option', 'option', 'Default')
             with open(config_file, 'w') as configfile:
                 config.write(configfile)
             messagebox.showinfo(title='Prompt', message='Please restart the program')
@@ -632,12 +373,6 @@ def openaudiowindow():
         acodec_stream_choices, acodec_gain, acodec_gain_choices, dts_settings, dts_settings_choices, \
         acodec_vbr_choices, acodec_vbr, acodec_samplerate, acodec_samplerate_choices, acodec_application, \
         acodec_application_choices, acodec_profile, acodec_profile_choices, acodec_atempo, acodec_atempo_choices
-
-    def apply_button_hover(e):
-        apply_button["bg"] = "grey"
-
-    def apply_button_hover_leave(e):
-        apply_button["bg"] = "#23272a"
 
     def show_cmd_hover(e):
         show_cmd["bg"] = "grey"
@@ -763,13 +498,6 @@ def openaudiowindow():
 
     def q_acodec_quality_menu_hover_leave(e):
         q_acodec_quality_menu["bg"] = "#23272A"
-
-    def help_button_hover(e):
-        help_button["bg"] = "grey"
-        help_button["activebackground"] = "grey"
-
-    def help_button_hover_leave(e):
-        help_button["bg"] = "#23272A"
 
     def q_gapless_mode_menu_hover(e):
         q_gapless_mode_menu["bg"] = "grey"
@@ -1275,14 +1003,12 @@ def openaudiowindow():
             # ------------------------------------------------------------------------------------------- Views Command
 
             # Buttons -------------------------------------------------------------------------------------------------
-            apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
-                                  command=gotosavefile)
+            apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
+                                       command=gotosavefile, activebackground='grey')
             apply_button.grid(row=8, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-            apply_button.bind("<Enter>", apply_button_hover)
-            apply_button.bind("<Leave>", apply_button_hover_leave)
 
-            show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
-                              command=view_command)
+            show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
+                                   command=view_command, activebackground='grey')
             show_cmd.grid(row=8, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
             show_cmd.bind("<Enter>", show_cmd_hover)
             show_cmd.bind("<Leave>", show_cmd_hover_leave)
@@ -1522,14 +1248,12 @@ def openaudiowindow():
         # ----------------------------------------------------------------------------------------------- Views Command
 
         # Buttons -----------------------------------------------------------------------------------------------------
-        apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
-                              command=gotosavefile)
+        apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
+                                   command=gotosavefile, activebackground='grey')
         apply_button.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-        apply_button.bind("<Enter>", apply_button_hover)
-        apply_button.bind("<Leave>", apply_button_hover_leave)
 
-        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
-                          command=view_command)
+        show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
+                               command=view_command, activebackground='grey')
         show_cmd.grid(row=10, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
@@ -1844,14 +1568,12 @@ def openaudiowindow():
         # ----------------------------------------------------------------------------------------------- Views Command
 
         # Buttons -----------------------------------------------------------------------------------------------------
-        apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
-                              command=gotosavefile)
+        apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
+                                   command=gotosavefile, activebackground='grey')
         apply_button.grid(row=9, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        apply_button.bind("<Enter>", apply_button_hover)
-        apply_button.bind("<Leave>", apply_button_hover_leave)
 
-        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
-                          command=view_command)
+        show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
+                               command=view_command, activebackground='grey')
         show_cmd.grid(row=9, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
@@ -2104,14 +1826,12 @@ def openaudiowindow():
         # ----------------------------------------------------------------------------------------------- Views Command
 
         # Buttons -----------------------------------------------------------------------------------------------------
-        apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
-                              command=gotosavefile)
+        apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
+                                   command=gotosavefile, activebackground='grey')
         apply_button.grid(row=13, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        apply_button.bind("<Enter>", apply_button_hover)
-        apply_button.bind("<Leave>", apply_button_hover_leave)
 
-        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
-                          command=view_command)
+        show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
+                               command=view_command, activebackground='grey')
         show_cmd.grid(row=13, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
@@ -2487,14 +2207,12 @@ def openaudiowindow():
         # ----------------------------------------------------------------------------------------------- Views Command
 
         # Buttons -----------------------------------------------------------------------------------------------------
-        apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
-                              command=gotosavefile)
+        apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
+                                   command=gotosavefile, activebackground='grey')
         apply_button.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        apply_button.bind("<Enter>", apply_button_hover)
-        apply_button.bind("<Leave>", apply_button_hover_leave)
 
-        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
-                          command=view_command)
+        show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
+                               command=view_command, activebackground='grey')
         show_cmd.grid(row=7, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
@@ -2755,14 +2473,12 @@ def openaudiowindow():
         # ----------------------------------------------------------------------------------------------- Views Command
 
         # Buttons -----------------------------------------------------------------------------------------------------
-        apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
-                              command=gotosavefile)
+        apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
+                                   command=gotosavefile, activebackground='grey')
         apply_button.grid(row=22, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        apply_button.bind("<Enter>", apply_button_hover)
-        apply_button.bind("<Leave>", apply_button_hover_leave)
 
-        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
-                          command=view_command)
+        show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
+                               command=view_command, activebackground='grey')
         show_cmd.grid(row=22, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
@@ -3231,12 +2947,6 @@ def openaudiowindow():
             audio_window.grid_rowconfigure(n, weight=1)
         audio_window.grid_rowconfigure(15, weight=1)
 
-        def help_button_hover(e):
-            help_button["bg"] = "grey"
-
-        def help_button_hover_leave(e):
-            help_button["bg"] = "#23272A"
-
         def acodec_lowdelay_menu_hover(e):
             acodec_lowdelay_menu["bg"] = "grey"
             acodec_lowdelay_menu["activebackground"] = "grey"
@@ -3327,23 +3037,19 @@ def openaudiowindow():
         # ----------------------------------------------------------------------------------------------- Views Command
 
         # Buttons -----------------------------------------------------------------------------------------------------
-        apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
-                              command=gotosavefile)
+        apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
+                                   command=gotosavefile, activebackground='grey')
         apply_button.grid(row=15, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        apply_button.bind("<Enter>", apply_button_hover)
-        apply_button.bind("<Leave>", apply_button_hover_leave)
 
-        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
-                          command=view_command)
+        show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
+                               command=view_command, activebackground='grey')
         show_cmd.grid(row=15, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
 
-        help_button = Button(audio_window, text="Help + Information", foreground="white", background="#23272A",
-                             command=gotofdkaachelp)
+        help_button = HoverButton(audio_window, text="Help + Information", foreground="white", background="#23272A",
+                                  command=gotofdkaachelp, activebackground='grey')
         help_button.grid(row=15, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-        help_button.bind("<Enter>", help_button_hover)
-        help_button.bind("<Leave>", help_button_hover_leave)
         # ----------------------------------------------------------------------------------------------------- Buttons
 
         advanced_label = Label(audio_window,
@@ -3794,23 +3500,19 @@ def openaudiowindow():
 
         # ----------------------------------------------------------------------------------------------- Views Command
         # Buttons -----------------------------------------------------------------------------------------------------
-        apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
-                              command=gotosavefile)
+        apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
+                                   command=gotosavefile, activebackground='grey')
         apply_button.grid(row=16, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        apply_button.bind("<Enter>", apply_button_hover)
-        apply_button.bind("<Leave>", apply_button_hover_leave)
 
-        show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
-                          command=view_command)
+        show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
+                               command=view_command, activebackground='grey')
         show_cmd.grid(row=16, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
 
-        help_button = Button(audio_window, text="Help + Information", foreground="white", background="#23272A",
-                             command=gotoqaachelp)
+        help_button = HoverButton(audio_window, text="Help + Information", foreground="white", background="#23272A",
+                                  command=gotoqaachelp, activebackground='grey')
         help_button.grid(row=16, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-        help_button.bind("<Enter>", help_button_hover)
-        help_button.bind("<Leave>", help_button_hover_leave)
         # ----------------------------------------------------------------------------------------------------- Buttons
 
         advanced_label = Label(audio_window,
@@ -4233,14 +3935,12 @@ def openaudiowindow():
             # ------------------------------------------------------------------------------------------- Views Command
 
             # Buttons -------------------------------------------------------------------------------------------------
-            apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
-                                  command=gotosavefile)
+            apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
+                                       command=gotosavefile, activebackground='grey')
             apply_button.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-            apply_button.bind("<Enter>", apply_button_hover)
-            apply_button.bind("<Leave>", apply_button_hover_leave)
 
-            show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
-                              command=view_command)
+            show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
+                                   command=view_command, activebackground='grey')
             show_cmd.grid(row=10, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
             show_cmd.bind("<Enter>", show_cmd_hover)
             show_cmd.bind("<Leave>", show_cmd_hover_leave)
@@ -4558,14 +4258,12 @@ def openaudiowindow():
             # --------------------------------------------------------------------------------------- Views Command
 
             # Buttons ---------------------------------------------------------------------------------------------
-            apply_button = Button(audio_window, text="Apply", foreground="white", background="#23272A",
-                                  command=gotosavefile)
+            apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
+                                       command=gotosavefile, activebackground='grey')
             apply_button.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-            apply_button.bind("<Enter>", apply_button_hover)
-            apply_button.bind("<Leave>", apply_button_hover_leave)
 
-            show_cmd = Button(audio_window, text="View Command", foreground="white", background="#23272A",
-                              command=view_command)
+            show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
+                                   command=view_command, activebackground='grey')
             show_cmd.grid(row=10, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
             show_cmd.bind("<Enter>", show_cmd_hover)
             show_cmd.bind("<Leave>", show_cmd_hover_leave)
@@ -4887,54 +4585,6 @@ def file_save():
 
 
 # --------------------------------------------------------------------------------------------------------- File Output
-def input_button_hover(e):
-    input_button["bg"] = "grey"
-
-
-def input_button_hover_leave(e):
-    input_button["bg"] = "#23272A"
-
-
-def output_button_hover(e):
-    output_button["bg"] = "grey"
-
-
-def output_button_hover_leave(e):
-    output_button["bg"] = "#23272A"
-
-
-def audiosettings_button_hover(e):
-    audiosettings_button["bg"] = "grey"
-
-
-def audiosettings_button_hover_leave(e):
-    audiosettings_button["bg"] = "#23272A"
-
-
-def auto_encode_last_options_hover(e):
-    auto_encode_last_options["bg"] = "grey"
-
-
-def auto_encode_last_options_hover_leave(e):
-    auto_encode_last_options["bg"] = "#23272A"
-
-
-def start_audio_button_hover(e):
-    start_audio_button["bg"] = "grey"
-
-
-def start_audio_button_hover_leave(e):
-    start_audio_button["bg"] = "#23272A"
-
-
-def command_line_button_hover(e):
-    command_line_button["bg"] = "grey"
-
-
-def command_line_button_hover_leave(e):
-    command_line_button["bg"] = "#23272A"
-
-
 def encoder_menu_hover(e):
     encoder_menu["bg"] = "grey"
     encoder_menu["activebackground"] = "grey"
@@ -5732,23 +5382,9 @@ encoder_menu.bind("<Leave>", encoder_menu_on_leave)
 # ---------------------------------------------------------------- # Encoder Menu Enter/Leave Binds
 
 # Audio Settings Button --------------------------------------------------------------------------
-audiosettings_button = Button(root, text="Audio Settings", command=openaudiowindow, foreground="white",
-                              background="#23272A", state=DISABLED, borderwidth="3")
+audiosettings_button = HoverButton(root, text="Audio Settings", command=openaudiowindow, foreground="white",
+                                   background="#23272A", state=DISABLED, borderwidth="3", activebackground='grey')
 audiosettings_button.grid(row=1, column=3, columnspan=2, padx=5, pady=5, sticky=N + S + W + E)
-audiosettings_button.bind("<Enter>", audiosettings_button_hover)
-audiosettings_button.bind("<Leave>", audiosettings_button_hover_leave)
-
-
-def audiosettings_button_on_enter(e):
-    status_label.configure(text='Click To Configure Selected Audio Codec...')
-
-
-def audiosettings_button_on_leave(e):
-    status_label.configure(text='')
-
-
-audiosettings_button.bind("<Enter>", audiosettings_button_on_enter)
-audiosettings_button.bind("<Leave>", audiosettings_button_on_leave)
 
 
 # --------------------------------------------------------------------------- # Audio Settings Button
@@ -5871,72 +5507,41 @@ input_dnd = StringVar()
 input_dnd.trace('w', update_file_input)
 
 # Input Button/Entry Box ----------------------------------------------------------------------
-input_button = tk.Button(root, text="Open File", command=input_button_commands, foreground="white",
-                         background="#23272A", borderwidth="3")
+input_button = HoverButton(root, text="Open File", command=input_button_commands, foreground="white",
+                           background="#23272A", borderwidth="3", activebackground='grey')
 input_button.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
 input_button.drop_target_register(DND_FILES)
 input_button.dnd_bind('<<Drop>>', drop_input)
-input_button.bind("<Enter>", input_button_hover)
-input_button.bind("<Leave>", input_button_hover_leave)
 
 input_entry = Entry(root, width=35, borderwidth=4, background="#CACACA", state=DISABLED)
 input_entry.grid(row=0, column=1, columnspan=3, padx=5, pady=5, sticky=S + E + W)
 input_entry.drop_target_register(DND_FILES)
 input_entry.dnd_bind('<<Drop>>', drop_input)
 
-
-def input_button_on_enter(e):
-    status_label.configure(text='Click To Open File or Drag and Drop...')
-
-
-def input_button_on_leave(e):
-    status_label.configure(text='')
-
-
-input_button.bind("<Enter>", input_button_on_enter)
-input_button.bind("<Leave>", input_button_on_leave)
+# def input_button_on_enter(e):
+#     status_label.configure(text='Click To Open File or Drag and Drop...')
+#
+#
+# def input_button_on_leave(e):
+#     status_label.configure(text='')
+#
+#
+# input_button.bind("<Enter>", input_button_on_enter)
+# input_button.bind("<Leave>", input_button_on_leave)
 # ------------------------------------------------------------------------- Input Button/Entry Box
 
 # Output Button/Entry Box ------------------------------------------------------------------------
-output_button = Button(root, text="Save File", command=file_save, state=DISABLED, foreground="white",
-                       background="#23272A", borderwidth="3")
+output_button = HoverButton(root, text="Save File", command=file_save, state=DISABLED, foreground="white",
+                            background="#23272A", borderwidth="3", activebackground='grey')
 output_button.grid(row=2, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
 output_entry = Entry(root, width=35, borderwidth=4, background="#CACACA", state=DISABLED)
 output_entry.grid(row=2, column=1, columnspan=3, padx=5, pady=5, sticky=S + E + W)
-output_button.bind("<Enter>", output_button_hover)
-output_button.bind("<Leave>", output_button_hover_leave)
-
-
-def output_button_on_enter(e):
-    status_label.configure(text='Click To Specify Save Location...')
-
-
-def output_button_on_leave(e):
-    status_label.configure(text='')
-
-
-output_button.bind("<Enter>", output_button_on_enter)
-output_button.bind("<Leave>", output_button_on_leave)
 # ---------------------------------------------------------------------- # Output Button/Entry Box
 
 # Print Final Command Line ---------------------------------------------------------------------
-command_line_button = Button(root, text="Show\nCommand", command=print_command_line, state=DISABLED, foreground="white",
-                             background="#23272A", borderwidth="3")
+command_line_button = HoverButton(root, text="Show\nCommand", command=print_command_line, state=DISABLED,
+                                  foreground="white", background="#23272A", borderwidth="3", activebackground='grey')
 command_line_button.grid(row=1, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
-command_line_button.bind("<Enter>", command_line_button_hover)
-command_line_button.bind("<Leave>", command_line_button_hover_leave)
-
-
-def command_line_button_on_enter(e):
-    status_label.configure(text='Click To Show Full Command...')
-
-
-def command_line_button_on_leave(e):
-    status_label.configure(text='')
-
-
-command_line_button.bind("<Enter>", command_line_button_on_enter)
-command_line_button.bind("<Leave>", command_line_button_on_leave)
 
 
 # ----------------------------------------------------------------------- Print Final Command Line
@@ -5948,24 +5553,10 @@ def start_audio_job_manual():
     threading.Thread(target=startaudiojob).start()
 
 
-start_audio_button = Button(root, text="Start Audio Job",
-                            command=start_audio_job_manual, state=DISABLED, foreground="white", background="#23272A",
-                            borderwidth="3")
+start_audio_button = HoverButton(root, text="Start Audio Job",
+                                 command=start_audio_job_manual, state=DISABLED, foreground="white",
+                                 background="#23272A", borderwidth="3", activebackground='grey')
 start_audio_button.grid(row=3, column=1, columnspan=3, padx=5, pady=5, sticky=N + S + E + W)
-start_audio_button.bind("<Enter>", start_audio_button_hover)
-start_audio_button.bind("<Leave>", start_audio_button_hover_leave)
-
-
-def start_audio_button_on_enter(e):
-    status_label.configure(text='Click To Start Job...')
-
-
-def start_audio_button_on_leave(e):
-    status_label.configure(text='')
-
-
-start_audio_button.bind("<Enter>", start_audio_button_on_enter)
-start_audio_button.bind("<Leave>", start_audio_button_on_leave)
 
 
 # --------------------------------------------------------------------------- Start Audio Job: Manual
@@ -5983,11 +5574,10 @@ def encode_last_used_setting():
     threading.Thread(target=startaudiojob).start()
 
 
-auto_encode_last_options = Button(root, text="Auto Encode:\nLast Used Options", command=encode_last_used_setting,
-                                  foreground="white", background="#23272A", borderwidth="3", state=DISABLED)
+auto_encode_last_options = HoverButton(root, text="Auto Encode:\nLast Used Options", command=encode_last_used_setting,
+                                       foreground="white", background="#23272A", borderwidth="3", state=DISABLED,
+                                       activebackground='grey')
 auto_encode_last_options.grid(row=3, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
-auto_encode_last_options.bind("<Enter>", auto_encode_last_options_hover)
-auto_encode_last_options.bind("<Leave>", auto_encode_last_options_hover_leave)
 
 
 def popup_auto_e_b_menu(e):  # Function for mouse button 3 (right click) to pop up menu
@@ -6022,22 +5612,6 @@ def show_auto_encode_command(*args):  # Opens a new window with 'Auto Encode' co
 
 auto_encode_button_menu = Menu(root, tearoff=False)  # This is the right click menu for the auto_encode_button
 auto_encode_button_menu.add_command(label='Show Command', command=show_auto_encode_command)
-
-
-def auto_encode_last_options_on_enter(e):
-    global rightclick_on_off
-    status_label.configure(text='Right Click For More Options...')
-    rightclick_on_off = 1
-
-
-def auto_encode_last_options_on_leave(e):
-    global rightclick_on_off
-    status_label.configure(text='')
-    rightclick_on_off = 0
-
-
-auto_encode_last_options.bind("<Enter>", auto_encode_last_options_on_enter)
-auto_encode_last_options.bind("<Leave>", auto_encode_last_options_on_leave)
 root.bind('<Button-3>', popup_auto_e_b_menu)  # Uses mouse button 3 (right click) to pop up menu
 # --------------------------------------------------------------------------- Start Audio Job: Auto
 
