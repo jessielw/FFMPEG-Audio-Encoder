@@ -1,4 +1,5 @@
 # Imports--------------------------------------------------------------------
+import webbrowser
 from tkinter import *
 from tkinter import filedialog, StringVar
 from tkinter import ttk
@@ -4871,7 +4872,13 @@ def startaudiojob():
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
                 except (Exception,):
-                    pass
+                    window.destroy()
+                    msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
+                                                                               f'\n\n"{str(line).rstrip()}"\n\nWould '
+                                                                               f'you like to report the error on the '
+                                                                               f'github tracker?')
+                    if msg_error:
+                        webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4916,7 +4923,13 @@ def startaudiojob():
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
                 except (Exception,):
-                    pass
+                    window.destroy()
+                    msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
+                                                                               f'\n\n"{str(line).rstrip()}"\n\nWould '
+                                                                               f'you like to report the error on the '
+                                                                               f'github tracker?')
+                    if msg_error:
+                        webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -4968,7 +4981,13 @@ def startaudiojob():
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
                 except (Exception,):
-                    pass
+                    window.destroy()
+                    msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
+                                                                               f'\n\n"{str(line).rstrip()}"\n\nWould '
+                                                                               f'you like to report the error on the '
+                                                                               f'github tracker?')
+                    if msg_error:
+                        webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -5013,7 +5032,13 @@ def startaudiojob():
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
                 except (Exception,):
-                    pass
+                    window.destroy()
+                    msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
+                                                                               f'\n\n"{str(line).rstrip()}"\n\nWould '
+                                                                               f'you like to report the error on the '
+                                                                               f'github tracker?')
+                    if msg_error:
+                        webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
             window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -5053,8 +5078,14 @@ def startaudiojob():
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
                 except (Exception,):
-                    pass
-            window.destroy()
+                    window.destroy()
+                    msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
+                                                                               f'\n\n"{str(line).rstrip()}"\n\nWould '
+                                                                               f'you like to report the error on the '
+                                                                               f'github tracker?')
+                    if msg_error:
+                        webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
+                window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
     # ------------------------------------------------------------------------------------------------------------- MP3
@@ -5129,8 +5160,14 @@ def startaudiojob():
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
                 except (Exception,):
-                    pass
-            window.destroy()
+                    window.destroy()
+                    msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
+                                                                               f'\n\n"{str(line).rstrip()}"\n\nWould '
+                                                                               f'you like to report the error on the '
+                                                                               f'github tracker?')
+                    if msg_error:
+                        webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
+                window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
     # ----------------------------------------------------------------------------------------------------------- E-AC3
@@ -5186,8 +5223,14 @@ def startaudiojob():
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
                 except (Exception,):
-                    pass
-            window.destroy()
+                    window.destroy()
+                    msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
+                                                                               f'\n\n"{str(line).rstrip()}"\n\nWould '
+                                                                               f'you like to report the error on the '
+                                                                               f'github tracker?')
+                    if msg_error:
+                        webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
+                window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand)
     # ------------------------------------------------------------------------------------------------------------- FDK
@@ -5269,8 +5312,14 @@ def startaudiojob():
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
                 except (Exception,):
-                    pass
-            window.destroy()
+                    window.destroy()
+                    msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
+                                                                               f'\n\n"{str(line).rstrip()}"\n\nWould '
+                                                                               f'you like to report the error on the '
+                                                                               f'github tracker?')
+                    if msg_error:
+                        webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
+                window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand)
     # ------------------------------------------------------------------------------------------------------------ QAAC
@@ -5315,8 +5364,14 @@ def startaudiojob():
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
                 except (Exception,):
-                    pass
-            window.destroy()
+                    window.destroy()
+                    msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
+                                                                               f'\n\n"{str(line).rstrip()}"\n\nWould '
+                                                                               f'you like to report the error on the '
+                                                                               f'github tracker?')
+                    if msg_error:
+                        webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
+                window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
     # ------------------------------------------------------------------------------------------------------------ FLAC
@@ -5356,8 +5411,14 @@ def startaudiojob():
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                     app_progress_bar['value'] = int(percent)
                 except (Exception,):
-                    pass
-            window.destroy()
+                    window.destroy()
+                    msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
+                                                                               f'\n\n"{str(line).rstrip()}"\n\nWould '
+                                                                               f'you like to report the error on the '
+                                                                               f'github tracker?')
+                    if msg_error:
+                        webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
+                window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
     # ------------------------------------------------------------------------------------------------------------ ALAC
@@ -5518,16 +5579,6 @@ input_entry.grid(row=0, column=1, columnspan=3, padx=5, pady=5, sticky=S + E + W
 input_entry.drop_target_register(DND_FILES)
 input_entry.dnd_bind('<<Drop>>', drop_input)
 
-# def input_button_on_enter(e):
-#     status_label.configure(text='Click To Open File or Drag and Drop...')
-#
-#
-# def input_button_on_leave(e):
-#     status_label.configure(text='')
-#
-#
-# input_button.bind("<Enter>", input_button_on_enter)
-# input_button.bind("<Leave>", input_button_on_leave)
 # ------------------------------------------------------------------------- Input Button/Entry Box
 
 # Output Button/Entry Box ------------------------------------------------------------------------
