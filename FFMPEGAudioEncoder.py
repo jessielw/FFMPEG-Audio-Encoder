@@ -4788,7 +4788,7 @@ def startaudiojob():
     if shell_options.get() == "Default":
         global total_duration
 
-        media_info = MediaInfo.parse(pathlib.Path(str(VideoInputQuoted.replace('"', ''))))
+        media_info = MediaInfo.parse(pathlib.Path(VideoInput))
         for track in media_info.tracks:
             if track.track_type == 'General':
                 if track.duration is not None:
@@ -4812,18 +4812,13 @@ def startaudiojob():
         window = tk.Toplevel(root)
         window.title('Codec : ' + encoder.get() + '  |  ' + str(pathlib.Path(VideoInput).stem))
         window.configure(background="#434547")
-        encode_label = Label(window, text="- - - - - - - - - - - - - - - - - - - - - - Progress - - "
-                                          "- - - - - - - - - - - - - - - - - - - -",
-                             font=("Times New Roman", 14), background='#434547', foreground="white")
-        encode_label.grid(column=0, row=0)
         window.grid_columnconfigure(0, weight=1)
-        window.grid_rowconfigure(0, weight=1)
         window.grid_rowconfigure(1, weight=1)
         window.protocol('WM_DELETE_WINDOW', close_window)
-        window.geometry("640x140")
-        encode_window_progress = Text(window, height=2, relief=SUNKEN, bd=3)
-        encode_window_progress.grid(row=1, column=0, pady=(10, 6), padx=10, sticky=E + W)
-        encode_window_progress.insert(END, '')
+        encode_window_progress = scrolledtextwidget.ScrolledText(window, width=90, height=15, tabs=10, spacing2=3,
+                                                                 spacing1=2, spacing3=3)
+        encode_window_progress.grid(row=0, column=0, pady=(10, 6), padx=10, sticky=E + W)
+        encode_window_progress.insert(END, ' - - - - - - - - - - - Encode Started - - - - - - - - - - - \n\n\n')
         if total_duration < 999999999999999999999999999999999999999999999999:
             app_progress_bar = ttk.Progressbar(window, orient=HORIZONTAL, mode='determinate')
             app_progress_bar.grid(column=0, row=6, columnspan=4, sticky=W + E, pady=(0, 2), padx=3)
@@ -4864,31 +4859,38 @@ def startaudiojob():
                 command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
                           + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
                           + ' ' + VideoOutputQuoted + ' -hide_banner'
-            job = subprocess.Popen('cmd /c ' + command + " " + '-v error -stats"', universal_newlines=True,
-                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
+            job = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
             if auto_or_manual == 'manual':
                 reset_main_gui()
             for line in job.stdout:
-                encode_window_progress.delete('1.0', END)
-                encode_window_progress.insert(END, line)
-                try:
-                    time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
-                    progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
-                    percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
+                encode_window_progress.configure(state=NORMAL)
+                encode_window_progress.insert(END, str(line).replace('    ', '').replace('   ', '').replace(' ', ' '))
+                encode_window_progress.see(END)
+                encode_window_progress.configure(state=DISABLED)
+                if line.split()[0] == 'size=':
                     try:
-                        app_progress_bar['value'] = int(percent)
+                        time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
+                        progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
+                        percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
+                        try:
+                            app_progress_bar['value'] = int(percent)
+                        except (Exception,):
+                            pass
                     except (Exception,):
-                        pass
-                except (Exception,):
-                    window.destroy()
-                    msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
-                                                                               f'\n\n"{str(line).rstrip()}"\n\nWould '
-                                                                               f'you like to report the error on the '
-                                                                               f'github tracker?')
-                    if msg_error:
-                        webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
-            window.destroy()
+                        window.destroy()
+                        msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
+                                                                                   f'\n\n"{str(line).rstrip()}"\n\n'
+                                                                                   f'Would you like to report the '
+                                                                                   f'error on the github tracker?')
+                        if msg_error:
+                            webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
+            encode_window_progress.configure(state=NORMAL)
+            encode_window_progress.insert(END, str('\nJob Completed!!'))
+            encode_window_progress.see(END)
+            encode_window_progress.configure(state=DISABLED)
+            # window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
     # --------------------------------------------------------------------------------------------------------- AC3 Job
