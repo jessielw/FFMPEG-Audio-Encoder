@@ -19,6 +19,7 @@ from Packages.About import openaboutwindow
 from Packages.config_params import create_config_params
 from configparser import ConfigParser
 from ctypes import windll
+from pymediainfo import MediaInfo
 
 
 # Main Gui & Windows --------------------------------------------------------
@@ -4786,16 +4787,16 @@ def startaudiojob():
 
     if shell_options.get() == "Default":
         global total_duration
-        ffmpeg_cmd = '"' + ffmpeg + " -i " + VideoInputQuoted + ' -hide_banner -stats"'
-        ffmpeg_duration = subprocess.Popen('cmd /c ' + ffmpeg_cmd, creationflags=subprocess.CREATE_NO_WINDOW,
-                                           universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                           stdin=subprocess.PIPE, encoding="utf-8")
-        stdout, stderr = ffmpeg_duration.communicate()
-        times_index = int(stdout.split().index('Duration:')) + 1  # Finds the string 'Duration' and adds 1 to the index
-        ffmpeg_total_time = stdout.split()[times_index].rsplit('.', 1)[0]  # Removes mili-seconds from string
-        total_duration = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(ffmpeg_total_time.split(":")))))
 
-        #  total_duration converts 00:00:00 to seconds for progress bars
+        media_info = MediaInfo.parse(pathlib.Path(str(VideoInputQuoted.replace('"', ''))))
+        for track in media_info.tracks:
+            if track.track_type == 'General':
+                if track.duration is not None:
+                    total_duration = int(int(track.duration) / 1000)
+                else:
+                    messagebox.showinfo(title='Info', message='Input file has no duration, consider putting muxing '
+                                                              'elementary stream into mka/mkv/etc...')
+                    total_duration = 999999999999999999999999999999999999999999999999
 
         def close_encode():
             confirm_exit = messagebox.askyesno(title='Prompt',
@@ -4823,8 +4824,13 @@ def startaudiojob():
         encode_window_progress = Text(window, height=2, relief=SUNKEN, bd=3)
         encode_window_progress.grid(row=1, column=0, pady=(10, 6), padx=10, sticky=E + W)
         encode_window_progress.insert(END, '')
-        app_progress_bar = ttk.Progressbar(window, orient=HORIZONTAL, mode='determinate')
-        app_progress_bar.grid(row=2, pady=(10, 10), padx=15, sticky=E + W)
+        if total_duration < 999999999999999999999999999999999999999999999999:
+            app_progress_bar = ttk.Progressbar(window, orient=HORIZONTAL, mode='determinate')
+            app_progress_bar.grid(column=0, row=6, columnspan=4, sticky=W + E, pady=(0, 2), padx=3)
+        else:
+            temp_label = Label(window, text='Input has no duration - progress bar is temporarily disabled',
+                               bd=4, relief=SUNKEN, anchor=E, background='#717171', foreground="white")
+            temp_label.grid(row=2, pady=(10, 10), padx=15, sticky=E + W)
 
         def update_last_codec_command():  # Updates 'profiles.ini' last used codec/commands
             config_profile.set('Auto Encode', 'codec', encoder.get())
@@ -4870,7 +4876,10 @@ def startaudiojob():
                     time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
                     progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                     percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
-                    app_progress_bar['value'] = int(percent)
+                    try:
+                        app_progress_bar['value'] = int(percent)
+                    except (Exception,):
+                        pass
                 except (Exception,):
                     window.destroy()
                     msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
