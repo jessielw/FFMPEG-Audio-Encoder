@@ -4785,6 +4785,8 @@ def startaudiojob():
     audio_filter_function()
     # ------------------------- Filters
 
+    complete_or_not = ''  # Set empty placeholder variable for complete_or_not
+
     if shell_options.get() == "Default":
         global total_duration
 
@@ -4793,23 +4795,27 @@ def startaudiojob():
             if track.track_type == 'General':
                 if track.duration is not None:
                     total_duration = int(int(track.duration) / 1000)
-                else:
-                    messagebox.showinfo(title='Info', message='Input file has no duration, consider putting muxing '
-                                                              'elementary stream into mka/mkv/etc...')
-                    total_duration = 999999999999999999999999999999999999999999999999
+                elif track.duration is None:
+                    messagebox.showinfo(title='Info', message='Input file has no duration, consider muxing elementary '
+                                                              'stream into mka/mkv/etc...\n\nProgress bar is '
+                                                              'temporarily disabled')
+                    total_duration = track.duration
 
         def close_encode():
-            confirm_exit = messagebox.askyesno(title='Prompt',
-                                               message="Are you sure you want to stop the encode?", parent=window)
-            if confirm_exit:
-                subprocess.Popen(f"TASKKILL /F /PID {job.pid} /T", creationflags=subprocess.CREATE_NO_WINDOW)
+            if complete_or_not == 'Job Completed!!':
                 window.destroy()
+            else:
+                confirm_exit = messagebox.askyesno(title='Prompt',
+                                                   message="Are you sure you want to stop the encode?", parent=window)
+                if confirm_exit:
+                    subprocess.Popen(f"TASKKILL /F /PID {job.pid} /T", creationflags=subprocess.CREATE_NO_WINDOW)
+                    window.destroy()
 
         def close_window():
             thread = threading.Thread(target=close_encode)
             thread.start()
 
-        window = tk.Toplevel(root)
+        window = Toplevel(root)
         window.title('Codec : ' + encoder.get() + '  |  ' + str(pathlib.Path(VideoInput).stem))
         window.configure(background="#434547")
         window.grid_columnconfigure(0, weight=1)
@@ -4819,10 +4825,10 @@ def startaudiojob():
                                                                  spacing1=2, spacing3=3)
         encode_window_progress.grid(row=0, column=0, pady=(10, 6), padx=10, sticky=E + W)
         encode_window_progress.insert(END, ' - - - - - - - - - - - Encode Started - - - - - - - - - - - \n\n\n')
-        if total_duration < 999999999999999999999999999999999999999999999999:
+        if total_duration is not None:
             app_progress_bar = ttk.Progressbar(window, orient=HORIZONTAL, mode='determinate')
             app_progress_bar.grid(column=0, row=6, columnspan=4, sticky=W + E, pady=(0, 2), padx=3)
-        else:
+        if total_duration is None:
             temp_label = Label(window, text='Input has no duration - progress bar is temporarily disabled',
                                bd=4, relief=SUNKEN, anchor=E, background='#717171', foreground="white")
             temp_label.grid(row=2, pady=(10, 10), padx=15, sticky=E + W)
@@ -4869,28 +4875,30 @@ def startaudiojob():
                 encode_window_progress.insert(END, str(line).replace('    ', '').replace('   ', '').replace(' ', ' '))
                 encode_window_progress.see(END)
                 encode_window_progress.configure(state=DISABLED)
-                if line.split()[0] == 'size=':
-                    try:
-                        time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
-                        progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
-                        percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
+                if total_duration is not None:
+                    if line.split()[0] == 'size=':
                         try:
-                            app_progress_bar['value'] = int(percent)
+                            time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
+                            progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
+                            percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
+                            try:
+                                app_progress_bar['value'] = int(percent)
+                            except (Exception,):
+                                pass
                         except (Exception,):
-                            pass
-                    except (Exception,):
-                        window.destroy()
-                        msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
-                                                                                   f'\n\n"{str(line).rstrip()}"\n\n'
-                                                                                   f'Would you like to report the '
-                                                                                   f'error on the github tracker?')
-                        if msg_error:
-                            webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
+                            window.destroy()
+                            msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
+                                                                                       f'\n\n"{str(line).rstrip()}"\n\n'
+                                                                                       f'Would you like to report the '
+                                                                                       f'error on the github tracker?')
+                            if msg_error:
+                                webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
             encode_window_progress.configure(state=NORMAL)
             encode_window_progress.insert(END, str('\nJob Completed!!'))
             encode_window_progress.see(END)
             encode_window_progress.configure(state=DISABLED)
-            # window.destroy()
+            complete_or_not = str('Job Completed!!')
+            window.destroy()
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
     # --------------------------------------------------------------------------------------------------------- AC3 Job
