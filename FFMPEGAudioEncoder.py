@@ -3493,7 +3493,7 @@ def openaudiowindow():
                 example_cmd_output = acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[
                     acodec_channel.get()] + acodec_samplerate_choices[acodec_samplerate.get()] \
                                      + audio_filter_setting \
-                                     + "\n \n" + "-f wav - | " + qaac + " " + "\n \n" \
+                                     + "\n \n" + "-f wav - | " + qaac + " --ignorelength " + "\n \n" \
                                      + q_acodec_profile_choices[q_acodec_profile.get()] + q_acodec_quality_amnt.get() \
                                      + " " + qaac_high_efficiency.get() + qaac_nodither.get() \
                                      + set_qaac_gain + \
@@ -3505,7 +3505,7 @@ def openaudiowindow():
                 example_cmd_output = acodec_stream_choices[acodec_stream.get()] + \
                                      acodec_channel_choices[acodec_channel.get()] + \
                                      acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
-                                     + "\n \n" + "-f wav - | " + qaac + " " + "\n \n" \
+                                     + "\n \n" + "-f wav - | " + qaac + " --ignorelength " + "\n \n" \
                                      + q_acodec_profile_choices[q_acodec_profile.get()] + \
                                      q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() \
                                      + qaac_nodither.get() + set_qaac_gain + \
@@ -3623,8 +3623,8 @@ def openaudiowindow():
         # Entry Box for Custom Command Line ---------------------------------------------------------------------------
         def qaac_cmd(*args):
             global qaac_custom_cmd_input
-            if qaac_custom_cmd.get() == (""):
-                qaac_custom_cmd_input = ("")
+            if qaac_custom_cmd.get() == "":
+                qaac_custom_cmd_input = ""
             else:
                 cstmcmd = qaac_custom_cmd.get()
                 qaac_custom_cmd_input = cstmcmd + " "
@@ -3643,8 +3643,8 @@ def openaudiowindow():
         # Entry Box for Track Title -----------------------------------------------------------------------------------
         def qaac_title_check(*args):
             global qaac_title_input
-            if qaac_title.get() == (""):
-                qaac_title_input = ("")
+            if qaac_title.get() == "":
+                qaac_title_input = ""
             else:
                 title_cmd = qaac_title.get()
                 qaac_title_input = "--title " + '"' + title_cmd + '"' + " "
@@ -4675,7 +4675,7 @@ def print_command_line():
                                  acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[
                                      acodec_channel.get()] + audio_filter_setting + \
                                  acodec_samplerate_choices[acodec_samplerate.get()] \
-                                 + "\n \n" + "-f wav - | " + qaac + " " + "\n \n" \
+                                 + "\n \n" + "-f wav - | " + qaac + " --ignorelength " + "\n \n" \
                                  + q_acodec_profile_choices[q_acodec_profile.get()] + q_acodec_quality_amnt.get() \
                                  + " " + qaac_high_efficiency.get() + qaac_normalize.get() + qaac_nodither.get() \
                                  + set_qaac_gain + q_acodec_quality_choices[q_acodec_quality.get()] \
@@ -4688,7 +4688,7 @@ def print_command_line():
                                  acodec_stream_choices[acodec_stream.get()] + \
                                  acodec_channel_choices[acodec_channel.get()] + audio_filter_setting + \
                                  acodec_samplerate_choices[acodec_samplerate.get()] \
-                                 + "\n \n" + "-f wav - | " + qaac + " " + "\n \n" \
+                                 + "\n \n" + "-f wav - | " + qaac + " --ignorelength " + "\n \n" \
                                  + q_acodec_profile_choices[q_acodec_profile.get()] + \
                                  q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_nodither.get() \
                                  + set_qaac_gain + q_acodec_quality_choices[q_acodec_quality.get()] \
@@ -5318,55 +5318,56 @@ def startaudiojob():
         else:
             silent = ' '
         if q_acodec_profile.get() == "True VBR":
-            finalcommand = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
-                           + VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] \
-                           + acodec_channel_choices[acodec_channel.get()] + audio_filter_setting \
-                           + acodec_samplerate_choices[acodec_samplerate.get()] \
-                           + "-f wav - -hide_banner -v error -stats | " + qaac \
-                           + " " + q_acodec_profile_choices[q_acodec_profile.get()] \
-                           + q_acodec_quality_amnt.get() + " " + qaac_high_efficiency.get() \
-                           + qaac_normalize.get() + qaac_nodither.get() + "--gain " \
-                           + q_acodec_gain.get() + " " + q_acodec_quality_choices[q_acodec_quality.get()] \
-                           + qaac_nodelay.get() \
-                           + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
-                           + qaac_threading.get() + qaac_limiter.get() + qaac_title_input + qaac_custom_cmd_input \
-                           + silent + " - -o " + VideoOutputQuoted + '"'
-            last_used_command = acodec_stream_choices[acodec_stream.get()] \
-                                + acodec_channel_choices[acodec_channel.get()] + audio_filter_setting \
-                                + acodec_samplerate_choices[acodec_samplerate.get()] \
-                                + "-f wav - -hide_banner -v error -stats | " + qaac \
-                                + " " + q_acodec_profile_choices[q_acodec_profile.get()] \
-                                + q_acodec_quality_amnt.get() + " " + qaac_high_efficiency.get() \
-                                + qaac_normalize.get() + qaac_nodither.get() + "--gain " \
-                                + q_acodec_gain.get() + " " + q_acodec_quality_choices[q_acodec_quality.get()] \
-                                + qaac_nodelay.get() \
-                                + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
-                                + qaac_threading.get() + qaac_limiter.get() + qaac_title_input + qaac_custom_cmd_input \
-                                + silent + " - -o "
+            finalcommand = str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
+                               VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] +
+                               acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
+                               acodec_samplerate_choices[acodec_samplerate.get()] +
+                               "-f wav - -hide_banner -v error -stats | " + qaac +
+                               " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
+                               q_acodec_quality_amnt.get() + ' ' + qaac_high_efficiency.get() +
+                               qaac_normalize.get() + qaac_nodither.get() + "--gain " +
+                               q_acodec_gain.get() + ' ' + q_acodec_quality_choices[q_acodec_quality.get()] +
+                               qaac_nodelay.get() + q_gapless_mode_choices[q_gapless_mode.get()] +
+                               qaac_nooptimize.get() + qaac_threading.get() + qaac_limiter.get() + qaac_title_input +
+                               qaac_custom_cmd_input + silent + "- -o " +
+                               VideoOutputQuoted + '"').replace('  ', ' ').replace('   ', ' ')
+            last_used_command = str(acodec_stream_choices[acodec_stream.get()] +
+                                    acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
+                                    acodec_samplerate_choices[acodec_samplerate.get()] +
+                                    "-f wav - -hide_banner -v error -stats | " + qaac + " --ignorelength " +
+                                    q_acodec_profile_choices[q_acodec_profile.get()] +
+                                    q_acodec_quality_amnt.get() + ' ' + qaac_high_efficiency.get() +
+                                    qaac_normalize.get() + qaac_nodither.get() + "--gain " +
+                                    q_acodec_gain.get() + ' ' + q_acodec_quality_choices[q_acodec_quality.get()] +
+                                    qaac_nodelay.get() + q_gapless_mode_choices[q_gapless_mode.get()] +
+                                    qaac_nooptimize.get() + qaac_threading.get() + qaac_limiter.get() +
+                                    qaac_title_input + qaac_custom_cmd_input +
+                                    silent + "- -o ").replace('  ', ' ').replace('   ', ' ')
         else:
-            finalcommand = '"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted \
-                           + acodec_stream_choices[acodec_stream.get()] + \
-                           acodec_channel_choices[acodec_channel.get()] + audio_filter_setting + \
-                           acodec_samplerate_choices[acodec_samplerate.get()] \
-                           + "-f wav - -hide_banner -v error -stats | " + qaac \
-                           + " " + q_acodec_profile_choices[q_acodec_profile.get()] + \
-                           q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() \
-                           + qaac_nodither.get() + "--gain " + q_acodec_gain.get() + " " \
-                           + q_acodec_quality_choices[q_acodec_quality.get()] + qaac_nodelay.get() \
-                           + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
-                           + qaac_threading.get() + qaac_limiter.get() + qaac_title_input \
-                           + qaac_custom_cmd_input + silent + " - -o " + VideoOutputQuoted + '"'
-            last_used_command = acodec_stream_choices[acodec_stream.get()] + \
-                                acodec_channel_choices[acodec_channel.get()] + audio_filter_setting + \
-                                acodec_samplerate_choices[acodec_samplerate.get()] \
-                                + "-f wav - -hide_banner -v error -stats | " + qaac \
-                                + " " + q_acodec_profile_choices[q_acodec_profile.get()] + \
-                                q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_normalize.get() \
-                                + qaac_nodither.get() + "--gain " + q_acodec_gain.get() + " " \
-                                + q_acodec_quality_choices[q_acodec_quality.get()] + qaac_nodelay.get() \
-                                + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
-                                + qaac_threading.get() + qaac_limiter.get() + qaac_title_input \
-                                + qaac_custom_cmd_input + silent + " - -o "
+            finalcommand = str('"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted +
+                               acodec_stream_choices[acodec_stream.get()] +
+                               acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
+                               acodec_samplerate_choices[acodec_samplerate.get()] +
+                               "-f wav - -hide_banner -v error -stats | " + qaac +
+                               " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
+                               q_acodec_bitrate.get() + qaac_high_efficiency.get() + qaac_normalize.get() +
+                               qaac_nodither.get() + "--gain " + q_acodec_gain.get() + ' ' +
+                               q_acodec_quality_choices[q_acodec_quality.get()] + qaac_nodelay.get() +
+                               q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() +
+                               qaac_threading.get() + qaac_limiter.get() + qaac_title_input +
+                               qaac_custom_cmd_input + silent + "- -o " +
+                               VideoOutputQuoted + '"').replace('  ', ' ').replace('   ', ' ')
+            last_used_command = str(acodec_stream_choices[acodec_stream.get()] +
+                                    acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
+                                    acodec_samplerate_choices[acodec_samplerate.get()] +
+                                    "-f wav - -hide_banner -v error -stats | " + qaac +
+                                    " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
+                                    q_acodec_bitrate.get() + qaac_high_efficiency.get() + qaac_normalize.get() +
+                                    qaac_nodither.get() + "--gain " + q_acodec_gain.get() + ' ' +
+                                    q_acodec_quality_choices[q_acodec_quality.get()] + qaac_nodelay.get() +
+                                    q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() +
+                                    qaac_threading.get() + qaac_limiter.get() + qaac_title_input +
+                                    qaac_custom_cmd_input + silent + "- -o ").replace('  ', ' ').replace('   ', ' ')
         if shell_options.get() == "Default":
             if auto_or_manual == 'auto':
                 command = finalcommand
@@ -5381,22 +5382,36 @@ def startaudiojob():
             if auto_or_manual == 'manual':
                 reset_main_gui()
             for line in job.stdout:
-                encode_window_progress.delete('1.0', END)
-                encode_window_progress.insert(END, line)
-                try:
-                    time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
-                    progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
-                    percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
-                    app_progress_bar['value'] = int(percent)
-                except (Exception,):
-                    window.destroy()
-                    msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
-                                                                               f'\n\n"{str(line).rstrip()}"\n\nWould '
-                                                                               f'you like to report the error on the '
-                                                                               f'github tracker?')
-                    if msg_error:
-                        webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
-                window.destroy()
+                encode_window_progress.configure(state=NORMAL)
+                encode_window_progress.insert(END, str(line).replace('    ', '').replace('   ', '').replace(' ', ' '))
+                encode_window_progress.see(END)
+                encode_window_progress.configure(state=DISABLED)
+                if total_duration is not None:
+                    if line.split()[0] == 'size=':
+                        try:
+                            time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
+                            progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
+                            percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
+                            try:
+                                app_progress_bar['value'] = int(percent)
+                            except (Exception,):
+                                pass
+                        except (Exception,):
+                            window.destroy()
+                            msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
+                                                                                       f'\n\n"{str(line).rstrip()}"\n\n'
+                                                                                       f'Would you like to report the '
+                                                                                       f'error on the github tracker?')
+                            if msg_error:
+                                webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
+            encode_window_progress.configure(state=NORMAL)
+            encode_window_progress.insert(END, str('\nJob Completed!!'))
+            encode_window_progress.see(END)
+            encode_window_progress.configure(state=DISABLED)
+            copy_text.config(state=NORMAL)  # Enable copy button once job is completed
+            complete_or_not = str('Job Completed!!')
+            if config['auto_close_progress_window']['option'] == 'on':
+                window.destroy()  # If program is set to auto close encoding window when complete, close the window
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand)
     # ------------------------------------------------------------------------------------------------------------ QAAC
