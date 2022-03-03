@@ -61,32 +61,14 @@ for n in range(4):
 for n in range(4):
     root.grid_rowconfigure(n, weight=1)
 
-
 # Themes --------------------------------------------------------------------------------------------------------------
 # Custom Tkinter Theme-----------------------------------------
 custom_style = ttk.Style()
-custom_style.theme_create('jlw_style', parent='alt', settings={
-    # Notebook Theme Settings -------------------
-    "TNotebook": {"configure": {"tabmargins": [5, 5, 5, 0]}},
-    "TNotebook.Tab": {"configure": {"padding": [5, 1], "background": 'grey', 'foreground': 'white', 'focuscolor': ''},
-                      "map": {"background": [("selected", '#434547')], "expand": [("selected", [1, 1, 1, 0])]}},
-    # Notebook Theme Settings -------------------
-    # ComboBox Theme Settings -------------------
-    'TCombobox': {'configure': {'selectbackground': '#23272A', 'fieldbackground': '#23272A',
-                                'background': 'white', 'foreground': 'white'}}}
-                          # ComboBox Theme Settings -------------------
-                          )
+custom_style.theme_create('jlw_style', parent='alt')
 custom_style.theme_use('jlw_style')  # Enable the use of the custom theme
-# ComboBox Mouse Hover Code ----------------------------------
-root.option_add('*TCombobox*Listbox*Background', '#404040')
-root.option_add('*TCombobox*Listbox*Foreground', '#FFFFFF')
-root.option_add('*TCombobox*Listbox*selectBackground', '#FFFFFF')
-root.option_add('*TCombobox*Listbox*selectForeground', '#404040')
-custom_style.map('TCombobox', foreground=[('hover', 'white')], background=[('hover', 'grey')])
 custom_style.configure("custom.Horizontal.TProgressbar", background="#3a4145")
 
 
-# ----------------------------------- ComboBox Mouse Hover Code
 # ------------------------------------------ Custom Tkinter Theme
 # Hover over button theme ---------------------------------------
 class HoverButton(tk.Button):
