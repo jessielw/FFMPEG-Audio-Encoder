@@ -20,6 +20,7 @@ from Packages.config_params import create_config_params
 from configparser import ConfigParser
 from ctypes import windll
 from pymediainfo import MediaInfo
+import pyperclip
 
 
 # Main Gui & Windows --------------------------------------------------------
@@ -4847,6 +4848,7 @@ def startaudiojob():
         encode_window_progress = scrolledtextwidget.ScrolledText(window, width=90, height=15, tabs=10, spacing2=3,
                                                                  spacing1=2, spacing3=3)
         encode_window_progress.grid(row=0, column=0, pady=(10, 6), padx=10, sticky=E + W)
+        encode_window_progress.config(bg='black', fg='#CFD2D1', bd=8)
         encode_window_progress.insert(END, ' - - - - - - - - - - - Encode Started - - - - - - - - - - - \n\n\n')
 
         def auto_close_window_toggle():  # Function to save input from the checkbox below to config.ini
@@ -4864,13 +4866,21 @@ def startaudiojob():
         auto_close_window_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                              activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
         auto_close_window.set(config['auto_close_progress_window']['option'])
+
+        def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
+            pyperclip.copy(encode_window_progress.get(1.0, END))
+
+        copy_text = HoverButton(window, text='Copy to clipboard', command=copy_to_clipboard, state=DISABLED,
+                                foreground='white', background='#23272A', borderwidth='3', activebackground='grey')
+        copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(10, 5), sticky=E)
+
         if total_duration is not None:
             app_progress_bar = ttk.Progressbar(window, orient=HORIZONTAL, mode='determinate')
             app_progress_bar.grid(column=0, row=6, columnspan=4, sticky=W + E, pady=(0, 2), padx=3)
         if total_duration is None:
             temp_label = Label(window, text='Input has no duration - progress bar is temporarily disabled',
                                bd=4, relief=SUNKEN, anchor=E, background='#717171', foreground="white")
-            temp_label.grid(row=6, pady=(10, 10), padx=15, sticky=E + W)
+            temp_label.grid(column=0, row=6, columnspan=4, pady=(0, 2), padx=3, sticky=E + W)
 
         def update_last_codec_command():  # Updates 'profiles.ini' last used codec/commands
             config_profile.set('Auto Encode', 'codec', encoder.get())
@@ -4936,6 +4946,7 @@ def startaudiojob():
             encode_window_progress.insert(END, str('\nJob Completed!!'))
             encode_window_progress.see(END)
             encode_window_progress.configure(state=DISABLED)
+            copy_text.config(state=NORMAL)  # Enable copy button once job is completed
             complete_or_not = str('Job Completed!!')
             if config['auto_close_progress_window']['option'] == 'on':
                 window.destroy()  # If program is set to auto close encoding window when complete, close the window
