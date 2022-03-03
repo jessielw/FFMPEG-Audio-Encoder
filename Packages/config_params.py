@@ -29,6 +29,10 @@ def create_config_params():
         config.add_section('debug_option')
     if not config.has_option('debug_option', 'option'):
         config.set('debug_option', 'option', '')
+    if not config.has_section('auto_close_progress_window'):
+        config.add_section('auto_close_progress_window')
+    if not config.has_option('auto_close_progress_window', 'option'):
+        config.set('auto_close_progress_window', 'option', '')
     try:
         with open(config_file, 'w') as configfile:
             config.write(configfile)
