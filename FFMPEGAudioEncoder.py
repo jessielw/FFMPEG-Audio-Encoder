@@ -63,6 +63,31 @@ for n in range(4):
 
 
 # Themes --------------------------------------------------------------------------------------------------------------
+# Custom Tkinter Theme-----------------------------------------
+custom_style = ttk.Style()
+custom_style.theme_create('jlw_style', parent='alt', settings={
+    # Notebook Theme Settings -------------------
+    "TNotebook": {"configure": {"tabmargins": [5, 5, 5, 0]}},
+    "TNotebook.Tab": {"configure": {"padding": [5, 1], "background": 'grey', 'foreground': 'white', 'focuscolor': ''},
+                      "map": {"background": [("selected", '#434547')], "expand": [("selected", [1, 1, 1, 0])]}},
+    # Notebook Theme Settings -------------------
+    # ComboBox Theme Settings -------------------
+    'TCombobox': {'configure': {'selectbackground': '#23272A', 'fieldbackground': '#23272A',
+                                'background': 'white', 'foreground': 'white'}}}
+                          # ComboBox Theme Settings -------------------
+                          )
+custom_style.theme_use('jlw_style')  # Enable the use of the custom theme
+# ComboBox Mouse Hover Code ----------------------------------
+root.option_add('*TCombobox*Listbox*Background', '#404040')
+root.option_add('*TCombobox*Listbox*Foreground', '#FFFFFF')
+root.option_add('*TCombobox*Listbox*selectBackground', '#FFFFFF')
+root.option_add('*TCombobox*Listbox*selectForeground', '#404040')
+custom_style.map('TCombobox', foreground=[('hover', 'white')], background=[('hover', 'grey')])
+custom_style.configure("custom.Horizontal.TProgressbar", background="#3a4145")
+
+
+# ----------------------------------- ComboBox Mouse Hover Code
+# ------------------------------------------ Custom Tkinter Theme
 # Hover over button theme ---------------------------------------
 class HoverButton(tk.Button):
     def __init__(self, master, **kw):
@@ -4875,7 +4900,8 @@ def startaudiojob():
         copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(10, 5), sticky=E)
 
         if total_duration is not None:
-            app_progress_bar = ttk.Progressbar(window, orient=HORIZONTAL, mode='determinate')
+            app_progress_bar = ttk.Progressbar(window, orient=HORIZONTAL, mode='determinate',
+                                               style="custom.Horizontal.TProgressbar")
             app_progress_bar.grid(column=0, row=6, columnspan=4, sticky=W + E, pady=(0, 2), padx=3)
         if total_duration is None:
             temp_label = Label(window, text='Input has no duration - progress bar is temporarily disabled',
