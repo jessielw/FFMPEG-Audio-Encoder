@@ -4514,22 +4514,21 @@ def file_input():
     global autofilesave_dir_path
     global track_count
     VideoInput = filedialog.askopenfilename(initialdir="/", title="Select A File",
-                                            filetypes=((
-                                                           "AAC, AC3, AVI, DTS, M4A, M4V, MKA, MKV, MOV, MP3, MP4, MPEG, "
-                                                           "MT2S, OGG, OGV, VOB, WAV, WEBM, FLAC, ALAC, EAC3, OPUS, AAX",
-                                                           "*.aac *.ac3 *.avi *.dts *.m4a *.m4v *.mka *.mkv *.mov *.mp3 "
-                                                           "*.mp4 *.mpeg *.mt2s *.ogg *.ogv *.vob *.wav *.webm *.flac "
-                                                           "*.alac *.eac3 *.opus *.aax"),
-                                                       ("All Files", "*.*")))
+                                            filetypes=(("AAC, AC3, AVI, DTS, M4A, M4V, MKA, MKV, MOV, MP3, MP4, MPEG, "
+                                                        "MT2S, OGG, OGV, VOB, WAV, WEBM, FLAC, ALAC, EAC3, OPUS, AAX, "
+                                                        "THD",
+                                                        "*.aac *.ac3 *.avi *.dts *.m4a *.m4v *.mka *.mkv *.mov *.mp3 "
+                                                        "*.mp4 *.mpeg *.mt2s *.ogg *.ogv *.vob *.wav *.webm *.flac "
+                                                        "*.alac *.eac3 *.opus *.aax *.thd"), ("All Files", "*.*")))
     input_entry.configure(state=NORMAL)
     input_entry.delete(0, END)
     file_extension = pathlib.Path(VideoInput).suffix
     supported_extensions = ['.wav', '.mt2s', '.ac3', '.mka', '.mp3', '.aac', '.ogg', '.ogv', '.m4v', '.mpeg', '.avi',
                             '.vob', '.webm', '.mp4', '.mkv', '.dts', '.m4a', '.mov', '.flac', '.alac', '.eac3',
-                            '.opus', '.aax']
+                            '.opus', '.aax', '.thd']
     if VideoInput:
         if file_extension in supported_extensions:
-            autofilesave_file_path = pathlib.PureWindowsPath(VideoInput)  # Command to get file input location
+            autofilesave_file_path = pathlib.Path(VideoInput)  # Command to get file input location
             # Final command to get only the directory of fileinput
             autofilesave_dir_path = autofilesave_file_path.parents[0]
             VideoInputQuoted = '"' + VideoInput + '"'
@@ -5582,17 +5581,11 @@ def update_file_input(*args):
     else:
         VideoInput = str(input_dnd.get())
 
-    file_extension = pathlib.Path(VideoInput).suffix
-    if file_extension == '.wav' or file_extension == '.mt2s' or file_extension == '.ac3' or \
-            file_extension == '.mka' or \
-            file_extension == '.wav' or file_extension == '.mp3' or file_extension == '.aac' or \
-            file_extension == '.ogg' or file_extension == '.ogv' or file_extension == '.m4v' or \
-            file_extension == '.mpeg' or file_extension == '.avi' or file_extension == '.vob' or \
-            file_extension == '.webm' or file_extension == '.mp4' or file_extension == '.mkv' or \
-            file_extension == '.dts' or file_extension == '.m4a' or file_extension == '.mov' or \
-            file_extension == '.flac' or file_extension == '.eac3' or file_extension == '.opus' or \
-            file_extension == '.aax':
-        autofilesave_file_path = pathlib.PureWindowsPath(VideoInput)  # Command to get file input location
+    supported_extensions = ('.wav', '.mt2s', '.ac3', '.mka', '.wav', '.mp3', '.aac', '.ogg', '.ogv', '.m4v', '.mpeg',
+                            '.avi', '.vob', '.webm', '.mp4', '.mkv', '.dts', '.m4a', '.mov', '.flac', '.eac3', '.opus',
+                            '.aax', '.thd')
+    if str(pathlib.Path(VideoInput)).endswith(supported_extensions):
+        autofilesave_file_path = pathlib.Path(VideoInput)  # Command to get file input location
         autofilesave_dir_path = autofilesave_file_path.parents[0]  # Final command to get only the directory
         VideoInputQuoted = '"' + VideoInput + '"'
         # This gets the total amount of audio streams For DnD-
@@ -5627,8 +5620,8 @@ def update_file_input(*args):
             elif config_profile['Auto Encode']['codec'] == 'MP3':
                 VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.mp3'
             elif config_profile['Auto Encode']['codec'] == "FDK-AAC" or \
-                    config_profile['Auto Encode']['codec'] == "QAAC" or config_profile['Auto Encode'][
-                'codec'] == "ALAC":
+                    config_profile['Auto Encode']['codec'] == "QAAC" or \
+                    config_profile['Auto Encode']['codec'] == "ALAC":
                 VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.m4a'
             elif config_profile['Auto Encode']['codec'] == "FLAC":
                 VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.flac'
