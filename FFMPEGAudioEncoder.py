@@ -81,19 +81,19 @@ class HoverButton(tk.Button):
     def on_enter(self, e):
         self['background'] = self['activebackground']
         if self.cget('text') == 'Open File':
-            status_label.configure(text='Click To Open File or Drag and Drop...')
-        if self.cget('text') == 'Show\nCommand':
-            status_label.configure(text='Click To Show Full Command...')
+            status_label.configure(text='Open file or drag and drop file...')
+        if self.cget('text') == 'Display\nCommand':
+            status_label.configure(text='Display command-line...')
         if self.cget('text') == 'Save File':
-            status_label.configure(text='Click To Specify Save Location...')
+            status_label.configure(text='Specify save location...')
         if self.cget('text') == 'Auto Encode:\nLast Used Options':
             global rightclick_on_off
-            status_label.configure(text='Right Click For More Options...')
+            status_label.configure(text='Right click for more options...')
             rightclick_on_off = 1
         if self.cget('text') == 'Audio Settings':
-            status_label.configure(text='Click To Configure Selected Audio Codec..')
+            status_label.configure(text='Configure selected audio codec..')
         if self.cget('text') == 'Start Audio Job':
-            status_label.configure(text='Click To Start Job..')
+            status_label.configure(text='Start job..')
 
     def on_leave(self, e):
         self['background'] = self.defaultBackground
@@ -4629,7 +4629,7 @@ def encoder_menu_hover_leave(e):
 # Print Command Line from ROOT ----------------------------------------------------------------------------------------
 def print_command_line():
     cmd_line_window = Toplevel()
-    cmd_line_window.title('Command Line')
+    cmd_line_window.title('Display Command')
     cmd_line_window.configure(background="#434547")
     VideoInputQuoted = '"' + VideoInput + '"'
     VideoOutputQuoted = '"' + VideoOutput + '"'
@@ -4637,65 +4637,63 @@ def print_command_line():
     # DTS Command Line Main Gui ---------------------------------------------------------------------------------------
     if encoder.get() == "DTS":
         if dts_settings.get() == 'DTS Encoder':
-            example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted + \
-                                 "\n \n" + acodec_stream_choices[acodec_stream.get()] \
+            example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+                                 acodec_stream_choices[acodec_stream.get()] \
                                  + dts_settings_choices[dts_settings.get()] + "-b:a " + dts_bitrate_spinbox.get() \
                                  + "k " + acodec_channel_choices[acodec_channel.get()] \
                                  + acodec_samplerate_choices[acodec_samplerate.get()] \
                                  + audio_filter_setting + dts_custom_cmd_input \
-                                 + "\n \n" + VideoOutputQuoted
+                                 + VideoOutputQuoted
         else:
-            example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted \
-                                 + "\n \n" + acodec_stream_choices[acodec_stream.get()] \
+            example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted \
+                                 + acodec_stream_choices[acodec_stream.get()] \
                                  + dts_settings_choices[dts_settings.get()] \
-                                 + dts_custom_cmd_input + "\n \n" + VideoOutputQuoted
+                                 + dts_custom_cmd_input + VideoOutputQuoted
     # --------------------------------------------------------------------------------------- DTS Command Line Main Gui
     # FDK View Command Line -------------------------------------------------------------------------------------------
     elif encoder.get() == "FDK-AAC":
-        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + \
-                             VideoInputQuoted + "\n \n" + \
+        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + \
+                             VideoInputQuoted + \
                              acodec_stream_choices[acodec_stream.get()] + \
                              acodec_channel_choices[acodec_channel.get()] + \
                              acodec_samplerate_choices[acodec_samplerate.get()] + \
                              audio_filter_setting + \
-                             "-f caf - | " + "\n \n" + "fdkaac.exe" + " " + \
+                             "-f caf - | " + "fdkaac.exe" + " " + \
                              acodec_profile_choices[acodec_profile.get()] + afterburnervar.get() + fdkaac_title_input \
                              + fdkaac_custom_cmd_input + \
                              crccheck.get() + moovbox.get() + sbrdelay.get() + headerperiod.get() + \
                              acodec_lowdelay_choices[acodec_lowdelay.get()] + \
                              acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] + \
                              acodec_transport_format_choices[acodec_transport_format.get()] + \
-                             acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " + "\n \n" + VideoOutputQuoted
+                             acodec_bitrate_choices[acodec_bitrate.get()] + "- -o " + VideoOutputQuoted
     # ---------------------------------------------------------------------------------------------------- FDK CMD LINE
     # QAAC View Command Line ------------------------------------------------------------------------------------------
     elif encoder.get() == "QAAC":
         if q_acodec_profile.get() == "True VBR":
-            example_cmd_output = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + "\n \n" \
-                                 + VideoInputQuoted + "\n \n" + \
-                                 acodec_stream_choices[acodec_stream.get()] + acodec_channel_choices[
-                                     acodec_channel.get()] + audio_filter_setting + \
+            example_cmd_output = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+                                 acodec_stream_choices[acodec_stream.get()] + \
+                                 acodec_channel_choices[acodec_channel.get()] + audio_filter_setting + \
                                  acodec_samplerate_choices[acodec_samplerate.get()] \
-                                 + "\n \n" + "-f wav - | " + qaac + " --ignorelength " + "\n \n" \
-                                 + q_acodec_profile_choices[q_acodec_profile.get()] + q_acodec_quality_amnt.get() \
+                                 + "-f wav - | " + qaac + " --ignorelength " + \
+                                 q_acodec_profile_choices[q_acodec_profile.get()] + q_acodec_quality_amnt.get() \
                                  + " " + qaac_high_efficiency.get() + qaac_normalize.get() + qaac_nodither.get() \
                                  + set_qaac_gain + q_acodec_quality_choices[q_acodec_quality.get()] \
                                  + qaac_nodelay.get() + q_gapless_mode_choices[q_gapless_mode.get()] \
                                  + qaac_nooptimize.get() + qaac_threading.get() + qaac_limiter.get() \
-                                 + qaac_title_input + qaac_custom_cmd_input + "- -o " + "\n \n" + VideoOutputQuoted
+                                 + qaac_title_input + qaac_custom_cmd_input + "- -o " + VideoOutputQuoted
         else:
-            example_cmd_output = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + "\n \n" \
-                                 + VideoInputQuoted + "\n \n" + \
+            example_cmd_output = ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
                                  acodec_stream_choices[acodec_stream.get()] + \
                                  acodec_channel_choices[acodec_channel.get()] + audio_filter_setting + \
                                  acodec_samplerate_choices[acodec_samplerate.get()] \
-                                 + "\n \n" + "-f wav - | " + qaac + " --ignorelength " + "\n \n" \
-                                 + q_acodec_profile_choices[q_acodec_profile.get()] + \
+                                 + "-f wav - | " + qaac + " --ignorelength " + \
+                                 q_acodec_profile_choices[q_acodec_profile.get()] + \
                                  q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() + qaac_nodither.get() \
                                  + set_qaac_gain + q_acodec_quality_choices[q_acodec_quality.get()] \
                                  + qaac_normalize.get() + qaac_nodelay.get() \
                                  + q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() \
                                  + qaac_threading.get() + qaac_limiter.get() + qaac_title_input \
-                                 + qaac_custom_cmd_input + "- -o " + "\n \n" + VideoOutputQuoted
+                                 + qaac_custom_cmd_input + "- -o " + VideoOutputQuoted
     # ------------------------------------------------------------------------------------------------------------ QAAC
     # AAC Command Line ------------------------------------------------------------------------------------------------
     elif encoder.get() == "AAC":
@@ -4703,57 +4701,54 @@ def print_command_line():
             bitrate_or_quality = f"-b:a {aac_bitrate_spinbox.get()}k "
         elif aac_vbr_toggle.get() == "-q:a ":
             bitrate_or_quality = f"-q:a {aac_quality_spinbox.get()} "
-        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + \
-                             VideoInputQuoted + "\n \n" + acodec_stream_choices[acodec_stream.get()] \
+        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + \
+                             VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] \
                              + encoder_dropdownmenu_choices[encoder.get()] + bitrate_or_quality \
                              + acodec_channel_choices[acodec_channel.get()] + \
                              acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting + \
-                             aac_custom_cmd_input + aac_title_input + "\n \n" + \
-                             VideoOutputQuoted
+                             aac_custom_cmd_input + aac_title_input + VideoOutputQuoted
     # ------------------------------------------------------------------------------------------------ AAC Command Line
     # AC3 Command Line ------------------------------------------------------------------------------------------------
     elif encoder.get() == "AC3":
-        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" \
-                             + VideoInputQuoted + "\n \n" + acodec_stream_choices[acodec_stream.get()] \
+        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + \
+                             VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] \
                              + encoder_dropdownmenu_choices[encoder.get()] + \
                              acodec_bitrate_choices[acodec_bitrate.get()] + \
                              acodec_channel_choices[acodec_channel.get()] + \
                              acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting + \
-                             ac3_custom_cmd_input + "\n \n" \
-                             + VideoOutputQuoted
+                             ac3_custom_cmd_input + VideoOutputQuoted
     # ------------------------------------------------------------------------------------------------ AC3 Command Line
     # Opus Command Line -----------------------------------------------------------------------------------------------
     elif encoder.get() == "Opus":
-        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted + \
-                             "\n \n" + acodec_stream_choices[acodec_stream.get()] + \
+        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+                             acodec_stream_choices[acodec_stream.get()] + \
                              encoder_dropdownmenu_choices[encoder.get()] + \
                              acodec_vbr_choices[acodec_vbr.get()] + acodec_bitrate_choices[acodec_bitrate.get()] + \
                              acodec_channel_choices[acodec_channel.get()] + \
                              acodec_application_choices[acodec_application.get()] + "-packet_loss " + \
                              packet_loss.get() + " -frame_duration " + frame_duration.get() + " " + \
                              acodec_samplerate_choices[acodec_samplerate.get()] + \
-                             audio_filter_setting + opus_custom_cmd_input + "\n \n" + VideoOutputQuoted
+                             audio_filter_setting + opus_custom_cmd_input + VideoOutputQuoted
     # ----------------------------------------------------------------------------------------------- Opus Command Line
     # MP3 Command Line ------------------------------------------------------------------------------------------------
     elif encoder.get() == "MP3":
-        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted + \
-                             "\n \n" + acodec_stream_choices[acodec_stream.get()] + \
+        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+                             acodec_stream_choices[acodec_stream.get()] + \
                              encoder_dropdownmenu_choices[encoder.get()] + \
                              acodec_bitrate_choices[acodec_bitrate.get()] + \
                              acodec_channel_choices[acodec_channel.get()] + mp3_abr.get() + \
                              acodec_samplerate_choices[acodec_samplerate.get()] + \
-                             audio_filter_setting + mp3_custom_cmd_input \
-                             + "\n \n" + VideoOutputQuoted
+                             audio_filter_setting + mp3_custom_cmd_input + VideoOutputQuoted
     # ------------------------------------------------------------------------------------------------ MP3 Command Line
     # E-AC3 Command Line ----------------------------------------------------------------------------------------------
     elif encoder.get() == "E-AC3":
-        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted + \
-                             "\n \n" + acodec_stream_choices[acodec_stream.get()] \
+        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+                             acodec_stream_choices[acodec_stream.get()] \
                              + encoder_dropdownmenu_choices[encoder.get()] \
                              + "-b:a " + eac3_spinbox.get() + acodec_channel_choices[acodec_channel.get()] \
                              + acodec_samplerate_choices[acodec_samplerate.get()] \
-                             + audio_filter_setting + eac3_custom_cmd_input + "\n \n" \
-                             + per_frame_metadata_choices[per_frame_metadata.get()] \
+                             + audio_filter_setting + eac3_custom_cmd_input + \
+                             per_frame_metadata_choices[per_frame_metadata.get()] \
                              + "-mixing_level " + eac3_mixing_level.get() + " " \
                              + room_type_choices[room_type.get()] \
                              + "-copyright " + copyright_bit.get() + " " \
@@ -4765,18 +4760,17 @@ def print_command_line():
                              + "-ltrt_surmixlev " + lt_rt_surround_mix.get() + " " \
                              + "-loro_cmixlev " + lo_ro_center_mix.get() + " " \
                              + "-loro_surmixlev " + lo_ro_surround_mix.get() + " " \
-                             + "\n \n" + dolby_surround_ex_mode_choices[dolby_surround_ex_mode.get()] \
+                             + dolby_surround_ex_mode_choices[dolby_surround_ex_mode.get()] \
                              + dolby_headphone_mode_choices[dolby_headphone_mode.get()] \
                              + a_d_converter_type_choices[a_d_converter_type.get()] \
                              + stereo_rematrixing_choices[stereo_rematrixing.get()] \
                              + "-channel_coupling " + channel_coupling.get() + " " \
-                             + "-cpl_start_band " + cpl_start_band.get() + " " \
-                             + "\n \n" + VideoOutputQuoted
+                             + "-cpl_start_band " + cpl_start_band.get() + " " + VideoOutputQuoted
     # ---------------------------------------------------------------------------------------------- E-AC3 Command Line
     # FLAC Command Line -----------------------------------------------------------------------------------------------
     elif encoder.get() == "FLAC":
-        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted + \
-                             "\n \n" + acodec_stream_choices[acodec_stream.get()] \
+        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+                             acodec_stream_choices[acodec_stream.get()] \
                              + encoder_dropdownmenu_choices[encoder.get()] + \
                              acodec_bitrate_choices[acodec_bitrate.get()] + \
                              acodec_channel_choices[acodec_channel.get()] + \
@@ -4784,21 +4778,31 @@ def print_command_line():
                              + set_flac_acodec_coefficient \
                              + acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] \
                              + acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] \
-                             + flac_custom_cmd_input + "\n \n" + VideoOutputQuoted
+                             + flac_custom_cmd_input + VideoOutputQuoted
     # ----------------------------------------------------------------------------------------------- FLAC Command Line
     # ALAC Command Line -----------------------------------------------------------------------------------------------
     elif encoder.get() == "ALAC":
-        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + "\n \n" + VideoInputQuoted + \
-                             "\n \n" + acodec_stream_choices[acodec_stream.get()] \
+        example_cmd_output = "ffmpeg.exe -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted + \
+                             acodec_stream_choices[acodec_stream.get()] \
                              + encoder_dropdownmenu_choices[encoder.get()] + \
                              acodec_channel_choices[acodec_channel.get()] + \
                              acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting \
-                             + min_pre_order + max_pre_order + flac_custom_cmd_input \
-                             + "\n \n" + VideoOutputQuoted
+                             + min_pre_order + max_pre_order + flac_custom_cmd_input + VideoOutputQuoted
     # ----------------------------------------------------------------------------------------------- ALAC Command Line
-    cmd_label = Label(cmd_line_window, text=example_cmd_output, foreground="white", background="#434547")
-    cmd_label.config(font=("Helvetica", 16))
-    cmd_label.pack()
+    show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=90, height=10, tabs=10, spacing2=3,
+                                                        spacing1=2, spacing3=3)
+    show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
+    show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
+    show_cmd_scrolled.insert(END, example_cmd_output)
+    show_cmd_scrolled.see(END)
+    show_cmd_scrolled.configure(state=DISABLED)
+
+    def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
+        pyperclip.copy(show_cmd_scrolled.get(1.0, END))
+
+    copy_text = HoverButton(cmd_line_window, text='Copy to clipboard', command=copy_to_clipboard,
+                            foreground='white', background='#23272A', borderwidth='3', activebackground='grey')
+    copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
 
 
 # ---------------------------------------------------------------------------------------- Print Command Line from ROOT
@@ -5676,7 +5680,7 @@ output_entry.grid(row=2, column=1, columnspan=3, padx=5, pady=5, sticky=S + E + 
 # ---------------------------------------------------------------------- # Output Button/Entry Box
 
 # Print Final Command Line ---------------------------------------------------------------------
-command_line_button = HoverButton(root, text="Show\nCommand", command=print_command_line, state=DISABLED,
+command_line_button = HoverButton(root, text="Display\nCommand", command=print_command_line, state=DISABLED,
                                   foreground="white", background="#23272A", borderwidth="3", activebackground='grey')
 command_line_button.grid(row=1, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
 
