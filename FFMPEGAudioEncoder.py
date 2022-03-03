@@ -188,6 +188,29 @@ options_submenu.add_radiobutton(label='Progress Bars', variable=shell_options,
 options_submenu.add_radiobutton(label='CMD Shell (Debug)', variable=shell_options,
                                 value="Debug", command=update_shell_option)
 
+auto_close_window = StringVar()
+auto_close_window.set(config['auto_close_progress_window']['option'])
+if auto_close_window.get() == '':
+    auto_close_window.set('on')
+elif auto_close_window.get() != '':
+    auto_close_window.set(config['auto_close_progress_window']['option'])
+
+
+def update_auto_close():
+    try:
+        config.set('auto_close_progress_window', 'option', auto_close_window.get())
+        with open(config_file, 'w') as configfile:
+            config.write(configfile)
+    except (Exception,):
+        pass
+
+
+update_auto_close()
+options_submenu2 = Menu(root, tearoff=0, activebackground='dim grey')
+options_menu.add_cascade(label='Auto-Close Progress Window On Completion', menu=options_submenu2)
+options_submenu2.add_radiobutton(label='On', variable=auto_close_window, value='on', command=update_auto_close)
+options_submenu2.add_radiobutton(label='Off', variable=auto_close_window, value='off', command=update_auto_close)
+
 options_menu.add_separator()
 
 
@@ -4825,13 +4848,29 @@ def startaudiojob():
                                                                  spacing1=2, spacing3=3)
         encode_window_progress.grid(row=0, column=0, pady=(10, 6), padx=10, sticky=E + W)
         encode_window_progress.insert(END, ' - - - - - - - - - - - Encode Started - - - - - - - - - - - \n\n\n')
+
+        def auto_close_window_toggle():  # Function to save input from the checkbox below to config.ini
+            try:
+                config.set('auto_close_progress_window', 'option', auto_close_window.get())
+                with open(config_file, 'w') as configfile:
+                    config.write(configfile)
+            except (Exception,):
+                pass
+
+        auto_close_window_checkbox = Checkbutton(window, text='Automatically Close', variable=auto_close_window,
+                                                 onvalue='on', offvalue='off', command=auto_close_window_toggle,
+                                                 takefocus=False)
+        auto_close_window_checkbox.grid(row=1, column=0, columnspan=1, rowspan=1, padx=10, pady=(10, 5), sticky=W)
+        auto_close_window_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                             activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
+        auto_close_window.set(config['auto_close_progress_window']['option'])
         if total_duration is not None:
             app_progress_bar = ttk.Progressbar(window, orient=HORIZONTAL, mode='determinate')
             app_progress_bar.grid(column=0, row=6, columnspan=4, sticky=W + E, pady=(0, 2), padx=3)
         if total_duration is None:
             temp_label = Label(window, text='Input has no duration - progress bar is temporarily disabled',
                                bd=4, relief=SUNKEN, anchor=E, background='#717171', foreground="white")
-            temp_label.grid(row=2, pady=(10, 10), padx=15, sticky=E + W)
+            temp_label.grid(row=6, pady=(10, 10), padx=15, sticky=E + W)
 
         def update_last_codec_command():  # Updates 'profiles.ini' last used codec/commands
             config_profile.set('Auto Encode', 'codec', encoder.get())
@@ -4898,7 +4937,8 @@ def startaudiojob():
             encode_window_progress.see(END)
             encode_window_progress.configure(state=DISABLED)
             complete_or_not = str('Job Completed!!')
-            window.destroy()
+            if config['auto_close_progress_window']['option'] == 'on':
+                window.destroy()  # If program is set to auto close encoding window when complete, close the window
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand + '"')
     # --------------------------------------------------------------------------------------------------------- AC3 Job
