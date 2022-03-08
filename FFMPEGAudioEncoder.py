@@ -5072,59 +5072,14 @@ def startaudiojob():
                                     acodec_channel_choices[acodec_channel.get()] +
                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                     "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input +
-                                    VideoOutputQuoted + " -hide_banner").split())
+                                    VideoOutputQuoted + " -v error -hide_banner -stats").split())
         last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
                                          encoder_dropdownmenu_choices[encoder.get()] +
                                          acodec_bitrate_choices[acodec_bitrate.get()] +
                                          acodec_channel_choices[acodec_channel.get()] +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                          "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input).split())
-        if shell_options.get() == "Default":
-            if auto_or_manual == 'auto':
-                command = finalcommand
-                update_last_codec_command()
-            elif auto_or_manual == 'manual':
-                command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
-                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
-                          + ' ' + VideoOutputQuoted + ' -hide_banner'
-            job = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
-            if auto_or_manual == 'manual':
-                reset_main_gui()
-            for line in job.stdout:
-                encode_window_progress.configure(state=NORMAL)
-                encode_window_progress.insert(END, str('\n'.join(' '.join(x.split()) for x in line.split('\n'))))
-                encode_window_progress.see(END)
-                encode_window_progress.configure(state=DISABLED)
-                if total_duration is not None:
-                    if line.split()[0] == 'size=':
-                        try:
-                            time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
-                            progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
-                            percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
-                            try:
-                                app_progress_bar['value'] = int(percent)
-                            except (Exception,):
-                                pass
-                        except (Exception,):
-                            window.destroy()
-                            msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
-                                                                                       f'\n\n"{str(line).rstrip()}"\n\n'
-                                                                                       f'Would you like to report the '
-                                                                                       f'error on the github tracker?')
-                            if msg_error:
-                                webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
-            encode_window_progress.configure(state=NORMAL)
-            encode_window_progress.insert(END, str('\nJob Completed!!'))
-            encode_window_progress.see(END)
-            encode_window_progress.configure(state=DISABLED)
-            copy_text.config(state=NORMAL)  # Enable copy button once job is completed
-            complete_or_not = str('Job Completed!!')
-            if config['auto_close_progress_window']['option'] == 'on':
-                window.destroy()  # If program is set to auto close encoding window when complete, close the window
-        elif shell_options.get() == "Debug":
-            subprocess.Popen('cmd /k ' + finalcommand + '"')
+
     # --------------------------------------------------------------------------------------------------------- AC3 Job
     # AAC Start Job ---------------------------------------------------------------------------------------------------
     elif encoder.get() == "AAC":
@@ -5138,60 +5093,14 @@ def startaudiojob():
                                     acodec_channel_choices[acodec_channel.get()] +
                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                     "-sn -vn -map_chapters -1 -map_metadata -1 " + aac_custom_cmd_input +
-                                    aac_title_input + VideoOutputQuoted + " -hide_banner").split())
+                                    aac_title_input + VideoOutputQuoted + " -v error -hide_banner -stats").split())
         last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
                                          encoder_dropdownmenu_choices[encoder.get()] + bitrate_or_quality +
                                          acodec_channel_choices[acodec_channel.get()] +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                          "-sn -vn -map_chapters -1 -map_metadata -1 " + aac_custom_cmd_input +
                                          aac_title_input).split())
-        if shell_options.get() == "Default":
-            if auto_or_manual == 'auto':
-                command = finalcommand
-                update_last_codec_command()
-            elif auto_or_manual == 'manual':
-                command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
-                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
-                          + ' ' + VideoOutputQuoted + ' -hide_banner'
-            job = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
-            if auto_or_manual == 'manual':
-                reset_main_gui()
-            for line in job.stdout:
-                encode_window_progress.configure(state=NORMAL)
-                encode_window_progress.insert(END, str('\n'.join(' '.join(x.split()) for x in line.split('\n'))))
-                encode_window_progress.see(END)
-                encode_window_progress.configure(state=DISABLED)
-                if total_duration is not None:
-                    if line.split()[0] == 'size=':
-                        try:
-                            time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
-                            progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
-                            percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
-                            try:
-                                app_progress_bar['value'] = int(percent)
-                            except (Exception,):
-                                pass
-                        except (Exception,):
-                            window.destroy()
-                            msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
-                                                                                       f'\n\n"{str(line).rstrip()}"\n\n'
-                                                                                       f'Would you like to report the '
-                                                                                       f'error on the github tracker?')
-                            if msg_error:
-                                webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
-            encode_window_progress.configure(state=NORMAL)
-            encode_window_progress.insert(END, str('\nJob Completed!!'))
-            encode_window_progress.see(END)
-            encode_window_progress.configure(state=DISABLED)
-            copy_text.config(state=NORMAL)  # Enable copy button once job is completed
-            complete_or_not = str('Job Completed!!')
-            if config['auto_close_progress_window']['option'] == 'on':
-                window.destroy()  # If program is set to auto close encoding window when complete, close the window
-        elif shell_options.get() == "Debug":
-            subprocess.Popen('cmd /k ' + finalcommand + '"')
-            # ------------------------------------------------------------------------------------------------- AAC Job
+        # ------------------------------------------------------------------------------------------------- AAC Job
     # DTS Start Job ---------------------------------------------------------------------------------------------------
     elif encoder.get() == 'DTS':
         if dts_settings.get() == 'DTS Encoder':
@@ -5202,7 +5111,7 @@ def startaudiojob():
                                         acodec_channel_choices[acodec_channel.get()] +
                                         acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                         dts_custom_cmd_input + "-sn -vn -map_chapters -1 " + VideoOutputQuoted +
-                                        " -hide_banner").split())
+                                        " -v error -hide_banner -stats").split())
             last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
                                              dts_settings_choices[dts_settings.get()] + "-b:a " +
                                              dts_bitrate_spinbox.get() + "k " +
@@ -5214,56 +5123,11 @@ def startaudiojob():
             finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
                                         VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] +
                                         dts_settings_choices[dts_settings.get()] + dts_custom_cmd_input +
-                                        "-sn -vn -map_chapters -1 " + VideoOutputQuoted + " -hide_banner").split())
+                                        "-sn -vn -map_chapters -1 " + VideoOutputQuoted +
+                                        " -v error -hide_banner -stats").split())
             last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
                                              dts_settings_choices[dts_settings.get()] + dts_custom_cmd_input +
                                              "-sn -vn -map_chapters -1 ").split())
-        if shell_options.get() == "Default":
-            if auto_or_manual == 'auto':
-                command = finalcommand
-                update_last_codec_command()
-            elif auto_or_manual == 'manual':
-                command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
-                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
-                          + ' ' + VideoOutputQuoted + ' -hide_banner'
-            job = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
-            if auto_or_manual == 'manual':
-                reset_main_gui()
-            for line in job.stdout:
-                encode_window_progress.configure(state=NORMAL)
-                encode_window_progress.insert(END, str('\n'.join(' '.join(x.split()) for x in line.split('\n'))))
-                encode_window_progress.see(END)
-                encode_window_progress.configure(state=DISABLED)
-                if total_duration is not None:
-                    if line.split()[0] == 'size=':
-                        try:
-                            time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
-                            progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
-                            percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
-                            try:
-                                app_progress_bar['value'] = int(percent)
-                            except (Exception,):
-                                pass
-                        except (Exception,):
-                            window.destroy()
-                            msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
-                                                                                       f'\n\n"{str(line).rstrip()}"\n\n'
-                                                                                       f'Would you like to report the '
-                                                                                       f'error on the github tracker?')
-                            if msg_error:
-                                webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
-            encode_window_progress.configure(state=NORMAL)
-            encode_window_progress.insert(END, str('\nJob Completed!!'))
-            encode_window_progress.see(END)
-            encode_window_progress.configure(state=DISABLED)
-            copy_text.config(state=NORMAL)  # Enable copy button once job is completed
-            complete_or_not = str('Job Completed!!')
-            if config['auto_close_progress_window']['option'] == 'on':
-                window.destroy()  # If program is set to auto close encoding window when complete, close the window
-        elif shell_options.get() == "Debug":
-            subprocess.Popen('cmd /k ' + finalcommand + '"')
     # ------------------------------------------------------------------------------------------------------------- DTS
     # Opus Start Job --------------------------------------------------------------------------------------------------
     elif encoder.get() == "Opus":
@@ -5277,7 +5141,7 @@ def startaudiojob():
                                     packet_loss.get() + " -frame_duration " + frame_duration.get() + " " +
                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                     "-sn -vn -map_chapters -1 -map_metadata -1 " + opus_custom_cmd_input +
-                                    VideoOutputQuoted + " -hide_banner").split())
+                                    VideoOutputQuoted + " -v error -hide_banner -stats").split())
         last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
                                          encoder_dropdownmenu_choices[encoder.get()] +
                                          acodec_vbr_choices[acodec_vbr.get()] +
@@ -5287,52 +5151,6 @@ def startaudiojob():
                                          packet_loss.get() + " -frame_duration " + frame_duration.get() + " " +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                          "-sn -vn -map_chapters -1 -map_metadata -1 ").split())
-        if shell_options.get() == "Default":
-            if auto_or_manual == 'auto':
-                command = finalcommand
-                update_last_codec_command()
-            elif auto_or_manual == 'manual':
-                command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
-                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
-                          + ' ' + VideoOutputQuoted + ' -hide_banner'
-            job = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
-            if auto_or_manual == 'manual':
-                reset_main_gui()
-            for line in job.stdout:
-                encode_window_progress.configure(state=NORMAL)
-                encode_window_progress.insert(END, str('\n'.join(' '.join(x.split()) for x in line.split('\n'))))
-                encode_window_progress.see(END)
-                encode_window_progress.configure(state=DISABLED)
-                if total_duration is not None:
-                    if line.split()[0] == 'size=':
-                        try:
-                            time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
-                            progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
-                            percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
-                            try:
-                                app_progress_bar['value'] = int(percent)
-                            except (Exception,):
-                                pass
-                        except (Exception,):
-                            window.destroy()
-                            msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
-                                                                                       f'\n\n"{str(line).rstrip()}"\n\n'
-                                                                                       f'Would you like to report the '
-                                                                                       f'error on the github tracker?')
-                            if msg_error:
-                                webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
-            encode_window_progress.configure(state=NORMAL)
-            encode_window_progress.insert(END, str('\nJob Completed!!'))
-            encode_window_progress.see(END)
-            encode_window_progress.configure(state=DISABLED)
-            copy_text.config(state=NORMAL)  # Enable copy button once job is completed
-            complete_or_not = str('Job Completed!!')
-            if config['auto_close_progress_window']['option'] == 'on':
-                window.destroy()  # If program is set to auto close encoding window when complete, close the window
-        elif shell_options.get() == "Debug":
-            subprocess.Popen('cmd /k ' + finalcommand + '"')
     # ------------------------------------------------------------------------------------------------------------ Opus
     # MP3 Start Job ---------------------------------------------------------------------------------------------------
     elif encoder.get() == "MP3":
@@ -5343,59 +5161,13 @@ def startaudiojob():
                                     acodec_channel_choices[acodec_channel.get()] + mp3_abr.get() +
                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                     "-sn -vn -map_chapters -1 -map_metadata -1 " + mp3_custom_cmd_input +
-                                    VideoOutputQuoted + " -hide_banner").split())
+                                    VideoOutputQuoted + " -v error -hide_banner -stats").split())
         last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
                                          encoder_dropdownmenu_choices[encoder.get()] +
                                          acodec_bitrate_choices[acodec_bitrate.get()] +
                                          acodec_channel_choices[acodec_channel.get()] + mp3_abr.get() +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                          "-sn -vn -map_chapters -1 -map_metadata -1 " + mp3_custom_cmd_input).split())
-        if shell_options.get() == "Default":
-            if auto_or_manual == 'auto':
-                command = finalcommand
-                update_last_codec_command()
-            elif auto_or_manual == 'manual':
-                command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
-                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
-                          + ' ' + VideoOutputQuoted + ' -hide_banner'
-            job = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
-            if auto_or_manual == 'manual':
-                reset_main_gui()
-            for line in job.stdout:
-                encode_window_progress.configure(state=NORMAL)
-                encode_window_progress.insert(END, str('\n'.join(' '.join(x.split()) for x in line.split('\n'))))
-                encode_window_progress.see(END)
-                encode_window_progress.configure(state=DISABLED)
-                if total_duration is not None:
-                    if line.split()[0] == 'size=':
-                        try:
-                            time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
-                            progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
-                            percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
-                            try:
-                                app_progress_bar['value'] = int(percent)
-                            except (Exception,):
-                                pass
-                        except (Exception,):
-                            window.destroy()
-                            msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
-                                                                                       f'\n\n"{str(line).rstrip()}"\n\n'
-                                                                                       f'Would you like to report the '
-                                                                                       f'error on the github tracker?')
-                            if msg_error:
-                                webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
-            encode_window_progress.configure(state=NORMAL)
-            encode_window_progress.insert(END, str('\nJob Completed!!'))
-            encode_window_progress.see(END)
-            encode_window_progress.configure(state=DISABLED)
-            copy_text.config(state=NORMAL)  # Enable copy button once job is completed
-            complete_or_not = str('Job Completed!!')
-            if config['auto_close_progress_window']['option'] == 'on':
-                window.destroy()  # If program is set to auto close encoding window when complete, close the window
-        elif shell_options.get() == "Debug":
-            subprocess.Popen('cmd /k ' + finalcommand + '"')
     # ------------------------------------------------------------------------------------------------------------- MP3
     # E-AC3 Start Job -------------------------------------------------------------------------------------------------
     elif encoder.get() == "E-AC3":
@@ -5419,8 +5191,7 @@ def startaudiojob():
                                     stereo_rematrixing_choices[stereo_rematrixing.get()] + "-channel_coupling " +
                                     channel_coupling.get() + " " + "-cpl_start_band " + cpl_start_band.get() + " " +
                                     "-sn -vn -map_chapters -1 -map_metadata -1 " + VideoOutputQuoted +
-                                    " -hide_banner").split())
-        print(finalcommand)
+                                    " -v error -hide_banner -stats").split())
         last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
                                          encoder_dropdownmenu_choices[encoder.get()] + "-b:a " + eac3_spinbox.get() +
                                          acodec_channel_choices[acodec_channel.get()] +
@@ -5440,53 +5211,6 @@ def startaudiojob():
                                          stereo_rematrixing_choices[stereo_rematrixing.get()] + "-channel_coupling " +
                                          channel_coupling.get() + " " + "-cpl_start_band " + cpl_start_band.get() +
                                          " " + "-sn -vn -map_chapters -1 ").split())
-        if shell_options.get() == "Default":
-            if auto_or_manual == 'auto':
-                command = finalcommand
-                update_last_codec_command()
-            elif auto_or_manual == 'manual':
-                command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
-                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
-                          + ' ' + VideoOutputQuoted + ' -hide_banner'
-            print(command)
-            job = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
-            if auto_or_manual == 'manual':
-                reset_main_gui()
-            for line in job.stdout:
-                encode_window_progress.configure(state=NORMAL)
-                encode_window_progress.insert(END, str('\n'.join(' '.join(x.split()) for x in line.split('\n'))))
-                encode_window_progress.see(END)
-                encode_window_progress.configure(state=DISABLED)
-                if total_duration is not None:
-                    if line.split()[0] == 'size=':
-                        try:
-                            time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
-                            progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
-                            percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
-                            try:
-                                app_progress_bar['value'] = int(percent)
-                            except (Exception,):
-                                pass
-                        except (Exception,):
-                            window.destroy()
-                            msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
-                                                                                       f'\n\n"{str(line).rstrip()}"\n\n'
-                                                                                       f'Would you like to report the '
-                                                                                       f'error on the github tracker?')
-                            if msg_error:
-                                webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
-            encode_window_progress.configure(state=NORMAL)
-            encode_window_progress.insert(END, str('\nJob Completed!!'))
-            encode_window_progress.see(END)
-            encode_window_progress.configure(state=DISABLED)
-            copy_text.config(state=NORMAL)  # Enable copy button once job is completed
-            complete_or_not = str('Job Completed!!')
-            if config['auto_close_progress_window']['option'] == 'on':
-                window.destroy()  # If program is set to auto close encoding window when complete, close the window
-        elif shell_options.get() == "Debug":
-            subprocess.Popen('cmd /k ' + finalcommand + '"')
     # ----------------------------------------------------------------------------------------------------------- E-AC3
     # FDK_AAC Start Job -----------------------------------------------------------------------------------------------
     elif encoder.get() == "FDK-AAC":
@@ -5498,7 +5222,7 @@ def startaudiojob():
                                     acodec_stream_choices[acodec_stream.get()] +
                                     acodec_channel_choices[acodec_channel.get()] +
                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                    "-f caf - -hide_banner -v error -stats | " +
+                                    "-f caf - -v error -hide_banner -stats | " +
                                     fdkaac + " " + acodec_profile_choices[acodec_profile.get()] +
                                     fdkaac_title_input + fdkaac_custom_cmd_input +
                                     acodec_gapless_mode_choices[acodec_gapless_mode.get()] + afterburnervar.get() +
@@ -5511,7 +5235,7 @@ def startaudiojob():
         last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
                                          acodec_channel_choices[acodec_channel.get()] +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                         "-f caf - -hide_banner -v error -stats | " + fdkaac + " " +
+                                         "-f caf - -v error -hide_banner -stats | " + fdkaac + " " +
                                          acodec_profile_choices[acodec_profile.get()] + fdkaac_title_input +
                                          fdkaac_custom_cmd_input +
                                          acodec_gapless_mode_choices[acodec_gapless_mode.get()] +
@@ -5521,52 +5245,7 @@ def startaudiojob():
                                          acodec_transport_format_choices[acodec_transport_format.get()] +
                                          acodec_bitrate_choices[acodec_bitrate.get()] +
                                          silent + "- -o ").split())
-        if shell_options.get() == "Default":
-            if auto_or_manual == 'auto':
-                command = finalcommand
-                update_last_codec_command()
-            elif auto_or_manual == 'manual':
-                command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
-                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
-                          + ' ' + VideoOutputQuoted
-            job = subprocess.Popen('cmd /c ' + command, universal_newlines=True,
-                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
-            if auto_or_manual == 'manual':
-                reset_main_gui()
-            for line in job.stdout:
-                encode_window_progress.configure(state=NORMAL)
-                encode_window_progress.insert(END, str('\n'.join(' '.join(x.split()) for x in line.split('\n'))))
-                encode_window_progress.see(END)
-                encode_window_progress.configure(state=DISABLED)
-                if total_duration is not None:
-                    if line.split()[0] == 'size=':
-                        try:
-                            time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
-                            progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
-                            percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
-                            try:
-                                app_progress_bar['value'] = int(percent)
-                            except (Exception,):
-                                pass
-                        except (Exception,):
-                            window.destroy()
-                            msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
-                                                                                       f'\n\n"{str(line).rstrip()}"\n\n'
-                                                                                       f'Would you like to report the '
-                                                                                       f'error on the github tracker?')
-                            if msg_error:
-                                webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
-            encode_window_progress.configure(state=NORMAL)
-            encode_window_progress.insert(END, str('\nJob Completed!!'))
-            encode_window_progress.see(END)
-            encode_window_progress.configure(state=DISABLED)
-            copy_text.config(state=NORMAL)  # Enable copy button once job is completed
-            complete_or_not = str('Job Completed!!')
-            if config['auto_close_progress_window']['option'] == 'on':
-                window.destroy()  # If program is set to auto close encoding window when complete, close the window
-        elif shell_options.get() == "Debug":
-            subprocess.Popen('cmd /k ' + finalcommand)
+
     # ------------------------------------------------------------------------------------------------------------- FDK
     # QAAC Start Job --------------------------------------------------------------------------------------------------
     elif encoder.get() == "QAAC":
@@ -5579,7 +5258,7 @@ def startaudiojob():
                                         VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] +
                                         acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
                                         acodec_samplerate_choices[acodec_samplerate.get()] +
-                                        "-f wav - -hide_banner -v error -stats | " + qaac +
+                                        "-f wav - -v error -hide_banner -stats | " + qaac +
                                         " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
                                         q_acodec_quality_amnt.get() + ' ' + qaac_high_efficiency.get() +
                                         qaac_normalize.get() + qaac_nodither.get() + "--gain " +
@@ -5591,7 +5270,7 @@ def startaudiojob():
             last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
                                              acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
                                              acodec_samplerate_choices[acodec_samplerate.get()] +
-                                             "-f wav - -hide_banner -v error -stats | " + qaac + " --ignorelength " +
+                                             "-f wav - -v error -hide_banner -stats | " + qaac + " --ignorelength " +
                                              q_acodec_profile_choices[q_acodec_profile.get()] +
                                              q_acodec_quality_amnt.get() + ' ' + qaac_high_efficiency.get() +
                                              qaac_normalize.get() + qaac_nodither.get() + "--gain " +
@@ -5605,7 +5284,7 @@ def startaudiojob():
                                         acodec_stream_choices[acodec_stream.get()] +
                                         acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
                                         acodec_samplerate_choices[acodec_samplerate.get()] +
-                                        "-f wav - -hide_banner -v error -stats | " + qaac +
+                                        "-f wav - -v error -hide_banner -stats | " + qaac +
                                         " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
                                         q_acodec_bitrate.get() + qaac_high_efficiency.get() + qaac_normalize.get() +
                                         qaac_nodither.get() + "--gain " + q_acodec_gain.get() + ' ' +
@@ -5617,7 +5296,7 @@ def startaudiojob():
             last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
                                              acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
                                              acodec_samplerate_choices[acodec_samplerate.get()] +
-                                             "-f wav - -hide_banner -v error -stats | " + qaac +
+                                             "-f wav - -v error -hide_banner -stats | " + qaac +
                                              " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
                                              q_acodec_bitrate.get() + qaac_high_efficiency.get() +
                                              qaac_normalize.get() + qaac_nodither.get() + "--gain " +
@@ -5626,6 +5305,106 @@ def startaudiojob():
                                              q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() +
                                              qaac_threading.get() + qaac_limiter.get() + qaac_title_input +
                                              qaac_custom_cmd_input + silent + "- -o ").split())
+    # ------------------------------------------------------------------------------------------------------------ QAAC
+    # FLAC Start Job --------------------------------------------------------------------------------------------------
+    elif encoder.get() == "FLAC":
+        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted +
+                                    acodec_stream_choices[acodec_stream.get()] +
+                                    encoder_dropdownmenu_choices[encoder.get()] +
+                                    acodec_bitrate_choices[acodec_bitrate.get()] +
+                                    acodec_channel_choices[acodec_channel.get()] +
+                                    acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
+                                    set_flac_acodec_coefficient +
+                                    acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] +
+                                    acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] +
+                                    flac_custom_cmd_input + VideoOutputQuoted +
+                                    " -v error -hide_banner -stats" + '"').split())
+        last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
+                                         encoder_dropdownmenu_choices[encoder.get()] +
+                                         acodec_bitrate_choices[acodec_bitrate.get()] +
+                                         acodec_channel_choices[acodec_channel.get()] +
+                                         acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
+                                         set_flac_acodec_coefficient +
+                                         acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] +
+                                         acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] +
+                                         flac_custom_cmd_input).split())
+    # ------------------------------------------------------------------------------------------------------------ FLAC
+    # ALAC Start Job --------------------------------------------------------------------------------------------------
+    elif encoder.get() == "ALAC":
+        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted +
+                                    acodec_stream_choices[acodec_stream.get()] +
+                                    encoder_dropdownmenu_choices[encoder.get()] +
+                                    acodec_channel_choices[acodec_channel.get()] +
+                                    acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
+                                    min_pre_order + max_pre_order + flac_custom_cmd_input + " " +
+                                    VideoOutputQuoted + " -v error -hide_banner -stats" + '"').split())
+        last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
+                                         encoder_dropdownmenu_choices[encoder.get()] +
+                                         acodec_channel_choices[acodec_channel.get()] +
+                                         acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
+                                         min_pre_order + max_pre_order + flac_custom_cmd_input).split())
+    # ------------------------------------------------------------------------------------------------------------ ALAC
+
+    list_of_ffmpeg_encoders_for_job = ['AC3', 'AAC', 'DTS', 'Opus', 'MP3', 'E-AC3', 'FLAC', 'ALAC']
+    if encoder.get() in list_of_ffmpeg_encoders_for_job:
+        if shell_options.get() == "Default":
+            if auto_or_manual == 'auto':
+                command = finalcommand
+                update_last_codec_command()
+            elif auto_or_manual == 'manual':
+                command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
+                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
+                          + ' ' + VideoOutputQuoted + ' -hide_banner'
+            job = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
+                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
+            if auto_or_manual == 'manual':
+                reset_main_gui()
+
+            encode_window_progress.configure(state=NORMAL)
+            encode_window_progress.insert(END, f'Encoding {str(VideoInputQuoted)} via "FFMPEG" with '
+                                               f'encoder: "{str(encoder.get())}"\n\n')
+            encode_window_progress.configure(state=DISABLED)
+            for line in job.stdout:
+                encode_window_progress.configure(state=NORMAL)
+                encode_window_progress.insert(END, str('\n'.join(' '.join(x.split()) for x in line.split('\n'))))
+                encode_window_progress.see(END)
+                encode_window_progress.configure(state=DISABLED)
+                if total_duration is not None:
+                    if line.split()[0] == 'size=':
+                        try:
+                            time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
+                            progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
+                            percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
+                            try:
+                                app_progress_bar['value'] = int(percent)
+                            except (Exception,):
+                                pass
+                        except (Exception,):
+                            window.destroy()
+                            msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
+                                                                                       f'\n\n"{str(line).rstrip()}"\n\n'
+                                                                                       f'Would you like to report the '
+                                                                                       f'error on the github tracker?')
+                            if msg_error:
+                                webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
+            encode_window_progress.configure(state=NORMAL)
+            encode_window_progress.insert(END, str('\n-------------------------------------------------------------\n'))
+            encode_window_progress.insert(END, str('Job Completed!!\n\n'))
+            if pathlib.Path(str(VideoOutputQuoted).replace('"', '')).is_file():
+                encode_window_progress.insert(END, f'Output file is: \n{str(VideoOutputQuoted)}')
+                complete_or_not = str('Job Completed!!')
+            encode_window_progress.insert(END, str('\n-------------------------------------------------------------\n'))
+            encode_window_progress.see(END)
+            encode_window_progress.configure(state=DISABLED)
+            copy_text.config(state=NORMAL)  # Enable copy button once job is completed
+            if config['auto_close_progress_window']['option'] == 'on':
+                window.destroy()  # If program is set to auto close encoding window when complete, close the window
+        elif shell_options.get() == "Debug":
+            subprocess.Popen('cmd /k ' + finalcommand + '"')
+
+    list_of_external_encoders = ['QAAC', 'FDK-AAC']
+    if encoder.get() in list_of_external_encoders:
         if shell_options.get() == "Default":
             if auto_or_manual == 'auto':
                 command = finalcommand
@@ -5639,6 +5418,11 @@ def startaudiojob():
                                    creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
             if auto_or_manual == 'manual':
                 reset_main_gui()
+
+            encode_window_progress.configure(state=NORMAL)
+            encode_window_progress.insert(END, f'Piping input {str(VideoInputQuoted)} via "FFMPEG" to external '
+                                               f'encoder: "{str(encoder.get())}"\n\n')
+            encode_window_progress.configure(state=DISABLED)
             for line in job.stdout:
                 encode_window_progress.configure(state=NORMAL)
                 encode_window_progress.insert(END, str('\n'.join(' '.join(x.split()) for x in line.split('\n'))))
@@ -5663,145 +5447,19 @@ def startaudiojob():
                             if msg_error:
                                 webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
             encode_window_progress.configure(state=NORMAL)
-            encode_window_progress.insert(END, str('\nJob Completed!!'))
+            encode_window_progress.insert(END, str('\n-------------------------------------------------------------\n'))
+            encode_window_progress.insert(END, str('Job Completed!!\n\n'))
+            if pathlib.Path(str(VideoOutputQuoted).replace('"', '')).is_file():
+                encode_window_progress.insert(END, f'Output file is: \n{str(VideoOutputQuoted)}')
+                complete_or_not = str('Job Completed!!')
+            encode_window_progress.insert(END, str('\n-------------------------------------------------------------\n'))
             encode_window_progress.see(END)
             encode_window_progress.configure(state=DISABLED)
             copy_text.config(state=NORMAL)  # Enable copy button once job is completed
-            complete_or_not = str('Job Completed!!')
             if config['auto_close_progress_window']['option'] == 'on':
                 window.destroy()  # If program is set to auto close encoding window when complete, close the window
         elif shell_options.get() == "Debug":
             subprocess.Popen('cmd /k ' + finalcommand)
-    # ------------------------------------------------------------------------------------------------------------ QAAC
-    # FLAC Start Job --------------------------------------------------------------------------------------------------
-    elif encoder.get() == "FLAC":
-        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted +
-                                    acodec_stream_choices[acodec_stream.get()] +
-                                    encoder_dropdownmenu_choices[encoder.get()] +
-                                    acodec_bitrate_choices[acodec_bitrate.get()] +
-                                    acodec_channel_choices[acodec_channel.get()] +
-                                    acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                    set_flac_acodec_coefficient +
-                                    acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] +
-                                    acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] +
-                                    flac_custom_cmd_input + VideoOutputQuoted + " -hide_banner" + '"').split())
-        last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                         encoder_dropdownmenu_choices[encoder.get()] +
-                                         acodec_bitrate_choices[acodec_bitrate.get()] +
-                                         acodec_channel_choices[acodec_channel.get()] +
-                                         acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                         set_flac_acodec_coefficient +
-                                         acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] +
-                                         acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] +
-                                         flac_custom_cmd_input).split())
-        if shell_options.get() == "Default":
-            if auto_or_manual == 'auto':
-                command = finalcommand
-                update_last_codec_command()
-            elif auto_or_manual == 'manual':
-                command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
-                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
-                          + ' ' + VideoOutputQuoted + ' -hide_banner'
-            job = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
-            if auto_or_manual == 'manual':
-                reset_main_gui()
-            for line in job.stdout:
-                encode_window_progress.configure(state=NORMAL)
-                encode_window_progress.insert(END, str('\n'.join(' '.join(x.split()) for x in line.split('\n'))))
-                encode_window_progress.see(END)
-                encode_window_progress.configure(state=DISABLED)
-                if total_duration is not None:
-                    if line.split()[0] == 'size=':
-                        try:
-                            time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
-                            progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
-                            percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
-                            try:
-                                app_progress_bar['value'] = int(percent)
-                            except (Exception,):
-                                pass
-                        except (Exception,):
-                            window.destroy()
-                            msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
-                                                                                       f'\n\n"{str(line).rstrip()}"\n\n'
-                                                                                       f'Would you like to report the '
-                                                                                       f'error on the github tracker?')
-                            if msg_error:
-                                webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
-            encode_window_progress.configure(state=NORMAL)
-            encode_window_progress.insert(END, str('\nJob Completed!!'))
-            encode_window_progress.see(END)
-            encode_window_progress.configure(state=DISABLED)
-            copy_text.config(state=NORMAL)  # Enable copy button once job is completed
-            complete_or_not = str('Job Completed!!')
-            if config['auto_close_progress_window']['option'] == 'on':
-                window.destroy()  # If program is set to auto close encoding window when complete, close the window
-        elif shell_options.get() == "Debug":
-            subprocess.Popen('cmd /k ' + finalcommand + '"')
-    # ------------------------------------------------------------------------------------------------------------ FLAC
-    # ALAC Start Job --------------------------------------------------------------------------------------------------
-    elif encoder.get() == "ALAC":
-        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted +
-                                    acodec_stream_choices[acodec_stream.get()] +
-                                    encoder_dropdownmenu_choices[encoder.get()] +
-                                    acodec_channel_choices[acodec_channel.get()] +
-                                    acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                    min_pre_order + max_pre_order + flac_custom_cmd_input + " " +
-                                    VideoOutputQuoted + " -hide_banner" + '"').split())
-        last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                         encoder_dropdownmenu_choices[encoder.get()] +
-                                         acodec_channel_choices[acodec_channel.get()] +
-                                         acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                         min_pre_order + max_pre_order + flac_custom_cmd_input).split())
-        if shell_options.get() == "Default":
-            if auto_or_manual == 'auto':
-                command = finalcommand
-                update_last_codec_command()
-            elif auto_or_manual == 'manual':
-                command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
-                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
-                          + ' ' + VideoOutputQuoted + ' -hide_banner'
-            job = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                   creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
-            if auto_or_manual == 'manual':
-                reset_main_gui()
-            for line in job.stdout:
-                encode_window_progress.configure(state=NORMAL)
-                encode_window_progress.insert(END, str('\n'.join(' '.join(x.split()) for x in line.split('\n'))))
-                encode_window_progress.see(END)
-                encode_window_progress.configure(state=DISABLED)
-                if total_duration is not None:
-                    if line.split()[0] == 'size=':
-                        try:
-                            time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
-                            progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
-                            percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
-                            try:
-                                app_progress_bar['value'] = int(percent)
-                            except (Exception,):
-                                pass
-                        except (Exception,):
-                            window.destroy()
-                            msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
-                                                                                       f'\n\n"{str(line).rstrip()}"\n\n'
-                                                                                       f'Would you like to report the '
-                                                                                       f'error on the github tracker?')
-                            if msg_error:
-                                webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
-            encode_window_progress.configure(state=NORMAL)
-            encode_window_progress.insert(END, str('\nJob Completed!!'))
-            encode_window_progress.see(END)
-            encode_window_progress.configure(state=DISABLED)
-            copy_text.config(state=NORMAL)  # Enable copy button once job is completed
-            complete_or_not = str('Job Completed!!')
-            if config['auto_close_progress_window']['option'] == 'on':
-                window.destroy()  # If program is set to auto close encoding window when complete, close the window
-        elif shell_options.get() == "Debug":
-            subprocess.Popen('cmd /k ' + finalcommand + '"')
-    # ------------------------------------------------------------------------------------------------------------ ALAC
 
 
 # Buttons Main Gui ----------------------------------------------------------------------------------------------------
