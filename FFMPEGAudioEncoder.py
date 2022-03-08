@@ -5019,7 +5019,7 @@ def startaudiojob():
                                                                  spacing1=2, spacing3=3)
         encode_window_progress.grid(row=0, column=0, pady=(10, 6), padx=10, sticky=E + W)
         encode_window_progress.config(bg='black', fg='#CFD2D1', bd=8)
-        encode_window_progress.insert(END, ' - - - - - - - - - - - Encode Started - - - - - - - - - - - \n\n\n')
+        encode_window_progress.insert(END, ' - - - - - - - - - - - Encode Started - - - - - - - - - - - \n\n')
 
         def auto_close_window_toggle():  # Function to save input from the checkbox below to config.ini
             try:
@@ -5362,8 +5362,10 @@ def startaudiojob():
                 reset_main_gui()
 
             encode_window_progress.configure(state=NORMAL)
+            encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
             encode_window_progress.insert(END, f'Encoding {str(VideoInputQuoted)} via "FFMPEG" with '
-                                               f'encoder: "{str(encoder.get())}"\n\n')
+                                               f'encoder: "{str(encoder.get())}"')
+            encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n\n\n'))
             encode_window_progress.configure(state=DISABLED)
             for line in job.stdout:
                 encode_window_progress.configure(state=NORMAL)
@@ -5420,8 +5422,10 @@ def startaudiojob():
                 reset_main_gui()
 
             encode_window_progress.configure(state=NORMAL)
+            encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
             encode_window_progress.insert(END, f'Piping input {str(VideoInputQuoted)} via "FFMPEG" to external '
-                                               f'encoder: "{str(encoder.get())}"\n\n')
+                                               f'encoder: "{str(encoder.get())}"')
+            encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n\n\n'))
             encode_window_progress.configure(state=DISABLED)
             for line in job.stdout:
                 encode_window_progress.configure(state=NORMAL)
@@ -5447,12 +5451,12 @@ def startaudiojob():
                             if msg_error:
                                 webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
             encode_window_progress.configure(state=NORMAL)
-            encode_window_progress.insert(END, str('\n-------------------------------------------------------------\n'))
+            encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
             encode_window_progress.insert(END, str('Job Completed!!\n\n'))
             if pathlib.Path(str(VideoOutputQuoted).replace('"', '')).is_file():
                 encode_window_progress.insert(END, f'Output file is: \n{str(VideoOutputQuoted)}')
                 complete_or_not = str('Job Completed!!')
-            encode_window_progress.insert(END, str('\n-------------------------------------------------------------\n'))
+            encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
             encode_window_progress.see(END)
             encode_window_progress.configure(state=DISABLED)
             copy_text.config(state=NORMAL)  # Enable copy button once job is completed
