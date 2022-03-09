@@ -91,7 +91,7 @@ def create_config_params():
     if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'ffmpeg_gain'):
         config_profile.set('FFMPEG DTS - SETTINGS', 'ffmpeg_gain', '0')
     if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'dts_channel'):
-        config_profile.set('FFMPEG DTS - SETTINGS', 'dts_channel', 'Original')
+        config_profile.set('FFMPEG DTS - SETTINGS', 'dts_channel', '2 (Stereo)')
     if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'samplerate'):
         config_profile.set('FFMPEG DTS - SETTINGS', 'samplerate', 'Original')
     if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'tempo'):
