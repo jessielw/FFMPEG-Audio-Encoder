@@ -4995,7 +4995,7 @@ def startaudiojob():
                     total_duration = track.duration
 
         def close_encode():
-            if complete_or_not == 'Job Completed!!':
+            if complete_or_not == 'complete':
                 window.destroy()
             else:
                 confirm_exit = messagebox.askyesno(title='Prompt',
@@ -5345,79 +5345,97 @@ def startaudiojob():
     # ------------------------------------------------------------------------------------------------------------ ALAC
 
     list_of_ffmpeg_encoders_for_job = ['AC3', 'AAC', 'DTS', 'Opus', 'MP3', 'E-AC3', 'FLAC', 'ALAC', 'FDK-AAC', 'QAAC']
-    if encoder.get() in list_of_ffmpeg_encoders_for_job:
-        if shell_options.get() == "Default":
-            if auto_or_manual == 'auto':
+    if encoder.get() in list_of_ffmpeg_encoders_for_job:  # If encoder.get() is in the list above continue
+        if shell_options.get() == "Default":  # If program is set to progress bars
+            if auto_or_manual == 'auto':  # If variable auto_or_manual is set to 'auto', the command = final command
                 command = finalcommand
-                update_last_codec_command()
-            elif auto_or_manual == 'manual':
+                update_last_codec_command()  # Calls a function that set's the auto encode information to ini file
+            elif auto_or_manual == 'manual':  # If variable auto_or_manual is set to 'manual' it uses the info in the
+                # ini file to encode with the command below
                 command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
                           + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
                           + ' ' + VideoOutputQuoted + ' -v error -hide_banner -stats"'
 
+            # Use subprocess.Popen to feed the command to the terminal and handle the stder/stdout output
             job = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
                                    stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
 
-            if auto_or_manual == 'manual':
+            if auto_or_manual == 'manual':  # If auto_or_manual is set to 'manual', once the user encodes it resets
+                # main gui back to default settings
                 reset_main_gui()
 
-            if encoder.get() == 'QAAC' or encoder.get() == 'FDK-AAC':
+            if encoder.get() == 'QAAC' or encoder.get() == 'FDK-AAC':  # String to output for fdk/qaac encoder
                 insert_info_string = f'Encoding {str(VideoInputQuoted)} via "FFMPEG" by piping to external encoder: ' \
                                      f'"{str(encoder.get())}"'
-            elif encoder.get() != 'QAAC' or encoder.get() != 'FDK-AAC':
+            elif encoder.get() != 'QAAC' or encoder.get() != 'FDK-AAC':  # String to output for all internal encoders
                 insert_info_string = f'Encoding {str(VideoInputQuoted)} via "FFMPEG" with internal encoder: ' \
                                      f'"{str(encoder.get())}"'
 
             encode_window_progress.configure(state=NORMAL)
             encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
-            encode_window_progress.insert(END, insert_info_string)
+            encode_window_progress.insert(END, insert_info_string)  # Insert string for internal/external encoders
             encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n\n\n'))
             encode_window_progress.configure(state=DISABLED)
-            for line in job.stdout:
+            progress_error = ''  # Set an empty variable to be changed in the job code
+
+            for line in job.stdout:  # Using subprocess.Popen, read stdout lines
                 encode_window_progress.configure(state=NORMAL)
+                # Code removes any/all double or white space from string to keep it looking nice (ffmpeg is messy)
                 encode_window_progress.insert(END, str('\n'.join(' '.join(x.split()) for x in line.split('\n'))))
-                encode_window_progress.see(END)
+                encode_window_progress.see(END)  # Scrolls the textbox to bottom every single pass
                 encode_window_progress.configure(state=DISABLED)
-                if total_duration is not None:
-                    if line.split()[0] == 'size=':
-                        try:
+                if total_duration is not None:  # If input file has duration metadata
+                    if line.split()[0] == 'size=':  # Find string 'size=' to start work with progress bar
+                        progress_error = 'no'  # Once 'size=' is found set progress_error to 'no'
+                        try:  # Block of code to turn 00:00:00 frmt to milliseconds (same as duration) for progress bar
                             time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
                             progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
                             percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
                             try:
-                                app_progress_bar['value'] = int(percent)
+                                app_progress_bar['value'] = int(percent)  # Input progress into progress bar
                             except (Exception,):
                                 pass
-                        except (Exception,):
-                            window.destroy()
+                        except (Exception,):  # If progress window errors out for what ever reason
+                            progress_error = 'yes'  # Set error to 'yes'
+                            window.destroy()  # Close progress window
+                            subprocess.Popen(f"TASKKILL /F /PID {job.pid} /T",  # Force close job.pid/children
+                                             creationflags=subprocess.CREATE_NO_WINDOW)
                             msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
                                                                                        f'\n\n"{str(line).rstrip()}"\n\n'
                                                                                        f'Would you like to report the '
                                                                                        f'error on the github tracker?')
-                            if msg_error:
+                            if msg_error:  # If user wants to post bug on the github tracker
                                 webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
-            encode_window_progress.configure(state=NORMAL)
-            encode_window_progress.insert(END, str('\n-------------------------------------------------------------\n'))
-            if pathlib.Path(str(VideoOutputQuoted).replace('"', '')).is_file():
-                encode_window_progress.insert(END, str('Job Completed!!\n\n'))
-                encode_window_progress.insert(END, f'Output file is: \n{str(VideoOutputQuoted)}')
-                complete_or_not = str('Job Completed!!')
-            else:
-                messagebox.showerror(title='Error!', message='There was an error in job:\n\n' + '"Codec : '
-                                                             + encoder.get() + '  |  '
-                                                             + str(pathlib.Path(VideoInput).stem)
-                                                             + '"\n\n Please run job with program in debug mode')
-                window.destroy()
-            encode_window_progress.insert(END, str('\n-------------------------------------------------------------\n'))
-            encode_window_progress.see(END)
-            encode_window_progress.configure(state=DISABLED)
-            copy_text.config(state=NORMAL)  # Enable copy button once job is completed
+
+            encode_window_progress.configure(state=NORMAL)  # Enable progress window editing
+            encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
+
+            if progress_error == 'no' and int(percent) == 100:  # If no error and percent reached 100%, job is complete
+                if pathlib.Path(str(VideoOutputQuoted).replace('"', '')).is_file():  # Check if file exists
+                    encode_window_progress.insert(END, str('Job Completed!\n\n'))  # Insert into text window
+                    encode_window_progress.insert(END, f'Output file is: \n{str(VideoOutputQuoted)}')
+                    complete_or_not = str('complete')  # Set variable to complete, for closing window without prompt
+                else:  # If job does not complete, string to show the user there was an error
+                    messagebox.showerror(title='Error!', message='There was an error in job:\n\n' + '"Codec : '
+                                                                 + encoder.get() + '  |  '
+                                                                 + str(pathlib.Path(VideoInput).stem)
+                                                                 + '"\n\n Please run job with program in debug mode')
+                    window.destroy()  # Close window and kill job.pid/children
+                    subprocess.Popen(f"TASKKILL /F /PID {job.pid} /T", creationflags=subprocess.CREATE_NO_WINDOW)
+
+            elif progress_error != 'no' or int(percent) < 100:  # If there is an error OR percent is less than 100
+                encode_window_progress.insert(END, '\nThere was an error, run the job in debug mode to troubleshoot\n')
+            encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
+            encode_window_progress.see(END)  # Scroll to bottom of text window
+            encode_window_progress.configure(state=DISABLED)  # Disable progress window editing
+            copy_text.config(state=NORMAL)  # Enable copy button once all of the code completes
             if config['auto_close_progress_window']['option'] == 'on':
                 window.destroy()  # If program is set to auto close encoding window when complete, close the window
-        elif shell_options.get() == "Debug":
+
+        elif shell_options.get() == "Debug":  # Debug mode, only opens a cmd.exe terminal for raw output
             subprocess.Popen('cmd /k ' + finalcommand + '"')
-            
+
 
 # Buttons Main Gui ----------------------------------------------------------------------------------------------------
 # Encoder Menu Enter/Leave Binds ----------------------------------------------------------------
