@@ -4123,25 +4123,26 @@ def openaudiowindow():
 
             # Audio Bitrate Selection ---------------------------------------------------------------------------------
             acodec_bitrate = StringVar(audio_window)
-            acodec_bitrate_choices = {'Level 0 - Best Quality': "-compression_level 0 ",
+            acodec_bitrate_choices = {'Level 0 - Lowest Compression/Fastest': "-compression_level 0 ",
                                       'Level 1 ......': "-compression_level 1 ",
                                       'Level 2 ......': "-compression_level 2 ",
                                       'Level 3 ......': "-compression_level 3 ",
                                       'Level 4 ......': "-compression_level 4 ",
-                                      'Level 5 - Default Quality': "",
+                                      'Level 5 - Default Compression/Speed': "",
                                       'Level 6 ......': "-compression_level 6 ",
                                       'Level 7 ......': "-compression_level 7 ",
                                       'Level 8 ......': "-compression_level 8 ",
                                       'Level 9 ......': "-compression_level 9 ",
                                       'Level 10 ......': "-compression_level 10 ",
                                       'Level 11 ......': "-compression_level 11 ",
-                                      'Level 12 - Lowest Quality': "-compression_level 12 "}
+                                      'Level 12 - Highest Compress/Slow': "-compression_level 12 "}
             acodec_bitrate.set(config_profile['FFMPEG FLAC - SETTINGS']['acodec_bitrate'])  # set the default option
             acodec_bitrate_menu_label = Label(audio_window, text="Compression Level :", background="#434547",
                                               foreground="white")
             acodec_bitrate_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
             acodec_bitrate_menu = OptionMenu(audio_window, acodec_bitrate, *acodec_bitrate_choices.keys())
-            acodec_bitrate_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15)
+            acodec_bitrate_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15,
+                                       anchor=W)
             acodec_bitrate_menu.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
             acodec_bitrate_menu["menu"].configure(activebackground="dim grey")
             acodec_bitrate_menu.bind("<Enter>", acodec_bitrate_menu_hover)
