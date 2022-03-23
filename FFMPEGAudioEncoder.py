@@ -4135,7 +4135,7 @@ def openaudiowindow():
                                       'Level 9 ......': "-compression_level 9 ",
                                       'Level 10 ......': "-compression_level 10 ",
                                       'Level 11 ......': "-compression_level 11 ",
-                                      'Level 12 - Highest Compress/Slow': "-compression_level 12 "}
+                                      'Level 12 - Highest Compression/Slow': "-compression_level 12 "}
             acodec_bitrate.set(config_profile['FFMPEG FLAC - SETTINGS']['acodec_bitrate'])  # set the default option
             acodec_bitrate_menu_label = Label(audio_window, text="Compression Level :", background="#434547",
                                               foreground="white")
