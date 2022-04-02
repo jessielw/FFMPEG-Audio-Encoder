@@ -273,7 +273,7 @@ def create_config_params():
     if not config_profile.has_section('FFMPEG FLAC - SETTINGS'):
         config_profile.add_section('FFMPEG FLAC - SETTINGS')
     if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'acodec_bitrate'):
-        config_profile.set('FFMPEG FLAC - SETTINGS', 'acodec_bitrate', 'Level 5 - Default Quality')
+        config_profile.set('FFMPEG FLAC - SETTINGS', 'acodec_bitrate', 'Level 5 - Default Compression/Speed')
     if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'acodec_channel'):
         config_profile.set('FFMPEG FLAC - SETTINGS', 'acodec_channel', 'Original')
     if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'dolbyprologicii'):
