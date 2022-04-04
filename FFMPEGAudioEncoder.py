@@ -647,7 +647,8 @@ def openaudiowindow():
 
     # 'Apply' button function -----------------------------------------------------------------------------------------
     def gotosavefile():
-        global VideoInput
+        # MOVE GLOBAL'S TO TOP OF FUNCTION
+        global VideoInput, delay_string, language_string
         audio_window.destroy()
         output_button.config(state=NORMAL)
         start_audio_button.config(state=NORMAL)
@@ -660,7 +661,7 @@ def openaudiowindow():
             pass
 
         # If input is only 1 track, parse input file name for language and delay string
-        media_info = MediaInfo.parse(VideoInput)
+        media_info = MediaInfo.parse(VideoInput)  # Parse VideoInput
         general_track = media_info.general_tracks[0]
         total_streams = 0  # Empty variable to add up all the tracks
         if general_track.count_of_video_streams is not None:
@@ -671,6 +672,7 @@ def openaudiowindow():
             total_streams += 1  # check for subtitle track(s)
         if general_track.count_of_menu_streams is not None:
             total_streams += 1  # check for menu track(s)
+
         if total_streams <= 1:  # If total streams are less than or equal to 1
             # parse input file name for language and delay string
             language_code_input = re_findall(r"\[([A-Za-z]+)\]", str(VideoInput))
@@ -678,14 +680,36 @@ def openaudiowindow():
                 lng_input_lengths = [len(i) for i in language_code_input]
                 if 3 in lng_input_lengths:  # If anything within the brackets is 3 digits
                     index = lng_input_lengths.index(3)  # Finds index of string inside brackets that's 3 digits
-                    language_string = str(language_code_input[index])  # Set's language string to index
-                    print(language_string)  # do something with this!!
+                    language_string = str(f'[{language_code_input[index]}]')  # Set's language string to index
+            print(language_string)  # do something with this!!
 
             # parse input filename for delay string, it searches for ms and any numbers (- if it has it)
             input_delay_string = re_search('-*[^a-zA-Z [_{+]*ms', VideoInput)
             if input_delay_string:  # If re finds a delay string in the input filename
                 delay_string = str(input_delay_string[0])
-                print(delay_string)  # do something with this!!
+            print(delay_string)  # do something with this!!
+
+        if total_streams >= 2:  # If total strings are greater than 1 (video input, remux, bluray, dvd, etc...)
+            # Check delay and add delay string to variable ------------------------------------------------------------
+            track_selection_mediainfo = media_info.audio_tracks[
+                int(acodec_stream_choices[acodec_stream.get()].strip()[-1])]
+            if track_selection_mediainfo.delay_relative_to_video is not None:
+                delay_string = str(track_selection_mediainfo.delay_relative_to_video) + 'ms'
+            else:
+                delay_string = str('0ms')
+            print(delay_string)
+
+            # Obtain language string from VideoInput's parsed track
+            if track_selection_mediainfo.other_language is not None:  # If language is not None
+                l_lengths = [len(i) for i in track_selection_mediainfo.other_language]  # List of language codes
+                if 3 in l_lengths:  # Find strings in l_lengths that only are equal to 3 characters
+                    l_index = l_lengths.index(3)  # Save the index of the 3 character string to variable
+                language_string = f'[{str(track_selection_mediainfo.other_language[l_index])}]'  # Parse it at l_index
+            print(language_string)
+
+            # ALSO IT NEEDS TO WORK FOR ALL THE COMMAND WINDOWS...
+
+            # ------------------------------------------------------------ Check delay and add delay string to variable
 
     # ----------------------------------------------------------------------------------------- 'Apply' button function
 
@@ -4686,16 +4710,6 @@ def openaudiowindow():
         max_prediction_order_spinbox.grid(row=6, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         # ------------------------------------------------------------------------------------ Max-Prediction-Order
     # -------------------------------------------------------------------------------------------------------- ALAC
-
-    # Check delay and add delay string to variable ----------------------------------------------------------------
-    # NEED TO FIGURE OUT WHERE TO RUN THIS CODE, TO UPDATE VARIABLES WITH THE VIDEOOUTPUT FOR OUTPUT, ENTRY BOXES
-    # ALSO IT NEEDS TO WORK FOR ALL THE COMMAND WINDOWS...
-    media_info = MediaInfo.parse(pathlib.Path(VideoInput))  # Parse input file
-    track_selection_mediainfo = media_info.audio_tracks[int(acodec_stream_choices[acodec_stream.get()].strip()[-1])]
-    if track_selection_mediainfo.delay_relative_to_video is not None:
-        delay_string = track_selection_mediainfo.delay_relative_to_video
-        print(delay_string)
-    # ----------------------------------------------------------------- Check delay and add delay string to variable
 
 
     try:  # If "View Command" window is opened, when the user selected "Apply" in the codec window it will close
