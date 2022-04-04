@@ -5004,19 +5004,18 @@ def startaudiojob():
 
     complete_or_not = ''  # Set empty placeholder variable for complete_or_not
 
-    if shell_options.get() == "Default":
+    if shell_options.get() == "Default":  # Default progress bars
         global total_duration
-
-        media_info = MediaInfo.parse(pathlib.Path(VideoInput))
-        for track in media_info.tracks:
-            if track.track_type == 'General':
-                if track.duration is not None:
-                    total_duration = int(int(track.duration) / 1000)
-                elif track.duration is None:
-                    messagebox.showinfo(title='Info', message='Input file has no duration, consider muxing elementary '
-                                                              'stream into mka/mkv/etc...\n\nProgress bar is '
-                                                              'temporarily disabled')
-                    total_duration = track.duration
+        media_info = MediaInfo.parse(pathlib.Path(VideoInput))  # Parse input file
+        track_selection_mediainfo = media_info.audio_tracks[int(acodec_stream_choices[acodec_stream.get()].strip()[-1])]
+        # track_selection_mediainfo uses the -map 0:a:x code to get the track input, the code grabs only the last number
+        if track_selection_mediainfo.duration is not None:  # If track input HAS a duration
+            total_duration = float(track_selection_mediainfo.duration)
+        elif track_selection_mediainfo.duration is None:  # If track input DOES NOT have a duration
+            messagebox.showinfo(title='Info', message='Input file has no duration, consider muxing elementary '
+                                                      'stream into mka/mkv/etc...\n\nProgress bar is '
+                                                      'temporarily disabled')
+            total_duration = track_selection_mediainfo.duration
 
         def close_encode():
             if complete_or_not == 'complete':
@@ -5416,13 +5415,21 @@ def startaudiojob():
                 encode_window_progress.insert(END, str('\n'.join(' '.join(x.split()) for x in line.split('\n'))))
                 encode_window_progress.see(END)  # Scrolls the textbox to bottom every single pass
                 encode_window_progress.configure(state=DISABLED)
+
+                if track_selection_mediainfo.duration is None:  # Set's the percent to 100% if input has no duration
+                    percent = 100  # this way the job code can complete without error
+                    if line.split()[0] == 'size=' and progress_error != 'no':  # Find string 'size=',
+                        # if found program is running correctly, also only check if progress error isn't == 'no'
+                        progress_error = 'no'  # Once 'size=' is found update progress_error to 'no'
+
                 if total_duration is not None:  # If input file has duration metadata
                     if line.split()[0] == 'size=':  # Find string 'size=' to start work with progress bar
                         progress_error = 'no'  # Once 'size=' is found set progress_error to 'no'
                         try:  # Block of code to turn 00:00:00 frmt to milliseconds (same as duration) for progress bar
-                            time = line.split()[2].rsplit('=', 1)[1].rsplit('.', 1)[0]
-                            progress = (sum(x * int(t) for x, t in zip([1, 60, 3600], reversed(time.split(":")))))
-                            percent = '{:.1%}'.format(progress / int(total_duration)).split('.', 1)[0]
+                            time = line.split()[2].rsplit('=', 1)[1]
+                            progress = sum(x * float(t) for x, t in zip([1, 60, 3600],
+                                                                        reversed(time.split(":")))) * 1000
+                            percent = float(str('{:.1%}'.format(progress / total_duration)).replace('%', ''))
                             try:
                                 app_progress_bar['value'] = int(percent)  # Input progress into progress bar
                             except (Exception,):
@@ -5438,11 +5445,9 @@ def startaudiojob():
                                                                                        f'error on the github tracker?')
                             if msg_error:  # If user wants to post bug on the github tracker
                                 webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
-
             encode_window_progress.configure(state=NORMAL)  # Enable progress window editing
             encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
-
-            if progress_error == 'no' and int(percent) == 100:  # If no error and percent reached 100%, job is complete
+            if progress_error == 'no' and int(percent) >= 99:  # If no error and percent reached 99%, job is complete
                 if pathlib.Path(str(VideoOutputQuoted).replace('"', '')).is_file():  # Check if file exists
                     encode_window_progress.insert(END, str('Job Completed!\n\n'))  # Insert into text window
                     encode_window_progress.insert(END, f'Output file is: \n{str(VideoOutputQuoted)}')
@@ -5455,12 +5460,12 @@ def startaudiojob():
                     window.destroy()  # Close window and kill job.pid/children
                     subprocess.Popen(f"TASKKILL /F /PID {job.pid} /T", creationflags=subprocess.CREATE_NO_WINDOW)
 
-            elif progress_error != 'no' or int(percent) < 100:  # If there is an error OR percent is less than 100
+            elif progress_error != 'no' or int(percent) <= 98:  # If there is an error OR percent is less than 98%
                 encode_window_progress.insert(END, '\nThere was an error, run the job in debug mode to troubleshoot\n')
             encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
             encode_window_progress.see(END)  # Scroll to bottom of text window
             encode_window_progress.configure(state=DISABLED)  # Disable progress window editing
-            copy_text.config(state=NORMAL)  # Enable copy button once all of the code completes
+            copy_text.config(state=NORMAL)  # Enable copy button once all the code completes
             if config['auto_close_progress_window']['option'] == 'on':
                 window.destroy()  # If program is set to auto close encoding window when complete, close the window
 
