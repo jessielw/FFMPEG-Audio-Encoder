@@ -4836,7 +4836,7 @@ def file_save():
     if VideoOutput:
         output_entry.configure(state=NORMAL)  # Enable entry box for commands under
         output_entry.delete(0, END)  # Remove current text in entry
-        output_entry.insert(0, VideoOutput)  # Insert the 'path'
+        output_entry.insert(0, str(pathlib.Path(VideoOutput)))  # Insert the 'path'
         output_entry.configure(state=DISABLED)  # Disables Entry Box
 
 
