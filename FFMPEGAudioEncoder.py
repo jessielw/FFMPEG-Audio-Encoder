@@ -2141,7 +2141,8 @@ def openaudiowindow():
 
         # Audio Channel Selection -------------------------------------------------------------------------------------
         acodec_channel = StringVar(audio_window)
-        acodec_channel_choices = {'2 (Stereo)': "-ac 2 ",
+        acodec_channel_choices = {'1 (Mono)': "-ac 1 ",
+                                  '2 (Stereo)': "-ac 2 ",
                                   '5.0 (Surround)': "-ac 5 ",
                                   '5.1 (Surround)': "-ac 6 ",
                                   '6.1 (Surround)': "-ac 7 ",
