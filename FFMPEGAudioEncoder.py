@@ -406,7 +406,7 @@ codec_label.grid(row=1, column=1, columnspan=1, padx=5, pady=5, sticky=N + S + W
 # Audio Codec Window --------------------------------------------------------------------------------------------------
 def openaudiowindow():
     global acodec_bitrate, acodec_channel, acodec_channel_choices, acodec_bitrate_choices, acodec_stream, \
-        acodec_stream_choices, acodec_gain, acodec_gain_choices, dts_settings, dts_settings_choices, \
+        acodec_stream_choices, acodec_volume, acodec_volume_choices, dts_settings, dts_settings_choices, \
         acodec_vbr_choices, acodec_vbr, acodec_samplerate, acodec_samplerate_choices, acodec_application, \
         acodec_application_choices, acodec_profile, acodec_profile_choices, acodec_atempo, acodec_atempo_choices
 
@@ -613,44 +613,44 @@ def openaudiowindow():
             elif dolby_pro_logic_ii.get() == '' and acodec_atempo_choices[acodec_atempo.get()] != '':
                 audio_filter_setting = '-af ' + acodec_atempo_choices[acodec_atempo.get()] + ' '
         elif encoder.get() == 'E-AC3':
-            ffmpeg_gain_cmd = '"volume=' + ffmpeg_gain.get() + 'dB"'
-            if ffmpeg_gain.get() == '0' and acodec_atempo_choices[acodec_atempo.get()] == '':
+            ffmpeg_volume_cmd = '"volume=' + ffmpeg_volume.get() + 'dB"'
+            if ffmpeg_volume.get() == '0' and acodec_atempo_choices[acodec_atempo.get()] == '':
                 audio_filter_setting = ''
-            elif ffmpeg_gain.get() != '0' and acodec_atempo_choices[acodec_atempo.get()] == '':
-                audio_filter_setting = '-af ' + ffmpeg_gain_cmd + ' '
-            elif ffmpeg_gain.get() == '0' and acodec_atempo_choices[acodec_atempo.get()] != '':
+            elif ffmpeg_volume.get() != '0' and acodec_atempo_choices[acodec_atempo.get()] == '':
+                audio_filter_setting = '-af ' + ffmpeg_volume_cmd + ' '
+            elif ffmpeg_volume.get() == '0' and acodec_atempo_choices[acodec_atempo.get()] != '':
                 audio_filter_setting = '-af ' + acodec_atempo_choices[acodec_atempo.get()] + ' '
-            elif ffmpeg_gain.get() != '0' and acodec_atempo_choices[acodec_atempo.get()] != '':
-                audio_filter_setting = '-af ' + ffmpeg_gain_cmd + ',' + acodec_atempo_choices[acodec_atempo.get()] + ' '
+            elif ffmpeg_volume.get() != '0' and acodec_atempo_choices[acodec_atempo.get()] != '':
+                audio_filter_setting = '-af ' + ffmpeg_volume_cmd + ',' + acodec_atempo_choices[acodec_atempo.get()] + ' '
         else:
-            ffmpeg_gain_cmd = '"volume=' + ffmpeg_gain.get() + 'dB"'
-            if dolby_pro_logic_ii.get() == '' and ffmpeg_gain.get() == '0' and \
+            ffmpeg_volume_cmd = '"volume=' + ffmpeg_volume.get() + 'dB"'
+            if dolby_pro_logic_ii.get() == '' and ffmpeg_volume.get() == '0' and \
                     acodec_atempo_choices[acodec_atempo.get()] == '':
                 audio_filter_setting = ''
             elif dolby_pro_logic_ii.get() == '"aresample=matrix_encoding=dplii"' and \
-                    ffmpeg_gain.get() == '0' and acodec_atempo_choices[acodec_atempo.get()] == '':
+                    ffmpeg_volume.get() == '0' and acodec_atempo_choices[acodec_atempo.get()] == '':
                 audio_filter_setting = '-af ' + dolby_pro_logic_ii.get() + ' '
 
             elif dolby_pro_logic_ii.get() == '"aresample=matrix_encoding=dplii"' \
-                    and ffmpeg_gain.get() != '0' and acodec_atempo_choices[acodec_atempo.get()] == '':
+                    and ffmpeg_volume.get() != '0' and acodec_atempo_choices[acodec_atempo.get()] == '':
                 audio_filter_setting = '-af ' + dolby_pro_logic_ii.get() + ',' + \
-                                       ffmpeg_gain_cmd + ' '
-            elif dolby_pro_logic_ii.get() == '' and ffmpeg_gain.get() != '0' and \
+                                       ffmpeg_volume_cmd + ' '
+            elif dolby_pro_logic_ii.get() == '' and ffmpeg_volume.get() != '0' and \
                     acodec_atempo_choices[acodec_atempo.get()] == '':
-                audio_filter_setting = '-af ' + ffmpeg_gain_cmd + ' '
+                audio_filter_setting = '-af ' + ffmpeg_volume_cmd + ' '
             elif dolby_pro_logic_ii.get() == '"aresample=matrix_encoding=dplii"' and \
-                    ffmpeg_gain.get() == '0' and acodec_atempo_choices[acodec_atempo.get()] != '':
+                    ffmpeg_volume.get() == '0' and acodec_atempo_choices[acodec_atempo.get()] != '':
                 audio_filter_setting = '-af ' + dolby_pro_logic_ii.get() + ',' + \
                                        acodec_atempo_choices[acodec_atempo.get()] + ' '
             elif dolby_pro_logic_ii.get() == '"aresample=matrix_encoding=dplii"' \
-                    and ffmpeg_gain.get() != '0' and acodec_atempo_choices[acodec_atempo.get()] != '':
+                    and ffmpeg_volume.get() != '0' and acodec_atempo_choices[acodec_atempo.get()] != '':
                 audio_filter_setting = '-af ' + dolby_pro_logic_ii.get() + ',' + \
-                                       ffmpeg_gain_cmd + ',' + acodec_atempo_choices[acodec_atempo.get()] + ' '
-            elif dolby_pro_logic_ii.get() == '' and ffmpeg_gain.get() != '0' and \
+                                       ffmpeg_volume_cmd + ',' + acodec_atempo_choices[acodec_atempo.get()] + ' '
+            elif dolby_pro_logic_ii.get() == '' and ffmpeg_volume.get() != '0' and \
                     acodec_atempo_choices[acodec_atempo.get()] != '':
-                audio_filter_setting = '-af ' + ffmpeg_gain_cmd + ',' + acodec_atempo_choices[acodec_atempo.get()] + ' '
+                audio_filter_setting = '-af ' + ffmpeg_volume_cmd + ',' + acodec_atempo_choices[acodec_atempo.get()] + ' '
             elif dolby_pro_logic_ii.get() == '' and \
-                    ffmpeg_gain.get() == '0' and acodec_atempo_choices[acodec_atempo.get()] != '':
+                    ffmpeg_volume.get() == '0' and acodec_atempo_choices[acodec_atempo.get()] != '':
                 audio_filter_setting = '-af ' + acodec_atempo_choices[acodec_atempo.get()] + ' '
 
     # ---------------------------------------------------------------------------------------------------- combines -af
@@ -735,13 +735,13 @@ def openaudiowindow():
         if encoder.get() == 'AC3':
             config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_bitrate', acodec_bitrate.get())
             config_profile.set('FFMPEG AC3 - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
-            config_profile.set('FFMPEG AC3 - SETTINGS', 'ffmpeg_gain', ffmpeg_gain.get())
+            config_profile.set('FFMPEG AC3 - SETTINGS', 'ffmpeg_volume', ffmpeg_volume.get())
             config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_channel', acodec_channel.get())
             config_profile.set('FFMPEG AC3 - SETTINGS', 'samplerate', acodec_samplerate.get())
             config_profile.set('FFMPEG AC3 - SETTINGS', 'tempo', acodec_atempo.get())
         if encoder.get() == 'AAC':
             config_profile.set('FFMPEG AAC - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
-            config_profile.set('FFMPEG AAC - SETTINGS', 'ffmpeg_gain', ffmpeg_gain.get())
+            config_profile.set('FFMPEG AAC - SETTINGS', 'ffmpeg_volume', ffmpeg_volume.get())
             if aac_vbr_toggle.get() == "-c:a ":
                 config_profile.set('FFMPEG AAC - SETTINGS', 'aac_bitrate', aac_bitrate_spinbox.get())
             if aac_vbr_toggle.get() == "-q:a ":
@@ -753,14 +753,14 @@ def openaudiowindow():
         if encoder.get() == 'DTS' and dts_settings.get() == 'DTS Encoder':
             config_profile.set('FFMPEG DTS - SETTINGS', 'dts_bitrate', dts_bitrate_spinbox.get())
             config_profile.set('FFMPEG DTS - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
-            config_profile.set('FFMPEG DTS - SETTINGS', 'ffmpeg_gain', ffmpeg_gain.get())
+            config_profile.set('FFMPEG DTS - SETTINGS', 'ffmpeg_volume', ffmpeg_volume.get())
             config_profile.set('FFMPEG DTS - SETTINGS', 'dts_channel', acodec_channel.get())
             config_profile.set('FFMPEG DTS - SETTINGS', 'samplerate', acodec_samplerate.get())
             config_profile.set('FFMPEG DTS - SETTINGS', 'tempo', acodec_atempo.get())
         if encoder.get() == 'E-AC3':
             config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_bitrate', eac3_spinbox.get())
             config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_channel', acodec_channel.get())
-            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_gain', ffmpeg_gain.get())
+            config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_volume', ffmpeg_volume.get())
             config_profile.set('FFMPEG E-AC3 - SETTINGS', 'samplerate', acodec_samplerate.get())
             config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_per_frame_metadata', per_frame_metadata.get())
             config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_mixing_level', eac3_mixing_level.get())
@@ -790,14 +790,14 @@ def openaudiowindow():
             config_profile.set('FFMPEG Opus - SETTINGS', 'packet_loss', packet_loss.get())
             config_profile.set('FFMPEG Opus - SETTINGS', 'acodec_channel', acodec_channel.get())
             config_profile.set('FFMPEG Opus - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
-            config_profile.set('FFMPEG Opus - SETTINGS', 'ffmpeg_gain', ffmpeg_gain.get())
+            config_profile.set('FFMPEG Opus - SETTINGS', 'ffmpeg_volume', ffmpeg_volume.get())
             config_profile.set('FFMPEG Opus - SETTINGS', 'tempo', acodec_atempo.get())
             config_profile.set('FFMPEG Opus - SETTINGS', 'mapping_family', opus_mapping_family.get())
         if encoder.get() == 'FDK-AAC':
             config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_bitrate', acodec_bitrate.get())
             config_profile.set('FDK-AAC - SETTINGS', 'acodec_channel', acodec_channel.get())
             config_profile.set('FDK-AAC - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
-            config_profile.set('FDK-AAC - SETTINGS', 'ffmpeg_gain', ffmpeg_gain.get())
+            config_profile.set('FDK-AAC - SETTINGS', 'ffmpeg_volume', ffmpeg_volume.get())
             config_profile.set('FDK-AAC - SETTINGS', 'samplerate', acodec_samplerate.get())
             config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_profile', acodec_profile.get())
             config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_lowdelay', acodec_lowdelay.get())
@@ -816,7 +816,7 @@ def openaudiowindow():
             config_profile.set('FFMPEG MP3 - SETTINGS', 'mp3_vbr', mp3_vbr.get())
             config_profile.set('FFMPEG MP3 - SETTINGS', 'mp3_abr', mp3_abr.get())
             config_profile.set('FFMPEG MP3 - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
-            config_profile.set('FFMPEG MP3 - SETTINGS', 'ffmpeg_gain', ffmpeg_gain.get())
+            config_profile.set('FFMPEG MP3 - SETTINGS', 'ffmpeg_volume', ffmpeg_volume.get())
             config_profile.set('FFMPEG MP3 - SETTINGS', 'samplerate', acodec_samplerate.get())
             config_profile.set('FFMPEG MP3 - SETTINGS', 'tempo', acodec_atempo.get())
             if mp3_vbr.get() == '-q:a':
@@ -845,7 +845,7 @@ def openaudiowindow():
             config_profile.set('FFMPEG FLAC - SETTINGS', 'acodec_bitrate', acodec_bitrate.get())
             config_profile.set('FFMPEG FLAC - SETTINGS', 'acodec_channel', acodec_channel.get())
             config_profile.set('FFMPEG FLAC - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
-            config_profile.set('FFMPEG FLAC - SETTINGS', 'gain', ffmpeg_gain.get())
+            config_profile.set('FFMPEG FLAC - SETTINGS', 'volume', ffmpeg_volume.get())
             config_profile.set('FFMPEG FLAC - SETTINGS', 'samplerate', acodec_samplerate.get())
             config_profile.set('FFMPEG FLAC - SETTINGS', 'tempo', acodec_atempo.get())
             config_profile.set('FFMPEG FLAC - SETTINGS', 'flac_lpc_type', acodec_flac_lpc_type.get())
@@ -854,7 +854,7 @@ def openaudiowindow():
         if encoder.get() == 'ALAC':
             config_profile.set('FFMPEG ALAC - SETTINGS', 'acodec_channel', acodec_channel.get())
             config_profile.set('FFMPEG ALAC - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
-            config_profile.set('FFMPEG ALAC - SETTINGS', 'gain', ffmpeg_gain.get())
+            config_profile.set('FFMPEG ALAC - SETTINGS', 'volume', ffmpeg_volume.get())
             config_profile.set('FFMPEG ALAC - SETTINGS', 'samplerate', acodec_samplerate.get())
             config_profile.set('FFMPEG ALAC - SETTINGS', 'tempo', acodec_atempo.get())
             config_profile.set('FFMPEG ALAC - SETTINGS', 'alac_min_prediction_order', min_prediction_order.get())
@@ -870,13 +870,13 @@ def openaudiowindow():
             if encoder.get() == 'AC3':
                 config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_bitrate', '224k')
                 config_profile.set('FFMPEG AC3 - SETTINGS', 'dolbyprologicii', '')
-                config_profile.set('FFMPEG AC3 - SETTINGS', 'ffmpeg_gain', '0')
+                config_profile.set('FFMPEG AC3 - SETTINGS', 'ffmpeg_volume', '0')
                 config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_channel', 'Original')
                 config_profile.set('FFMPEG AC3 - SETTINGS', 'samplerate', 'Original')
                 config_profile.set('FFMPEG AC3 - SETTINGS', 'tempo', 'Original')
             if encoder.get() == 'AAC':
                 config_profile.set('FFMPEG AAC - SETTINGS', 'dolbyprologicii', '')
-                config_profile.set('FFMPEG AAC - SETTINGS', 'ffmpeg_gain', '0')
+                config_profile.set('FFMPEG AAC - SETTINGS', 'ffmpeg_volume', '0')
                 config_profile.set('FFMPEG AAC - SETTINGS', 'aac_bitrate', '192')
                 config_profile.set('FFMPEG AAC - SETTINGS', 'aac_vbr_quality', '2')
                 config_profile.set('FFMPEG AAC - SETTINGS', 'aac_vbr_toggle', '-c:a')
@@ -886,14 +886,14 @@ def openaudiowindow():
             if encoder.get() == 'DTS':
                 config_profile.set('FFMPEG DTS - SETTINGS', 'dts_bitrate', '448')
                 config_profile.set('FFMPEG DTS - SETTINGS', 'dolbyprologicii', '')
-                config_profile.set('FFMPEG DTS - SETTINGS', 'ffmpeg_gain', '0')
+                config_profile.set('FFMPEG DTS - SETTINGS', 'ffmpeg_volume', '0')
                 config_profile.set('FFMPEG DTS - SETTINGS', 'dts_channel', '2 (Stereo)')
                 config_profile.set('FFMPEG DTS - SETTINGS', 'samplerate', 'Original')
                 config_profile.set('FFMPEG DTS - SETTINGS', 'tempo', 'Original')
             if encoder.get() == 'E-AC3':
                 config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_bitrate', '448k')
                 config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_channel', 'Original')
-                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_gain', '0')
+                config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_volume', '0')
                 config_profile.set('FFMPEG E-AC3 - SETTINGS', 'samplerate', 'Original')
                 config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_per_frame_metadata', 'Default')
                 config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_mixing_level', '-1')
@@ -923,14 +923,14 @@ def openaudiowindow():
                 config_profile.set('FFMPEG Opus - SETTINGS', 'packet_loss', '0')
                 config_profile.set('FFMPEG Opus - SETTINGS', 'acodec_channel', '2 (Stereo)')
                 config_profile.set('FFMPEG Opus - SETTINGS', 'dolbyprologicii', '')
-                config_profile.set('FFMPEG Opus - SETTINGS', 'ffmpeg_gain', '0')
+                config_profile.set('FFMPEG Opus - SETTINGS', 'ffmpeg_volume', '0')
                 config_profile.set('FFMPEG Opus - SETTINGS', 'tempo', 'Original')
                 config_profile.set('FFMPEG Opus - SETTINGS', 'mapping_family', 'Mapping -1: Auto')
             if encoder.get() == 'FDK-AAC':
                 config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_bitrate', 'CBR: 192k')
                 config_profile.set('FDK-AAC - SETTINGS', 'acodec_channel', 'Original')
                 config_profile.set('FDK-AAC - SETTINGS', 'dolbyprologicii', '')
-                config_profile.set('FDK-AAC - SETTINGS', 'ffmpeg_gain', '0')
+                config_profile.set('FDK-AAC - SETTINGS', 'ffmpeg_volume', '0')
                 config_profile.set('FDK-AAC - SETTINGS', 'samplerate', 'Original')
                 config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_profile', 'AAC LC (Default)')
                 config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_lowdelay', 'Disable SBR on ELD (DEF)')
@@ -949,7 +949,7 @@ def openaudiowindow():
                 config_profile.set('FFMPEG MP3 - SETTINGS', 'mp3_vbr', '-q:a')
                 config_profile.set('FFMPEG MP3 - SETTINGS', 'mp3_abr', '')
                 config_profile.set('FFMPEG MP3 - SETTINGS', 'dolbyprologicii', '')
-                config_profile.set('FFMPEG MP3 - SETTINGS', 'ffmpeg_gain', '0')
+                config_profile.set('FFMPEG MP3 - SETTINGS', 'ffmpeg_volume', '0')
                 config_profile.set('FFMPEG MP3 - SETTINGS', 'samplerate', 'Original')
                 config_profile.set('FFMPEG MP3 - SETTINGS', 'tempo', 'Original')
                 config_profile.set('FFMPEG MP3 - SETTINGS', 'acodec_bitrate_vbr', '')
@@ -976,7 +976,7 @@ def openaudiowindow():
                 config_profile.set('FFMPEG FLAC - SETTINGS', 'acodec_bitrate', 'Level 5 - Default Compression/Speed')
                 config_profile.set('FFMPEG FLAC - SETTINGS', 'acodec_channel', 'Original')
                 config_profile.set('FFMPEG FLAC - SETTINGS', 'dolbyprologicii', '')
-                config_profile.set('FFMPEG FLAC - SETTINGS', 'gain', '0')
+                config_profile.set('FFMPEG FLAC - SETTINGS', 'volume', '0')
                 config_profile.set('FFMPEG FLAC - SETTINGS', 'samplerate', 'Original')
                 config_profile.set('FFMPEG FLAC - SETTINGS', 'tempo', 'Original')
                 config_profile.set('FFMPEG FLAC - SETTINGS', 'flac_lpc_type', 'Default')
@@ -985,7 +985,7 @@ def openaudiowindow():
             if encoder.get() == 'ALAC':
                 config_profile.set('FFMPEG ALAC - SETTINGS', 'acodec_channel', 'Original')
                 config_profile.set('FFMPEG ALAC - SETTINGS', 'dolbyprologicii', '')
-                config_profile.set('FFMPEG ALAC - SETTINGS', 'gain', '0')
+                config_profile.set('FFMPEG ALAC - SETTINGS', 'volume', '0')
                 config_profile.set('FFMPEG ALAC - SETTINGS', 'samplerate', 'Original')
                 config_profile.set('FFMPEG ALAC - SETTINGS', 'tempo', 'Original')
                 config_profile.set('FFMPEG ALAC - SETTINGS', 'alac_min_prediction_order', '4')
@@ -1218,17 +1218,17 @@ def openaudiowindow():
             # -------------------------------------------------------------------------------------------------- DPL II
 
             # Audio Gain Selection ------------------------------------------------------------------------------------
-            ffmpeg_gain = StringVar()
-            ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
+            ffmpeg_volume = StringVar()
+            ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547",
                                       foreground="white")
-            ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
+            ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
                                    sticky=N + S + E + W)
-            ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                          wrap=True, textvariable=ffmpeg_gain)
-            ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+            ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
+                                          wrap=True, textvariable=ffmpeg_volume)
+            ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                           buttonbackground="black", width=15, readonlybackground="#23272A")
-            ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            ffmpeg_gain.set(int(config_profile['FFMPEG AC3 - SETTINGS']['ffmpeg_gain']))
+            ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+            ffmpeg_volume.set(int(config_profile['FFMPEG AC3 - SETTINGS']['ffmpeg_volume']))
             # ---------------------------------------------------------------------------------------------------- Gain
 
             # Audio Sample Rate Selection -----------------------------------------------------------------------------
@@ -1478,17 +1478,17 @@ def openaudiowindow():
         # ------------------------------------------------------------------------------------------------------ DPL II
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
-        ffmpeg_gain = StringVar()
-        ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
+        ffmpeg_volume = StringVar()
+        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547",
                                   foreground="white")
-        ffmpeg_gain_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3,
+        ffmpeg_volume_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3,
                                sticky=N + S + E + W)
-        ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                      wrap=True, textvariable=ffmpeg_gain)
-        ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
+                                      wrap=True, textvariable=ffmpeg_volume)
+        ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                       buttonbackground="black", width=15, readonlybackground="#23272A")
-        ffmpeg_gain_spinbox.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_gain.set(int(config_profile['FFMPEG AAC - SETTINGS']['ffmpeg_gain']))
+        ffmpeg_volume_spinbox.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_volume.set(int(config_profile['FFMPEG AAC - SETTINGS']['ffmpeg_volume']))
         # -------------------------------------------------------------------------------------------------------- Gain
 
         # Audio Bitrate Spinbox ---------------------------------------------------------------------------------------
@@ -1657,8 +1657,8 @@ def openaudiowindow():
             if dts_settings.get() == 'DTS Encoder':
                 achannel_menu.config(state=NORMAL)
                 acodec_channel.set(config_profile['FFMPEG DTS - SETTINGS']['dts_channel'])
-                ffmpeg_gain_spinbox.config(state=NORMAL)
-                ffmpeg_gain.set(int(config_profile['FFMPEG DTS - SETTINGS']['ffmpeg_gain']))
+                ffmpeg_volume_spinbox.config(state=NORMAL)
+                ffmpeg_volume.set(int(config_profile['FFMPEG DTS - SETTINGS']['ffmpeg_volume']))
                 acodec_samplerate_menu.config(state=NORMAL)
                 acodec_samplerate.set(config_profile['FFMPEG DTS - SETTINGS']['samplerate'])
                 dts_acodec_bitrate_spinbox.config(state=NORMAL)
@@ -1667,7 +1667,7 @@ def openaudiowindow():
                 acodec_atempo.set(config_profile['FFMPEG DTS - SETTINGS']['tempo'])
             else:
                 achannel_menu.config(state=DISABLED)
-                ffmpeg_gain_spinbox.config(state=DISABLED)
+                ffmpeg_volume_spinbox.config(state=DISABLED)
                 acodec_samplerate_menu.config(state=DISABLED)
                 dts_acodec_bitrate_spinbox.config(state=DISABLED)
                 dolby_pro_logic_ii_checkbox.config(state=DISABLED)
@@ -1819,18 +1819,18 @@ def openaudiowindow():
         # ------------------------------------------------------------------------------------------------------ DPL II
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
-        ffmpeg_gain = StringVar()
-        ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
+        ffmpeg_volume = StringVar()
+        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547",
                                   foreground="white")
-        ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
+        ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
                                sticky=N + S + E + W)
-        ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                      wrap=True, textvariable=ffmpeg_gain, state=DISABLED)
-        ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
+                                      wrap=True, textvariable=ffmpeg_volume, state=DISABLED)
+        ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                       buttonbackground="black", width=15, readonlybackground="#23272A",
                                       disabledbackground='grey')
-        ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_gain.set(int(config_profile['FFMPEG DTS - SETTINGS']['ffmpeg_gain']))
+        ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_volume.set(int(config_profile['FFMPEG DTS - SETTINGS']['ffmpeg_volume']))
         # -------------------------------------------------------------------------------------------------------- Gain
 
         # Audio Sample Rate Selection ---------------------------------------------------------------------------------
@@ -2208,17 +2208,17 @@ def openaudiowindow():
         # ----------------------------------------------------------------------------------------- Opus Mapping Family
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
-        ffmpeg_gain = StringVar()
-        ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
+        ffmpeg_volume = StringVar()
+        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547",
                                   foreground="white")
-        ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=(3, 10),
+        ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=(3, 10),
                                sticky=N + S + E + W)
-        ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                      wrap=True, textvariable=ffmpeg_gain)
-        ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
+                                      wrap=True, textvariable=ffmpeg_volume)
+        ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                       buttonbackground="black", width=15, readonlybackground="#23272A")
-        ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_gain.set(int(config_profile['FFMPEG Opus - SETTINGS']['ffmpeg_gain']))
+        ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_volume.set(int(config_profile['FFMPEG Opus - SETTINGS']['ffmpeg_volume']))
         # -------------------------------------------------------------------------------------------------------- Gain
 
         # Audio Atempo Selection ---------------------------------------------------------------------------------------
@@ -2520,18 +2520,18 @@ def openaudiowindow():
         # ------------------------------------------------------------------------------------------------------ DPL II
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
-        ffmpeg_gain = StringVar()
-        ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
+        ffmpeg_volume = StringVar()
+        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547",
                                   foreground="white")
-        ffmpeg_gain_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3,
+        ffmpeg_volume_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3,
                                sticky=N + S + E + W)
-        ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                      wrap=True, textvariable=ffmpeg_gain)
-        ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
+                                      wrap=True, textvariable=ffmpeg_volume)
+        ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                       buttonbackground="black", width=15, readonlybackground="#23272A")
-        ffmpeg_gain_spinbox.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_gain.set(int(config_profile['FFMPEG MP3 - SETTINGS']['ffmpeg_gain']))
-        ffmpeg_gain.trace('w', audio_filter_function)
+        ffmpeg_volume_spinbox.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_volume.set(int(config_profile['FFMPEG MP3 - SETTINGS']['ffmpeg_volume']))
+        ffmpeg_volume.trace('w', audio_filter_function)
         # -------------------------------------------------------------------------------------------------------- Gain
 
         # Audio Sample Rate Selection ---------------------------------------------------------------------------------
@@ -2782,17 +2782,17 @@ def openaudiowindow():
         # ------------------------------------------------------------------------------------------------------ Stream
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
-        ffmpeg_gain = StringVar()
-        ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
+        ffmpeg_volume = StringVar()
+        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547",
                                   foreground="white")
-        ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
+        ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
                                sticky=N + S + E + W)
-        ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                      wrap=True, textvariable=ffmpeg_gain)
-        ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
+                                      wrap=True, textvariable=ffmpeg_volume)
+        ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                       buttonbackground="black", width=15, readonlybackground="#23272A")
-        ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_gain.set(int(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_gain']))
+        ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_volume.set(int(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_volume']))
         # -------------------------------------------------------------------------------------------------------- Gain
 
         # Audio Sample Rate Selection ---------------------------------------------------------------------------------
@@ -3368,17 +3368,17 @@ def openaudiowindow():
         # ------------------------------------------------------------------------------------------------------ DPL II
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
-        ffmpeg_gain = StringVar()
-        ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
+        ffmpeg_volume = StringVar()
+        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547",
                                   foreground="white")
-        ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
+        ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
                                sticky=N + S + E + W)
-        ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                      wrap=True, textvariable=ffmpeg_gain)
-        ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
+                                      wrap=True, textvariable=ffmpeg_volume)
+        ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                       buttonbackground="black", width=15, readonlybackground="#23272A")
-        ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_gain.set(int(config_profile['FDK-AAC - SETTINGS']['ffmpeg_gain']))
+        ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_volume.set(int(config_profile['FDK-AAC - SETTINGS']['ffmpeg_volume']))
         # -------------------------------------------------------------------------------------------------------- Gain
 
         # Audio Sample Rate Selection ---------------------------------------------------------------------------------
@@ -4298,15 +4298,15 @@ def openaudiowindow():
             # -------------------------------------------------------------------------------------------------- DPL II
 
             # Audio Gain Selection ------------------------------------------------------------------------------------
-            ffmpeg_gain = StringVar()
-            ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547", foreground="white")
-            ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                          wrap=True, textvariable=ffmpeg_gain)
-            ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+            ffmpeg_volume = StringVar()
+            ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
+            ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+            ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
+                                          wrap=True, textvariable=ffmpeg_volume)
+            ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                           buttonbackground="black", width=15, readonlybackground="#23272A")
-            ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            ffmpeg_gain.set(int(config_profile['FFMPEG FLAC - SETTINGS']['gain']))
+            ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+            ffmpeg_volume.set(int(config_profile['FFMPEG FLAC - SETTINGS']['volume']))
             # ---------------------------------------------------------------------------------------------------- Gain
 
             # Audio Sample Rate Selection -----------------------------------------------------------------------------
@@ -4612,17 +4612,17 @@ def openaudiowindow():
             # ---------------------------------------------------------------------------------------------- DPL II
 
             # Audio Gain Selection --------------------------------------------------------------------------------
-            ffmpeg_gain = StringVar()
-            ffmpeg_gain_label = Label(audio_window, text="Gain (dB) :", background="#434547",
+            ffmpeg_volume = StringVar()
+            ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547",
                                       foreground="white")
-            ffmpeg_gain_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
+            ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
                                    sticky=N + S + E + W)
-            ffmpeg_gain_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                          wrap=True, textvariable=ffmpeg_gain)
-            ffmpeg_gain_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+            ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
+                                          wrap=True, textvariable=ffmpeg_volume)
+            ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                           buttonbackground="black", width=15, readonlybackground="#23272A")
-            ffmpeg_gain_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            ffmpeg_gain.set(int(config_profile['FFMPEG ALAC - SETTINGS']['gain']))
+            ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+            ffmpeg_volume.set(int(config_profile['FFMPEG ALAC - SETTINGS']['volume']))
             # ------------------------------------------------------------------------------------------------ Gain
 
             # Audio Sample Rate Selection -------------------------------------------------------------------------
