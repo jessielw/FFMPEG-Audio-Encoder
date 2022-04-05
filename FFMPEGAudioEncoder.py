@@ -331,19 +331,19 @@ def encoder_changed(*args):
     else:
         filename = pathlib.Path(VideoInput)
         if encoder.get() == 'AAC':
-            VideoOut = filename.with_suffix('.NEW.mp4')
+            VideoOut = filename.with_suffix('._new_.mp4')
         elif encoder.get() == 'AC3' or encoder.get() == 'E-AC3':
-            VideoOut = filename.with_suffix('.NEW.ac3')
+            VideoOut = filename.with_suffix('._new_.ac3')
         elif encoder.get() == "DTS":
-            VideoOut = filename.with_suffix('.NEW.dts')
+            VideoOut = filename.with_suffix('._new_.dts')
         elif encoder.get() == "Opus":
-            VideoOut = filename.with_suffix('.NEW.opus')
+            VideoOut = filename.with_suffix('._new_.opus')
         elif encoder.get() == 'MP3':
-            VideoOut = filename.with_suffix('.NEW.mp3')
+            VideoOut = filename.with_suffix('._new_.mp3')
         elif encoder.get() == "FDK-AAC" or encoder.get() == "QAAC" or encoder.get() == "ALAC":
-            VideoOut = filename.with_suffix('.NEW.m4a')
+            VideoOut = filename.with_suffix('._new_.m4a')
         elif encoder.get() == "FLAC":
-            VideoOut = filename.with_suffix('.NEW.flac')
+            VideoOut = filename.with_suffix('._new_.flac')
         VideoOutput = str(VideoOut)
         output_entry.configure(state=NORMAL)
         output_entry.delete(0, END)
@@ -647,18 +647,26 @@ def openaudiowindow():
 
     # 'Apply' button function -----------------------------------------------------------------------------------------
     def gotosavefile():
-        # MOVE GLOBAL'S TO TOP OF FUNCTION
         global VideoInput, delay_string, language_string
-        audio_window.destroy()
-        output_button.config(state=NORMAL)
+        audio_window.destroy()  # Close audio window
+        output_button.config(state=NORMAL)  # Enable buttons upon save file
         start_audio_button.config(state=NORMAL)
         command_line_button.config(state=NORMAL)
-        # print(acodec_stream_choices[acodec_stream.get()].strip()[-1])
 
-        try:
+        try:  # If cmd_line_window is open, withdraw it (close it)
             cmd_line_window.withdraw()
         except (Exception,):
             pass
+
+        def update_video_output():  # Function to add language/delay strings to the output filename
+            global VideoOutput
+            encoder_changed()  # Run encoder changed code to apply default VideoOutput before changing
+            VideoOutput = str(VideoOutput).replace('_new_', language_string + '_' + delay_string)
+            command_line_button.config(state=NORMAL)  # Enable the display command button for main gui
+            output_entry.config(state=NORMAL)  # Enable output_entry box for editing
+            output_entry.delete(0, END)  # Remove all text from box
+            output_entry.insert(0, VideoOutput)  # Insert new VideoOutput path
+            output_entry.config(state=DISABLED)  # Disable output_entry box
 
         # If input is only 1 track, parse input file name for language and delay string
         media_info = MediaInfo.parse(VideoInput)  # Parse VideoInput
@@ -676,38 +684,34 @@ def openaudiowindow():
         if total_streams <= 1:  # If total streams are less than or equal to 1
             # parse input file name for language and delay string
             language_code_input = re_findall(r"\[([A-Za-z]+)\]", str(VideoInput))
-            if language_code_input:  # If re finds language codes withing '[]'
+            if language_code_input:  # If re finds language codes within '[]'
                 lng_input_lengths = [len(i) for i in language_code_input]
                 if 3 in lng_input_lengths:  # If anything within the brackets is 3 digits
                     index = lng_input_lengths.index(3)  # Finds index of string inside brackets that's 3 digits
                     language_string = str(f'[{language_code_input[index]}]')  # Set's language string to index
-            print(language_string)  # do something with this!!
 
             # parse input filename for delay string, it searches for ms and any numbers (- if it has it)
             input_delay_string = re_search('-*[^a-zA-Z [_{+]*ms', VideoInput)
             if input_delay_string:  # If re finds a delay string in the input filename
-                delay_string = str(input_delay_string[0])
-            print(delay_string)  # do something with this!!
+                delay_string = f'[delay {str(input_delay_string[0])}]'
 
         if total_streams >= 2:  # If total strings are greater than 1 (video input, remux, bluray, dvd, etc...)
             # Check delay and add delay string to variable ------------------------------------------------------------
             track_selection_mediainfo = media_info.audio_tracks[
                 int(acodec_stream_choices[acodec_stream.get()].strip()[-1])]
             if track_selection_mediainfo.delay_relative_to_video is not None:
-                delay_string = str(track_selection_mediainfo.delay_relative_to_video) + 'ms'
+                delay_string = f'[delay {str(track_selection_mediainfo.delay_relative_to_video)}ms]'
             else:
-                delay_string = str('0ms')
-            print(delay_string)
+                delay_string = str('[delay 0ms]')
 
             # Obtain language string from VideoInput's parsed track
             if track_selection_mediainfo.other_language is not None:  # If language is not None
                 l_lengths = [len(i) for i in track_selection_mediainfo.other_language]  # List of language codes
                 if 3 in l_lengths:  # Find strings in l_lengths that only are equal to 3 characters
                     l_index = l_lengths.index(3)  # Save the index of the 3 character string to variable
-                language_string = f'[{str(track_selection_mediainfo.other_language[l_index])}]'  # Parse it at l_index
-            print(language_string)
+                language_string = f'[{str(track_selection_mediainfo.other_language[l_index])}]'
 
-            # ALSO IT NEEDS TO WORK FOR ALL THE COMMAND WINDOWS...
+            update_video_output()
 
             # ------------------------------------------------------------ Check delay and add delay string to variable
 
@@ -5575,20 +5579,20 @@ def input_button_commands():
     else:
         auto_encode_last_options.configure(state=NORMAL)
         if config_profile['Auto Encode']['codec'] == 'AAC':
-            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.mp4'
+            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.mp4'
         elif config_profile['Auto Encode']['codec'] == 'AC3' or config_profile['Auto Encode']['codec'] == 'E-AC3':
-            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.ac3'
+            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.ac3'
         elif config_profile['Auto Encode']['codec'] == "DTS":
-            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.dts'
+            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.dts'
         elif config_profile['Auto Encode']['codec'] == "Opus":
-            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.opus'
+            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.opus'
         elif config_profile['Auto Encode']['codec'] == 'MP3':
-            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.mp3'
+            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.mp3'
         elif config_profile['Auto Encode']['codec'] == "FDK-AAC" or \
                 config_profile['Auto Encode']['codec'] == "QAAC" or config_profile['Auto Encode']['codec'] == "ALAC":
-            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.m4a'
+            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.m4a'
         elif config_profile['Auto Encode']['codec'] == "FLAC":
-            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.flac'
+            VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.flac'
         output_entry.configure(state=NORMAL)
         output_entry.delete(0, END)
         output_entry.insert(0, VideoOut)
@@ -5639,21 +5643,21 @@ def update_file_input(*args):
         else:
             auto_encode_last_options.configure(state=NORMAL)
             if config_profile['Auto Encode']['codec'] == 'AAC':
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.mp4'
+                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.mp4'
             elif config_profile['Auto Encode']['codec'] == 'AC3' or config_profile['Auto Encode']['codec'] == 'E-AC3':
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.ac3'
+                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.ac3'
             elif config_profile['Auto Encode']['codec'] == "DTS":
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.dts'
+                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.dts'
             elif config_profile['Auto Encode']['codec'] == "Opus":
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.opus'
+                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.opus'
             elif config_profile['Auto Encode']['codec'] == 'MP3':
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.mp3'
+                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.mp3'
             elif config_profile['Auto Encode']['codec'] == "FDK-AAC" or \
                     config_profile['Auto Encode']['codec'] == "QAAC" or \
                     config_profile['Auto Encode']['codec'] == "ALAC":
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.m4a'
+                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.m4a'
             elif config_profile['Auto Encode']['codec'] == "FLAC":
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '.NEW.flac'
+                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.flac'
             output_entry.configure(state=NORMAL)
             output_entry.delete(0, END)
             output_entry.insert(0, VideoOut)
