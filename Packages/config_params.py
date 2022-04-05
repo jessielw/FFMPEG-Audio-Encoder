@@ -170,6 +170,8 @@ def create_config_params():
         config_profile.set('FFMPEG Opus - SETTINGS', 'ffmpeg_gain', '0')
     if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'tempo'):
         config_profile.set('FFMPEG Opus - SETTINGS', 'tempo', 'Original')
+    if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'mapping_family'):
+        config_profile.set('FFMPEG Opus - SETTINGS', 'mapping_family', 'Mapping -1: Auto')
     # --------------------------------------------------- Opus Settings
     # FDK-AAC settings --------------------------------------------------- # Create config parameters
     if not config_profile.has_section('FDK-AAC - SETTINGS'):
