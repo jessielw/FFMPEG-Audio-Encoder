@@ -51,7 +51,7 @@ def create_config_params():
     if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'dolbyprologicii'):
         config_profile.set('FFMPEG AAC - SETTINGS', 'dolbyprologicii', '')
     if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'ffmpeg_volume'):
-        config_profile.set('FFMPEG AAC - SETTINGS', 'ffmpeg_volume', '0')
+        config_profile.set('FFMPEG AAC - SETTINGS', 'ffmpeg_volume', '0.0')
     if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'aac_bitrate'):
         config_profile.set('FFMPEG AAC - SETTINGS', 'aac_bitrate', '192')
     if not config_profile.has_option('FFMPEG AAC - SETTINGS', 'aac_vbr_quality'):
@@ -73,7 +73,7 @@ def create_config_params():
     if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'dolbyprologicii'):
         config_profile.set('FFMPEG AC3 - SETTINGS', 'dolbyprologicii', '')
     if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'ffmpeg_volume'):
-        config_profile.set('FFMPEG AC3 - SETTINGS', 'ffmpeg_volume', '0')
+        config_profile.set('FFMPEG AC3 - SETTINGS', 'ffmpeg_volume', '0.0')
     if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'ac3_channel'):
         config_profile.set('FFMPEG AC3 - SETTINGS', 'ac3_channel', 'Original')
     if not config_profile.has_option('FFMPEG AC3 - SETTINGS', 'samplerate'):
@@ -89,7 +89,7 @@ def create_config_params():
     if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'dolbyprologicii'):
         config_profile.set('FFMPEG DTS - SETTINGS', 'dolbyprologicii', '')
     if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'ffmpeg_volume'):
-        config_profile.set('FFMPEG DTS - SETTINGS', 'ffmpeg_volume', '0')
+        config_profile.set('FFMPEG DTS - SETTINGS', 'ffmpeg_volume', '0.0')
     if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'dts_channel'):
         config_profile.set('FFMPEG DTS - SETTINGS', 'dts_channel', '2 (Stereo)')
     if not config_profile.has_option('FFMPEG DTS - SETTINGS', 'samplerate'):
@@ -105,7 +105,7 @@ def create_config_params():
     if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_channel'):
         config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_channel', 'Original')
     if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_volume'):
-        config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_volume', '0')
+        config_profile.set('FFMPEG E-AC3 - SETTINGS', 'e-ac3_volume', '0.0')
     if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'samplerate'):
         config_profile.set('FFMPEG E-AC3 - SETTINGS', 'samplerate', 'Original')
     if not config_profile.has_option('FFMPEG E-AC3 - SETTINGS', 'e-ac3_per_frame_metadata'):
@@ -167,7 +167,7 @@ def create_config_params():
     if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'dolbyprologicii'):
         config_profile.set('FFMPEG Opus - SETTINGS', 'dolbyprologicii', '')
     if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'ffmpeg_volume'):
-        config_profile.set('FFMPEG Opus - SETTINGS', 'ffmpeg_volume', '0')
+        config_profile.set('FFMPEG Opus - SETTINGS', 'ffmpeg_volume', '0.0')
     if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'tempo'):
         config_profile.set('FFMPEG Opus - SETTINGS', 'tempo', 'Original')
     if not config_profile.has_option('FFMPEG Opus - SETTINGS', 'mapping_family'):
@@ -183,7 +183,7 @@ def create_config_params():
     if not config_profile.has_option('FDK-AAC - SETTINGS', 'dolbyprologicii'):
         config_profile.set('FDK-AAC - SETTINGS', 'dolbyprologicii', '')
     if not config_profile.has_option('FDK-AAC - SETTINGS', 'ffmpeg_volume'):
-        config_profile.set('FDK-AAC - SETTINGS', 'ffmpeg_volume', '0')
+        config_profile.set('FDK-AAC - SETTINGS', 'ffmpeg_volume', '0.0')
     if not config_profile.has_option('FDK-AAC - SETTINGS', 'samplerate'):
         config_profile.set('FDK-AAC - SETTINGS', 'samplerate', 'Original')
     if not config_profile.has_option('FDK-AAC - SETTINGS', 'fdk_aac_profile'):
@@ -223,7 +223,7 @@ def create_config_params():
     if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'dolbyprologicii'):
         config_profile.set('FFMPEG MP3 - SETTINGS', 'dolbyprologicii', '')
     if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'ffmpeg_volume'):
-        config_profile.set('FFMPEG MP3 - SETTINGS', 'ffmpeg_volume', '0')
+        config_profile.set('FFMPEG MP3 - SETTINGS', 'ffmpeg_volume', '0.0')
     if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'samplerate'):
         config_profile.set('FFMPEG MP3 - SETTINGS', 'samplerate', 'Original')
     if not config_profile.has_option('FFMPEG MP3 - SETTINGS', 'tempo'):
@@ -281,7 +281,7 @@ def create_config_params():
     if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'dolbyprologicii'):
         config_profile.set('FFMPEG FLAC - SETTINGS', 'dolbyprologicii', '')
     if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'volume'):
-        config_profile.set('FFMPEG FLAC - SETTINGS', 'volume', '0')
+        config_profile.set('FFMPEG FLAC - SETTINGS', 'volume', '0.0')
     if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'samplerate'):
         config_profile.set('FFMPEG FLAC - SETTINGS', 'samplerate', 'Original')
     if not config_profile.has_option('FFMPEG FLAC - SETTINGS', 'tempo'):
@@ -301,7 +301,7 @@ def create_config_params():
     if not config_profile.has_option('FFMPEG ALAC - SETTINGS', 'dolbyprologicii'):
         config_profile.set('FFMPEG ALAC - SETTINGS', 'dolbyprologicii', '')
     if not config_profile.has_option('FFMPEG ALAC - SETTINGS', 'volume'):
-        config_profile.set('FFMPEG ALAC - SETTINGS', 'volume', '0')
+        config_profile.set('FFMPEG ALAC - SETTINGS', 'volume', '0.0')
     if not config_profile.has_option('FFMPEG ALAC - SETTINGS', 'samplerate'):
         config_profile.set('FFMPEG ALAC - SETTINGS', 'samplerate', 'Original')
     if not config_profile.has_option('FFMPEG ALAC - SETTINGS', 'tempo'):
