@@ -323,12 +323,9 @@ help_menu.add_command(label="About", command=openaboutwindow)
 # --------------------------------------------------------------------------------------------- Menu Items and Sub-Bars
 
 # File Auto Save Function ---------------------------------------------------------------------------------------------
-def encoder_changed(*args):
-    global VideoOutput
-    global autosavefilename
-    if encoder.get() == "Set Codec":
-        pass
-    else:
+def set_auto_save_suffix():
+    global VideoOut
+    if encoder.get() != "Set Codec":
         filename = pathlib.Path(VideoInput)
         if encoder.get() == 'AAC':
             VideoOut = filename.with_suffix('._new_.mp4')
@@ -344,6 +341,11 @@ def encoder_changed(*args):
             VideoOut = filename.with_suffix('._new_.m4a')
         elif encoder.get() == "FLAC":
             VideoOut = filename.with_suffix('._new_.flac')
+
+def encoder_changed(*args):
+    global VideoOutput, autosavefilename, VideoOut
+    if encoder.get() != "Set Codec":
+        set_auto_save_suffix()
         VideoOutput = str(VideoOut)
         output_entry.configure(state=NORMAL)
         output_entry.delete(0, END)
@@ -660,7 +662,7 @@ def openaudiowindow():
 
         def update_video_output():  # Function to add language/delay strings to the output filename
             global VideoOutput, autosavefilename
-            encoder_changed()  # Run encoder changed code to apply default VideoOutput before changing
+            set_auto_save_suffix()  # Run function to apply default VideoOutput before continuing code
             VideoOutput = str(VideoOutput).replace('_new_', language_string + '_' + delay_string)
             autosavefilename = pathlib.Path(VideoOutput).stem
             command_line_button.config(state=NORMAL)  # Enable the display command button for main gui
