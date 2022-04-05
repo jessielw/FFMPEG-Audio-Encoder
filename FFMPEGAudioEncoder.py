@@ -659,9 +659,10 @@ def openaudiowindow():
             pass
 
         def update_video_output():  # Function to add language/delay strings to the output filename
-            global VideoOutput
+            global VideoOutput, autosavefilename
             encoder_changed()  # Run encoder changed code to apply default VideoOutput before changing
             VideoOutput = str(VideoOutput).replace('_new_', language_string + '_' + delay_string)
+            autosavefilename = pathlib.Path(VideoOutput).stem
             command_line_button.config(state=NORMAL)  # Enable the display command button for main gui
             output_entry.config(state=NORMAL)  # Enable output_entry box for editing
             output_entry.delete(0, END)  # Remove all text from box
@@ -673,13 +674,13 @@ def openaudiowindow():
         general_track = media_info.general_tracks[0]
         total_streams = 0  # Empty variable to add up all the tracks
         if general_track.count_of_video_streams is not None:
-            total_streams += 1  # check for video track(s)
+            total_streams += int(general_track.count_of_video_streams)  # check for video track(s)
         if general_track.count_of_audio_streams is not None:
-            total_streams += 1  # check for audio track(s)
+            total_streams += int(general_track.count_of_audio_streams)  # check for audio track(s)
         if general_track.count_of_subtitle_streams is not None:
-            total_streams += 1  # check for subtitle track(s)
+            total_streams += int(general_track.count_of_subtitle_streams)  # check for subtitle track(s)
         if general_track.count_of_menu_streams is not None:
-            total_streams += 1  # check for menu track(s)
+            total_streams += int(general_track.count_of_menu_streams)  # check for menu track(s)
 
         if total_streams <= 1:  # If total streams are less than or equal to 1
             # parse input file name for language and delay string
@@ -710,6 +711,8 @@ def openaudiowindow():
                 if 3 in l_lengths:  # Find strings in l_lengths that only are equal to 3 characters
                     l_index = l_lengths.index(3)  # Save the index of the 3 character string to variable
                 language_string = f'[{str(track_selection_mediainfo.other_language[l_index])}]'
+            else:
+                language_string = ''
 
             update_video_output()
 
@@ -5571,8 +5574,9 @@ def input_button_commands():
     input_entry.delete(0, END)
     input_entry.configure(state=DISABLED)
     encoder_menu.configure(state=DISABLED)
-    output_button.configure(state=NORMAL)
     command_line_button.configure(state=DISABLED)
+    output_button.config(state=DISABLED)
+    command_line_button.config(state=DISABLED)
     file_input()
     if config_profile['Auto Encode']['codec'] == '':
         auto_encode_last_options.configure(state=DISABLED)
@@ -5635,9 +5639,10 @@ def update_file_input(*args):
         output_entry.configure(state=DISABLED)
         encoder.set("Set Codec")
         audiosettings_button.configure(state=DISABLED)
-        output_button.configure(state=NORMAL)
         start_audio_button.configure(state=DISABLED)
         encoder_menu.configure(state=NORMAL)
+        output_button.config(state=DISABLED)
+        command_line_button.config(state=DISABLED)
         if config_profile['Auto Encode']['codec'] == '':
             auto_encode_last_options.configure(state=DISABLED)
         else:
