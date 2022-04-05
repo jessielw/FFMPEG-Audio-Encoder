@@ -4766,7 +4766,7 @@ def file_input():
             stdout, stderr = mediainfo_count.communicate()
             track_count = stdout
             input_entry.configure(state=NORMAL)
-            input_entry.insert(0, VideoInput)
+            input_entry.insert(0, str(pathlib.Path(VideoInput)))
             input_entry.configure(state=DISABLED)
             output_entry.configure(state=NORMAL)
             output_entry.delete(0, END)
@@ -5634,7 +5634,7 @@ def update_file_input(*args):
                                            stdin=subprocess.PIPE, encoding="utf-8")
         stdout, stderr = mediainfo_count.communicate()
         track_count = stdout
-        input_entry.insert(0, str(input_dnd.get()).replace("{", "").replace("}", ""))
+        input_entry.insert(0, str(pathlib.Path(str(input_dnd.get()).replace("{", "").replace("}", ""))))
         input_entry.configure(state=DISABLED)
         output_entry.configure(state=NORMAL)
         output_entry.delete(0, END)
