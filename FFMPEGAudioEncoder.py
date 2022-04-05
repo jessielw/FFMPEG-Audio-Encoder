@@ -712,7 +712,7 @@ def openaudiowindow():
                     l_index = l_lengths.index(3)  # Save the index of the 3 character string to variable
                 language_string = f'[{str(track_selection_mediainfo.other_language[l_index])}]'
             else:
-                language_string = ''
+                language_string = '[und]'
 
             update_video_output()
 
