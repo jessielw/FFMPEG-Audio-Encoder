@@ -4793,45 +4793,45 @@ def file_save():
     if encoder.get() == "AAC":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".mp4", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
-                                                   filetypes=(("AAC", "*.mp4"), ("All Files", "*.*")))
+                                                   filetypes=[("AAC", "*.mp4")])
     elif encoder.get() == "AC3":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".ac3", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
-                                                   filetypes=(("AC3", "*.ac3"), ("All Files", "*.*")))
+                                                   filetypes=[("AC3", "*.ac3")])
     elif encoder.get() == "DTS":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".dts", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
-                                                   filetypes=(("DTS", "*.dts"), ("All Files", "*.*")))
+                                                   filetypes=[("DTS", "*.dts")])
     elif encoder.get() == "Opus":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".opus", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
-                                                   filetypes=(("Opus", "*.opus"), ("All Files", "*.*")))
+                                                   filetypes=[("Opus", "*.opus")])
     elif encoder.get() == "MP3":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".mp3", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
-                                                   filetypes=(("MP3", "*.mp3"), ("All Files", "*.*")))
+                                                   filetypes=[("MP3", "*.mp3")])
     elif encoder.get() == "E-AC3":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".ac3", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
-                                                   filetypes=(("E-AC3", "*.ac3"), ("All Files", "*.*")))
+                                                   filetypes=[("E-AC3", "*.ac3")])
     elif encoder.get() == "FDK-AAC":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".m4a", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
-                                                   filetypes=(("AAC", "*.m4a"), ("All Files", "*.*")))
+                                                   filetypes=[("AAC", "*.m4a")])
     elif encoder.get() == "QAAC":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".m4a", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
-                                                   filetypes=(("AAC", "*.m4a"), ("All Files", "*.*")))
+                                                   filetypes=[("AAC", "*.m4a")])
 
     elif encoder.get() == "FLAC":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".flac", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
-                                                   filetypes=(("FLAC", "*.flac"), ("All Files", "*.*")))
+                                                   filetypes=[("FLAC", "*.flac")])
 
     elif encoder.get() == "ALAC":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".m4a", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
-                                                   filetypes=(("ALAC", "*.m4a"), ("All Files", "*.*")))
+                                                   filetypes=[("ALAC", "*.m4a")])
 
     if VideoOutput:
         output_entry.configure(state=NORMAL)  # Enable entry box for commands under
