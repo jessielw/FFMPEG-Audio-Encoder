@@ -563,6 +563,14 @@ def openaudiowindow():
     def acodec_flac_lpc_passes_menu_hover_leave(e):
         acodec_flac_lpc_passes_menu["bg"] = "#23272A"
 
+    def opus_mapping_family_menu_hover(e):
+        opus_mapping_family_menu.bind["bg"] = "grey"
+        opus_mapping_family_menu.bind["activebackground"] = "grey"
+
+    def opus_mapping_family_menu_hover_leave(e):
+        opus_mapping_family_menu.bind["bg"] = "#23272A"
+
+
     # Checks channel for dolby pro logic II checkbox ------------------------------------------------------------------
     def dolby_pro_logic_ii_enable_disable(*args):
         if acodec_channel.get() == '2 (Stereo)':
@@ -2177,6 +2185,25 @@ def openaudiowindow():
                                               activeforeground="white", selectcolor="#434547", font=("Helvetica", 11))
         dolby_pro_logic_ii.set(config_profile['FFMPEG Opus - SETTINGS']['dolbyprologicii'])
         # ------------------------------------------------------------------------------------------------------ DPL II
+
+        # Opus Mapping Family -----------------------------------------------------------------------------------------
+        opus_mapping_family = StringVar(audio_window)
+        opus_mapping_family_choices = {'Mapping -1: Auto': "",
+                                       'Mapping 0: Mono/Stereo': "-mapping_family 0 ",
+                                       'Mapping 1: Multi-Channel': "-mapping_family 1 "}
+        # opus_mapping_family.set(config_profile['FFMPEG Opus - SETTINGS']['opus_mapping_family'])  # set the default option
+        opus_mapping_family.set('Mapping -1: Auto')
+        opus_mapping_family_menu_label = Label(audio_window, text="Mapping Family :", background="#434547",
+                                               foreground="white")
+        opus_mapping_family_menu_label.grid(row=4, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
+        opus_mapping_family_menu = OptionMenu(audio_window, opus_mapping_family, *opus_mapping_family_choices.keys())
+        opus_mapping_family_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=10,
+                                        anchor=W)
+        opus_mapping_family_menu.grid(row=5, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        opus_mapping_family_menu["menu"].configure(activebackground="dim grey")
+        opus_mapping_family_menu.bind("<Enter>", opus_mapping_family_menu_hover)
+        opus_mapping_family_menu.bind("<Leave>", opus_mapping_family_menu_hover_leave)
+        # ----------------------------------------------------------------------------------------- Opus Mapping Family
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
         ffmpeg_gain = StringVar()
