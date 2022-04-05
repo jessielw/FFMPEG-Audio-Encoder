@@ -564,11 +564,11 @@ def openaudiowindow():
         acodec_flac_lpc_passes_menu["bg"] = "#23272A"
 
     def opus_mapping_family_menu_hover(e):
-        opus_mapping_family_menu.bind["bg"] = "grey"
-        opus_mapping_family_menu.bind["activebackground"] = "grey"
+        opus_mapping_family_menu["bg"] = "grey"
+        opus_mapping_family_menu["activebackground"] = "grey"
 
     def opus_mapping_family_menu_hover_leave(e):
-        opus_mapping_family_menu.bind["bg"] = "#23272A"
+        opus_mapping_family_menu["bg"] = "#23272A"
 
 
     # Checks channel for dolby pro logic II checkbox ------------------------------------------------------------------
