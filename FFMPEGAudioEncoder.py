@@ -792,6 +792,7 @@ def openaudiowindow():
             config_profile.set('FFMPEG Opus - SETTINGS', 'dolbyprologicii', dolby_pro_logic_ii.get())
             config_profile.set('FFMPEG Opus - SETTINGS', 'ffmpeg_gain', ffmpeg_gain.get())
             config_profile.set('FFMPEG Opus - SETTINGS', 'tempo', acodec_atempo.get())
+            config_profile.set('FFMPEG Opus - SETTINGS', 'mapping_family', opus_mapping_family.get())
         if encoder.get() == 'FDK-AAC':
             config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_bitrate', acodec_bitrate.get())
             config_profile.set('FDK-AAC - SETTINGS', 'acodec_channel', acodec_channel.get())
@@ -924,6 +925,7 @@ def openaudiowindow():
                 config_profile.set('FFMPEG Opus - SETTINGS', 'dolbyprologicii', '')
                 config_profile.set('FFMPEG Opus - SETTINGS', 'ffmpeg_gain', '0')
                 config_profile.set('FFMPEG Opus - SETTINGS', 'tempo', 'Original')
+                config_profile.set('FFMPEG Opus - SETTINGS', 'mapping_family', 'Mapping -1: Auto')
             if encoder.get() == 'FDK-AAC':
                 config_profile.set('FDK-AAC - SETTINGS', 'fdk_aac_bitrate', 'CBR: 192k')
                 config_profile.set('FDK-AAC - SETTINGS', 'acodec_channel', 'Original')
@@ -2191,8 +2193,7 @@ def openaudiowindow():
         opus_mapping_family_choices = {'Mapping -1: Auto': "",
                                        'Mapping 0: Mono/Stereo': "-mapping_family 0 ",
                                        'Mapping 1: Multi-Channel': "-mapping_family 1 "}
-        # opus_mapping_family.set(config_profile['FFMPEG Opus - SETTINGS']['opus_mapping_family'])  # set the default option
-        opus_mapping_family.set('Mapping -1: Auto')
+        opus_mapping_family.set(config_profile['FFMPEG Opus - SETTINGS']['mapping_family'])  # set the default option
         opus_mapping_family_menu_label = Label(audio_window, text="Mapping Family :", background="#434547",
                                                foreground="white")
         opus_mapping_family_menu_label.grid(row=4, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
