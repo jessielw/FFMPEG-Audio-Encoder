@@ -1219,14 +1219,12 @@ def openaudiowindow():
 
             # Audio Gain Selection ------------------------------------------------------------------------------------
             ffmpeg_volume = StringVar()
-            ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547",
-                                      foreground="white")
-            ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
-                                   sticky=N + S + E + W)
-            ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                          wrap=True, textvariable=ffmpeg_volume)
+            ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
+            ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+            ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=0.1, justify=CENTER, wrap=True,
+                                            textvariable=ffmpeg_volume)
             ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
-                                          buttonbackground="black", width=15, readonlybackground="#23272A")
+                                            buttonbackground="black", width=15, readonlybackground="#23272A")
             ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             ffmpeg_volume.set(int(config_profile['FFMPEG AC3 - SETTINGS']['ffmpeg_volume']))
             # ---------------------------------------------------------------------------------------------------- Gain
@@ -1479,14 +1477,12 @@ def openaudiowindow():
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
         ffmpeg_volume = StringVar()
-        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547",
-                                  foreground="white")
-        ffmpeg_volume_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3,
-                               sticky=N + S + E + W)
-        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                      wrap=True, textvariable=ffmpeg_volume)
+        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
+        ffmpeg_volume_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=0.1, justify=CENTER, wrap=True,
+                                        textvariable=ffmpeg_volume)
         ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
-                                      buttonbackground="black", width=15, readonlybackground="#23272A")
+                                        buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_volume_spinbox.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         ffmpeg_volume.set(int(config_profile['FFMPEG AAC - SETTINGS']['ffmpeg_volume']))
         # -------------------------------------------------------------------------------------------------------- Gain
@@ -1820,15 +1816,12 @@ def openaudiowindow():
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
         ffmpeg_volume = StringVar()
-        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547",
-                                  foreground="white")
-        ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
-                               sticky=N + S + E + W)
-        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                      wrap=True, textvariable=ffmpeg_volume, state=DISABLED)
+        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
+        ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=0.1, justify=CENTER, wrap=True,
+                                        textvariable=ffmpeg_volume, state=DISABLED)
         ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
-                                      buttonbackground="black", width=15, readonlybackground="#23272A",
-                                      disabledbackground='grey')
+                                        buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         ffmpeg_volume.set(int(config_profile['FFMPEG DTS - SETTINGS']['ffmpeg_volume']))
         # -------------------------------------------------------------------------------------------------------- Gain
@@ -2209,14 +2202,12 @@ def openaudiowindow():
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
         ffmpeg_volume = StringVar()
-        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547",
-                                  foreground="white")
-        ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=(3, 10),
-                               sticky=N + S + E + W)
-        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                      wrap=True, textvariable=ffmpeg_volume)
+        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
+        ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=(3, 10), sticky=N + S + E + W)
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=0.1, justify=CENTER, wrap=True,
+                                        textvariable=ffmpeg_volume)
         ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
-                                      buttonbackground="black", width=15, readonlybackground="#23272A")
+                                        buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         ffmpeg_volume.set(int(config_profile['FFMPEG Opus - SETTINGS']['ffmpeg_volume']))
         # -------------------------------------------------------------------------------------------------------- Gain
@@ -2521,14 +2512,12 @@ def openaudiowindow():
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
         ffmpeg_volume = StringVar()
-        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547",
-                                  foreground="white")
-        ffmpeg_volume_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3,
-                               sticky=N + S + E + W)
-        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                      wrap=True, textvariable=ffmpeg_volume)
+        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
+        ffmpeg_volume_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=0.1, justify=CENTER, wrap=True,
+                                        textvariable=ffmpeg_volume)
         ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
-                                      buttonbackground="black", width=15, readonlybackground="#23272A")
+                                        buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_volume_spinbox.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         ffmpeg_volume.set(int(config_profile['FFMPEG MP3 - SETTINGS']['ffmpeg_volume']))
         ffmpeg_volume.trace('w', audio_filter_function)
@@ -2783,14 +2772,12 @@ def openaudiowindow():
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
         ffmpeg_volume = StringVar()
-        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547",
-                                  foreground="white")
-        ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
-                               sticky=N + S + E + W)
-        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                      wrap=True, textvariable=ffmpeg_volume)
+        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
+        ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=0.1, justify=CENTER, wrap=True,
+                                        textvariable=ffmpeg_volume)
         ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
-                                      buttonbackground="black", width=15, readonlybackground="#23272A")
+                                        buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         ffmpeg_volume.set(int(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_volume']))
         # -------------------------------------------------------------------------------------------------------- Gain
@@ -3369,14 +3356,12 @@ def openaudiowindow():
 
         # Audio Gain Selection ----------------------------------------------------------------------------------------
         ffmpeg_volume = StringVar()
-        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547",
-                                  foreground="white")
-        ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
-                               sticky=N + S + E + W)
-        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                      wrap=True, textvariable=ffmpeg_volume)
+        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
+        ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=0.1, justify=CENTER, wrap=True,
+                                        textvariable=ffmpeg_volume)
         ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
-                                      buttonbackground="black", width=15, readonlybackground="#23272A")
+                                        buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         ffmpeg_volume.set(int(config_profile['FDK-AAC - SETTINGS']['ffmpeg_volume']))
         # -------------------------------------------------------------------------------------------------------- Gain
@@ -4301,10 +4286,10 @@ def openaudiowindow():
             ffmpeg_volume = StringVar()
             ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
             ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                          wrap=True, textvariable=ffmpeg_volume)
+            ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=0.1, justify=CENTER, wrap=True,
+                                            textvariable=ffmpeg_volume)
             ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
-                                          buttonbackground="black", width=15, readonlybackground="#23272A")
+                                            buttonbackground="black", width=15, readonlybackground="#23272A")
             ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             ffmpeg_volume.set(int(config_profile['FFMPEG FLAC - SETTINGS']['volume']))
             # ---------------------------------------------------------------------------------------------------- Gain
@@ -4613,14 +4598,12 @@ def openaudiowindow():
 
             # Audio Gain Selection --------------------------------------------------------------------------------
             ffmpeg_volume = StringVar()
-            ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547",
-                                      foreground="white")
-            ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3,
-                                   sticky=N + S + E + W)
-            ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=1.0, justify=CENTER,
-                                          wrap=True, textvariable=ffmpeg_volume)
+            ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
+            ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+            ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=0.1, justify=CENTER, wrap=True,
+                                            textvariable=ffmpeg_volume)
             ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
-                                          buttonbackground="black", width=15, readonlybackground="#23272A")
+                                            buttonbackground="black", width=15, readonlybackground="#23272A")
             ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             ffmpeg_volume.set(int(config_profile['FFMPEG ALAC - SETTINGS']['volume']))
             # ------------------------------------------------------------------------------------------------ Gain
