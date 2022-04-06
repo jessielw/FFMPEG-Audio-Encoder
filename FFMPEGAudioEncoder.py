@@ -5474,7 +5474,7 @@ def startaudiojob():
                                    stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
 
-            if auto_or_manual == 'manual':  # If auto_or_manual is set to 'manual', once the user encodes it resets
+            if auto_or_manual == 'auto':  # If auto_or_manual is set to 'auto', once the user encodes it resets
                 # main gui back to default settings
                 reset_main_gui()
 
