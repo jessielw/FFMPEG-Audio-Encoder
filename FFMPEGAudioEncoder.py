@@ -408,7 +408,8 @@ def openaudiowindow():
     global acodec_bitrate, acodec_channel, acodec_channel_choices, acodec_bitrate_choices, acodec_stream, \
         acodec_stream_choices, acodec_volume, acodec_volume_choices, dts_settings, dts_settings_choices, \
         acodec_vbr_choices, acodec_vbr, acodec_samplerate, acodec_samplerate_choices, acodec_application, \
-        acodec_application_choices, acodec_profile, acodec_profile_choices, acodec_atempo, acodec_atempo_choices
+        acodec_application_choices, acodec_profile, acodec_profile_choices, acodec_atempo, acodec_atempo_choices, \
+        opus_mapping_family_choices, opus_mapping_family
 
     def show_cmd_hover(e):
         show_cmd["bg"] = "grey"
@@ -1950,6 +1951,7 @@ def openaudiowindow():
                                               acodec_channel_choices[acodec_channel.get()] +
                                               acodec_vbr_choices[acodec_vbr.get()] +
                                               acodec_application_choices[acodec_application.get()] +
+                                              opus_mapping_family_choices[opus_mapping_family.get()] +
                                               "-packet_loss " + packet_loss.get() + " -frame_duration " +
                                               frame_duration.get() + " " +
                                               acodec_samplerate_choices[acodec_samplerate.get()] +
@@ -4984,7 +4986,8 @@ def print_command_line():
                                           acodec_vbr_choices[acodec_vbr.get()] +
                                           acodec_bitrate_choices[acodec_bitrate.get()] +
                                           acodec_channel_choices[acodec_channel.get()] +
-                                          acodec_application_choices[acodec_application.get()] + "-packet_loss " +
+                                          acodec_application_choices[acodec_application.get()] +
+                                          opus_mapping_family_choices[opus_mapping_family.get()] + "-packet_loss " +
                                           packet_loss.get() + " -frame_duration " + frame_duration.get() + " " +
                                           acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                           "-sn -vn -map_chapters -1 -map_metadata -1 " + opus_custom_cmd_input +
@@ -5237,7 +5240,8 @@ def startaudiojob():
                                     acodec_vbr_choices[acodec_vbr.get()] +
                                     acodec_bitrate_choices[acodec_bitrate.get()] +
                                     acodec_channel_choices[acodec_channel.get()] +
-                                    acodec_application_choices[acodec_application.get()] + "-packet_loss " +
+                                    acodec_application_choices[acodec_application.get()] +
+                                    opus_mapping_family_choices[opus_mapping_family.get()] + "-packet_loss " +
                                     packet_loss.get() + " -frame_duration " + frame_duration.get() + " " +
                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                     "-sn -vn -map_chapters -1 -map_metadata -1 " + opus_custom_cmd_input +
@@ -5247,7 +5251,8 @@ def startaudiojob():
                                          acodec_vbr_choices[acodec_vbr.get()] +
                                          acodec_bitrate_choices[acodec_bitrate.get()] +
                                          acodec_channel_choices[acodec_channel.get()] +
-                                         acodec_application_choices[acodec_application.get()] + "-packet_loss " +
+                                         acodec_application_choices[acodec_application.get()] +
+                                         opus_mapping_family_choices[opus_mapping_family.get()] + "-packet_loss " +
                                          packet_loss.get() + " -frame_duration " + frame_duration.get() + " " +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                          "-sn -vn -map_chapters -1 -map_metadata -1 ").split())
