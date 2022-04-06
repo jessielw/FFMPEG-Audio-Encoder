@@ -342,6 +342,7 @@ def set_auto_save_suffix():
         elif encoder.get() == "FLAC":
             VideoOut = filename.with_suffix('._new_.flac')
 
+
 def encoder_changed(*args):
     global VideoOutput, autosavefilename, VideoOut
     if encoder.get() != "Set Codec":
@@ -361,7 +362,7 @@ def encoder_changed(*args):
 # --------------------------------------------------------------------------------------------- File Auto Save Function
 
 # Uses MediaInfo CLI to get total audio track count and gives us a total track count ----------------------------------
-def track_count(*args):  # Thanks for helping me shorten this 'gmes78'
+def track_counter(*args):  # Thanks for helping me shorten this 'gmes78'
     global acodec_stream_track_counter, t_info
     mediainfocli_cmd_info = '"' + mediainfocli + " " + '--Output="Audio;' \
                             + " |  %Format%  |  %Channel(s)% Channels  |  %BitRate/String% ," \
@@ -393,7 +394,7 @@ encoder_dropdownmenu_choices = {
 encoder = StringVar(root)
 encoder.set("Set Codec")
 encoder.trace('w', encoder_changed)
-encoder_menu = OptionMenu(root, encoder, *encoder_dropdownmenu_choices.keys(), command=track_count)
+encoder_menu = OptionMenu(root, encoder, *encoder_dropdownmenu_choices.keys(), command=track_counter)
 encoder_menu.grid(row=1, column=2, columnspan=1, padx=5, pady=5, sticky=N + S + W + E)
 encoder_menu.config(state=DISABLED, background="#23272A", foreground="white", highlightthickness=1, width=10)
 encoder_menu["menu"].configure(activebackground="dim grey")
@@ -409,7 +410,7 @@ def openaudiowindow():
         acodec_stream_choices, acodec_volume, acodec_volume_choices, dts_settings, dts_settings_choices, \
         acodec_vbr_choices, acodec_vbr, acodec_samplerate, acodec_samplerate_choices, acodec_application, \
         acodec_application_choices, acodec_profile, acodec_profile_choices, acodec_atempo, acodec_atempo_choices, \
-        opus_mapping_family_choices, opus_mapping_family
+        opus_mapping_family_choices, opus_mapping_family, gotosavefile
 
     def show_cmd_hover(e):
         show_cmd["bg"] = "grey"
@@ -571,7 +572,6 @@ def openaudiowindow():
     def opus_mapping_family_menu_hover_leave(e):
         opus_mapping_family_menu["bg"] = "#23272A"
 
-
     # Checks channel for dolby pro logic II checkbox ------------------------------------------------------------------
     def dolby_pro_logic_ii_enable_disable(*args):
         if acodec_channel.get() == '2 (Stereo)':
@@ -584,8 +584,9 @@ def openaudiowindow():
 
     # Get Selected Track Number for MPV Player ------------------------------------------------------------------------
     def track_number_mpv(*args):
-        global mpv_track_number
-        mpv_track_number = str(acodec_stream.get().split()[1][-1])
+        global mpv_track_number, acodec_stream
+        if acodec_stream.get() != 'None':
+            mpv_track_number = str(acodec_stream.get().split()[1][-1])
 
     # ------------------------------------------------------------------------ Get Selected Track Number for MPV Player
 
@@ -622,7 +623,8 @@ def openaudiowindow():
             elif ffmpeg_volume.get() == '0.0' and acodec_atempo_choices[acodec_atempo.get()] != '':
                 audio_filter_setting = '-af ' + acodec_atempo_choices[acodec_atempo.get()] + ' '
             elif ffmpeg_volume.get() != '0.0' and acodec_atempo_choices[acodec_atempo.get()] != '':
-                audio_filter_setting = '-af ' + ffmpeg_volume_cmd + ',' + acodec_atempo_choices[acodec_atempo.get()] + ' '
+                audio_filter_setting = '-af ' + ffmpeg_volume_cmd + ',' + acodec_atempo_choices[
+                    acodec_atempo.get()] + ' '
         else:
             ffmpeg_volume_cmd = '"volume=' + ffmpeg_volume.get() + '"'
             if dolby_pro_logic_ii.get() == '' and ffmpeg_volume.get() == '0.0' and \
@@ -649,7 +651,8 @@ def openaudiowindow():
                                        ffmpeg_volume_cmd + ',' + acodec_atempo_choices[acodec_atempo.get()] + ' '
             elif dolby_pro_logic_ii.get() == '' and ffmpeg_volume.get() != '0.0' and \
                     acodec_atempo_choices[acodec_atempo.get()] != '':
-                audio_filter_setting = '-af ' + ffmpeg_volume_cmd + ',' + acodec_atempo_choices[acodec_atempo.get()] + ' '
+                audio_filter_setting = '-af ' + ffmpeg_volume_cmd + ',' + \
+                                       acodec_atempo_choices[acodec_atempo.get()] + ' '
             elif dolby_pro_logic_ii.get() == '' and \
                     ffmpeg_volume.get() == '0.0' and acodec_atempo_choices[acodec_atempo.get()] != '':
                 audio_filter_setting = '-af ' + acodec_atempo_choices[acodec_atempo.get()] + ' '
@@ -658,8 +661,7 @@ def openaudiowindow():
 
     # 'Apply' button function -----------------------------------------------------------------------------------------
     def gotosavefile():
-        global VideoInput, delay_string, language_string
-        audio_window.destroy()  # Close audio window
+        global VideoInput, delay_string, language_string, auto_or_manual
         output_button.config(state=NORMAL)  # Enable buttons upon save file
         start_audio_button.config(state=NORMAL)
         command_line_button.config(state=NORMAL)
@@ -668,6 +670,9 @@ def openaudiowindow():
             cmd_line_window.withdraw()
         except (Exception,):
             pass
+
+        language_string = ''  # Place holder variable
+        delay_string = ''  # Place holder variable
 
         def update_video_output():  # Function to add language/delay strings to the output filename
             global VideoOutput, autosavefilename
@@ -680,54 +685,169 @@ def openaudiowindow():
             output_entry.insert(0, VideoOutput)  # Insert new VideoOutput path
             output_entry.config(state=DISABLED)  # Disable output_entry box
 
-        # If input is only 1 track, parse input file name for language and delay string
-        media_info = MediaInfo.parse(VideoInput)  # Parse VideoInput
-        general_track = media_info.general_tracks[0]
-        total_streams = 0  # Empty variable to add up all the tracks
-        if general_track.count_of_video_streams is not None:
-            total_streams += int(general_track.count_of_video_streams)  # check for video track(s)
-        if general_track.count_of_audio_streams is not None:
-            total_streams += int(general_track.count_of_audio_streams)  # check for audio track(s)
-        if general_track.count_of_subtitle_streams is not None:
-            total_streams += int(general_track.count_of_subtitle_streams)  # check for subtitle track(s)
-        if general_track.count_of_menu_streams is not None:
-            total_streams += int(general_track.count_of_menu_streams)  # check for menu track(s)
+        def delay_and_lang_check():
+            global language_string, delay_string
+            # If input is only 1 track, parse input file name for language and delay string
+            media_info = MediaInfo.parse(VideoInput)  # Parse VideoInput
+            general_track = media_info.general_tracks[0]
+            total_streams = 0  # Empty variable to add up all the tracks
+            if general_track.count_of_video_streams is not None:
+                total_streams += int(general_track.count_of_video_streams)  # check for video track(s)
+            if general_track.count_of_audio_streams is not None:
+                total_streams += int(general_track.count_of_audio_streams)  # check for audio track(s)
+            if general_track.count_of_subtitle_streams is not None:
+                total_streams += int(general_track.count_of_subtitle_streams)  # check for subtitle track(s)
+            if general_track.count_of_menu_streams is not None:
+                total_streams += int(general_track.count_of_menu_streams)  # check for menu track(s)
 
-        if total_streams <= 1:  # If total streams are less than or equal to 1
-            # parse input file name for language and delay string
-            language_code_input = re_findall(r"\[([A-Za-z]+)\]", str(VideoInput))
-            if language_code_input:  # If re finds language codes within '[]'
-                lng_input_lengths = [len(i) for i in language_code_input]
-                if 3 in lng_input_lengths:  # If anything within the brackets is 3 digits
-                    index = lng_input_lengths.index(3)  # Finds index of string inside brackets that's 3 digits
-                    language_string = str(f'[{language_code_input[index]}]')  # Set's language string to index
+            if total_streams <= 1:  # If total streams are less than or equal to 1
+                # parse input file name for language and delay string
+                language_code_input = re_findall(r"\[([A-Za-z]+)\]", str(VideoInput))
+                if language_code_input:  # If re finds language codes within '[]'
+                    lng_input_lengths = [len(i) for i in language_code_input]
+                    if 3 in lng_input_lengths:  # If anything within the brackets is 3 digits
+                        index = lng_input_lengths.index(3)  # Finds index of string inside brackets that's 3 digits
+                        language_string = str(f'[{language_code_input[index]}]')  # Set's language string to index
 
-            # parse input filename for delay string, it searches for ms and any numbers (- if it has it)
-            input_delay_string = re_search('-*[^a-zA-Z [_{+]*ms', VideoInput)
-            if input_delay_string:  # If re finds a delay string in the input filename
-                delay_string = f'[delay {str(input_delay_string[0])}]'
+                # parse input filename for delay string, it searches for ms and any numbers (- if it has it)
+                input_delay_string = re_search('-*[^a-zA-Z [_{+]*ms', VideoInput)
+                if input_delay_string:  # If re finds a delay string in the input filename
+                    delay_string = f'[delay {str(input_delay_string[0])}]'
 
-        if total_streams >= 2:  # If total strings are greater than 1 (video input, remux, bluray, dvd, etc...)
-            # Check delay and add delay string to variable ------------------------------------------------------------
-            track_selection_mediainfo = media_info.audio_tracks[
-                int(acodec_stream_choices[acodec_stream.get()].strip()[-1])]
-            if track_selection_mediainfo.delay_relative_to_video is not None:
-                delay_string = f'[delay {str(track_selection_mediainfo.delay_relative_to_video)}ms]'
-            else:
-                delay_string = str('[delay 0ms]')
+            if total_streams >= 2:  # If total strings are greater than 1 (video input, remux, bluray, dvd, etc...)
+                # Check delay and add delay string to variable --------------------------------------------------------
+                try:
+                    if auto_or_manual == 'manual':  # If normal encoding is used with the start job button
+                        audio_window.destroy()  # Close audio window
+                        track_selection_mediainfo = media_info.audio_tracks[
+                            int(acodec_stream_choices[acodec_stream.get()].strip()[-1])]
+                except NameError:  # If auto_or_manual does not exist yet
+                    pass
 
-            # Obtain language string from VideoInput's parsed track
-            if track_selection_mediainfo.other_language is not None:  # If language is not None
-                l_lengths = [len(i) for i in track_selection_mediainfo.other_language]  # List of language codes
-                if 3 in l_lengths:  # Find strings in l_lengths that only are equal to 3 characters
-                    l_index = l_lengths.index(3)  # Save the index of the 3 character string to variable
-                language_string = f'[{str(track_selection_mediainfo.other_language[l_index])}]'
-            else:
-                language_string = '[und]'
+                try:
+                    if auto_or_manual == 'auto':
+                        audio_window.destroy()  # Destroy audio window, only opens to define variables inside it
 
-            update_video_output()
+                        def track_window():  # Function to select which audio track user would like to encode with
+                            global auto_track_input
+                            audio_track_win = Toplevel()  # Toplevel window
+                            audio_track_win.configure(background='#191a1a')  # Set color of audio_track_win background
+                            window_height = 340  # win height
+                            window_width = 478  # win width
+                            screen_width = audio_track_win.winfo_screenwidth()  # down
+                            screen_height = audio_track_win.winfo_screenheight()  # down
+                            x_coordinate = int((screen_width / 2) - (window_width / 2))  # down
+                            y_coordinate = int((screen_height / 2) - (window_height / 2))  # down
+                            audio_track_win.geometry(
+                                f'{window_width}x{window_height}+{x_coordinate}+{y_coordinate}')  # code calculates
+                            # middle position of window
+                            audio_track_win.resizable(0, 0)  # makes window not resizable
+                            audio_track_win.overrideredirect(1)  # will remove the top badge of window
+                            audio_track_win.grab_set()  # forces audio_track_win to stay on top of root
+                            root.attributes('-alpha', 0.8)  # Lowers mp4root transparency to .8
 
-            # ------------------------------------------------------------ Check delay and add delay string to variable
+                            # Track Frame -----------------------------------------------------------------------------
+                            # Define track frame
+                            track_frame = LabelFrame(audio_track_win, text=' Track Selection ')
+                            track_frame.grid(row=0, column=0, columnspan=5, sticky=E + W, padx=10, pady=(8, 0))
+                            track_frame.configure(fg="white", bg="#636669", bd=3)
+
+                            track_frame.rowconfigure(0, weight=1)
+                            track_frame.grid_columnconfigure(0, weight=1)
+                            # ----------------------------------------------------------------------------- Track Frame
+
+                            # Menu to show track(s) information -------------------------------------------------------
+                            def update_track_window_text(*args):
+                                mapping_number = int(str(acodec_stream.get()).split()[1][1]) - 1
+                                show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
+                                show_cmd_scrolled.delete(1.0, END)
+                                show_cmd_scrolled.insert(END,
+                                                         f"-map 0:a:{str(mapping_number)} "
+                                                         f"{str(config_profile['Auto Encode']['command'])}")
+                                show_cmd_scrolled.see(END)
+                                show_cmd_scrolled.configure(state=DISABLED)
+
+                            show_cmd_scrolled = scrolledtextwidget.ScrolledText(track_frame, width=30, height=6,
+                                                                                tabs=10, spacing2=3, spacing1=2,
+                                                                                spacing3=3)
+                            show_cmd_scrolled.grid(row=1, column=0, columnspan=3, pady=(20, 4), padx=5, sticky=E + W)
+                            show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
+                            show_cmd_scrolled.insert(END, f"-map 0:a:0 {str(config_profile['Auto Encode']['command'])}")
+                            show_cmd_scrolled.see(END)
+                            show_cmd_scrolled.configure(state=DISABLED)
+
+                            acodec_stream = StringVar()
+                            acodec_stream_choices = acodec_stream_track_counter
+                            acodec_stream.set(next(iter(acodec_stream_track_counter)))  # set the default option
+                            acodec_stream_menu = OptionMenu(track_frame, acodec_stream, *acodec_stream_choices.keys())
+                            acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1,
+                                                      width=48, anchor='w')
+                            acodec_stream_menu.grid(row=0, column=0, columnspan=3, padx=10, pady=6,
+                                                    sticky=N + S + W + E)
+                            acodec_stream_menu["menu"].configure(activebackground="dim grey")
+                            acodec_stream.trace('w', update_track_window_text)
+                            # ------------------------------------------------------- Menu to show track(s) information
+
+                            def close_audio_start():  # Funciton is used when 'Select Track and Start' is clicked
+                                global auto_track_input
+                                root.attributes('-alpha', 1.0)  # Restores root transparency to default
+                                audio_track_win.grab_release()
+                                audio_track_win.destroy()  # Closes audio window
+                                # Get track number  and subtract 1 for ffmpeg (Track 1 = -map 0:a:0)
+                                auto_track_input = int(str(acodec_stream.get()).split()[1][1]) - 1
+
+                            def close_audio_cancel():  # Function is used when 'Cancel' is clicked
+                                global acodec_stream
+                                root.attributes('-alpha', 1.0)  # Restores root transparency to default
+                                audio_track_win.grab_release()
+                                audio_track_win.destroy()  # Closes audio window
+                                acodec_stream.set('None')  # Set acodec_stream to None, so job does not start
+                                auto_encode_last_options.configure(state=NORMAL)  # Keeps auto_encode button enabled
+
+                            # Button Code -----------------------------------------------------------------------------
+                            select_track = HoverButton(track_frame, text="Select Track and Start",
+                                                       command=close_audio_start, foreground="white",
+                                                       background="#23272A",
+                                                       borderwidth="3", activebackground='grey')
+                            select_track.grid(row=2, column=2, columnspan=1, padx=5, pady=(40, 5), sticky=E)
+
+                            cancel_select = HoverButton(track_frame, text="Cancel", command=close_audio_cancel,
+                                                        foreground="white", background="#23272A", borderwidth="3",
+                                                        activebackground='grey')
+                            cancel_select.grid(row=2, column=0, columnspan=1, padx=5, pady=(40, 5), sticky=W)
+                            # ----------------------------------------------------------------------------- Button Code
+
+                            audio_track_win.wait_window()  # Halts program until audio_track_win is closed
+
+                        track_window()  # Opens audio_track_win to select tracks
+                        track_selection_mediainfo = media_info.audio_tracks[int(auto_track_input)]
+
+                except NameError:
+                    audio_window.destroy()
+
+                try:
+                    if track_selection_mediainfo.delay_relative_to_video is not None:
+                        delay_string = f'[delay {str(track_selection_mediainfo.delay_relative_to_video)}ms]'
+                    else:
+                        delay_string = str('[delay 0ms]')
+                except UnboundLocalError:
+                    pass
+
+                try:
+                    # Obtain language string from VideoInput's parsed track
+                    if track_selection_mediainfo.other_language is not None:  # If language is not None
+                        l_lengths = [len(i) for i in track_selection_mediainfo.other_language]  # List of language codes
+                        if 3 in l_lengths:  # Find strings in l_lengths that only are equal to 3 characters
+                            l_index = l_lengths.index(3)  # Save the index of the 3 character string to variable
+                        language_string = f'[{str(track_selection_mediainfo.other_language[l_index])}]'
+                    else:
+                        language_string = '[und]'
+                except UnboundLocalError:
+                    pass
+
+        delay_and_lang_check()
+        update_video_output()
+        # ------------------------------------------------------------ Check delay and add delay string to variable
 
     # ----------------------------------------------------------------------------------------- 'Apply' button function
 
@@ -1549,7 +1669,6 @@ def openaudiowindow():
         acodec_stream = StringVar(audio_window)
         acodec_stream_choices = acodec_stream_track_counter
         acodec_stream.set(next(iter(acodec_stream_track_counter)))
-        next(iter(acodec_stream_track_counter))
         acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
         acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
         acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
@@ -4734,7 +4853,6 @@ def openaudiowindow():
         # ------------------------------------------------------------------------------------ Max-Prediction-Order
     # -------------------------------------------------------------------------------------------------------- ALAC
 
-
     try:  # If "View Command" window is opened, when the user selected "Apply" in the codec window it will close
         cmd_line_window
     except NameError:  # If "View Command" window does not exist, do nothing
@@ -5074,7 +5192,7 @@ def print_command_line():
 # Start Audio Job -----------------------------------------------------------------------------------------------------
 def startaudiojob():
     global example_cmd_output, ac3_job, aac_job, dts_job, opus_job, mp3_job, eac3_job, \
-        fdkaac_job, qaac_job, flac_job, alac_job, auto_or_manual
+        fdkaac_job, qaac_job, flac_job, alac_job, auto_or_manual, auto_track_input
     # Quote File Input/Output Paths------------
     VideoInputQuoted = '"' + VideoInput + '"'
     VideoOutputQuoted = '"' + VideoOutput + '"'
@@ -5176,8 +5294,7 @@ def startaudiojob():
                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                     "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input +
                                     VideoOutputQuoted + " -v error -hide_banner -stats").split())
-        last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                         encoder_dropdownmenu_choices[encoder.get()] +
+        last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
                                          acodec_bitrate_choices[acodec_bitrate.get()] +
                                          acodec_channel_choices[acodec_channel.get()] +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
@@ -5197,8 +5314,7 @@ def startaudiojob():
                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                     "-sn -vn -map_chapters -1 -map_metadata -1 " + aac_custom_cmd_input +
                                     aac_title_input + VideoOutputQuoted + " -v error -hide_banner -stats").split())
-        last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                         encoder_dropdownmenu_choices[encoder.get()] + bitrate_or_quality +
+        last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] + bitrate_or_quality +
                                          acodec_channel_choices[acodec_channel.get()] +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                          "-sn -vn -map_chapters -1 -map_metadata -1 " + aac_custom_cmd_input +
@@ -5215,8 +5331,7 @@ def startaudiojob():
                                         acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                         dts_custom_cmd_input + "-sn -vn -map_chapters -1 " + VideoOutputQuoted +
                                         " -v error -hide_banner -stats").split())
-            last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                             dts_settings_choices[dts_settings.get()] + "-b:a " +
+            last_used_command = ' '.join(str(dts_settings_choices[dts_settings.get()] + "-b:a " +
                                              dts_bitrate_spinbox.get() + "k " +
                                              acodec_channel_choices[acodec_channel.get()] +
                                              acodec_samplerate_choices[acodec_samplerate.get()] +
@@ -5228,8 +5343,7 @@ def startaudiojob():
                                         dts_settings_choices[dts_settings.get()] + dts_custom_cmd_input +
                                         "-sn -vn -map_chapters -1 " + VideoOutputQuoted +
                                         " -v error -hide_banner -stats").split())
-            last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                             dts_settings_choices[dts_settings.get()] + dts_custom_cmd_input +
+            last_used_command = ' '.join(str(dts_settings_choices[dts_settings.get()] + dts_custom_cmd_input +
                                              "-sn -vn -map_chapters -1 ").split())
     # ------------------------------------------------------------------------------------------------------------- DTS
     # Opus Start Job --------------------------------------------------------------------------------------------------
@@ -5246,8 +5360,7 @@ def startaudiojob():
                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                     "-sn -vn -map_chapters -1 -map_metadata -1 " + opus_custom_cmd_input +
                                     VideoOutputQuoted + " -v error -hide_banner -stats").split())
-        last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                         encoder_dropdownmenu_choices[encoder.get()] +
+        last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
                                          acodec_vbr_choices[acodec_vbr.get()] +
                                          acodec_bitrate_choices[acodec_bitrate.get()] +
                                          acodec_channel_choices[acodec_channel.get()] +
@@ -5267,8 +5380,7 @@ def startaudiojob():
                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                     "-sn -vn -map_chapters -1 -map_metadata -1 " + mp3_custom_cmd_input +
                                     VideoOutputQuoted + " -v error -hide_banner -stats").split())
-        last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                         encoder_dropdownmenu_choices[encoder.get()] +
+        last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
                                          acodec_bitrate_choices[acodec_bitrate.get()] +
                                          acodec_channel_choices[acodec_channel.get()] + mp3_abr.get() +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
@@ -5297,8 +5409,7 @@ def startaudiojob():
                                     channel_coupling.get() + " " + "-cpl_start_band " + cpl_start_band.get() + " " +
                                     "-sn -vn -map_chapters -1 -map_metadata -1 " + VideoOutputQuoted +
                                     " -v error -hide_banner -stats").split())
-        last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                         encoder_dropdownmenu_choices[encoder.get()] + "-b:a " + eac3_spinbox.get() +
+        last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] + "-b:a " + eac3_spinbox.get() +
                                          acodec_channel_choices[acodec_channel.get()] +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                          eac3_custom_cmd_input + per_frame_metadata_choices[per_frame_metadata.get()] +
@@ -5338,8 +5449,7 @@ def startaudiojob():
                                     acodec_transport_format_choices[acodec_transport_format.get()] +
                                     acodec_bitrate_choices[acodec_bitrate.get()] + silent + "- -o " +
                                     VideoOutputQuoted).split())
-        last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                         acodec_channel_choices[acodec_channel.get()] +
+        last_used_command = ' '.join(str(acodec_channel_choices[acodec_channel.get()] +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                          "-sn -vn -map_chapters -1 -map_metadata -1 " +
                                          "-f caf - -v error -hide_banner -stats | " + fdkaac + " " +
@@ -5374,8 +5484,7 @@ def startaudiojob():
                                         qaac_nooptimize.get() + qaac_threading.get() + qaac_limiter.get() +
                                         qaac_title_input + qaac_custom_cmd_input + silent + "- -o " +
                                         VideoOutputQuoted).split())
-            last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                             acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
+            last_used_command = ' '.join(str(acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
                                              acodec_samplerate_choices[acodec_samplerate.get()] +
                                              "-sn -vn -map_chapters -1 -map_metadata -1 " +
                                              "-f wav - -v error -hide_banner -stats | " + qaac + " --ignorelength " +
@@ -5402,8 +5511,7 @@ def startaudiojob():
                                         qaac_threading.get() + qaac_limiter.get() + qaac_title_input +
                                         qaac_custom_cmd_input + silent + "- -o " +
                                         VideoOutputQuoted).split())
-            last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                             acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
+            last_used_command = ' '.join(str(acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
                                              acodec_samplerate_choices[acodec_samplerate.get()] +
                                              "-sn -vn -map_chapters -1 -map_metadata -1 " +
                                              "-f wav - -v error -hide_banner -stats | " + qaac +
@@ -5429,8 +5537,7 @@ def startaudiojob():
                                     acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] +
                                     flac_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
                                     VideoOutputQuoted + " -v error -hide_banner -stats" + '"').split())
-        last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                         encoder_dropdownmenu_choices[encoder.get()] +
+        last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
                                          acodec_bitrate_choices[acodec_bitrate.get()] +
                                          acodec_channel_choices[acodec_channel.get()] +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
@@ -5449,8 +5556,7 @@ def startaudiojob():
                                     min_pre_order + max_pre_order + flac_custom_cmd_input + " " +
                                     "-sn -vn -map_chapters -1 -map_metadata -1 " +
                                     VideoOutputQuoted + " -v error -hide_banner -stats" + '"').split())
-        last_used_command = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                         encoder_dropdownmenu_choices[encoder.get()] +
+        last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
                                          acodec_channel_choices[acodec_channel.get()] +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                          min_pre_order + max_pre_order + flac_custom_cmd_input +
@@ -5466,7 +5572,8 @@ def startaudiojob():
             elif auto_or_manual == 'auto':  # If variable auto_or_manual is set to 'auto' it uses the info in the
                 # ini file to encode with the command below
                 command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
-                          + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
+                          + VideoInputQuoted + f' -map 0:a:{str(auto_track_input)} ' + \
+                          config_profile['Auto Encode']['command'].lstrip().rstrip() \
                           + ' ' + VideoOutputQuoted + ' -v error -hide_banner -stats"'
 
             # Use subprocess.Popen to feed the command to the terminal and handle the stder/stdout output
@@ -5474,16 +5581,16 @@ def startaudiojob():
                                    stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                    creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
 
-            if auto_or_manual == 'auto':  # If auto_or_manual is set to 'auto', once the user encodes it resets
-                # main gui back to default settings
-                reset_main_gui()
-
             if encoder.get() == 'QAAC' or encoder.get() == 'FDK-AAC':  # String to output for fdk/qaac encoder
                 insert_info_string = f'Encoding {str(VideoInputQuoted)} via "FFMPEG" by piping to external encoder: ' \
                                      f'"{str(encoder.get())}"'
             elif encoder.get() != 'QAAC' or encoder.get() != 'FDK-AAC':  # String to output for all internal encoders
                 insert_info_string = f'Encoding {str(VideoInputQuoted)} via "FFMPEG" with internal encoder: ' \
                                      f'"{str(encoder.get())}"'
+
+            if auto_or_manual == 'auto':  # If auto_or_manual is set to 'auto', once the user encodes it resets
+                # main gui back to default settings
+                reset_main_gui()
 
             encode_window_progress.configure(state=NORMAL)
             encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
@@ -5742,15 +5849,14 @@ start_audio_button.grid(row=3, column=1, columnspan=3, padx=5, pady=5, sticky=N 
 
 # Start Audio Job: Auto -----------------------------------------------------------------------------
 def encode_last_used_setting():
-    global auto_or_manual, audio_window, acodec_stream_track_counter
+    global auto_or_manual, audio_window, acodec_stream_track_counter, gotosavefile, track_counter, acodec_stream
     auto_or_manual = 'auto'
-    acodec_stream_track_counter = {}
-    for i in range(int(str.split(track_count)[-1])):
-        acodec_stream_track_counter[f'Track {i + 1}'] = f' -map 0:a:{i} '
+    track_counter()
     encoder.set(config_profile['Auto Encode']['codec'])
     openaudiowindow()
-    audio_window.destroy()
-    threading.Thread(target=startaudiojob).start()
+    gotosavefile()
+    if acodec_stream.get() != 'None':
+        threading.Thread(target=startaudiojob).start()
 
 
 auto_encode_last_options = HoverButton(root, text="Auto Encode:\nLast Used Options", command=encode_last_used_setting,
