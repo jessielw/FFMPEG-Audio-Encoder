@@ -788,7 +788,7 @@ def openaudiowindow():
                             acodec_stream.trace('w', update_track_window_text)
                             # ------------------------------------------------------- Menu to show track(s) information
 
-                            def close_audio_start():  # Funciton is used when 'Select Track and Start' is clicked
+                            def close_audio_start():  # Funciton is used when 'Confirm Track and Start' is clicked
                                 global auto_track_input
                                 root.attributes('-alpha', 1.0)  # Restores root transparency to default
                                 audio_track_win.grab_release()
@@ -805,7 +805,7 @@ def openaudiowindow():
                                 auto_encode_last_options.configure(state=NORMAL)  # Keeps auto_encode button enabled
 
                             # Button Code -----------------------------------------------------------------------------
-                            select_track = HoverButton(track_frame, text="Select Track and Start",
+                            select_track = HoverButton(track_frame, text="Confirm Track and Start",
                                                        command=close_audio_start, foreground="white",
                                                        background="#23272A",
                                                        borderwidth="3", activebackground='grey')
@@ -5571,10 +5571,15 @@ def startaudiojob():
                 update_last_codec_command()  # Calls a function that set's the auto encode information to ini file
             elif auto_or_manual == 'auto':  # If variable auto_or_manual is set to 'auto' it uses the info in the
                 # ini file to encode with the command below
+                if encoder.get() == 'QAAC' or encoder.get() == 'FDK-AAC':
+                    hide_banner_verbose = ''
+                else:
+                    hide_banner_verbose = ' -v error -hide_banner -stats"'
                 command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
                           + VideoInputQuoted + f' -map 0:a:{str(auto_track_input)} ' + \
                           config_profile['Auto Encode']['command'].lstrip().rstrip() \
-                          + ' ' + VideoOutputQuoted + ' -v error -hide_banner -stats"'
+                          + ' ' + VideoOutputQuoted + hide_banner_verbose
+                print(command)
 
             # Use subprocess.Popen to feed the command to the terminal and handle the stder/stdout output
             job = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
