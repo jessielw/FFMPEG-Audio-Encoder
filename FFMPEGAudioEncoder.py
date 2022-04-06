@@ -1221,7 +1221,7 @@ def openaudiowindow():
             ffmpeg_volume = StringVar()
             ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
             ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=0.5, justify=CENTER, wrap=True,
+            ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-10, to=10, increment=0.1, justify=CENTER, wrap=True,
                                             textvariable=ffmpeg_volume, state='readonly')
             ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                             buttonbackground="black", width=15, readonlybackground="#23272A")
@@ -1479,7 +1479,7 @@ def openaudiowindow():
         ffmpeg_volume = StringVar()
         ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
         ffmpeg_volume_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=0.5, justify=CENTER, wrap=True,
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-10, to=10, increment=0.1, justify=CENTER, wrap=True,
                                         textvariable=ffmpeg_volume, state='readonly')
         ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", width=15, readonlybackground="#23272A")
@@ -1818,7 +1818,7 @@ def openaudiowindow():
         ffmpeg_volume = StringVar()
         ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
         ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=0.5, justify=CENTER, wrap=True,
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-10, to=10, increment=0.1, justify=CENTER, wrap=True,
                                         textvariable=ffmpeg_volume, state='readonly')
         ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", width=15, readonlybackground="#23272A")
@@ -2204,7 +2204,7 @@ def openaudiowindow():
         ffmpeg_volume = StringVar()
         ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
         ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=(3, 10), sticky=N + S + E + W)
-        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=0.5, justify=CENTER, wrap=True,
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-10, to=10, increment=0.1, justify=CENTER, wrap=True,
                                         textvariable=ffmpeg_volume, state='readonly')
         ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", width=15, readonlybackground="#23272A")
@@ -2514,7 +2514,7 @@ def openaudiowindow():
         ffmpeg_volume = StringVar()
         ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
         ffmpeg_volume_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=0.5, justify=CENTER, wrap=True,
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-10, to=10, increment=0.1, justify=CENTER, wrap=True,
                                         textvariable=ffmpeg_volume, state='readonly')
         ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", width=15, readonlybackground="#23272A")
@@ -2774,7 +2774,7 @@ def openaudiowindow():
         ffmpeg_volume = StringVar()
         ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
         ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=0.5, justify=CENTER, wrap=True,
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-10, to=10, increment=0.1, justify=CENTER, wrap=True,
                                         textvariable=ffmpeg_volume, state='readonly')
         ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", width=15, readonlybackground="#23272A")
@@ -3358,7 +3358,7 @@ def openaudiowindow():
         ffmpeg_volume = StringVar()
         ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
         ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=0.5, justify=CENTER, wrap=True,
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-10, to=10, increment=0.1, justify=CENTER, wrap=True,
                                         textvariable=ffmpeg_volume, state='readonly')
         ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", width=15, readonlybackground="#23272A")
@@ -4286,7 +4286,7 @@ def openaudiowindow():
             ffmpeg_volume = StringVar()
             ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
             ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=0.5, justify=CENTER, wrap=True,
+            ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-10, to=10, increment=0.1, justify=CENTER, wrap=True,
                                             textvariable=ffmpeg_volume, state='readonly')
             ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                             buttonbackground="black", width=15, readonlybackground="#23272A")
