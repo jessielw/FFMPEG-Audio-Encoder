@@ -410,7 +410,7 @@ def openaudiowindow():
         acodec_stream_choices, acodec_volume, acodec_volume_choices, dts_settings, dts_settings_choices, \
         acodec_vbr_choices, acodec_vbr, acodec_samplerate, acodec_samplerate_choices, acodec_application, \
         acodec_application_choices, acodec_profile, acodec_profile_choices, acodec_atempo, acodec_atempo_choices, \
-        opus_mapping_family_choices, opus_mapping_family, gotosavefile
+        opus_mapping_family_choices, opus_mapping_family, gotosavefile, set_encode_manual
 
     def show_cmd_hover(e):
         show_cmd["bg"] = "grey"
@@ -659,9 +659,15 @@ def openaudiowindow():
 
     # ---------------------------------------------------------------------------------------------------- combines -af
 
+    # Set auto_or_manual to 'manual' when clicked by codecs in audio settings window ----------------------------------
+    def set_encode_manual():
+        global auto_or_manual
+        auto_or_manual = 'manual'
+    # ---------------------------------- Set auto_or_manual to 'manual' when clicked by codecs in audio settings window
+
     # 'Apply' button function -----------------------------------------------------------------------------------------
     def gotosavefile():
-        global VideoInput, delay_string, language_string, auto_or_manual
+        global VideoInput, delay_string, language_string
         output_button.config(state=NORMAL)  # Enable buttons upon save file
         start_audio_button.config(state=NORMAL)
         command_line_button.config(state=NORMAL)
@@ -1248,7 +1254,7 @@ def openaudiowindow():
 
             # Buttons -------------------------------------------------------------------------------------------------
             apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                       command=gotosavefile, activebackground='grey')
+                                       command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
             apply_button.grid(row=8, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
 
             show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
@@ -1509,7 +1515,7 @@ def openaudiowindow():
 
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                   command=gotosavefile, activebackground='grey')
+                                   command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
         apply_button.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
 
         show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
@@ -1841,7 +1847,7 @@ def openaudiowindow():
 
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                   command=gotosavefile, activebackground='grey')
+                                   command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
         apply_button.grid(row=9, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
 
         show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
@@ -2112,7 +2118,7 @@ def openaudiowindow():
 
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                   command=gotosavefile, activebackground='grey')
+                                   command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
         apply_button.grid(row=13, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
 
         show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
@@ -2525,7 +2531,7 @@ def openaudiowindow():
 
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                   command=gotosavefile, activebackground='grey')
+                                   command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
         apply_button.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
 
         show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
@@ -2802,7 +2808,7 @@ def openaudiowindow():
 
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                   command=gotosavefile, activebackground='grey')
+                                   command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
         apply_button.grid(row=22, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
 
         show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
@@ -3378,7 +3384,7 @@ def openaudiowindow():
 
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                   command=gotosavefile, activebackground='grey')
+                                   command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
         apply_button.grid(row=15, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
 
         show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
@@ -3855,7 +3861,7 @@ def openaudiowindow():
         # ----------------------------------------------------------------------------------------------- Views Command
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                   command=gotosavefile, activebackground='grey')
+                                   command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
         apply_button.grid(row=16, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
 
         show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
@@ -4305,7 +4311,7 @@ def openaudiowindow():
 
             # Buttons -------------------------------------------------------------------------------------------------
             apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                       command=gotosavefile, activebackground='grey')
+                                       command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
             apply_button.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
 
             show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
@@ -4645,7 +4651,7 @@ def openaudiowindow():
 
             # Buttons ---------------------------------------------------------------------------------------------
             apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                       command=gotosavefile, activebackground='grey')
+                                       command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
             apply_button.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
 
             show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
@@ -5579,7 +5585,6 @@ def startaudiojob():
                           + VideoInputQuoted + f' -map 0:a:{str(auto_track_input)} ' + \
                           config_profile['Auto Encode']['command'].lstrip().rstrip() \
                           + ' ' + VideoOutputQuoted + hide_banner_verbose
-                print(command)
 
             # Use subprocess.Popen to feed the command to the terminal and handle the stder/stdout output
             job = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
