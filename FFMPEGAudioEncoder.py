@@ -5460,10 +5460,10 @@ def startaudiojob():
     list_of_ffmpeg_encoders_for_job = ['AC3', 'AAC', 'DTS', 'Opus', 'MP3', 'E-AC3', 'FLAC', 'ALAC', 'FDK-AAC', 'QAAC']
     if encoder.get() in list_of_ffmpeg_encoders_for_job:  # If encoder.get() is in the list above continue
         if shell_options.get() == "Default":  # If program is set to progress bars
-            if auto_or_manual == 'auto':  # If variable auto_or_manual is set to 'auto', the command = final command
+            if auto_or_manual == 'manual':  # If variable auto_or_manual is set to 'manual', the command = final command
                 command = finalcommand
                 update_last_codec_command()  # Calls a function that set's the auto encode information to ini file
-            elif auto_or_manual == 'manual':  # If variable auto_or_manual is set to 'manual' it uses the info in the
+            elif auto_or_manual == 'auto':  # If variable auto_or_manual is set to 'auto' it uses the info in the
                 # ini file to encode with the command below
                 command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
                           + VideoInputQuoted + ' ' + config_profile['Auto Encode']['command'].lstrip().rstrip() \
@@ -5728,7 +5728,7 @@ command_line_button.grid(row=1, column=0, columnspan=1, padx=5, pady=5, sticky=N
 # Start Audio Job: Manual -----------------------------------------------------------------------
 def start_audio_job_manual():
     global auto_or_manual
-    auto_or_manual = 'auto'
+    auto_or_manual = 'manual'
     threading.Thread(target=startaudiojob).start()
 
 
@@ -5743,7 +5743,7 @@ start_audio_button.grid(row=3, column=1, columnspan=3, padx=5, pady=5, sticky=N 
 # Start Audio Job: Auto -----------------------------------------------------------------------------
 def encode_last_used_setting():
     global auto_or_manual, audio_window, acodec_stream_track_counter
-    auto_or_manual = 'manual'
+    auto_or_manual = 'auto'
     acodec_stream_track_counter = {}
     for i in range(int(str.split(track_count)[-1])):
         acodec_stream_track_counter[f'Track {i + 1}'] = f' -map 0:a:{i} '
