@@ -688,9 +688,12 @@ def openaudiowindow():
         delay_string = ''  # Place holder variable
 
         def update_video_output():  # Function to add language/delay strings to the output filename
-            global VideoOutput, autosavefilename
+            global VideoOutput, autosavefilename, total_streams
             set_auto_save_suffix()  # Run function to apply default VideoOutput before continuing code
-            VideoOutput = str(VideoOutput).replace('_new_', language_string + '_' + delay_string)
+            if total_streams == 1:  # If total_streams equals 1
+                VideoOutput = str(VideoOutput)  # Don't replace '_new_'
+            elif total_streams >= 2:  # If total_streams is 2 or greater
+                VideoOutput = str(VideoOutput).replace('_new_', language_string + delay_string)  # Replace '_new_'
             autosavefilename = pathlib.Path(VideoOutput).stem
             command_line_button.config(state=NORMAL)  # Enable the display command button for main gui
             output_entry.config(state=NORMAL)  # Enable output_entry box for editing
@@ -699,7 +702,7 @@ def openaudiowindow():
             output_entry.config(state=DISABLED)  # Disable output_entry box
 
         def delay_and_lang_check():
-            global language_string, delay_string, auto_or_manual, auto_track_input
+            global language_string, delay_string, auto_or_manual, auto_track_input, total_streams
             # If input is only 1 track, parse input file name for language and delay string
             media_info = MediaInfo.parse(VideoInput)  # Parse VideoInput
             general_track = media_info.general_tracks[0]
@@ -726,22 +729,24 @@ def openaudiowindow():
                     if auto_or_manual == 'auto':
                         audio_window.destroy()  # Destroy audio window, only opens to define variables inside it
                     # parse input file name for language and delay string
-                    language_code_input = re_findall(r"\[([A-Za-z]+)\]", str(VideoInput))
-                    if language_code_input:  # If re finds language codes within '[]'
-                        lng_input_lengths = [len(i) for i in language_code_input]
-                        if 3 in lng_input_lengths:  # If anything within the brackets is 3 digits
-                            index = lng_input_lengths.index(3)  # Finds index of string inside brackets that's 3 digits
-                            language_string = str(f'[{language_code_input[index]}]')  # Set's language string to index
-                    if not language_code_input:
-                        language_string = '[und]'
+                    # language_code_input = re_findall(r"\[([A-Za-z]+)\]", str(VideoInput))
+                    # if language_code_input:  # If re finds language codes within '[]'
+                    #     lng_input_lengths = [len(i) for i in language_code_input]
+                    #     if 3 in lng_input_lengths:  # If anything within the brackets is 3 digits
+                    #         index = lng_input_lengths.index(3)  # Finds index of string inside brackets that's 3 digits
+                    #         language_string = str(f'[{language_code_input[index]}]')  # Set's language string to index
+                    # if not language_code_input:
+                    #     language_string = ''
+                    #
+                    # # parse input filename for delay string, it searches for ms and any numbers (- if it has it)
+                    # input_delay_string = re_search('-*[^a-zA-Z [_{+]*ms', VideoInput)
+                    # if input_delay_string:  # If re finds a delay string in the input filename
+                    #     delay_string = f'[delay {str(input_delay_string[0])}]'
+                    # if not input_delay_string:
+                    #     delay_string = ''
 
-                    # parse input filename for delay string, it searches for ms and any numbers (- if it has it)
-                    input_delay_string = re_search('-*[^a-zA-Z [_{+]*ms', VideoInput)
-                    if input_delay_string:  # If re finds a delay string in the input filename
-                        delay_string = f'[delay {str(input_delay_string[0])}]'
-                    if not input_delay_string:
-                        delay_string = '[delay 0]'
-
+                    language_string = ''
+                    delay_string = ''
                     auto_track_input = 0  # Since there is only 1 stream, set 0 as value (-map 0:a:'value')
 
                 except NameError:
@@ -795,8 +800,7 @@ def openaudiowindow():
                                 mapping_number = int(str(acodec_stream.get()).split()[1][1]) - 1
                                 show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
                                 show_cmd_scrolled.delete(1.0, END)
-                                show_cmd_scrolled.insert(END,
-                                                         f"-map 0:a:{str(mapping_number)} "
+                                show_cmd_scrolled.insert(END, f"-map 0:a:{str(mapping_number)} "
                                                          f"{str(config_profile['Auto Encode']['command'])}")
                                 show_cmd_scrolled.see(END)
                                 show_cmd_scrolled.configure(state=DISABLED)
