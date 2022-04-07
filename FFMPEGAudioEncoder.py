@@ -699,7 +699,7 @@ def openaudiowindow():
             output_entry.config(state=DISABLED)  # Disable output_entry box
 
         def delay_and_lang_check():
-            global language_string, delay_string
+            global language_string, delay_string, auto_or_manual, auto_track_input
             # If input is only 1 track, parse input file name for language and delay string
             media_info = MediaInfo.parse(VideoInput)  # Parse VideoInput
             general_track = media_info.general_tracks[0]
@@ -713,21 +713,41 @@ def openaudiowindow():
             if general_track.count_of_menu_streams is not None:
                 total_streams += int(general_track.count_of_menu_streams)  # check for menu track(s)
 
-            if total_streams <= 1:  # If total streams are less than or equal to 1
-                # parse input file name for language and delay string
-                language_code_input = re_findall(r"\[([A-Za-z]+)\]", str(VideoInput))
-                if language_code_input:  # If re finds language codes within '[]'
-                    lng_input_lengths = [len(i) for i in language_code_input]
-                    if 3 in lng_input_lengths:  # If anything within the brackets is 3 digits
-                        index = lng_input_lengths.index(3)  # Finds index of string inside brackets that's 3 digits
-                        language_string = str(f'[{language_code_input[index]}]')  # Set's language string to index
+            if total_streams == 1:  # If total streams is equal to 1
+                try:
+                    if auto_or_manual == 'manual':  # If normal encoding is used with the start job button
+                        audio_window.destroy()  # Close audio window
+                        track_selection_mediainfo = media_info.audio_tracks[
+                            int(acodec_stream_choices[acodec_stream.get()].strip()[-1])]
+                except NameError:  # If auto_or_manual does not exist yet
+                    pass
 
-                # parse input filename for delay string, it searches for ms and any numbers (- if it has it)
-                input_delay_string = re_search('-*[^a-zA-Z [_{+]*ms', VideoInput)
-                if input_delay_string:  # If re finds a delay string in the input filename
-                    delay_string = f'[delay {str(input_delay_string[0])}]'
+                try:
+                    if auto_or_manual == 'auto':
+                        audio_window.destroy()  # Destroy audio window, only opens to define variables inside it
+                    # parse input file name for language and delay string
+                    language_code_input = re_findall(r"\[([A-Za-z]+)\]", str(VideoInput))
+                    if language_code_input:  # If re finds language codes within '[]'
+                        lng_input_lengths = [len(i) for i in language_code_input]
+                        if 3 in lng_input_lengths:  # If anything within the brackets is 3 digits
+                            index = lng_input_lengths.index(3)  # Finds index of string inside brackets that's 3 digits
+                            language_string = str(f'[{language_code_input[index]}]')  # Set's language string to index
+                    if not language_code_input:
+                        language_string = '[und]'
 
-            if total_streams >= 2:  # If total strings are greater than 1 (video input, remux, bluray, dvd, etc...)
+                    # parse input filename for delay string, it searches for ms and any numbers (- if it has it)
+                    input_delay_string = re_search('-*[^a-zA-Z [_{+]*ms', VideoInput)
+                    if input_delay_string:  # If re finds a delay string in the input filename
+                        delay_string = f'[delay {str(input_delay_string[0])}]'
+                    if not input_delay_string:
+                        delay_string = '[delay 0]'
+
+                    auto_track_input = 0  # Since there is only 1 stream, set 0 as value (-map 0:a:'value')
+
+                except NameError:
+                    audio_window.destroy()
+
+            if total_streams >= 2:  # If total streamss are greater than 1 (video input, remux, bluray, dvd, etc...)
                 # Check delay and add delay string to variable --------------------------------------------------------
                 try:
                     if auto_or_manual == 'manual':  # If normal encoding is used with the start job button
@@ -5765,7 +5785,8 @@ def input_button_commands():
             elif config_profile['Auto Encode']['codec'] == 'MP3':
                 VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.mp3'
             elif config_profile['Auto Encode']['codec'] == "FDK-AAC" or \
-                    config_profile['Auto Encode']['codec'] == "QAAC" or config_profile['Auto Encode']['codec'] == "ALAC":
+                    config_profile['Auto Encode']['codec'] == "QAAC" or config_profile['Auto Encode'][
+                'codec'] == "ALAC":
                 VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.m4a'
             elif config_profile['Auto Encode']['codec'] == "FLAC":
                 VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.flac'
