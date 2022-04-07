@@ -5026,7 +5026,6 @@ def file_save():
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=[("FLAC", "*.flac")])
 
-
     if VideoOutput:
         output_entry.configure(state=NORMAL)  # Enable entry box for commands under
         output_entry.delete(0, END)  # Remove current text in entry
@@ -5809,58 +5808,61 @@ def update_file_input(*args):
         VideoInput = str(input_dnd.get())[1:-1]
     else:
         VideoInput = str(input_dnd.get())
+    VideoInputQuoted = f'"{VideoInput}"'
 
     supported_extensions = ('.wav', '.mt2s', '.ac3', '.mka', '.wav', '.mp3', '.aac', '.ogg', '.ogv', '.m4v', '.mpeg',
                             '.avi', '.vob', '.webm', '.mp4', '.mkv', '.dts', '.m4a', '.mov', '.flac', '.eac3', '.opus',
                             '.aax', '.thd')
-    if str(pathlib.Path(VideoInput)).endswith(supported_extensions):
-        autofilesave_file_path = pathlib.Path(VideoInput)  # Command to get file input location
-        autofilesave_dir_path = autofilesave_file_path.parents[0]  # Final command to get only the directory
-        VideoInputQuoted = '"' + VideoInput + '"'
-        # This gets the total amount of audio streams For DnD-
-        mediainfocli_cmd = '"' + mediainfocli + " " + '--Output="General;%AudioCount%"' + " " + VideoInputQuoted + '"'
-        mediainfo_count = subprocess.Popen('cmd /c ' + mediainfocli_cmd, creationflags=subprocess.CREATE_NO_WINDOW,
-                                           universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                           stdin=subprocess.PIPE, encoding="utf-8")
-        stdout, stderr = mediainfo_count.communicate()
-        track_count = stdout
-        input_entry.insert(0, str(pathlib.Path(str(input_dnd.get()).replace("{", "").replace("}", ""))))
-        input_entry.configure(state=DISABLED)
-        output_entry.configure(state=NORMAL)
-        output_entry.delete(0, END)
-        output_entry.configure(state=DISABLED)
-        encoder.set("Set Codec")
-        audiosettings_button.configure(state=DISABLED)
-        start_audio_button.configure(state=DISABLED)
-        encoder_menu.configure(state=NORMAL)
-        output_button.config(state=DISABLED)
-        command_line_button.config(state=DISABLED)
-        if config_profile['Auto Encode']['codec'] == '':
-            auto_encode_last_options.configure(state=DISABLED)
-        else:
-            auto_encode_last_options.configure(state=NORMAL)
-            if config_profile['Auto Encode']['codec'] == 'AAC':
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.mp4'
-            elif config_profile['Auto Encode']['codec'] == 'AC3' or config_profile['Auto Encode']['codec'] == 'E-AC3':
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.ac3'
-            elif config_profile['Auto Encode']['codec'] == "DTS":
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.dts'
-            elif config_profile['Auto Encode']['codec'] == "Opus":
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.opus'
-            elif config_profile['Auto Encode']['codec'] == 'MP3':
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.mp3'
-            elif config_profile['Auto Encode']['codec'] == "FDK-AAC" or \
-                    config_profile['Auto Encode']['codec'] == "QAAC" or \
-                    config_profile['Auto Encode']['codec'] == "ALAC":
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.m4a'
-            elif config_profile['Auto Encode']['codec'] == "FLAC":
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.flac'
-            output_entry.configure(state=NORMAL)
-            output_entry.delete(0, END)
-            output_entry.insert(0, VideoOut)
-            output_entry.configure(state=DISABLED)
-            autosavefilename = pathlib.Path(VideoOut).name
-    else:
+    if str(pathlib.Path(VideoInput)).endswith(supported_extensions):  # If input has an extension from list
+        media_info = MediaInfo.parse(pathlib.Path(VideoInput))  # Parse with media_info module
+        total_audio_streams_in_input = media_info.general_tracks[0].count_of_audio_streams  # Check input for audio
+        if total_audio_streams_in_input is not None:  # If audio is not None (0 audio tracks)
+            autofilesave_file_path = pathlib.Path(VideoInput)  # Command to get file input location
+            autofilesave_dir_path = autofilesave_file_path.parents[0]  # Final command to get only the directory
+            track_count = total_audio_streams_in_input  # Get track count from input
+            input_entry.insert(0, str(pathlib.Path(str(VideoInput))))  # Insert VideoInput into the input entrybox
+            input_entry.configure(state=DISABLED)  # Disable input entry
+            output_entry.configure(state=NORMAL)  # Enable output entry
+            output_entry.delete(0, END)  # Delete anything in output entry if there is anything
+            output_entry.configure(state=DISABLED)  # Disable output entry
+            encoder.set("Set Codec")  # Reset encoder selection menu to default
+            audiosettings_button.configure(state=DISABLED)  # Disable button
+            start_audio_button.configure(state=DISABLED)  # Disable button
+            encoder_menu.configure(state=NORMAL)
+            output_button.config(state=DISABLED)  # Disable button
+            command_line_button.config(state=DISABLED)  # Disable button
+            if config_profile['Auto Encode']['codec'] == '':  # If auto-encode profile has no information keep disabled
+                auto_encode_last_options.configure(state=DISABLED)
+            else:  # If it has information, define VideoOut save location for what ever codec
+                auto_encode_last_options.configure(state=NORMAL)
+                if config_profile['Auto Encode']['codec'] == 'AAC':
+                    VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.mp4'
+                elif config_profile['Auto Encode']['codec'] == 'AC3' or \
+                        config_profile['Auto Encode']['codec'] == 'E-AC3':
+                    VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.ac3'
+                elif config_profile['Auto Encode']['codec'] == "DTS":
+                    VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.dts'
+                elif config_profile['Auto Encode']['codec'] == "Opus":
+                    VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.opus'
+                elif config_profile['Auto Encode']['codec'] == 'MP3':
+                    VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.mp3'
+                elif config_profile['Auto Encode']['codec'] == "FDK-AAC" or \
+                        config_profile['Auto Encode']['codec'] == "QAAC" or \
+                        config_profile['Auto Encode']['codec'] == "ALAC":
+                    VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.m4a'
+                elif config_profile['Auto Encode']['codec'] == "FLAC":
+                    VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.flac'
+                output_entry.configure(state=NORMAL)  # Enable output_entry
+                output_entry.delete(0, END)  # Clear contents of output entry
+                output_entry.insert(0, VideoOut)  # Insert VideoOut information
+                output_entry.configure(state=DISABLED)  # Disable output entry
+                autosavefilename = pathlib.Path(VideoOut).name  # Set autosavefilename var
+        elif total_audio_streams_in_input is None:  # If input file passes extension check but has 0 audio tracks
+            input_entry.config(state=DISABLED)  # Disable input entry-box
+            messagebox.showinfo(title="No Audio Streams", message=f"{VideoInputQuoted}:\n\nDoes not "
+                                                                  f"contain any audio streams!")  # Display error msg
+    else:  # If input isn't supported by drag and dropped file extension list
+        input_entry.config(state=DISABLED)  # Disable button
         messagebox.showinfo(title="Wrong File Type", message="Try Again With a Supported File Type!\n\nIf this is a "
                                                              "file that should be supported, please let me know.")
 
