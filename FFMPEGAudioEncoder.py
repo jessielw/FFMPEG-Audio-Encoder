@@ -870,6 +870,7 @@ def openaudiowindow():
     def audio_window_exit_function():  # When the 'X' is clicked, it does the same thing as the "Apply" button
         set_encode_manual()  # Calls set_encode_manual() function
         gotosavefile()  # Calls gotosavefile() function
+
     # --------------------------------------------------- Modify what the 'X' does at the top right of the audio window
 
     # Profile Functions -----------------------------------------------------------------------------------------------
@@ -5917,15 +5918,14 @@ def show_auto_encode_command(*args):  # Opens a new window with 'Auto Encode' co
         pass
 
     show_auto_command_window = Toplevel(root)  # auto command window (shows auto encoding command)
-    show_auto_command_window.title("Audio Streams")
+    show_auto_command_window.title("Auto Encode Command")
     show_auto_command_window.configure(background="#434547")
-    Label(show_auto_command_window, text="---------- Auto Encode Command ----------", font=("Times New Roman", 16),
-          background='#434547', foreground="white").grid(column=0, row=0)
-    text_area = scrolledtextwidget.ScrolledText(show_auto_command_window, width=60, height=5, tabs=10, spacing2=3,
+    text_area = scrolledtextwidget.ScrolledText(show_auto_command_window, width=60, height=7, tabs=10, spacing2=3,
                                                 spacing1=2, spacing3=3)
     text_area.grid(column=0, pady=10, padx=10)
+    text_area.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
     text_area.insert(INSERT, config_profile['Auto Encode']['command'])
-    text_area.configure(font=("Helvetica", 12))
+    text_area.see(END)
     text_area.configure(state=DISABLED)
     show_auto_command_window.grid_columnconfigure(0, weight=1)
 
