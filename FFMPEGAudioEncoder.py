@@ -5863,8 +5863,12 @@ def update_file_input(*args):
                                                                   f"contain any audio streams!")  # Display error msg
     else:  # If input isn't supported by drag and dropped file extension list
         input_entry.config(state=DISABLED)  # Disable button
-        messagebox.showinfo(title="Wrong File Type", message="Try Again With a Supported File Type!\n\nIf this is a "
-                                                             "file that should be supported, please let me know.")
+        messagebox_message = f'Extension "{str(pathlib.Path(VideoInput).suffix).upper()}" is not supported! Try ' \
+                             f'Again With a Supported File Type!\n\nIf this is a file that should be supported, ' \
+                             f'please post issue on the github tracker.\n\nPost error on tracker now?'
+        y_n_message = messagebox.askyesno(title="Wrong File Type", message=messagebox_message)
+        if y_n_message:
+            webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
 
 
 input_dnd = StringVar()
