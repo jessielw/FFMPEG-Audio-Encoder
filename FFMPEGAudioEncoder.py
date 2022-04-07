@@ -31,8 +31,7 @@ def root_exit_function():
         if audio_window.winfo_exists() or cmd_line_window.winfo_exists():  # If open display message
             confirm_exit = messagebox.askyesno(title='Prompt', message="Are you sure you want to exit the program?\n\n"
                                                                        "Warning:\nThis will end all current tasks "
-                                                                       "and close all windows!",
-                                               parent=root)
+                                                                       "and close all windows!", parent=root)
             if confirm_exit:
                 try:
                     subprocess.Popen(f"TASKKILL /F /im FFMPEGAudioEncoder.exe /T",
@@ -5002,10 +5001,10 @@ def file_save():
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".mp4", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=[("AAC", "*.mp4")])
-    elif encoder.get() == "AC3":
+    elif encoder.get() == "AC3" or encoder.get() == "E-AC3":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".ac3", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
-                                                   filetypes=[("AC3", "*.ac3")])
+                                                   filetypes=[("'AC3', 'E-AC3,'", "*.ac3")])
     elif encoder.get() == "DTS":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".dts", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
@@ -5018,28 +5017,15 @@ def file_save():
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".mp3", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=[("MP3", "*.mp3")])
-    elif encoder.get() == "E-AC3":
-        VideoOutput = filedialog.asksaveasfilename(defaultextension=".ac3", initialdir=autofilesave_dir_path,
-                                                   title="Select a Save Location", initialfile=autosavefilename,
-                                                   filetypes=[("E-AC3", "*.ac3")])
-    elif encoder.get() == "FDK-AAC":
+    elif encoder.get() == "FDK-AAC" or encoder.get() == "QAAC" or encoder.get() == "ALAC":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".m4a", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
-                                                   filetypes=[("AAC", "*.m4a")])
-    elif encoder.get() == "QAAC":
-        VideoOutput = filedialog.asksaveasfilename(defaultextension=".m4a", initialdir=autofilesave_dir_path,
-                                                   title="Select a Save Location", initialfile=autosavefilename,
-                                                   filetypes=[("AAC", "*.m4a")])
-
+                                                   filetypes=[("'AAC,' 'ALAC,'", "*.m4a")])
     elif encoder.get() == "FLAC":
         VideoOutput = filedialog.asksaveasfilename(defaultextension=".flac", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=[("FLAC", "*.flac")])
 
-    elif encoder.get() == "ALAC":
-        VideoOutput = filedialog.asksaveasfilename(defaultextension=".m4a", initialdir=autofilesave_dir_path,
-                                                   title="Select a Save Location", initialfile=autosavefilename,
-                                                   filetypes=[("ALAC", "*.m4a")])
 
     if VideoOutput:
         output_entry.configure(state=NORMAL)  # Enable entry box for commands under
