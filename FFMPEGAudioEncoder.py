@@ -1246,13 +1246,14 @@ def openaudiowindow():
                     cmd_line_window.title('Command Line')
                     cmd_line_window.configure(background="#434547")
 
-                    show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=90, height=10, tabs=10,
+                    show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
                                                                         spacing2=3, spacing1=2, spacing3=3)
                     show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
                     show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
                     show_cmd_scrolled.insert(END, example_cmd_output)
                     show_cmd_scrolled.see(END)
                     show_cmd_scrolled.configure(state=DISABLED)
+                    cmd_line_window.resizable(False, False)  # Disables resizable functions of window
 
                     def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
                         pyperclip.copy(show_cmd_scrolled.get(1.0, END))
@@ -1508,13 +1509,14 @@ def openaudiowindow():
                 cmd_line_window.title('Command Line')
                 cmd_line_window.configure(background="#434547")
 
-                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=90, height=10, tabs=10,
+                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
                                                                     spacing2=3, spacing1=2, spacing3=3)
                 show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
                 show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
                 show_cmd_scrolled.insert(END, example_cmd_output)
                 show_cmd_scrolled.see(END)
                 show_cmd_scrolled.configure(state=DISABLED)
+                cmd_line_window.resizable(False, False)  # Disables resizable functions of window
 
                 def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
                     pyperclip.copy(show_cmd_scrolled.get(1.0, END))
@@ -1841,13 +1843,14 @@ def openaudiowindow():
                 cmd_line_window.title('Command Line')
                 cmd_line_window.configure(background="#434547")
 
-                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=90, height=10, tabs=10,
+                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
                                                                     spacing2=3, spacing1=2, spacing3=3)
                 show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
                 show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
                 show_cmd_scrolled.insert(END, example_cmd_output)
                 show_cmd_scrolled.see(END)
                 show_cmd_scrolled.configure(state=DISABLED)
+                cmd_line_window.resizable(False, False)  # Disables resizable functions of window
 
                 def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
                     pyperclip.copy(show_cmd_scrolled.get(1.0, END))
@@ -2113,13 +2116,14 @@ def openaudiowindow():
                 cmd_line_window.title('Command Line')
                 cmd_line_window.configure(background="#434547")
 
-                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=90, height=10, tabs=10,
+                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
                                                                     spacing2=3, spacing1=2, spacing3=3)
                 show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
                 show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
                 show_cmd_scrolled.insert(END, example_cmd_output)
                 show_cmd_scrolled.see(END)
                 show_cmd_scrolled.configure(state=DISABLED)
+                cmd_line_window.resizable(False, False)  # Disables resizable functions of window
 
                 def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
                     pyperclip.copy(show_cmd_scrolled.get(1.0, END))
@@ -2527,13 +2531,14 @@ def openaudiowindow():
                 cmd_line_window.title('Command Line')
                 cmd_line_window.configure(background="#434547")
 
-                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=90, height=10, tabs=10,
+                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
                                                                     spacing2=3, spacing1=2, spacing3=3)
                 show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
                 show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
                 show_cmd_scrolled.insert(END, example_cmd_output)
                 show_cmd_scrolled.see(END)
                 show_cmd_scrolled.configure(state=DISABLED)
+                cmd_line_window.resizable(False, False)  # Disables resizable functions of window
 
                 def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
                     pyperclip.copy(show_cmd_scrolled.get(1.0, END))
@@ -2805,13 +2810,14 @@ def openaudiowindow():
                 cmd_line_window.title('Command Line')
                 cmd_line_window.configure(background="#434547")
 
-                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=90, height=10, tabs=10,
+                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
                                                                     spacing2=3, spacing1=2, spacing3=3)
                 show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
                 show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
                 show_cmd_scrolled.insert(END, example_cmd_output)
                 show_cmd_scrolled.see(END)
                 show_cmd_scrolled.configure(state=DISABLED)
+                cmd_line_window.resizable(False, False)  # Disables resizable functions of window
 
                 def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
                     pyperclip.copy(show_cmd_scrolled.get(1.0, END))
@@ -3382,13 +3388,14 @@ def openaudiowindow():
                 cmd_line_window.title('Command Line')
                 cmd_line_window.configure(background="#434547")
 
-                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=90, height=10, tabs=10,
+                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
                                                                     spacing2=3, spacing1=2, spacing3=3)
                 show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
                 show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
                 show_cmd_scrolled.insert(END, example_cmd_output)
                 show_cmd_scrolled.see(END)
                 show_cmd_scrolled.configure(state=DISABLED)
+                cmd_line_window.resizable(False, False)  # Disables resizable functions of window
 
                 def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
                     pyperclip.copy(show_cmd_scrolled.get(1.0, END))
@@ -3861,13 +3868,14 @@ def openaudiowindow():
                 cmd_line_window.title('Command Line')
                 cmd_line_window.configure(background="#434547")
 
-                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=90, height=10, tabs=10,
+                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
                                                                     spacing2=3, spacing1=2, spacing3=3)
                 show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
                 show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
                 show_cmd_scrolled.insert(END, example_cmd_output)
                 show_cmd_scrolled.see(END)
                 show_cmd_scrolled.configure(state=DISABLED)
+                cmd_line_window.resizable(False, False)  # Disables resizable functions of window
 
                 def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
                     pyperclip.copy(show_cmd_scrolled.get(1.0, END))
@@ -4311,13 +4319,14 @@ def openaudiowindow():
                     cmd_line_window.title('Command Line')
                     cmd_line_window.configure(background="#434547")
 
-                    show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=90, height=10, tabs=10,
+                    show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
                                                                         spacing2=3, spacing1=2, spacing3=3)
                     show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
                     show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
                     show_cmd_scrolled.insert(END, example_cmd_output)
                     show_cmd_scrolled.see(END)
                     show_cmd_scrolled.configure(state=DISABLED)
+                    cmd_line_window.resizable(False, False)  # Disables resizable functions of window
 
                     def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
                         pyperclip.copy(show_cmd_scrolled.get(1.0, END))
@@ -4652,13 +4661,14 @@ def openaudiowindow():
                     cmd_line_window.title('Command Line')
                     cmd_line_window.configure(background="#434547")
 
-                    show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=90, height=10, tabs=10,
+                    show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
                                                                         spacing2=3, spacing1=2, spacing3=3)
                     show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
                     show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
                     show_cmd_scrolled.insert(END, example_cmd_output)
                     show_cmd_scrolled.see(END)
                     show_cmd_scrolled.configure(state=DISABLED)
+                    cmd_line_window.resizable(False, False)  # Disables resizable functions of window
 
                     def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
                         pyperclip.copy(show_cmd_scrolled.get(1.0, END))
