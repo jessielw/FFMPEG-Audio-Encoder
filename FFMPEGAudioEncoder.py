@@ -866,6 +866,12 @@ def openaudiowindow():
 
     # ----------------------------------------------------------------------------------------- 'Apply' button function
 
+    # Modify what the 'X' does at the top right of the audio window ---------------------------------------------------
+    def audio_window_exit_function():  # When the 'X' is clicked, it does the same thing as the "Apply" button
+        set_encode_manual()  # Calls set_encode_manual() function
+        gotosavefile()  # Calls gotosavefile() function
+    # --------------------------------------------------- Modify what the 'X' does at the top right of the audio window
+
     # Profile Functions -----------------------------------------------------------------------------------------------
     def save_profile():  # Function to save current settings in codec window
         if encoder.get() == 'AC3':
@@ -1198,6 +1204,7 @@ def openaudiowindow():
             x_coordinate = int((screen_width / 2) - (window_width / 2))
             y_coordinate = int((screen_height / 2) - (window_height / 2))
             audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+            audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
 
             my_menu_bar = Menu(audio_window, tearoff=0)
             audio_window.config(menu=my_menu_bar)
@@ -1448,6 +1455,7 @@ def openaudiowindow():
         x_coordinate = int((screen_width / 2) - (window_width / 2))
         y_coordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -1764,6 +1772,7 @@ def openaudiowindow():
         x_coordinate = int((screen_width / 2) - (window_width / 2))
         y_coordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -2042,6 +2051,7 @@ def openaudiowindow():
         x_coordinate = int((screen_width / 2) - (window_width / 2))
         y_coordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -2393,6 +2403,7 @@ def openaudiowindow():
         x_coordinate = int((screen_width / 2) - (window_width / 2))
         y_coordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -2728,6 +2739,7 @@ def openaudiowindow():
         x_coordinate = int((screen_width / 2) - (window_width / 2))
         y_coordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -3269,6 +3281,7 @@ def openaudiowindow():
         x_coordinate = int((screen_width / 2) - (window_width / 2))
         y_coordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -3757,6 +3770,7 @@ def openaudiowindow():
         x_coordinate = int((screen_width / 2) - (window_width / 2))
         y_coordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -4252,6 +4266,7 @@ def openaudiowindow():
             x_coordinate = int((screen_width / 2) - (window_width / 2))
             y_coordinate = int((screen_height / 2) - (window_height / 2))
             audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+            audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
 
             my_menu_bar = Menu(audio_window, tearoff=0)
             audio_window.config(menu=my_menu_bar)
@@ -4593,6 +4608,7 @@ def openaudiowindow():
             x_coordinate = int((screen_width / 2) - (window_width / 2))
             y_coordinate = int((screen_height / 2) - (window_height / 2))
             audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+            audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
 
             for n in range(3):
                 audio_window.grid_columnconfigure(n, weight=1)
