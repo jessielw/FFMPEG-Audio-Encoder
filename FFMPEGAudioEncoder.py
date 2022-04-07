@@ -26,15 +26,21 @@ from re import findall as re_findall, search as re_search
 
 # Main Gui & Windows --------------------------------------------------------
 def root_exit_function():
-    confirm_exit = messagebox.askyesno(title='Prompt', message="Are you sure you want to exit the program?\n\n"
-                                                               "     Note: This will end all current tasks!",
-                                       parent=root)
-    if confirm_exit:
-        try:
-            subprocess.Popen(f"TASKKILL /F /im FFMPEGAudioEncoder.exe /T", creationflags=subprocess.CREATE_NO_WINDOW)
-            root.destroy()
-        except (Exception,):
-            root.destroy()
+    try:  # Check to see if any children window are open before displaying message
+        if audio_window.winfo_exists() or cmd_line_window.winfo_exists():  # If open display message
+            confirm_exit = messagebox.askyesno(title='Prompt', message="Are you sure you want to exit the program?\n\n"
+                                                                       "Warning:\nThis will end all current tasks "
+                                                                       "and close all windows!",
+                                               parent=root)
+            if confirm_exit:
+                try:
+                    subprocess.Popen(f"TASKKILL /F /im FFMPEGAudioEncoder.exe /T",
+                                     creationflags=subprocess.CREATE_NO_WINDOW)
+                    root.destroy()
+                except (Exception,):
+                    root.destroy()
+    except NameError:  # If no children window are present close main gui without prompt
+        root.destroy()
 
 
 root = TkinterDnD.Tk()
@@ -663,6 +669,7 @@ def openaudiowindow():
     def set_encode_manual():
         global auto_or_manual
         auto_or_manual = 'manual'
+
     # ---------------------------------- Set auto_or_manual to 'manual' when clicked by codecs in audio settings window
 
     # 'Apply' button function -----------------------------------------------------------------------------------------
@@ -760,6 +767,7 @@ def openaudiowindow():
 
                             track_frame.rowconfigure(0, weight=1)
                             track_frame.grid_columnconfigure(0, weight=1)
+
                             # ----------------------------------------------------------------------------- Track Frame
 
                             # Menu to show track(s) information -------------------------------------------------------
@@ -792,6 +800,7 @@ def openaudiowindow():
                                                     sticky=N + S + W + E)
                             acodec_stream_menu["menu"].configure(activebackground="dim grey")
                             acodec_stream.trace('w', update_track_window_text)
+
                             # ------------------------------------------------------- Menu to show track(s) information
 
                             def close_audio_start():  # Funciton is used when 'Confirm Track and Start' is clicked
