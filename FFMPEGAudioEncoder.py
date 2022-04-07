@@ -5918,6 +5918,8 @@ def encode_last_used_setting():
     encoder.set(config_profile['Auto Encode']['codec'])
     openaudiowindow()
     gotosavefile()
+    command_line_button.config(state=DISABLED)
+    output_button.config(state=DISABLED)
     if acodec_stream.get() != 'None':
         threading.Thread(target=startaudiojob).start()
 
