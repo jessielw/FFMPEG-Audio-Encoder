@@ -22,6 +22,7 @@ from ctypes import windll
 from pymediainfo import MediaInfo
 import pyperclip
 from re import findall as re_findall, search as re_search
+from idlelib.tooltip import Hovertip
 
 
 # Main Gui & Windows --------------------------------------------------------
@@ -1186,8 +1187,32 @@ def openaudiowindow():
 
     # ---------------------------------------------------------------------------------------------------- Show Streams
 
+    # FFMPEG Volume Spinbox Menu + HoverToolTip -----------------------------------------------------------------------
+    def volume_right_click_options():
+        def popup_auto_e_b_menu(e):  # Function for mouse button 3 (right click) to pop up menu
+            reset_volume_menu.tk_popup(e.x_root, e.y_root)  # This gets the posision of 'e'
+
+        reset_volume_menu = Menu(ffmpeg_volume_spinbox, tearoff=False)  # Right click menu
+        reset_volume_menu.add_command(label='Reset to 0', command=lambda: ffmpeg_volume.set(0.0))
+        reset_volume_menu.add_separator()
+        reset_volume_menu.add_command(label='Set to 5', command=lambda: ffmpeg_volume.set(5.0))
+        reset_volume_menu.add_command(label='Set to 10', command=lambda: ffmpeg_volume.set(10.0))
+        reset_volume_menu.add_command(label='Set to 15', command=lambda: ffmpeg_volume.set(15.0))
+        reset_volume_menu.add_command(label='Set to 20', command=lambda: ffmpeg_volume.set(20.0))
+        reset_volume_menu.add_separator()
+        reset_volume_menu.add_command(label='Set to -5', command=lambda: ffmpeg_volume.set(-5.0))
+        reset_volume_menu.add_command(label='Set to -10', command=lambda: ffmpeg_volume.set(-10.0))
+        reset_volume_menu.add_command(label='Set to -15', command=lambda: ffmpeg_volume.set(-15.0))
+        reset_volume_menu.add_command(label='Set to -20', command=lambda: ffmpeg_volume.set(-20.0))
+        ffmpeg_volume_spinbox.bind('<Button-3>', popup_auto_e_b_menu)  # Uses mouse button 3 (right click) to open
+        Hovertip(ffmpeg_volume_spinbox, 'Right click for more options', hover_delay=600)  # Hover tip tool-tip
+
+    # ----------------------------------------------------------------------- FFMPEG Volume Spinbox Menu + HoverToolTip
+
+    # Set Config Profile Parser ---------------------------------------------------------------------------------------
     config_profile = ConfigParser()
     config_profile.read(config_profile_ini)
+    # --------------------------------------------------------------------------------------- Set Config Profile Parser
 
     # AC3 Window ------------------------------------------------------------------------------------------------------
     global audio_window
@@ -1362,17 +1387,18 @@ def openaudiowindow():
             dolby_pro_logic_ii.set(config_profile['FFMPEG AC3 - SETTINGS']['dolbyprologicii'])
             # -------------------------------------------------------------------------------------------------- DPL II
 
-            # Audio Gain Selection ------------------------------------------------------------------------------------
+            # Audio Volume Selection ----------------------------------------------------------------------------------
             ffmpeg_volume = StringVar()
             ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
             ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-10, to=10, increment=0.1, justify=CENTER, wrap=True,
+            ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-20, to=20, increment=0.1, justify=CENTER, wrap=True,
                                             textvariable=ffmpeg_volume, state='readonly')
             ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                             buttonbackground="black", width=15, readonlybackground="#23272A")
             ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             ffmpeg_volume.set(config_profile['FFMPEG AC3 - SETTINGS']['ffmpeg_volume'])
-            # ---------------------------------------------------------------------------------------------------- Gain
+            volume_right_click_options()  # Run function for right click options for volume spinbox
+            # -------------------------------------------------------------------------------------------------- Volume
 
             # Audio Sample Rate Selection -----------------------------------------------------------------------------
             acodec_samplerate = StringVar(audio_window)
@@ -1622,17 +1648,18 @@ def openaudiowindow():
         dolby_pro_logic_ii.set(config_profile['FFMPEG AAC - SETTINGS']['dolbyprologicii'])
         # ------------------------------------------------------------------------------------------------------ DPL II
 
-        # Audio Gain Selection ----------------------------------------------------------------------------------------
+        # Audio Volume Selection --------------------------------------------------------------------------------------
         ffmpeg_volume = StringVar()
         ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
         ffmpeg_volume_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-10, to=10, increment=0.1, justify=CENTER, wrap=True,
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-20, to=20, increment=0.1, justify=CENTER, wrap=True,
                                         textvariable=ffmpeg_volume, state='readonly')
         ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_volume_spinbox.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         ffmpeg_volume.set(config_profile['FFMPEG AAC - SETTINGS']['ffmpeg_volume'])
-        # -------------------------------------------------------------------------------------------------------- Gain
+        volume_right_click_options()
+        # ------------------------------------------------------------------------------------------------------ Volume
 
         # Audio Bitrate Spinbox ---------------------------------------------------------------------------------------
         global aac_bitrate_spinbox
@@ -1962,17 +1989,18 @@ def openaudiowindow():
         dolby_pro_logic_ii.set(config_profile['FFMPEG DTS - SETTINGS']['dolbyprologicii'])
         # ------------------------------------------------------------------------------------------------------ DPL II
 
-        # Audio Gain Selection ----------------------------------------------------------------------------------------
+        # Audio Volume Selection --------------------------------------------------------------------------------------
         ffmpeg_volume = StringVar()
         ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
         ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-10, to=10, increment=0.1, justify=CENTER, wrap=True,
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-20, to=20, increment=0.1, justify=CENTER, wrap=True,
                                         textvariable=ffmpeg_volume, state='readonly')
         ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         ffmpeg_volume.set(config_profile['FFMPEG DTS - SETTINGS']['ffmpeg_volume'])
-        # -------------------------------------------------------------------------------------------------------- Gain
+        volume_right_click_options()
+        # ------------------------------------------------------------------------------------------------------ Volume
 
         # Audio Sample Rate Selection ---------------------------------------------------------------------------------
         acodec_samplerate = StringVar(audio_window)
@@ -2351,17 +2379,18 @@ def openaudiowindow():
         opus_mapping_family_menu.bind("<Leave>", opus_mapping_family_menu_hover_leave)
         # ----------------------------------------------------------------------------------------- Opus Mapping Family
 
-        # Audio Gain Selection ----------------------------------------------------------------------------------------
+        # Audio Volume Selection --------------------------------------------------------------------------------------
         ffmpeg_volume = StringVar()
         ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
         ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=(3, 10), sticky=N + S + E + W)
-        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-10, to=10, increment=0.1, justify=CENTER, wrap=True,
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-20, to=20, increment=0.1, justify=CENTER, wrap=True,
                                         textvariable=ffmpeg_volume, state='readonly')
         ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         ffmpeg_volume.set(config_profile['FFMPEG Opus - SETTINGS']['ffmpeg_volume'])
-        # -------------------------------------------------------------------------------------------------------- Gain
+        volume_right_click_options()
+        # ------------------------------------------------------------------------------------------------------ Volume
 
         # Audio Atempo Selection ---------------------------------------------------------------------------------------
         acodec_atempo = StringVar(audio_window)
@@ -2663,18 +2692,19 @@ def openaudiowindow():
         dolby_pro_logic_ii.set(config_profile['FFMPEG MP3 - SETTINGS']['dolbyprologicii'])
         # ------------------------------------------------------------------------------------------------------ DPL II
 
-        # Audio Gain Selection ----------------------------------------------------------------------------------------
+        # Audio Volume Selection --------------------------------------------------------------------------------------
         ffmpeg_volume = StringVar()
         ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
         ffmpeg_volume_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-10, to=10, increment=0.1, justify=CENTER, wrap=True,
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-20, to=20, increment=0.1, justify=CENTER, wrap=True,
                                         textvariable=ffmpeg_volume, state='readonly')
         ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_volume_spinbox.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         ffmpeg_volume.set(config_profile['FFMPEG MP3 - SETTINGS']['ffmpeg_volume'])
         ffmpeg_volume.trace('w', audio_filter_function)
-        # -------------------------------------------------------------------------------------------------------- Gain
+        volume_right_click_options()
+        # ------------------------------------------------------------------------------------------------------ Volume
 
         # Audio Sample Rate Selection ---------------------------------------------------------------------------------
         acodec_samplerate = StringVar(audio_window)
@@ -2925,17 +2955,18 @@ def openaudiowindow():
         track_number_mpv()
         # ------------------------------------------------------------------------------------------------------ Stream
 
-        # Audio Gain Selection ----------------------------------------------------------------------------------------
+        # Audio Volume Selection --------------------------------------------------------------------------------------
         ffmpeg_volume = StringVar()
         ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
         ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-10, to=10, increment=0.1, justify=CENTER, wrap=True,
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-20, to=20, increment=0.1, justify=CENTER, wrap=True,
                                         textvariable=ffmpeg_volume, state='readonly')
         ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         ffmpeg_volume.set(config_profile['FFMPEG E-AC3 - SETTINGS']['e-ac3_volume'])
-        # -------------------------------------------------------------------------------------------------------- Gain
+        volume_right_click_options()
+        # ------------------------------------------------------------------------------------------------------ Volume
 
         # Audio Sample Rate Selection ---------------------------------------------------------------------------------
         acodec_samplerate = StringVar(audio_window)
@@ -3511,17 +3542,18 @@ def openaudiowindow():
         dolby_pro_logic_ii.set(config_profile['FDK-AAC - SETTINGS']['dolbyprologicii'])
         # ------------------------------------------------------------------------------------------------------ DPL II
 
-        # Audio Gain Selection ----------------------------------------------------------------------------------------
+        # Audio Volume Selection --------------------------------------------------------------------------------------
         ffmpeg_volume = StringVar()
         ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
         ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-10, to=10, increment=0.1, justify=CENTER, wrap=True,
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-20, to=20, increment=0.1, justify=CENTER, wrap=True,
                                         textvariable=ffmpeg_volume, state='readonly')
         ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", width=15, readonlybackground="#23272A")
         ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         ffmpeg_volume.set(config_profile['FDK-AAC - SETTINGS']['ffmpeg_volume'])
-        # -------------------------------------------------------------------------------------------------------- Gain
+        volume_right_click_options()
+        # ------------------------------------------------------------------------------------------------------ Volume
 
         # Audio Sample Rate Selection ---------------------------------------------------------------------------------
         acodec_samplerate = StringVar(audio_window)
@@ -4443,17 +4475,18 @@ def openaudiowindow():
             dolby_pro_logic_ii.set(config_profile['FFMPEG FLAC - SETTINGS']['dolbyprologicii'])
             # -------------------------------------------------------------------------------------------------- DPL II
 
-            # Audio Gain Selection ------------------------------------------------------------------------------------
+            # Audio Volume Selection ----------------------------------------------------------------------------------
             ffmpeg_volume = StringVar()
             ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
             ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-10, to=10, increment=0.1, justify=CENTER, wrap=True,
+            ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-20, to=20, increment=0.1, justify=CENTER, wrap=True,
                                             textvariable=ffmpeg_volume, state='readonly')
             ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                             buttonbackground="black", width=15, readonlybackground="#23272A")
             ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             ffmpeg_volume.set(config_profile['FFMPEG FLAC - SETTINGS']['volume'])
-            # ---------------------------------------------------------------------------------------------------- Gain
+            volume_right_click_options()
+            # -------------------------------------------------------------------------------------------------- Volume
 
             # Audio Sample Rate Selection -----------------------------------------------------------------------------
             acodec_samplerate = StringVar(audio_window)
@@ -4759,7 +4792,7 @@ def openaudiowindow():
             dolby_pro_logic_ii.set(config_profile['FFMPEG ALAC - SETTINGS']['dolbyprologicii'])
             # ---------------------------------------------------------------------------------------------- DPL II
 
-            # Audio Gain Selection --------------------------------------------------------------------------------
+            # Audio Volume Selection ----------------------------------------------------------------------------------
             ffmpeg_volume = StringVar()
             ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
             ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
@@ -4769,7 +4802,8 @@ def openaudiowindow():
                                             buttonbackground="black", width=15, readonlybackground="#23272A")
             ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
             ffmpeg_volume.set(config_profile['FFMPEG ALAC - SETTINGS']['volume'])
-            # ------------------------------------------------------------------------------------------------ Gain
+            volume_right_click_options()
+            # -------------------------------------------------------------------------------------------------- Volume
 
             # Audio Sample Rate Selection -------------------------------------------------------------------------
             acodec_samplerate = StringVar(audio_window)
