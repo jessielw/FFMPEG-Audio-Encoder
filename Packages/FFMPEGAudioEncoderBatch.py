@@ -62,7 +62,7 @@ def batch_processing():
     # -------------------------------------- Bundled Apps
 
     batch_processing_window = Toplevel()
-    batch_processing_window.title('Batch Processing Window')
+    batch_processing_window.title('(LEGACY!) Re-Coding the entire batch window eventually...')
     batch_processing_window.configure(background="#434547")
     window_height = 260
     window_width = 600
