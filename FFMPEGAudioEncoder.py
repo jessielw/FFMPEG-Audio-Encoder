@@ -690,10 +690,12 @@ def openaudiowindow():
         def update_video_output():  # Function to add language/delay strings to the output filename
             global VideoOutput, autosavefilename, total_streams
             set_auto_save_suffix()  # Run function to apply default VideoOutput before continuing code
+            audio_track_number_string = f'[Audio#{acodec_stream.get().split()[1][-1]}]'
             if total_streams == 1:  # If total_streams equals 1
-                VideoOutput = str(VideoOutput)  # Don't replace '_new_'
+                VideoOutput = str(VideoOutput).replace('_new_', audio_track_number_string)  # Replace _new_ with Audio#
             elif total_streams >= 2:  # If total_streams is 2 or greater
-                VideoOutput = str(VideoOutput).replace('_new_', language_string + delay_string)  # Replace '_new_'
+                VideoOutput = str(VideoOutput).replace('_new_', audio_track_number_string + language_string
+                                                       + delay_string)  # Replace '_new_'
             autosavefilename = pathlib.Path(VideoOutput).stem
             command_line_button.config(state=NORMAL)  # Enable the display command button for main gui
             output_entry.config(state=NORMAL)  # Enable output_entry box for editing
@@ -801,7 +803,7 @@ def openaudiowindow():
                                 show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
                                 show_cmd_scrolled.delete(1.0, END)
                                 show_cmd_scrolled.insert(END, f"-map 0:a:{str(mapping_number)} "
-                                                         f"{str(config_profile['Auto Encode']['command'])}")
+                                                              f"{str(config_profile['Auto Encode']['command'])}")
                                 show_cmd_scrolled.see(END)
                                 show_cmd_scrolled.configure(state=DISABLED)
 
