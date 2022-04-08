@@ -767,7 +767,7 @@ def openaudiowindow():
                         audio_window.destroy()  # Destroy audio window, only opens to define variables inside it
 
                         def track_window():  # Function to select which audio track user would like to encode with
-                            global auto_track_input
+                            global auto_track_input, acodec_stream, acodec_stream_choices
                             audio_track_win = Toplevel()  # Toplevel window
                             audio_track_win.configure(background='#191a1a')  # Set color of audio_track_win background
                             window_height = 340  # win height
@@ -5257,7 +5257,8 @@ def print_command_line():
 # Start Audio Job -----------------------------------------------------------------------------------------------------
 def startaudiojob():
     global example_cmd_output, ac3_job, aac_job, dts_job, opus_job, mp3_job, eac3_job, \
-        fdkaac_job, qaac_job, flac_job, alac_job, auto_or_manual, auto_track_input
+        fdkaac_job, qaac_job, flac_job, alac_job, auto_or_manual, auto_track_input, acodec_stream, \
+        acodec_stream_choices
     # Quote File Input/Output Paths------------
     VideoInputQuoted = '"' + VideoInput + '"'
     VideoOutputQuoted = '"' + VideoOutput + '"'
