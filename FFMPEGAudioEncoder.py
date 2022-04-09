@@ -420,7 +420,11 @@ def openaudiowindow():
 
     try:  # Checks if existing "Audio Settings" window is already opened if exists don't open a new one
         if audio_window.winfo_exists():
-            return  # Code to return 'None', to break from fucntion
+            # Open a message: Let the user know they need to close already opened window before opening another
+            messagebox.showinfo(title=f'{audio_window.wm_title()} already opened',  # Get's title of opened window
+                                message=f'Close "{audio_window.wm_title()}" window before attempting to open '
+                                        f'settings for "{str(encoder.get())}" encoder')
+            return  # Code to return 'None', to break from function
     except NameError:  # If no "Audio Settings" window exists, open a new one
         pass  # Continue
 
