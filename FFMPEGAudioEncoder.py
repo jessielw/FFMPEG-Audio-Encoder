@@ -17,18 +17,28 @@ from Packages.SimpleYoutubeDLGui import youtube_dl_launcher_for_ffmpegaudioencod
 from Packages.FFMPEGAudioEncoderBatch import batch_processing
 from Packages.About import openaboutwindow
 from Packages.config_params import create_config_params
+from Packages.window_geometry_settings import set_window_geometry_settings
 from configparser import ConfigParser
 from ctypes import windll
 from pymediainfo import MediaInfo
 import pyperclip
-from re import findall as re_findall, search as re_search
 from idlelib.tooltip import Hovertip
 
 
 # Main Gui & Windows --------------------------------------------------------
 def root_exit_function():
+    def save_root_pos():  # Function to write to config.ini
+        if config['save_window_locations']['ffmpeg audio encoder'] == 'yes':  # If auto-save position on exit is checked
+            try:
+                config.set('save_window_locations', 'ffmpeg audio encoder position', root.geometry())
+                with open(config_file, 'w') as configfile:
+                    config.write(configfile)
+            except (Exception,):
+                pass
+
     try:  # Check to see if any children window are open before displaying message
-        if audio_window.winfo_exists() or cmd_line_window.winfo_exists():  # If open display message
+        if audio_window.winfo_exists() or cmd_line_window.winfo_exists() or progress_window.winfo_exists():
+            # If open display message
             confirm_exit = messagebox.askyesno(title='Prompt', message="Are you sure you want to exit the program?\n\n"
                                                                        "Warning:\nThis will end all current tasks "
                                                                        "and close all windows!", parent=root)
@@ -36,25 +46,52 @@ def root_exit_function():
                 try:
                     subprocess.Popen(f"TASKKILL /F /im FFMPEGAudioEncoder.exe /T",
                                      creationflags=subprocess.CREATE_NO_WINDOW)
+                    save_root_pos()
                     root.destroy()
                 except (Exception,):
+                    save_root_pos()
                     root.destroy()
     except NameError:  # If no children window are present close main gui without prompt
+        save_root_pos()
         root.destroy()
+
+
+# ------------------------------------------------------------------------------------------------------- Config Parser
+create_config_params()  # Runs the funciton to define/create all the parameters in the needed .ini files
+# Defines the path to config.ini and opens it for reading/writing
+config_file = 'Runtime/config.ini'  # Creates (if doesn't exist) and defines location of config.ini
+config = ConfigParser()
+config.read(config_file)
+
+# Defines the path to profiles.ini and opens it for reading/writing
+config_profile_ini = 'Runtime/profiles.ini'  # Creates (if doesn't exist) and defines location of profile.ini
+config_profile = ConfigParser()
+config_profile.read(config_profile_ini)
+# Config Parser -------------------------------------------------------------------------------------------------------
 
 
 root = TkinterDnD.Tk()
 root.title("FFMPEG Audio Encoder v3.38")
 root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
-window_height = 220
-window_width = 460
-screen_width = root.winfo_screenwidth()
-screen_height = root.winfo_screenheight()
-x_coordinate = int((screen_width / 2) - (window_width / 2))
-y_coordinate = int((screen_height / 2) - (window_height / 2))
-root.geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
+if config['save_window_locations']['ffmpeg audio encoder position'] == '' or \
+        config['save_window_locations']['ffmpeg audio encoder'] == 'no':
+    window_height = 220
+    window_width = 460
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    x_coordinate = int((screen_width / 2) - (window_width / 2))
+    y_coordinate = int((screen_height / 2) - (window_height / 2))
+    root.geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
+elif config['save_window_locations']['ffmpeg audio encoder position'] != '' and \
+        config['save_window_locations']['ffmpeg audio encoder'] == 'yes':
+    root.geometry(config['save_window_locations']['ffmpeg audio encoder position'])
 root.protocol('WM_DELETE_WINDOW', root_exit_function)
+
+# from tkinter import font
+# your_font = font.nametofont("TkDefaultFont")  # Get default font value into Font object
+# your_font.config(family="SegoeUIEmoji", size=8)  # Change main gui font
+# print(your_font.actual().get("family"))
 
 # Block of code to fix DPI awareness issues on Windows 7 or higher
 try:
@@ -115,19 +152,6 @@ class HoverButton(tk.Button):
 
 # --------------------------------------- Hover over button theme
 # -------------------------------------------------------------------------------------------------------------- Themes
-
-# ------------------------------------------------------------------------------------------------------- Config Parser
-create_config_params()  # Runs the funciton to define/create all the parameters in the needed .ini files
-# Defines the path to config.ini and opens it for reading/writing
-config_file = 'Runtime/config.ini'  # Creates (if doesn't exist) and defines location of config.ini
-config = ConfigParser()
-config.read(config_file)
-
-# Defines the path to profiles.ini and opens it for reading/writing
-config_profile_ini = 'Runtime/profiles.ini'  # Creates (if doesn't exist) and defines location of profile.ini
-config_profile = ConfigParser()
-config_profile.read(config_profile_ini)
-# Config Parser -------------------------------------------------------------------------------------------------------
 
 # Bundled Apps --------------------------------------------------------------------------------------------------------
 ffmpeg = config['ffmpeg_path']['path']
@@ -225,6 +249,10 @@ options_submenu2 = Menu(root, tearoff=0, activebackground='dim grey')
 options_menu.add_cascade(label='Auto-Close Progress Window On Completion', menu=options_submenu2)
 options_submenu2.add_radiobutton(label='On', variable=auto_close_window, value='on', command=update_auto_close)
 options_submenu2.add_radiobutton(label='Off', variable=auto_close_window, value='off', command=update_auto_close)
+
+options_menu.add_separator()
+
+options_menu.add_command(label='Window Location Settings', command=set_window_geometry_settings)
 
 options_menu.add_separator()
 
@@ -688,6 +716,8 @@ def openaudiowindow():
         output_button.config(state=NORMAL)  # Enable buttons upon save file
         start_audio_button.config(state=NORMAL)
         command_line_button.config(state=NORMAL)
+        root.attributes('-alpha', 1.0)  # Restore transparency
+        audio_window.grab_release()  # Release grab on audio window
 
         try:  # If cmd_line_window is open, withdraw it (close it)
             cmd_line_window.withdraw()
@@ -1262,6 +1292,8 @@ def openaudiowindow():
         y_coordinate = int((screen_height / 2) - (window_height / 2))
         audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
+        audio_window.grab_set()  # Forces everything to this window
+        root.attributes('-alpha', 0.7)  # Set's some transparency during
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -5278,7 +5310,7 @@ def startaudiojob():
     complete_or_not = ''  # Set empty placeholder variable for complete_or_not
 
     if shell_options.get() == "Default":  # Default progress bars
-        global total_duration
+        global total_duration, progress_window
         media_info = MediaInfo.parse(pathlib.Path(VideoInput))  # Parse input file
         track_selection_mediainfo = media_info.audio_tracks[int(acodec_stream_choices[acodec_stream.get()].strip()[-1])]
         # track_selection_mediainfo uses the -map 0:a:x code to get the track input, the code grabs only the last number
@@ -5292,26 +5324,26 @@ def startaudiojob():
 
         def close_encode():
             if complete_or_not == 'complete':
-                window.destroy()
+                progress_window.destroy()
             else:
-                confirm_exit = messagebox.askyesno(title='Prompt',
-                                                   message="Are you sure you want to stop the encode?", parent=window)
+                confirm_exit = messagebox.askyesno(title='Prompt', parent=progress_window,
+                                                   message="Are you sure you want to stop the encode?")
                 if confirm_exit:
                     subprocess.Popen(f"TASKKILL /F /PID {job.pid} /T", creationflags=subprocess.CREATE_NO_WINDOW)
-                    window.destroy()
+                    progress_window.destroy()
 
         def close_window():
             thread = threading.Thread(target=close_encode)
             thread.start()
 
-        window = Toplevel(root)
-        window.title('Codec : ' + encoder.get() + '  |  ' + str(pathlib.Path(VideoInput).stem))
-        window.configure(background="#434547")
-        window.grid_columnconfigure(0, weight=1)
-        window.grid_rowconfigure(1, weight=1)
-        window.protocol('WM_DELETE_WINDOW', close_window)
-        encode_window_progress = scrolledtextwidget.ScrolledText(window, width=90, height=15, tabs=10, spacing2=3,
-                                                                 spacing1=2, spacing3=3)
+        progress_window = Toplevel(root)
+        progress_window.title('Codec : ' + encoder.get() + '  |  ' + str(pathlib.Path(VideoInput).stem))
+        progress_window.configure(background="#434547")
+        progress_window.grid_columnconfigure(0, weight=1)
+        progress_window.grid_rowconfigure(1, weight=1)
+        progress_window.protocol('WM_DELETE_WINDOW', close_window)
+        encode_window_progress = scrolledtextwidget.ScrolledText(progress_window, width=90, height=15, tabs=10,
+                                                                 spacing2=3, spacing1=2, spacing3=3)
         encode_window_progress.grid(row=0, column=0, pady=(10, 6), padx=10, sticky=E + W)
         encode_window_progress.config(bg='black', fg='#CFD2D1', bd=8)
         encode_window_progress.insert(END, ' - - - - - - - - - - - Encode Started - - - - - - - - - - - \n\n')
@@ -5324,7 +5356,8 @@ def startaudiojob():
             except (Exception,):
                 pass
 
-        auto_close_window_checkbox = Checkbutton(window, text='Automatically Close', variable=auto_close_window,
+        auto_close_window_checkbox = Checkbutton(progress_window, text='Automatically Close',
+                                                 variable=auto_close_window,
                                                  onvalue='on', offvalue='off', command=auto_close_window_toggle,
                                                  takefocus=False)
         auto_close_window_checkbox.grid(row=1, column=0, columnspan=1, rowspan=1, padx=10, pady=(10, 5), sticky=W)
@@ -5335,16 +5368,16 @@ def startaudiojob():
         def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
             pyperclip.copy(encode_window_progress.get(1.0, END))
 
-        copy_text = HoverButton(window, text='Copy to clipboard', command=copy_to_clipboard, state=DISABLED,
+        copy_text = HoverButton(progress_window, text='Copy to clipboard', command=copy_to_clipboard, state=DISABLED,
                                 foreground='white', background='#23272A', borderwidth='3', activebackground='grey')
         copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(10, 5), sticky=E)
 
         if total_duration is not None:
-            app_progress_bar = ttk.Progressbar(window, orient=HORIZONTAL, mode='determinate',
+            app_progress_bar = ttk.Progressbar(progress_window, orient=HORIZONTAL, mode='determinate',
                                                style="custom.Horizontal.TProgressbar")
             app_progress_bar.grid(column=0, row=6, columnspan=4, sticky=W + E, pady=(0, 2), padx=3)
         if total_duration is None:
-            temp_label = Label(window, text='Input has no duration - progress bar is temporarily disabled',
+            temp_label = Label(progress_window, text='Input has no duration - progress bar is temporarily disabled',
                                bd=4, relief=SUNKEN, anchor=E, background='#717171', foreground="white")
             temp_label.grid(column=0, row=6, columnspan=4, pady=(0, 2), padx=3, sticky=E + W)
 
@@ -5704,7 +5737,7 @@ def startaudiojob():
                                 pass
                         except (Exception,):  # If progress window errors out for what ever reason
                             progress_error = 'yes'  # Set error to 'yes'
-                            window.destroy()  # Close progress window
+                            progress_window.destroy()  # Close progress window
                             subprocess.Popen(f"TASKKILL /F /PID {job.pid} /T",  # Force close job.pid/children
                                              creationflags=subprocess.CREATE_NO_WINDOW)
                             msg_error = messagebox.askokcancel(title='Error!', message=f'There was an error:'
@@ -5725,7 +5758,7 @@ def startaudiojob():
                                                                  + encoder.get() + '  |  '
                                                                  + str(pathlib.Path(VideoInput).stem)
                                                                  + '"\n\n Please run job with program in debug mode')
-                    window.destroy()  # Close window and kill job.pid/children
+                    progress_window.destroy()  # Close window and kill job.pid/children
                     subprocess.Popen(f"TASKKILL /F /PID {job.pid} /T", creationflags=subprocess.CREATE_NO_WINDOW)
 
             elif progress_error != 'no' or int(percent) <= 98:  # If there is an error OR percent is less than 98%
@@ -5735,7 +5768,7 @@ def startaudiojob():
             encode_window_progress.configure(state=DISABLED)  # Disable progress window editing
             copy_text.config(state=NORMAL)  # Enable copy button once all the code completes
             if config['auto_close_progress_window']['option'] == 'on':
-                window.destroy()  # If program is set to auto close encoding window when complete, close the window
+                progress_window.destroy()  # If program is set to auto close encoding window when complete, close
 
         elif shell_options.get() == "Debug":  # Debug mode, only opens a cmd.exe terminal for raw output
             subprocess.Popen('cmd /k ' + finalcommand + '"')
