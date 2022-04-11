@@ -33,6 +33,60 @@ def create_config_params():
         config.add_section('auto_close_progress_window')
     if not config.has_option('auto_close_progress_window', 'option'):
         config.set('auto_close_progress_window', 'option', '')
+    if not config.has_section('save_window_locations'):
+        config.add_section('save_window_locations')
+    if not config.has_option('save_window_locations', 'ffmpeg audio encoder'):
+        config.set('save_window_locations', 'ffmpeg audio encoder', 'yes')
+    if not config.has_option('save_window_locations', 'ffmpeg audio encoder position'):
+        config.set('save_window_locations', 'ffmpeg audio encoder position', '')
+    if not config.has_option('save_window_locations', 'window location settings'):
+        config.set('save_window_locations', 'window location settings', 'yes')
+    if not config.has_option('save_window_locations', 'window location settings position'):
+        config.set('save_window_locations', 'window location settings position', '')
+    if not config.has_option('save_window_locations', 'audio window - aac'):
+        config.set('save_window_locations', 'audio window - aac', 'yes')
+    if not config.has_option('save_window_locations', 'audio window - aac - position'):
+        config.set('save_window_locations', 'audio window - aac - position', '')
+    if not config.has_option('save_window_locations', 'audio window - ac3'):
+        config.set('save_window_locations', 'audio window - ac3', 'yes')
+    if not config.has_option('save_window_locations', 'audio window - ac3 - position'):
+        config.set('save_window_locations', 'audio window - ac3 - position', '')
+    if not config.has_option('save_window_locations', 'audio window - e-ac3'):
+        config.set('save_window_locations', 'audio window - e-ac3', 'yes')
+    if not config.has_option('save_window_locations', 'audio window - e-ac3 - position'):
+        config.set('save_window_locations', 'audio window - e-ac3 - position', '')
+    if not config.has_option('save_window_locations', 'audio window - dts'):
+        config.set('save_window_locations', 'audio window - dts', 'yes')
+    if not config.has_option('save_window_locations', 'audio window - dts - position'):
+        config.set('save_window_locations', 'audio window - dts - position', '')
+    if not config.has_option('save_window_locations', 'audio window - opus'):
+        config.set('save_window_locations', 'audio window - opus', 'yes')
+    if not config.has_option('save_window_locations', 'audio window - opus - position'):
+        config.set('save_window_locations', 'audio window - opus - position', '')
+    if not config.has_option('save_window_locations', 'audio window - mp3'):
+        config.set('save_window_locations', 'audio window - mp3', 'yes')
+    if not config.has_option('save_window_locations', 'audio window - mp3 - position'):
+        config.set('save_window_locations', 'audio window - mp3 - position', '')
+    if not config.has_option('save_window_locations', 'audio window - fdk-aac'):
+        config.set('save_window_locations', 'audio window - fdk-aac', 'yes')
+    if not config.has_option('save_window_locations', 'audio window - fdk-aac - position'):
+        config.set('save_window_locations', 'audio window - fdk-aac - position', '')
+    if not config.has_option('save_window_locations', 'audio window - qaac'):
+        config.set('save_window_locations', 'audio window - qaac', 'yes')
+    if not config.has_option('save_window_locations', 'audio window - qaac - position'):
+        config.set('save_window_locations', 'audio window - qaac - position', '')
+    if not config.has_option('save_window_locations', 'audio window - flac'):
+        config.set('save_window_locations', 'audio window - flac', 'yes')
+    if not config.has_option('save_window_locations', 'audio window - flac - position'):
+        config.set('save_window_locations', 'audio window - flac - position', '')
+    if not config.has_option('save_window_locations', 'audio window - alac'):
+        config.set('save_window_locations', 'audio window - alac', 'yes')
+    if not config.has_option('save_window_locations', 'audio window - alac - position'):
+        config.set('save_window_locations', 'audio window - alac - position', '')
+    if not config.has_option('save_window_locations', 'about'):
+        config.set('save_window_locations', 'about', 'yes')
+    if not config.has_option('save_window_locations', 'about position'):
+        config.set('save_window_locations', 'about position', '')
     try:
         with open(config_file, 'w') as configfile:
             config.write(configfile)
