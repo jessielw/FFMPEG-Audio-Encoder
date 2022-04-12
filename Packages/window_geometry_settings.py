@@ -58,23 +58,35 @@ def set_window_geometry_settings():
     geometry_settings_window.protocol('WM_DELETE_WINDOW', gsw_exit_function)
 
     geometry_settings_window.rowconfigure(0, weight=1)
+    geometry_settings_window.rowconfigure(1, weight=4)
+    geometry_settings_window.rowconfigure(2, weight=10)
     geometry_settings_window.grid_columnconfigure(0, weight=1)
 
     # Track Frame -----------------------------------------------------------------------------
-    option_frame = LabelFrame(geometry_settings_window, text=' Options ', labelanchor=N)
-    option_frame.grid(row=0, column=0, columnspan=2, sticky=E + W + S + N, padx=10, pady=(10, 10))
+    info_label = Label(geometry_settings_window, anchor='center', bg=color3, fg=color4,
+                       text="Checked: Automatically saves last window size/positions when closed")
+    info_label.grid(row=0, column=0, columnspan=2, padx=10, pady=(10, 0), sticky=W + E + S + N)
+    info_label.config(font=(set_font, set_font_size, "italic"))
+
+    option_frame = LabelFrame(geometry_settings_window, text=' Window Options ', labelanchor=N)
+    option_frame.grid(row=1, column=0, columnspan=2, sticky=E + W + S + N, padx=10, pady=(0, 3))
     option_frame.configure(fg=color2, bg=color3, bd=4, font=(set_font, 12, "bold"))
 
-    for n in range(1, 7):
-        option_frame.rowconfigure(n, weight=1)
+    option_frame.rowconfigure(1, weight=1)
+    option_frame.rowconfigure(2, weight=1)
     option_frame.grid_columnconfigure(0, weight=1)
     option_frame.grid_columnconfigure(1, weight=1)
+
+    option_frame_audio = LabelFrame(geometry_settings_window, text=' Audio Codec Window Options ', labelanchor=N)
+    option_frame_audio.grid(row=2, column=0, columnspan=2, sticky=E + W + S + N, padx=10, pady=(3, 10))
+    option_frame_audio.configure(fg=color2, bg=color3, bd=4, font=(set_font, 12, "bold"))
+
+    for n in range(0, 4):
+        option_frame_audio.rowconfigure(n, weight=1)
+    option_frame_audio.grid_columnconfigure(0, weight=1)
+    option_frame_audio.grid_columnconfigure(1, weight=1)
     # ----------------------------------------------------------------------------- Track Frame
 
-    info_label = Label(option_frame, anchor='center', bg=color3, fg=color4,
-                       text="Checked: Automatically saves last window size/positions when closed")
-    info_label.grid(row=0, column=0, columnspan=2, padx=10, pady=(0, 20), sticky=W + E + N)
-    info_label.config(font=(set_font, set_font_size, "italic"))
 
     def ffmpeg_gui_pos_toggle():
         try:  # Write to config
@@ -126,9 +138,9 @@ def set_window_geometry_settings():
 
     ac3_pos_toggle = StringVar()  # variable
     ac3_pos_toggle.set(config['save_window_locations']['audio window - ac3'])  # Set box from config.ini
-    ac3_pos_toggle_checkbox = Checkbutton(option_frame, text='AC3 - Audio Settings', variable=ac3_pos_toggle,
+    ac3_pos_toggle_checkbox = Checkbutton(option_frame_audio, text='AC3 - Audio Settings', variable=ac3_pos_toggle,
                                           onvalue='yes', offvalue='no', command=ac3_location_pos_toggle)
-    ac3_pos_toggle_checkbox.grid(row=2, column=0, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=W + N)
+    ac3_pos_toggle_checkbox.grid(row=0, column=0, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=W + N)
     ac3_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                       activeforeground=color5, selectcolor=color3, font=(set_font, set_font_size + 2))
 
@@ -144,9 +156,9 @@ def set_window_geometry_settings():
 
     aac_pos_toggle = StringVar()  # variable
     aac_pos_toggle.set(config['save_window_locations']['audio window - aac'])  # Set box from config.ini
-    aac_pos_toggle_checkbox = Checkbutton(option_frame, text='AAC - Audio Settings', variable=aac_pos_toggle,
+    aac_pos_toggle_checkbox = Checkbutton(option_frame_audio, text='AAC - Audio Settings', variable=aac_pos_toggle,
                                           onvalue='yes', offvalue='no', command=aac_location_pos_toggle)
-    aac_pos_toggle_checkbox.grid(row=2, column=1, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=E + N)
+    aac_pos_toggle_checkbox.grid(row=0, column=1, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=E + N)
     aac_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                       activeforeground=color5, selectcolor=color3, font=(set_font, set_font_size + 2))
 
@@ -162,9 +174,10 @@ def set_window_geometry_settings():
 
     e_ac3_pos_toggle = StringVar()  # variable
     e_ac3_pos_toggle.set(config['save_window_locations']['audio window - e-ac3'])  # Set box from config.ini
-    e_ac3_pos_toggle_checkbox = Checkbutton(option_frame, text='E-AC3 - Audio Settings', variable=e_ac3_pos_toggle,
-                                            onvalue='yes', offvalue='no', command=e_ac3_location_pos_toggle)
-    e_ac3_pos_toggle_checkbox.grid(row=3, column=0, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=W + N)
+    e_ac3_pos_toggle_checkbox = Checkbutton(option_frame_audio, text='E-AC3 - Audio Settings',
+                                            variable=e_ac3_pos_toggle, onvalue='yes', offvalue='no',
+                                            command=e_ac3_location_pos_toggle)
+    e_ac3_pos_toggle_checkbox.grid(row=1, column=0, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=W + N)
     e_ac3_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                         activeforeground=color5, selectcolor=color3, font=(set_font, set_font_size + 2))
 
@@ -180,9 +193,9 @@ def set_window_geometry_settings():
 
     dts_pos_toggle = StringVar()  # variable
     dts_pos_toggle.set(config['save_window_locations']['audio window - dts'])  # Set box from config.ini
-    dts_pos_toggle_checkbox = Checkbutton(option_frame, text='DTS - Audio Settings', variable=dts_pos_toggle,
+    dts_pos_toggle_checkbox = Checkbutton(option_frame_audio, text='DTS - Audio Settings', variable=dts_pos_toggle,
                                           onvalue='yes', offvalue='no', command=dts_location_pos_toggle)
-    dts_pos_toggle_checkbox.grid(row=3, column=1, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=E + N)
+    dts_pos_toggle_checkbox.grid(row=1, column=1, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=E + N)
     dts_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                       activeforeground=color5, selectcolor=color3, font=(set_font, set_font_size + 2))
 
@@ -198,9 +211,9 @@ def set_window_geometry_settings():
 
     opus_pos_toggle = StringVar()  # variable
     opus_pos_toggle.set(config['save_window_locations']['audio window - opus'])  # Set box from config.ini
-    opus_pos_toggle_checkbox = Checkbutton(option_frame, text='Opus - Audio Settings', variable=opus_pos_toggle,
+    opus_pos_toggle_checkbox = Checkbutton(option_frame_audio, text='Opus - Audio Settings', variable=opus_pos_toggle,
                                            onvalue='yes', offvalue='no', command=opus_location_pos_toggle)
-    opus_pos_toggle_checkbox.grid(row=4, column=0, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=W + N)
+    opus_pos_toggle_checkbox.grid(row=2, column=0, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=W + N)
     opus_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                        activeforeground=color5, selectcolor=color3, font=(set_font, set_font_size + 2))
 
@@ -216,9 +229,9 @@ def set_window_geometry_settings():
 
     mp3_pos_toggle = StringVar()  # variable
     mp3_pos_toggle.set(config['save_window_locations']['audio window - mp3'])  # Set box from config.ini
-    mp3_pos_toggle_checkbox = Checkbutton(option_frame, text='Mp3 - Audio Settings', variable=mp3_pos_toggle,
+    mp3_pos_toggle_checkbox = Checkbutton(option_frame_audio, text='Mp3 - Audio Settings', variable=mp3_pos_toggle,
                                           onvalue='yes', offvalue='no', command=mp3_location_pos_toggle)
-    mp3_pos_toggle_checkbox.grid(row=4, column=1, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=E + N)
+    mp3_pos_toggle_checkbox.grid(row=2, column=1, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=E + N)
     mp3_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                       activeforeground=color5, selectcolor=color3, font=(set_font, set_font_size + 2))
 
@@ -234,10 +247,10 @@ def set_window_geometry_settings():
 
     fdk_aac_pos_toggle = StringVar()  # variable
     fdk_aac_pos_toggle.set(config['save_window_locations']['audio window - fdk-aac'])  # Set box from config.ini
-    fdk_aac_pos_toggle_checkbox = Checkbutton(option_frame, text='FDK-AAC - Audio Settings',
+    fdk_aac_pos_toggle_checkbox = Checkbutton(option_frame_audio, text='FDK-AAC - Audio Settings',
                                               variable=fdk_aac_pos_toggle, onvalue='yes', offvalue='no',
                                               command=fdk_aac_location_pos_toggle)
-    fdk_aac_pos_toggle_checkbox.grid(row=5, column=0, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=W + N)
+    fdk_aac_pos_toggle_checkbox.grid(row=3, column=0, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=W + N)
     fdk_aac_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                           activeforeground=color5, selectcolor=color3,
                                           font=(set_font, set_font_size + 2))
@@ -254,9 +267,9 @@ def set_window_geometry_settings():
 
     qaac_pos_toggle = StringVar()  # variable
     qaac_pos_toggle.set(config['save_window_locations']['audio window - qaac'])  # Set box from config.ini
-    qaac_pos_toggle_checkbox = Checkbutton(option_frame, text='QAAC - Audio Settings', variable=qaac_pos_toggle,
+    qaac_pos_toggle_checkbox = Checkbutton(option_frame_audio, text='QAAC - Audio Settings', variable=qaac_pos_toggle,
                                            onvalue='yes', offvalue='no', command=qaac_location_pos_toggle)
-    qaac_pos_toggle_checkbox.grid(row=5, column=1, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=E + N)
+    qaac_pos_toggle_checkbox.grid(row=3, column=1, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=E + N)
     qaac_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                        activeforeground=color5, selectcolor=color3, font=(set_font, set_font_size + 2))
 
@@ -272,9 +285,9 @@ def set_window_geometry_settings():
 
     flac_pos_toggle = StringVar()  # variable
     flac_pos_toggle.set(config['save_window_locations']['audio window - flac'])  # Set box from config.ini
-    flac_pos_toggle_checkbox = Checkbutton(option_frame, text='FLAC - Audio Settings', variable=flac_pos_toggle,
+    flac_pos_toggle_checkbox = Checkbutton(option_frame_audio, text='FLAC - Audio Settings', variable=flac_pos_toggle,
                                            onvalue='yes', offvalue='no', command=flac_location_pos_toggle)
-    flac_pos_toggle_checkbox.grid(row=6, column=0, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=W + N)
+    flac_pos_toggle_checkbox.grid(row=4, column=0, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=W + N)
     flac_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                        activeforeground=color5, selectcolor=color3, font=(set_font, set_font_size + 2))
 
@@ -290,9 +303,9 @@ def set_window_geometry_settings():
 
     alac_pos_toggle = StringVar()  # variable
     alac_pos_toggle.set(config['save_window_locations']['audio window - alac'])  # Set box from config.ini
-    alac_pos_toggle_checkbox = Checkbutton(option_frame, text='ALAC - Audio Settings', variable=alac_pos_toggle,
+    alac_pos_toggle_checkbox = Checkbutton(option_frame_audio, text='ALAC - Audio Settings', variable=alac_pos_toggle,
                                            onvalue='yes', offvalue='no', command=alac_location_pos_toggle)
-    alac_pos_toggle_checkbox.grid(row=6, column=1, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=E + N)
+    alac_pos_toggle_checkbox.grid(row=4, column=1, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=E + N)
     alac_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                        activeforeground=color5, selectcolor=color3, font=(set_font, set_font_size + 2))
 # -------------------------------------------------------------------------------------------- Window geometry settings
