@@ -6079,7 +6079,7 @@ def popup_auto_e_b_menu(e):  # Function for mouse button 3 (right click) to pop 
     global rightclick_on_off
     try:
         if rightclick_on_off == 1:
-            auto_encode_button_menu.tk_popup(e.x_root, e.y_root)  # This gets the posision of 'e' on the root widget
+            auto_encode_button_menu.tk_popup(e.x_root, e.y_root)  # This gets the position of 'e' on the root widget
     except NameError:
         pass
 
