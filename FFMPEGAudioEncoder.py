@@ -710,6 +710,47 @@ def openaudiowindow():
 
     # ---------------------------------- Set auto_or_manual to 'manual' when clicked by codecs in audio settings window
 
+    # Save audio codec window size/positions --------------------------------------------------------------------------
+    def save_codec_window_positions():
+        if encoder.get() == 'AC3':
+            loc_codec_on_off = 'audio window - ac3'
+            loc_codec_pos_on_off = 'audio window - ac3 - position'
+        if encoder.get() == 'AAC':
+            loc_codec_on_off = 'audio window - aac'
+            loc_codec_pos_on_off = 'audio window - aac - position'
+        if encoder.get() == 'E-AC3':
+            loc_codec_on_off = 'audio window - e-ac3'
+            loc_codec_pos_on_off = 'audio window - e-ac3 - position'
+        if encoder.get() == 'DTS':
+            loc_codec_on_off = 'audio window - dts'
+            loc_codec_pos_on_off = 'audio window - dts - position'
+        if encoder.get() == 'Opus':
+            loc_codec_on_off = 'audio window - opus'
+            loc_codec_pos_on_off = 'audio window - opus - position'
+        if encoder.get() == 'MP3':
+            loc_codec_on_off = 'audio window - mp3'
+            loc_codec_pos_on_off = 'audio window - mp3 - position'
+        if encoder.get() == 'FDK-AAC':
+            loc_codec_on_off = 'audio window - fdk-aac'
+            loc_codec_pos_on_off = 'audio window - fdk-aac - position'
+        if encoder.get() == 'QAAC':
+            loc_codec_on_off = 'audio window - qaac'
+            loc_codec_pos_on_off = 'audio window - qaac - position'
+        if encoder.get() == 'FLAC':
+            loc_codec_on_off = 'audio window - flac'
+            loc_codec_pos_on_off = 'audio window - flac - position'
+        if encoder.get() == 'ALAC':
+            loc_codec_on_off = 'audio window - alac'
+            loc_codec_pos_on_off = 'audio window - alac - position'
+        if config['save_window_locations'][loc_codec_on_off] == 'yes':  # If auto-save on exit is checked
+            try:
+                config.set('save_window_locations', loc_codec_pos_on_off, audio_window.geometry())
+                with open(config_file, 'w') as configfile:
+                    config.write(configfile)
+            except (Exception,):
+                pass
+    # -------------------------------------------------------------------------- Save audio codec window size/positions
+
     # 'Apply' button function -----------------------------------------------------------------------------------------
     def gotosavefile():
         global VideoInput, delay_string, language_string
@@ -718,6 +759,7 @@ def openaudiowindow():
         command_line_button.config(state=NORMAL)
         root.attributes('-alpha', 1.0)  # Restore transparency
         audio_window.grab_release()  # Release grab on audio window
+        save_codec_window_positions()  # Call function to save window size/positions
 
         try:  # If cmd_line_window is open, withdraw it (close it)
             cmd_line_window.withdraw()
@@ -1284,13 +1326,18 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('AC3 Settings')
         audio_window.configure(background="#434547")
-        window_height = 400
-        window_width = 600
-        screen_width = audio_window.winfo_screenwidth()
-        screen_height = audio_window.winfo_screenheight()
-        x_coordinate = int((screen_width / 2) - (window_width / 2))
-        y_coordinate = int((screen_height / 2) - (window_height / 2))
-        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        if config['save_window_locations']['audio window - ac3 - position'] == '' or \
+                config['save_window_locations']['audio window - ac3'] == 'no':
+            window_height = 400
+            window_width = 600
+            screen_width = audio_window.winfo_screenwidth()
+            screen_height = audio_window.winfo_screenheight()
+            x_coordinate = int((screen_width / 2) - (window_width / 2))
+            y_coordinate = int((screen_height / 2) - (window_height / 2))
+            audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        elif config['save_window_locations']['audio window - ac3 - position'] != '' and \
+                config['save_window_locations']['audio window - ac3'] == 'yes':
+            audio_window.geometry(config['save_window_locations']['audio window - ac3 - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         audio_window.grab_set()  # Forces everything to this window
         root.attributes('-alpha', 0.7)  # Set's some transparency during
@@ -1539,14 +1586,21 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('AAC Settings')
         audio_window.configure(background="#434547")
-        window_height = 420
-        window_width = 620
-        screen_width = audio_window.winfo_screenwidth()
-        screen_height = audio_window.winfo_screenheight()
-        x_coordinate = int((screen_width / 2) - (window_width / 2))
-        y_coordinate = int((screen_height / 2) - (window_height / 2))
-        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        if config['save_window_locations']['audio window - aac - position'] == '' or \
+                config['save_window_locations']['audio window - aac'] == 'no':
+            window_height = 420
+            window_width = 620
+            screen_width = audio_window.winfo_screenwidth()
+            screen_height = audio_window.winfo_screenheight()
+            x_coordinate = int((screen_width / 2) - (window_width / 2))
+            y_coordinate = int((screen_height / 2) - (window_height / 2))
+            audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        elif config['save_window_locations']['audio window - aac - position'] != '' and \
+                config['save_window_locations']['audio window - aac'] == 'yes':
+            audio_window.geometry(config['save_window_locations']['audio window - aac - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
+        audio_window.grab_set()  # Forces everything to this window
+        root.attributes('-alpha', 0.7)  # Set's some transparency during
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -1858,14 +1912,21 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('DTS Settings')
         audio_window.configure(background="#434547")
-        window_height = 420
-        window_width = 550
-        screen_width = audio_window.winfo_screenwidth()
-        screen_height = audio_window.winfo_screenheight()
-        x_coordinate = int((screen_width / 2) - (window_width / 2))
-        y_coordinate = int((screen_height / 2) - (window_height / 2))
-        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        if config['save_window_locations']['audio window - dts - position'] == '' or \
+                config['save_window_locations']['audio window - dts'] == 'no':
+            window_height = 420
+            window_width = 550
+            screen_width = audio_window.winfo_screenwidth()
+            screen_height = audio_window.winfo_screenheight()
+            x_coordinate = int((screen_width / 2) - (window_width / 2))
+            y_coordinate = int((screen_height / 2) - (window_height / 2))
+            audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        elif config['save_window_locations']['audio window - dts - position'] != '' and \
+                config['save_window_locations']['audio window - dts'] == 'yes':
+            audio_window.geometry(config['save_window_locations']['audio window - dts - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
+        audio_window.grab_set()  # Forces everything to this window
+        root.attributes('-alpha', 0.7)  # Set's some transparency during
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -2139,14 +2200,21 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('Opus Settings')
         audio_window.configure(background="#434547")
-        window_height = 580
-        window_width = 650
-        screen_width = audio_window.winfo_screenwidth()
-        screen_height = audio_window.winfo_screenheight()
-        x_coordinate = int((screen_width / 2) - (window_width / 2))
-        y_coordinate = int((screen_height / 2) - (window_height / 2))
-        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        if config['save_window_locations']['audio window - opus - position'] == '' or \
+                config['save_window_locations']['audio window - opus'] == 'no':
+            window_height = 580
+            window_width = 650
+            screen_width = audio_window.winfo_screenwidth()
+            screen_height = audio_window.winfo_screenheight()
+            x_coordinate = int((screen_width / 2) - (window_width / 2))
+            y_coordinate = int((screen_height / 2) - (window_height / 2))
+            audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        elif config['save_window_locations']['audio window - opus - position'] != '' and \
+                config['save_window_locations']['audio window - opus'] == 'yes':
+            audio_window.geometry(config['save_window_locations']['audio window - opus - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
+        audio_window.grab_set()  # Forces everything to this window
+        root.attributes('-alpha', 0.7)  # Set's some transparency during
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -2493,14 +2561,21 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('MP3 Settings')
         audio_window.configure(background="#434547")
-        window_height = 360
-        window_width = 550
-        screen_width = audio_window.winfo_screenwidth()
-        screen_height = audio_window.winfo_screenheight()
-        x_coordinate = int((screen_width / 2) - (window_width / 2))
-        y_coordinate = int((screen_height / 2) - (window_height / 2))
-        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        if config['save_window_locations']['audio window - mp3 - position'] == '' or \
+                config['save_window_locations']['audio window - mp3'] == 'no':
+            window_height = 360
+            window_width = 550
+            screen_width = audio_window.winfo_screenwidth()
+            screen_height = audio_window.winfo_screenheight()
+            x_coordinate = int((screen_width / 2) - (window_width / 2))
+            y_coordinate = int((screen_height / 2) - (window_height / 2))
+            audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        elif config['save_window_locations']['audio window - mp3 - position'] != '' and \
+                config['save_window_locations']['audio window - mp3'] == 'yes':
+            audio_window.geometry(config['save_window_locations']['audio window - mp3 - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
+        audio_window.grab_set()  # Forces everything to this window
+        root.attributes('-alpha', 0.7)  # Set's some transparency during
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -2831,14 +2906,21 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('E-AC3 Settings')
         audio_window.configure(background="#434547")
-        window_height = 850
-        window_width = 850
-        screen_width = audio_window.winfo_screenwidth()
-        screen_height = audio_window.winfo_screenheight()
-        x_coordinate = int((screen_width / 2) - (window_width / 2))
-        y_coordinate = int((screen_height / 2) - (window_height / 2))
-        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        if config['save_window_locations']['audio window - e-ac3 - position'] == '' or \
+                config['save_window_locations']['audio window - e-ac3'] == 'no':
+            window_height = 850
+            window_width = 850
+            screen_width = audio_window.winfo_screenwidth()
+            screen_height = audio_window.winfo_screenheight()
+            x_coordinate = int((screen_width / 2) - (window_width / 2))
+            y_coordinate = int((screen_height / 2) - (window_height / 2))
+            audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        elif config['save_window_locations']['audio window - e-ac3 - position'] != '' and \
+                config['save_window_locations']['audio window - e-ac3'] == 'yes':
+            audio_window.geometry(config['save_window_locations']['audio window - e-ac3 - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
+        audio_window.grab_set()  # Forces everything to this window
+        root.attributes('-alpha', 0.7)  # Set's some transparency during
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -3375,14 +3457,21 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('FDK-AAC Settings')
         audio_window.configure(background="#434547")
-        window_height = 700
-        window_width = 780
-        screen_width = audio_window.winfo_screenwidth()
-        screen_height = audio_window.winfo_screenheight()
-        x_coordinate = int((screen_width / 2) - (window_width / 2))
-        y_coordinate = int((screen_height / 2) - (window_height / 2))
-        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        if config['save_window_locations']['audio window - fdk-aac - position'] == '' or \
+                config['save_window_locations']['audio window - fdk-aac'] == 'no':
+            window_height = 700
+            window_width = 780
+            screen_width = audio_window.winfo_screenwidth()
+            screen_height = audio_window.winfo_screenheight()
+            x_coordinate = int((screen_width / 2) - (window_width / 2))
+            y_coordinate = int((screen_height / 2) - (window_height / 2))
+            audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        elif config['save_window_locations']['audio window - fdk-aac - position'] != '' and \
+                config['save_window_locations']['audio window - fdk-aac'] == 'yes':
+            audio_window.geometry(config['save_window_locations']['audio window - fdk-aac - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
+        audio_window.grab_set()  # Forces everything to this window
+        root.attributes('-alpha', 0.7)  # Set's some transparency during
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -3866,14 +3955,21 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('QAAC Settings')
         audio_window.configure(background="#434547")
-        window_height = 700
-        window_width = 750
-        screen_width = audio_window.winfo_screenwidth()
-        screen_height = audio_window.winfo_screenheight()
-        x_coordinate = int((screen_width / 2) - (window_width / 2))
-        y_coordinate = int((screen_height / 2) - (window_height / 2))
-        audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        if config['save_window_locations']['audio window - qaac - position'] == '' or \
+                config['save_window_locations']['audio window - qaac'] == 'no':
+            window_height = 700
+            window_width = 750
+            screen_width = audio_window.winfo_screenwidth()
+            screen_height = audio_window.winfo_screenheight()
+            x_coordinate = int((screen_width / 2) - (window_width / 2))
+            y_coordinate = int((screen_height / 2) - (window_height / 2))
+            audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+        elif config['save_window_locations']['audio window - qaac - position'] != '' and \
+                config['save_window_locations']['audio window - qaac'] == 'yes':
+            audio_window.geometry(config['save_window_locations']['audio window - qaac - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
+        audio_window.grab_set()  # Forces everything to this window
+        root.attributes('-alpha', 0.7)  # Set's some transparency during
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -4357,12 +4453,11 @@ def openaudiowindow():
 
     # FLAC Window -----------------------------------------------------------------------------------------------------
     if encoder.get() == "FLAC":
-        try:
-            audio_window.deiconify()
-        except (Exception,):
-            audio_window = Toplevel()
-            audio_window.title('FLAC Settings')
-            audio_window.configure(background="#434547")
+        audio_window = Toplevel()
+        audio_window.title('FLAC Settings')
+        audio_window.configure(background="#434547")
+        if config['save_window_locations']['audio window - flac - position'] == '' or \
+                config['save_window_locations']['audio window - flac'] == 'no':
             window_height = 550
             window_width = 650
             screen_width = audio_window.winfo_screenwidth()
@@ -4370,343 +4465,347 @@ def openaudiowindow():
             x_coordinate = int((screen_width / 2) - (window_width / 2))
             y_coordinate = int((screen_height / 2) - (window_height / 2))
             audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
-            audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
+        elif config['save_window_locations']['audio window - flac - position'] != '' and \
+                config['save_window_locations']['audio window - flac'] == 'yes':
+            audio_window.geometry(config['save_window_locations']['audio window - flac - position'])
+        audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
+        audio_window.grab_set()  # Forces everything to this window
+        root.attributes('-alpha', 0.7)  # Set's some transparency during
 
-            my_menu_bar = Menu(audio_window, tearoff=0)
-            audio_window.config(menu=my_menu_bar)
-            file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-            my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
-            file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-            file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
-                                  command=mpv_gui_audio_window)
-            options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-            my_menu_bar.add_cascade(label='Options', menu=options_menu)
-            options_menu.add_command(label='Save Current Settings', command=save_profile)
-            options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
+        my_menu_bar = Menu(audio_window, tearoff=0)
+        audio_window.config(menu=my_menu_bar)
+        file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+        my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
+        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
+        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
+                              command=mpv_gui_audio_window)
+        options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+        my_menu_bar.add_cascade(label='Options', menu=options_menu)
+        options_menu.add_command(label='Save Current Settings', command=save_profile)
+        options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
 
-            for n in range(3):
-                audio_window.grid_columnconfigure(n, weight=1)
-            for n in [0, 1, 2, 3, 4, 6, 7, 10]:
-                audio_window.grid_rowconfigure(n, weight=1)
+        for n in range(3):
+            audio_window.grid_columnconfigure(n, weight=1)
+        for n in [0, 1, 2, 3, 4, 6, 7, 10]:
+            audio_window.grid_rowconfigure(n, weight=1)
 
-            # Views Command -------------------------------------------------------------------------------------------
-            def view_command():
-                global show_cmd_scrolled, cmd_line_window
-                audio_filter_function()
-                example_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                                  encoder_dropdownmenu_choices[encoder.get()] +
-                                                  acodec_bitrate_choices[acodec_bitrate.get()] +
-                                                  acodec_channel_choices[acodec_channel.get()] +
-                                                  acodec_samplerate_choices[acodec_samplerate.get()] +
-                                                  audio_filter_setting + set_flac_acodec_coefficient +
-                                                  acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] +
-                                                  acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] +
-                                                  flac_custom_cmd_input).split())
-                try:
-                    show_cmd_scrolled.configure(state=NORMAL)
-                    show_cmd_scrolled.delete(1.0, END)
-                    show_cmd_scrolled.insert(END, example_cmd_output)
-                    show_cmd_scrolled.see(END)
-                    show_cmd_scrolled.configure(state=DISABLED)
-                    cmd_line_window.deiconify()
-                except (AttributeError, NameError):
-                    cmd_line_window = Toplevel()
-                    cmd_line_window.title('Command Line')
-                    cmd_line_window.configure(background="#434547")
+        # Views Command -------------------------------------------------------------------------------------------
+        def view_command():
+            global show_cmd_scrolled, cmd_line_window
+            audio_filter_function()
+            example_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
+                                              encoder_dropdownmenu_choices[encoder.get()] +
+                                              acodec_bitrate_choices[acodec_bitrate.get()] +
+                                              acodec_channel_choices[acodec_channel.get()] +
+                                              acodec_samplerate_choices[acodec_samplerate.get()] +
+                                              audio_filter_setting + set_flac_acodec_coefficient +
+                                              acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] +
+                                              acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] +
+                                              flac_custom_cmd_input).split())
+            try:
+                show_cmd_scrolled.configure(state=NORMAL)
+                show_cmd_scrolled.delete(1.0, END)
+                show_cmd_scrolled.insert(END, example_cmd_output)
+                show_cmd_scrolled.see(END)
+                show_cmd_scrolled.configure(state=DISABLED)
+                cmd_line_window.deiconify()
+            except (AttributeError, NameError):
+                cmd_line_window = Toplevel()
+                cmd_line_window.title('Command Line')
+                cmd_line_window.configure(background="#434547")
 
-                    show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
-                                                                        spacing2=3, spacing1=2, spacing3=3)
-                    show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
-                    show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
-                    show_cmd_scrolled.insert(END, example_cmd_output)
-                    show_cmd_scrolled.see(END)
-                    show_cmd_scrolled.configure(state=DISABLED)
-                    cmd_line_window.resizable(False, False)  # Disables resizable functions of window
+                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
+                                                                    spacing2=3, spacing1=2, spacing3=3)
+                show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
+                show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
+                show_cmd_scrolled.insert(END, example_cmd_output)
+                show_cmd_scrolled.see(END)
+                show_cmd_scrolled.configure(state=DISABLED)
+                cmd_line_window.resizable(False, False)  # Disables resizable functions of window
 
-                    def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
-                        pyperclip.copy(show_cmd_scrolled.get(1.0, END))
+                def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
+                    pyperclip.copy(show_cmd_scrolled.get(1.0, END))
 
-                    copy_text = HoverButton(cmd_line_window, text='Copy to clipboard', command=copy_to_clipboard,
-                                            foreground='white', background='#23272A', borderwidth='3',
-                                            activebackground='grey')
-                    copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
+                copy_text = HoverButton(cmd_line_window, text='Copy to clipboard', command=copy_to_clipboard,
+                                        foreground='white', background='#23272A', borderwidth='3',
+                                        activebackground='grey')
+                copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
 
-                    def hide_instead():
-                        cmd_line_window.withdraw()
+                def hide_instead():
+                    cmd_line_window.withdraw()
 
-                    cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
+                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
 
-            # ------------------------------------------------------------------------------------------- Views Command
+        # ------------------------------------------------------------------------------------------- Views Command
 
-            # Buttons -------------------------------------------------------------------------------------------------
-            apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                       command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
-            apply_button.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        # Buttons -------------------------------------------------------------------------------------------------
+        apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
+                                   command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
+        apply_button.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
 
-            show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
-                                   command=view_command, activebackground='grey')
-            show_cmd.grid(row=10, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-            show_cmd.bind("<Enter>", show_cmd_hover)
-            show_cmd.bind("<Leave>", show_cmd_hover_leave)
-            # ------------------------------------------------------------------------------------------------- Buttons
+        show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
+                               command=view_command, activebackground='grey')
+        show_cmd.grid(row=10, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        show_cmd.bind("<Enter>", show_cmd_hover)
+        show_cmd.bind("<Leave>", show_cmd_hover_leave)
+        # ------------------------------------------------------------------------------------------------- Buttons
 
-            advanced_label = Label(audio_window,
-                                   text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - - - - "
-                                        "- - - - - - - - - - - - - - -",
-                                   background="#434547", foreground="white", relief=GROOVE)
-            advanced_label.grid(row=5, column=0, columnspan=3, padx=10, pady=10, sticky=W + E)
+        advanced_label = Label(audio_window,
+                               text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - - - - "
+                                    "- - - - - - - - - - - - - - -",
+                               background="#434547", foreground="white", relief=GROOVE)
+        advanced_label.grid(row=5, column=0, columnspan=3, padx=10, pady=10, sticky=W + E)
 
-            # Audio Bitrate Selection ---------------------------------------------------------------------------------
-            acodec_bitrate = StringVar(audio_window)
-            acodec_bitrate_choices = {'Level 0 - Lowest Compression/Fastest': "-compression_level 0 ",
-                                      'Level 1 ......': "-compression_level 1 ",
-                                      'Level 2 ......': "-compression_level 2 ",
-                                      'Level 3 ......': "-compression_level 3 ",
-                                      'Level 4 ......': "-compression_level 4 ",
-                                      'Level 5 - Default Compression/Speed': "",
-                                      'Level 6 ......': "-compression_level 6 ",
-                                      'Level 7 ......': "-compression_level 7 ",
-                                      'Level 8 ......': "-compression_level 8 ",
-                                      'Level 9 ......': "-compression_level 9 ",
-                                      'Level 10 ......': "-compression_level 10 ",
-                                      'Level 11 ......': "-compression_level 11 ",
-                                      'Level 12 - Highest Compression/Slow': "-compression_level 12 "}
-            acodec_bitrate.set(config_profile['FFMPEG FLAC - SETTINGS']['acodec_bitrate'])  # set the default option
-            acodec_bitrate_menu_label = Label(audio_window, text="Compression Level :", background="#434547",
+        # Audio Bitrate Selection ---------------------------------------------------------------------------------
+        acodec_bitrate = StringVar(audio_window)
+        acodec_bitrate_choices = {'Level 0 - Lowest Compression/Fastest': "-compression_level 0 ",
+                                  'Level 1 ......': "-compression_level 1 ",
+                                  'Level 2 ......': "-compression_level 2 ",
+                                  'Level 3 ......': "-compression_level 3 ",
+                                  'Level 4 ......': "-compression_level 4 ",
+                                  'Level 5 - Default Compression/Speed': "",
+                                  'Level 6 ......': "-compression_level 6 ",
+                                  'Level 7 ......': "-compression_level 7 ",
+                                  'Level 8 ......': "-compression_level 8 ",
+                                  'Level 9 ......': "-compression_level 9 ",
+                                  'Level 10 ......': "-compression_level 10 ",
+                                  'Level 11 ......': "-compression_level 11 ",
+                                  'Level 12 - Highest Compression/Slow': "-compression_level 12 "}
+        acodec_bitrate.set(config_profile['FFMPEG FLAC - SETTINGS']['acodec_bitrate'])  # set the default option
+        acodec_bitrate_menu_label = Label(audio_window, text="Compression Level :", background="#434547",
+                                          foreground="white")
+        acodec_bitrate_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
+        acodec_bitrate_menu = OptionMenu(audio_window, acodec_bitrate, *acodec_bitrate_choices.keys())
+        acodec_bitrate_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15,
+                                   anchor=W)
+        acodec_bitrate_menu.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        acodec_bitrate_menu["menu"].configure(activebackground="dim grey")
+        acodec_bitrate_menu.bind("<Enter>", acodec_bitrate_menu_hover)
+        acodec_bitrate_menu.bind("<Leave>", acodec_bitrate_menu_hover_leave)
+        # ------------------------------------------------------------------------------------------- Audio Bitrate
+
+        # Audio Stream Selection ----------------------------------------------------------------------------------
+        acodec_stream = StringVar(audio_window)
+        acodec_stream_choices = acodec_stream_track_counter
+        acodec_stream.set(next(iter(acodec_stream_track_counter)))  # set the default option
+        acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
+        acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
+        acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
+        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1,
+                                  width=15, anchor='w')
+        acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        acodec_stream_menu["menu"].configure(activebackground="dim grey")
+        acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
+        acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+        acodec_stream.trace('w', track_number_mpv)
+        track_number_mpv()
+        # ---------------------------------------------------------------------------------------------------------
+
+        # Audio Channel Selection ---------------------------------------------------------------------------------
+        acodec_channel = StringVar(audio_window)
+        acodec_channel_choices = {'Original': "",
+                                  '1 (Mono)': "-ac 1 ",
+                                  '2 (Stereo)': "-ac 2 ",
+                                  '5.0 (Surround)': "-ac 5 ",
+                                  '5.1 (Surround)': "-ac 6 ",
+                                  '6.1 (Surround)': "-ac 7 ",
+                                  '7.1 (Surround)': "-ac 8 "}
+        acodec_channel.set(config_profile['FFMPEG FLAC - SETTINGS']['acodec_channel'])  # set the default option
+        achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
+        achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
+        achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
+        achannel_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15)
+        achannel_menu.grid(row=1, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        achannel_menu["menu"].configure(activebackground="dim grey")
+        achannel_menu.bind("<Enter>", achannel_menu_hover)
+        achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
+        acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
+        # ----------------------------------------------------------------------------------------------- Audio Channel
+
+        # Dolby Pro Logic II ------------------------------------------------------------------------------------------
+        dolby_pro_logic_ii = StringVar()
+        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
+                                                  variable=dolby_pro_logic_ii, state=DISABLED,
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
+        if acodec_channel.get() == '2 (Stereo)':
+            dolby_pro_logic_ii_checkbox.configure(state=NORMAL)
+        dolby_pro_logic_ii_checkbox.grid(row=4, column=2, columnspan=1, rowspan=1, padx=10, pady=(20, 5),
+                                         sticky=N + S + E + W)
+        dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white",
+                                              activebackground="#434547",
+                                              activeforeground="white", selectcolor="#434547",
+                                              font=("Helvetica", 11))
+        dolby_pro_logic_ii.set(config_profile['FFMPEG FLAC - SETTINGS']['dolbyprologicii'])
+        # -------------------------------------------------------------------------------------------------- DPL II
+
+        # Audio Volume Selection ----------------------------------------------------------------------------------
+        ffmpeg_volume = StringVar()
+        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
+        ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-20, to=20, increment=0.1, justify=CENTER, wrap=True,
+                                        textvariable=ffmpeg_volume, state='readonly')
+        ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+                                        buttonbackground="black", width=15, readonlybackground="#23272A")
+        ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_volume.set(config_profile['FFMPEG FLAC - SETTINGS']['volume'])
+        volume_right_click_options()
+        # -------------------------------------------------------------------------------------------------- Volume
+
+        # Audio Sample Rate Selection -----------------------------------------------------------------------------
+        acodec_samplerate = StringVar(audio_window)
+        acodec_samplerate_choices = {'Original': "",
+                                     '8000 Hz': "-ar 8000 ",
+                                     '11025 Hz': "-ar 11025 ",
+                                     '22050 Hz': "-ar 22050 ",
+                                     '32000 Hz': "-ar 32000 ",
+                                     '44100 Hz': "-ar 44100 ",
+                                     '48000 Hz': "-ar 48000 ",
+                                     '96000 Hz': "-ar 96000 "}
+        acodec_samplerate.set(config_profile['FFMPEG FLAC - SETTINGS']['samplerate'])  # set the default option
+        acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547",
+                                        foreground="white")
+        acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate, *acodec_samplerate_choices.keys())
+        acodec_samplerate_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15)
+        acodec_samplerate_menu.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
+        acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
+        acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
+
+        # --------------------------------------------------------------------------------------------- Sample Rate
+
+        # Entry Box for Custom Command Line -----------------------------------------------------------------------
+        def flac_cmd(*args):
+            global flac_custom_cmd_input
+            if flac_custom_cmd.get().strip() == "":
+                flac_custom_cmd_input = ""
+            else:
+                cstmcmd = flac_custom_cmd.get().strip()
+                flac_custom_cmd_input = cstmcmd + " "
+
+        flac_custom_cmd = StringVar()
+        flac_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W,
+                                        background="#434547",
+                                        foreground="white")
+        flac_cmd_entrybox_label.grid(row=8, column=0, columnspan=2, padx=10, pady=(15, 0), sticky=N + S + W + E)
+        flac_cmd_entrybox = Entry(audio_window, textvariable=flac_custom_cmd, borderwidth=4, background="#CACACA")
+        flac_cmd_entrybox.grid(row=9, column=0, columnspan=3, padx=10, pady=(0, 15), sticky=W + E)
+        flac_custom_cmd.trace('w', flac_cmd)
+        flac_custom_cmd.set("")
+        # ------------------------------------------------------------------------------------- Custom Command Line
+
+        # Audio Atempo Selection ----------------------------------------------------------------------------------
+        acodec_atempo = StringVar(audio_window)
+        acodec_atempo_choices = {'Original': '',
+                                 '23.976 to 24': '"atempo=23.976/24"',
+                                 '23.976 to 25': '"atempo=23.976/25"',
+                                 '24 to 23.976': '"atempo=24/23.976"',
+                                 '24 to 25': '"atempo=24/25"',
+                                 '25 to 23.976': '"atempo=25/23.976"',
+                                 '25 to 24': '"atempo=25/24"',
+                                 '1/4 Slow-down': '"atempo=0.5,atempo=0.5"',
+                                 '1/2 Slow-down': '"atempo=0.5"',
+                                 '3/4 Slow-down': '"atempo=0.75"',
+                                 '1/4 Speed-up': '"atempo=1.25"',
+                                 '1/2 Speed-up': '"atempo=1.5"',
+                                 '3/4 Speed-up': '"atempo=1.75"',
+                                 '2x Speed-up': '"atempo=2.0"',
+                                 '2.5x Speed-up': '"atempo=2.5"',
+                                 '3x Speed-up': '"atempo=3.0"',
+                                 '3.5x Speed-up': '"atempo=3.5"',
+                                 '4x Speed-up': '"atempo=4.0"'}
+        acodec_atempo_menu_label = Label(audio_window, text="Time Modification :", background="#434547",
+                                         foreground="white")
+        acodec_atempo_menu_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
+        acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
+        acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15)
+        acodec_atempo_menu.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        acodec_atempo.set(config_profile['FFMPEG FLAC - SETTINGS']['tempo'])
+        acodec_atempo_menu["menu"].configure(activebackground="dim grey")
+        acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
+        acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
+        # ------------------------------------------------------------------------------------------------ Audio Atempo
+
+        # LPC Algorithm Selection ---------------------------------------------------------------------------------
+        global acodec_flac_lpc_type, acodec_flac_lpc_type_choices
+        acodec_flac_lpc_type = StringVar(audio_window)
+        acodec_flac_lpc_type_choices = {'Default': "",
+                                        'None': "-lpc_type 0 ",
+                                        'Fixed': "-lpc_type 1 ",
+                                        'Levinson': "-lpc_type 2 ",
+                                        'Cholesky': "-lpc_type 3 "}
+        acodec_flac_lpc_type.set(config_profile['FFMPEG FLAC - SETTINGS']['flac_lpc_type'])  # set the default
+        acodec_flac_lpc_type_label = Label(audio_window, text="LPC Algorithm :", background="#434547",
+                                           foreground="white")
+        acodec_flac_lpc_type_label.grid(row=6, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_flac_lpc_type_menu = OptionMenu(audio_window, acodec_flac_lpc_type,
+                                               *acodec_flac_lpc_type_choices.keys())
+        acodec_flac_lpc_type_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15)
+        acodec_flac_lpc_type_menu.grid(row=7, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_flac_lpc_type_menu["menu"].configure(activebackground="dim grey")
+        acodec_flac_lpc_type_menu.bind("<Enter>", acodec_flac_lpc_type_menu_hover)
+        acodec_flac_lpc_type_menu.bind("<Leave>", acodec_flac_lpc_type_menu_hover_leave)
+
+        # ------------------------------------------------------------------------------------------- LPC Algorithm
+
+        # FLAC LPC Coefficient Precision --------------------------------------------------------------------------
+        def flac_acodec_coefficient_trace(*args):
+            global set_flac_acodec_coefficient
+            if flac_acodec_coefficient.get() == '15':
+                set_flac_acodec_coefficient = ''
+            elif flac_acodec_coefficient.get() != '15':
+                set_flac_acodec_coefficient = '-lpc_coeff_precision ' + flac_acodec_coefficient.get() + ' '
+
+        global flac_acodec_coefficient
+        flac_acodec_coefficient = StringVar(audio_window)
+        flac_acodec_coefficient_label = Label(audio_window, text="LPC Coefficient Precision :",
+                                              background="#434547",
                                               foreground="white")
-            acodec_bitrate_menu_label.grid(row=0, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
-            acodec_bitrate_menu = OptionMenu(audio_window, acodec_bitrate, *acodec_bitrate_choices.keys())
-            acodec_bitrate_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15,
-                                       anchor=W)
-            acodec_bitrate_menu.grid(row=1, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-            acodec_bitrate_menu["menu"].configure(activebackground="dim grey")
-            acodec_bitrate_menu.bind("<Enter>", acodec_bitrate_menu_hover)
-            acodec_bitrate_menu.bind("<Leave>", acodec_bitrate_menu_hover_leave)
-            # ------------------------------------------------------------------------------------------- Audio Bitrate
+        flac_acodec_coefficient_label.grid(row=6, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        flac_acodec_coefficient_spinbox = Spinbox(audio_window, from_=0, to=15, justify=CENTER, wrap=True,
+                                                  textvariable=flac_acodec_coefficient, width=13)
+        flac_acodec_coefficient_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
+                                               buttonbackground="black", disabledbackground='grey')
+        flac_acodec_coefficient_spinbox.grid(row=7, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        flac_acodec_coefficient.trace('w', flac_acodec_coefficient_trace)
+        flac_acodec_coefficient.set(int(config_profile['FFMPEG FLAC - SETTINGS']['flac_coefficient']))
+        # -------------------------------------------------------------------------- FLAC LPC Coefficient Precision
 
-            # Audio Stream Selection ----------------------------------------------------------------------------------
-            acodec_stream = StringVar(audio_window)
-            acodec_stream_choices = acodec_stream_track_counter
-            acodec_stream.set(next(iter(acodec_stream_track_counter)))  # set the default option
-            acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
-            acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
-            acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
-            acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1,
-                                      width=15, anchor='w')
-            acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-            acodec_stream_menu["menu"].configure(activebackground="dim grey")
-            acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
-            acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
-            acodec_stream.trace('w', track_number_mpv)
-            track_number_mpv()
-            # ---------------------------------------------------------------------------------------------------------
-
-            # Audio Channel Selection ---------------------------------------------------------------------------------
-            acodec_channel = StringVar(audio_window)
-            acodec_channel_choices = {'Original': "",
-                                      '1 (Mono)': "-ac 1 ",
-                                      '2 (Stereo)': "-ac 2 ",
-                                      '5.0 (Surround)': "-ac 5 ",
-                                      '5.1 (Surround)': "-ac 6 ",
-                                      '6.1 (Surround)': "-ac 7 ",
-                                      '7.1 (Surround)': "-ac 8 "}
-            acodec_channel.set(config_profile['FFMPEG FLAC - SETTINGS']['acodec_channel'])  # set the default option
-            achannel_menu_label = Label(audio_window, text="Channels :", background="#434547", foreground="white")
-            achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
-            achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
-            achannel_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15)
-            achannel_menu.grid(row=1, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-            achannel_menu["menu"].configure(activebackground="dim grey")
-            achannel_menu.bind("<Enter>", achannel_menu_hover)
-            achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
-            acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
-            # ----------------------------------------------------------------------------------------------- Audio Channel
-
-            # Dolby Pro Logic II ------------------------------------------------------------------------------------------
-            dolby_pro_logic_ii = StringVar()
-            dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
-                                                      variable=dolby_pro_logic_ii, state=DISABLED,
-                                                      onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
-            if acodec_channel.get() == '2 (Stereo)':
-                dolby_pro_logic_ii_checkbox.configure(state=NORMAL)
-            dolby_pro_logic_ii_checkbox.grid(row=4, column=2, columnspan=1, rowspan=1, padx=10, pady=(20, 5),
-                                             sticky=N + S + E + W)
-            dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white",
-                                                  activebackground="#434547",
-                                                  activeforeground="white", selectcolor="#434547",
-                                                  font=("Helvetica", 11))
-            dolby_pro_logic_ii.set(config_profile['FFMPEG FLAC - SETTINGS']['dolbyprologicii'])
-            # -------------------------------------------------------------------------------------------------- DPL II
-
-            # Audio Volume Selection ----------------------------------------------------------------------------------
-            ffmpeg_volume = StringVar()
-            ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
-            ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-20, to=20, increment=0.1, justify=CENTER, wrap=True,
-                                            textvariable=ffmpeg_volume, state='readonly')
-            ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
-                                            buttonbackground="black", width=15, readonlybackground="#23272A")
-            ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            ffmpeg_volume.set(config_profile['FFMPEG FLAC - SETTINGS']['volume'])
-            volume_right_click_options()
-            # -------------------------------------------------------------------------------------------------- Volume
-
-            # Audio Sample Rate Selection -----------------------------------------------------------------------------
-            acodec_samplerate = StringVar(audio_window)
-            acodec_samplerate_choices = {'Original': "",
-                                         '8000 Hz': "-ar 8000 ",
-                                         '11025 Hz': "-ar 11025 ",
-                                         '22050 Hz': "-ar 22050 ",
-                                         '32000 Hz': "-ar 32000 ",
-                                         '44100 Hz': "-ar 44100 ",
-                                         '48000 Hz': "-ar 48000 ",
-                                         '96000 Hz': "-ar 96000 "}
-            acodec_samplerate.set(config_profile['FFMPEG FLAC - SETTINGS']['samplerate'])  # set the default option
-            acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547",
-                                            foreground="white")
-            acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate, *acodec_samplerate_choices.keys())
-            acodec_samplerate_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15)
-            acodec_samplerate_menu.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
-            acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
-            acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
-
-            # --------------------------------------------------------------------------------------------- Sample Rate
-
-            # Entry Box for Custom Command Line -----------------------------------------------------------------------
-            def flac_cmd(*args):
-                global flac_custom_cmd_input
-                if flac_custom_cmd.get().strip() == "":
-                    flac_custom_cmd_input = ""
-                else:
-                    cstmcmd = flac_custom_cmd.get().strip()
-                    flac_custom_cmd_input = cstmcmd + " "
-
-            flac_custom_cmd = StringVar()
-            flac_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W,
-                                            background="#434547",
-                                            foreground="white")
-            flac_cmd_entrybox_label.grid(row=8, column=0, columnspan=2, padx=10, pady=(15, 0), sticky=N + S + W + E)
-            flac_cmd_entrybox = Entry(audio_window, textvariable=flac_custom_cmd, borderwidth=4, background="#CACACA")
-            flac_cmd_entrybox.grid(row=9, column=0, columnspan=3, padx=10, pady=(0, 15), sticky=W + E)
-            flac_custom_cmd.trace('w', flac_cmd)
-            flac_custom_cmd.set("")
-            # ------------------------------------------------------------------------------------- Custom Command Line
-
-            # Audio Atempo Selection ----------------------------------------------------------------------------------
-            acodec_atempo = StringVar(audio_window)
-            acodec_atempo_choices = {'Original': '',
-                                     '23.976 to 24': '"atempo=23.976/24"',
-                                     '23.976 to 25': '"atempo=23.976/25"',
-                                     '24 to 23.976': '"atempo=24/23.976"',
-                                     '24 to 25': '"atempo=24/25"',
-                                     '25 to 23.976': '"atempo=25/23.976"',
-                                     '25 to 24': '"atempo=25/24"',
-                                     '1/4 Slow-down': '"atempo=0.5,atempo=0.5"',
-                                     '1/2 Slow-down': '"atempo=0.5"',
-                                     '3/4 Slow-down': '"atempo=0.75"',
-                                     '1/4 Speed-up': '"atempo=1.25"',
-                                     '1/2 Speed-up': '"atempo=1.5"',
-                                     '3/4 Speed-up': '"atempo=1.75"',
-                                     '2x Speed-up': '"atempo=2.0"',
-                                     '2.5x Speed-up': '"atempo=2.5"',
-                                     '3x Speed-up': '"atempo=3.0"',
-                                     '3.5x Speed-up': '"atempo=3.5"',
-                                     '4x Speed-up': '"atempo=4.0"'}
-            acodec_atempo_menu_label = Label(audio_window, text="Time Modification :", background="#434547",
+        # LPC Passes ----------------------------------------------------------------------------------------------
+        global acodec_flac_lpc_passes, acodec_flac_lpc_passes_choices
+        acodec_flac_lpc_passes = StringVar(audio_window)
+        acodec_flac_lpc_passes_choices = {'Default': "",
+                                          '2 Passes': "-lpc_passes 2 ",
+                                          '3 Passes': "-lpc_passes 3 ",
+                                          '4 Passes': "-lpc_passes 4 ",
+                                          '5 Passes': "-lpc_passes 5 ",
+                                          '6 Passes': "-lpc_passes 6 ",
+                                          '7 Passes': "-lpc_passes 7 ",
+                                          '8 Passes': "-lpc_passes 8 ",
+                                          '9 Passes': "-lpc_passes 9 ",
+                                          '10 Passes': "-lpc_passes 10 "}
+        acodec_flac_lpc_passes.set(config_profile['FFMPEG FLAC - SETTINGS']['flac_lpc_passes'])
+        acodec_flac_lpc_passes_label = Label(audio_window, text="LPC Passes :", background="#434547",
                                              foreground="white")
-            acodec_atempo_menu_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
-            acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
-            acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15)
-            acodec_atempo_menu.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-            acodec_atempo.set(config_profile['FFMPEG FLAC - SETTINGS']['tempo'])
-            acodec_atempo_menu["menu"].configure(activebackground="dim grey")
-            acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
-            acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
-            # ------------------------------------------------------------------------------------------------ Audio Atempo
+        acodec_flac_lpc_passes_label.grid(row=6, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_flac_lpc_passes_menu = OptionMenu(audio_window, acodec_flac_lpc_passes,
+                                                 *acodec_flac_lpc_passes_choices.keys())
+        acodec_flac_lpc_passes_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15)
+        acodec_flac_lpc_passes_menu.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_flac_lpc_passes_menu["menu"].configure(activebackground="dim grey")
+        acodec_flac_lpc_passes_menu.bind("<Enter>", acodec_flac_lpc_passes_menu_hover)
+        acodec_flac_lpc_passes_menu.bind("<Leave>", acodec_flac_lpc_passes_menu_hover_leave)
 
-            # LPC Algorithm Selection ---------------------------------------------------------------------------------
-            global acodec_flac_lpc_type, acodec_flac_lpc_type_choices
-            acodec_flac_lpc_type = StringVar(audio_window)
-            acodec_flac_lpc_type_choices = {'Default': "",
-                                            'None': "-lpc_type 0 ",
-                                            'Fixed': "-lpc_type 1 ",
-                                            'Levinson': "-lpc_type 2 ",
-                                            'Cholesky': "-lpc_type 3 "}
-            acodec_flac_lpc_type.set(config_profile['FFMPEG FLAC - SETTINGS']['flac_lpc_type'])  # set the default
-            acodec_flac_lpc_type_label = Label(audio_window, text="LPC Algorithm :", background="#434547",
-                                               foreground="white")
-            acodec_flac_lpc_type_label.grid(row=6, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            acodec_flac_lpc_type_menu = OptionMenu(audio_window, acodec_flac_lpc_type,
-                                                   *acodec_flac_lpc_type_choices.keys())
-            acodec_flac_lpc_type_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15)
-            acodec_flac_lpc_type_menu.grid(row=7, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            acodec_flac_lpc_type_menu["menu"].configure(activebackground="dim grey")
-            acodec_flac_lpc_type_menu.bind("<Enter>", acodec_flac_lpc_type_menu_hover)
-            acodec_flac_lpc_type_menu.bind("<Leave>", acodec_flac_lpc_type_menu_hover_leave)
-
-            # ------------------------------------------------------------------------------------------- LPC Algorithm
-
-            # FLAC LPC Coefficient Precision --------------------------------------------------------------------------
-            def flac_acodec_coefficient_trace(*args):
-                global set_flac_acodec_coefficient
-                if flac_acodec_coefficient.get() == '15':
-                    set_flac_acodec_coefficient = ''
-                elif flac_acodec_coefficient.get() != '15':
-                    set_flac_acodec_coefficient = '-lpc_coeff_precision ' + flac_acodec_coefficient.get() + ' '
-
-            global flac_acodec_coefficient
-            flac_acodec_coefficient = StringVar(audio_window)
-            flac_acodec_coefficient_label = Label(audio_window, text="LPC Coefficient Precision :",
-                                                  background="#434547",
-                                                  foreground="white")
-            flac_acodec_coefficient_label.grid(row=6, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            flac_acodec_coefficient_spinbox = Spinbox(audio_window, from_=0, to=15, justify=CENTER, wrap=True,
-                                                      textvariable=flac_acodec_coefficient, width=13)
-            flac_acodec_coefficient_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
-                                                   buttonbackground="black", disabledbackground='grey')
-            flac_acodec_coefficient_spinbox.grid(row=7, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            flac_acodec_coefficient.trace('w', flac_acodec_coefficient_trace)
-            flac_acodec_coefficient.set(int(config_profile['FFMPEG FLAC - SETTINGS']['flac_coefficient']))
-            # -------------------------------------------------------------------------- FLAC LPC Coefficient Precision
-
-            # LPC Passes ----------------------------------------------------------------------------------------------
-            global acodec_flac_lpc_passes, acodec_flac_lpc_passes_choices
-            acodec_flac_lpc_passes = StringVar(audio_window)
-            acodec_flac_lpc_passes_choices = {'Default': "",
-                                              '2 Passes': "-lpc_passes 2 ",
-                                              '3 Passes': "-lpc_passes 3 ",
-                                              '4 Passes': "-lpc_passes 4 ",
-                                              '5 Passes': "-lpc_passes 5 ",
-                                              '6 Passes': "-lpc_passes 6 ",
-                                              '7 Passes': "-lpc_passes 7 ",
-                                              '8 Passes': "-lpc_passes 8 ",
-                                              '9 Passes': "-lpc_passes 9 ",
-                                              '10 Passes': "-lpc_passes 10 "}
-            acodec_flac_lpc_passes.set(config_profile['FFMPEG FLAC - SETTINGS']['flac_lpc_passes'])
-            acodec_flac_lpc_passes_label = Label(audio_window, text="LPC Passes :", background="#434547",
-                                                 foreground="white")
-            acodec_flac_lpc_passes_label.grid(row=6, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            acodec_flac_lpc_passes_menu = OptionMenu(audio_window, acodec_flac_lpc_passes,
-                                                     *acodec_flac_lpc_passes_choices.keys())
-            acodec_flac_lpc_passes_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15)
-            acodec_flac_lpc_passes_menu.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            acodec_flac_lpc_passes_menu["menu"].configure(activebackground="dim grey")
-            acodec_flac_lpc_passes_menu.bind("<Enter>", acodec_flac_lpc_passes_menu_hover)
-            acodec_flac_lpc_passes_menu.bind("<Leave>", acodec_flac_lpc_passes_menu_hover_leave)
-
-            # ---------------------------------------------------------------------------------------------- LPC Passes
-        # -------------------------------------------------------------------------------------------------------- FLAC
+        # ---------------------------------------------------------------------------------------------- LPC Passes
+    # -------------------------------------------------------------------------------------------------------- FLAC
 
     # ALAC Window -------------------------------------------------------------------------------------------------
     if encoder.get() == "ALAC":
-        try:
-            audio_window.deiconify()
-        except (Exception,):
-            audio_window = Toplevel()
-            audio_window.title('ALAC Settings')
-            audio_window.configure(background="#434547")
+        audio_window = Toplevel()
+        audio_window.title('ALAC Settings')
+        audio_window.configure(background="#434547")
+        if config['save_window_locations']['audio window - alac - position'] == '' or \
+                config['save_window_locations']['audio window - alac'] == 'no':
             window_height = 470
             window_width = 650
             screen_width = audio_window.winfo_screenwidth()
@@ -4714,239 +4813,244 @@ def openaudiowindow():
             x_coordinate = int((screen_width / 2) - (window_width / 2))
             y_coordinate = int((screen_height / 2) - (window_height / 2))
             audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
-            audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
+        elif config['save_window_locations']['audio window - alac - position'] != '' and \
+                config['save_window_locations']['audio window - alac'] == 'yes':
+            audio_window.geometry(config['save_window_locations']['audio window - alac - position'])
+        audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
+        audio_window.grab_set()  # Forces everything to this window
+        root.attributes('-alpha', 0.7)  # Set's some transparency during
 
-            for n in range(3):
-                audio_window.grid_columnconfigure(n, weight=1)
-            for n in range(4):
-                audio_window.grid_rowconfigure(n, weight=1)
-            for n in [5, 6, 10]:
-                audio_window.grid_rowconfigure(n, weight=1)
+        for n in range(3):
+            audio_window.grid_columnconfigure(n, weight=1)
+        for n in range(4):
+            audio_window.grid_rowconfigure(n, weight=1)
+        for n in [5, 6, 10]:
+            audio_window.grid_rowconfigure(n, weight=1)
 
-            my_menu_bar = Menu(audio_window, tearoff=0)
-            audio_window.config(menu=my_menu_bar)
-            file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-            my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
-            file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-            file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
-                                  command=mpv_gui_audio_window)
-            options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-            my_menu_bar.add_cascade(label='Options', menu=options_menu)
-            options_menu.add_command(label='Save Current Settings', command=save_profile)
-            options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
+        my_menu_bar = Menu(audio_window, tearoff=0)
+        audio_window.config(menu=my_menu_bar)
+        file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+        my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
+        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
+        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
+                              command=mpv_gui_audio_window)
+        options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
+        my_menu_bar.add_cascade(label='Options', menu=options_menu)
+        options_menu.add_command(label='Save Current Settings', command=save_profile)
+        options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
 
-            # Views Command ---------------------------------------------------------------------------------------
-            def view_command():
-                global cmd_line_window, show_cmd_scrolled
-                audio_filter_function()
-                example_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                                  encoder_dropdownmenu_choices[encoder.get()] +
-                                                  acodec_channel_choices[acodec_channel.get()] +
-                                                  acodec_samplerate_choices[acodec_samplerate.get()] +
-                                                  audio_filter_setting + min_pre_order + max_pre_order +
-                                                  flac_custom_cmd_input).split())
-                try:
-                    show_cmd_scrolled.configure(state=NORMAL)
-                    show_cmd_scrolled.delete(1.0, END)
-                    show_cmd_scrolled.insert(END, example_cmd_output)
-                    show_cmd_scrolled.see(END)
-                    show_cmd_scrolled.configure(state=DISABLED)
-                    cmd_line_window.deiconify()
-                except (AttributeError, NameError):
-                    cmd_line_window = Toplevel()
-                    cmd_line_window.title('Command Line')
-                    cmd_line_window.configure(background="#434547")
+        # Views Command ---------------------------------------------------------------------------------------
+        def view_command():
+            global cmd_line_window, show_cmd_scrolled
+            audio_filter_function()
+            example_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
+                                              encoder_dropdownmenu_choices[encoder.get()] +
+                                              acodec_channel_choices[acodec_channel.get()] +
+                                              acodec_samplerate_choices[acodec_samplerate.get()] +
+                                              audio_filter_setting + min_pre_order + max_pre_order +
+                                              flac_custom_cmd_input).split())
+            try:
+                show_cmd_scrolled.configure(state=NORMAL)
+                show_cmd_scrolled.delete(1.0, END)
+                show_cmd_scrolled.insert(END, example_cmd_output)
+                show_cmd_scrolled.see(END)
+                show_cmd_scrolled.configure(state=DISABLED)
+                cmd_line_window.deiconify()
+            except (AttributeError, NameError):
+                cmd_line_window = Toplevel()
+                cmd_line_window.title('Command Line')
+                cmd_line_window.configure(background="#434547")
 
-                    show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
-                                                                        spacing2=3, spacing1=2, spacing3=3)
-                    show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
-                    show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
-                    show_cmd_scrolled.insert(END, example_cmd_output)
-                    show_cmd_scrolled.see(END)
-                    show_cmd_scrolled.configure(state=DISABLED)
-                    cmd_line_window.resizable(False, False)  # Disables resizable functions of window
+                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
+                                                                    spacing2=3, spacing1=2, spacing3=3)
+                show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
+                show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
+                show_cmd_scrolled.insert(END, example_cmd_output)
+                show_cmd_scrolled.see(END)
+                show_cmd_scrolled.configure(state=DISABLED)
+                cmd_line_window.resizable(False, False)  # Disables resizable functions of window
 
-                    def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
-                        pyperclip.copy(show_cmd_scrolled.get(1.0, END))
+                def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
+                    pyperclip.copy(show_cmd_scrolled.get(1.0, END))
 
-                    copy_text = HoverButton(cmd_line_window, text='Copy to clipboard', command=copy_to_clipboard,
-                                            foreground='white', background='#23272A', borderwidth='3',
-                                            activebackground='grey')
-                    copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
+                copy_text = HoverButton(cmd_line_window, text='Copy to clipboard', command=copy_to_clipboard,
+                                        foreground='white', background='#23272A', borderwidth='3',
+                                        activebackground='grey')
+                copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
 
-                    def hide_instead():
-                        cmd_line_window.withdraw()
+                def hide_instead():
+                    cmd_line_window.withdraw()
 
-                    cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
+                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
 
-            # --------------------------------------------------------------------------------------- Views Command
+        # --------------------------------------------------------------------------------------- Views Command
 
-            # Buttons ---------------------------------------------------------------------------------------------
-            apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                       command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
-            apply_button.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        # Buttons ---------------------------------------------------------------------------------------------
+        apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
+                                   command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
+        apply_button.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
 
-            show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
-                                   command=view_command, activebackground='grey')
-            show_cmd.grid(row=10, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-            show_cmd.bind("<Enter>", show_cmd_hover)
-            show_cmd.bind("<Leave>", show_cmd_hover_leave)
-            # --------------------------------------------------------------------------------------------- Buttons
+        show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
+                               command=view_command, activebackground='grey')
+        show_cmd.grid(row=10, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        show_cmd.bind("<Enter>", show_cmd_hover)
+        show_cmd.bind("<Leave>", show_cmd_hover_leave)
+        # --------------------------------------------------------------------------------------------- Buttons
 
-            advanced_label = Label(audio_window,
-                                   text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - - - - "
-                                        "- - - - - - - - - - - - - - -",
-                                   background="#434547", foreground="white", relief=GROOVE)
-            advanced_label.grid(row=4, column=0, columnspan=3, padx=10, pady=10, sticky=W + E)
+        advanced_label = Label(audio_window,
+                               text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - - - - "
+                                    "- - - - - - - - - - - - - - -",
+                               background="#434547", foreground="white", relief=GROOVE)
+        advanced_label.grid(row=4, column=0, columnspan=3, padx=10, pady=10, sticky=W + E)
 
-            # Audio Stream Selection ------------------------------------------------------------------------------
-            acodec_stream = StringVar(audio_window)
-            acodec_stream_choices = acodec_stream_track_counter
-            acodec_stream.set(next(iter(acodec_stream_track_counter)))
-            acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
-            acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
-            acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
-            acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1,
-                                      width=15, anchor='w')
-            acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-            acodec_stream_menu["menu"].configure(activebackground="dim grey")
-            acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
-            acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
-            acodec_stream.trace('w', track_number_mpv)
-            track_number_mpv()
-            # -----------------------------------------------------------------------------------------------------
+        # Audio Stream Selection ------------------------------------------------------------------------------
+        acodec_stream = StringVar(audio_window)
+        acodec_stream_choices = acodec_stream_track_counter
+        acodec_stream.set(next(iter(acodec_stream_track_counter)))
+        acodec_stream_label = Label(audio_window, text="Track :", background="#434547", foreground="white")
+        acodec_stream_label.grid(row=0, column=0, columnspan=1, padx=10, pady=3, sticky=W + E)
+        acodec_stream_menu = OptionMenu(audio_window, acodec_stream, *acodec_stream_choices.keys())
+        acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1,
+                                  width=15, anchor='w')
+        acodec_stream_menu.grid(row=1, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        acodec_stream_menu["menu"].configure(activebackground="dim grey")
+        acodec_stream_menu.bind("<Enter>", acodec_stream_menu_hover)
+        acodec_stream_menu.bind("<Leave>", acodec_stream_menu_hover_leave)
+        acodec_stream.trace('w', track_number_mpv)
+        track_number_mpv()
+        # -----------------------------------------------------------------------------------------------------
 
-            # Audio Channel Selection -----------------------------------------------------------------------------
-            acodec_channel = StringVar(audio_window)
-            acodec_channel_choices = {'Original': "",
-                                      '1 (Mono)': "-ac 1 ",
-                                      '2 (Stereo)': "-ac 2 ",
-                                      '3': "-ac 3 ",
-                                      '4': "-ac 4 ",
-                                      '5.0 (Surround)': "-ac 5 ",
-                                      '5.1 (Surround)': "-ac 6 ",
-                                      '6.1 (Surround)': "-ac 7 ",
-                                      '7.1 (Surround)': "-ac 8 "}
-            acodec_channel.set(config_profile['FFMPEG ALAC - SETTINGS']['acodec_channel'])  # set the default option
-            achannel_menu_label = Label(audio_window, text="Channels :", background="#434547",
+        # Audio Channel Selection -----------------------------------------------------------------------------
+        acodec_channel = StringVar(audio_window)
+        acodec_channel_choices = {'Original': "",
+                                  '1 (Mono)': "-ac 1 ",
+                                  '2 (Stereo)': "-ac 2 ",
+                                  '3': "-ac 3 ",
+                                  '4': "-ac 4 ",
+                                  '5.0 (Surround)': "-ac 5 ",
+                                  '5.1 (Surround)': "-ac 6 ",
+                                  '6.1 (Surround)': "-ac 7 ",
+                                  '7.1 (Surround)': "-ac 8 "}
+        acodec_channel.set(config_profile['FFMPEG ALAC - SETTINGS']['acodec_channel'])  # set the default option
+        achannel_menu_label = Label(audio_window, text="Channels :", background="#434547",
+                                    foreground="white")
+        achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
+        achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
+        achannel_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15)
+        achannel_menu.grid(row=1, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        achannel_menu["menu"].configure(activebackground="dim grey")
+        achannel_menu.bind("<Enter>", achannel_menu_hover)
+        achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
+        acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
+        # --------------------------------------------------------------------------------------- Audio Channel
+
+        # Dolby Pro Logic II ----------------------------------------------------------------------------------
+        dolby_pro_logic_ii = StringVar()
+        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
+                                                  variable=dolby_pro_logic_ii, state=DISABLED,
+                                                  onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
+        if acodec_channel.get() == '2 (Stereo)':
+            dolby_pro_logic_ii_checkbox.configure(state=NORMAL)
+        dolby_pro_logic_ii_checkbox.grid(row=0, column=2, columnspan=1, rowspan=2, padx=10, pady=(20, 5),
+                                         sticky=N + S + E + W)
+        dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
+                                              activeforeground="white", selectcolor="#434547",
+                                              font=("Helvetica", 11))
+        dolby_pro_logic_ii.set(config_profile['FFMPEG ALAC - SETTINGS']['dolbyprologicii'])
+        # ---------------------------------------------------------------------------------------------- DPL II
+
+        # Audio Volume Selection ----------------------------------------------------------------------------------
+        ffmpeg_volume = StringVar()
+        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
+        ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=0.5, justify=CENTER, wrap=True,
+                                        textvariable=ffmpeg_volume, state='readonly')
+        ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+                                        buttonbackground="black", width=15, readonlybackground="#23272A")
+        ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_volume.set(config_profile['FFMPEG ALAC - SETTINGS']['volume'])
+        volume_right_click_options()
+        # -------------------------------------------------------------------------------------------------- Volume
+
+        # Audio Sample Rate Selection -------------------------------------------------------------------------
+        acodec_samplerate = StringVar(audio_window)
+        acodec_samplerate_choices = {'Original': "",
+                                     '8000 Hz': "-ar 8000 ",
+                                     '11025 Hz': "-ar 11025 ",
+                                     '22050 Hz': "-ar 22050 ",
+                                     '32000 Hz': "-ar 32000 ",
+                                     '44100 Hz': "-ar 44100 ",
+                                     '48000 Hz': "-ar 48000 ",
+                                     '96000 Hz': "-ar 96000 "}
+        acodec_samplerate.set(config_profile['FFMPEG ALAC - SETTINGS']['samplerate'])  # set the default
+        acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547",
                                         foreground="white")
-            achannel_menu_label.grid(row=0, column=1, columnspan=1, padx=10, pady=3, sticky=W + E)
-            achannel_menu = OptionMenu(audio_window, acodec_channel, *acodec_channel_choices.keys())
-            achannel_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15)
-            achannel_menu.grid(row=1, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-            achannel_menu["menu"].configure(activebackground="dim grey")
-            achannel_menu.bind("<Enter>", achannel_menu_hover)
-            achannel_menu.bind("<Leave>", achannel_menu_hover_leave)
-            acodec_channel.trace('w', dolby_pro_logic_ii_enable_disable)
-            # --------------------------------------------------------------------------------------- Audio Channel
+        acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate,
+                                            *acodec_samplerate_choices.keys())
+        acodec_samplerate_menu.config(background="#23272A", foreground="white", highlightthickness=1,
+                                      width=15)
+        acodec_samplerate_menu.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
+        acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
+        acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
 
-            # Dolby Pro Logic II ----------------------------------------------------------------------------------
-            dolby_pro_logic_ii = StringVar()
-            dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
-                                                      variable=dolby_pro_logic_ii, state=DISABLED,
-                                                      onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
-            if acodec_channel.get() == '2 (Stereo)':
-                dolby_pro_logic_ii_checkbox.configure(state=NORMAL)
-            dolby_pro_logic_ii_checkbox.grid(row=0, column=2, columnspan=1, rowspan=2, padx=10, pady=(20, 5),
-                                             sticky=N + S + E + W)
-            dolby_pro_logic_ii_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
-                                                  activeforeground="white", selectcolor="#434547",
-                                                  font=("Helvetica", 11))
-            dolby_pro_logic_ii.set(config_profile['FFMPEG ALAC - SETTINGS']['dolbyprologicii'])
-            # ---------------------------------------------------------------------------------------------- DPL II
+        # ----------------------------------------------------------------------------------------- Sample Rate
 
-            # Audio Volume Selection ----------------------------------------------------------------------------------
-            ffmpeg_volume = StringVar()
-            ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
-            ffmpeg_volume_label.grid(row=2, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-30, to=30, increment=0.5, justify=CENTER, wrap=True,
-                                            textvariable=ffmpeg_volume, state='readonly')
-            ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
-                                            buttonbackground="black", width=15, readonlybackground="#23272A")
-            ffmpeg_volume_spinbox.grid(row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            ffmpeg_volume.set(config_profile['FFMPEG ALAC - SETTINGS']['volume'])
-            volume_right_click_options()
-            # -------------------------------------------------------------------------------------------------- Volume
+        # Entry Box for Custom Command Line -------------------------------------------------------------------
+        def flac_cmd(*args):
+            global flac_custom_cmd_input
+            if flac_custom_cmd.get().strip() == "":
+                flac_custom_cmd_input = ""
+            else:
+                cstmcmd = flac_custom_cmd.get().strip()
+                flac_custom_cmd_input = cstmcmd + " "
 
-            # Audio Sample Rate Selection -------------------------------------------------------------------------
-            acodec_samplerate = StringVar(audio_window)
-            acodec_samplerate_choices = {'Original': "",
-                                         '8000 Hz': "-ar 8000 ",
-                                         '11025 Hz': "-ar 11025 ",
-                                         '22050 Hz': "-ar 22050 ",
-                                         '32000 Hz': "-ar 32000 ",
-                                         '44100 Hz': "-ar 44100 ",
-                                         '48000 Hz': "-ar 48000 ",
-                                         '96000 Hz': "-ar 96000 "}
-            acodec_samplerate.set(config_profile['FFMPEG ALAC - SETTINGS']['samplerate'])  # set the default
-            acodec_samplerate_label = Label(audio_window, text="Sample Rate :", background="#434547",
-                                            foreground="white")
-            acodec_samplerate_label.grid(row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            acodec_samplerate_menu = OptionMenu(audio_window, acodec_samplerate,
-                                                *acodec_samplerate_choices.keys())
-            acodec_samplerate_menu.config(background="#23272A", foreground="white", highlightthickness=1,
-                                          width=15)
-            acodec_samplerate_menu.grid(row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-            acodec_samplerate_menu["menu"].configure(activebackground="dim grey")
-            acodec_samplerate_menu.bind("<Enter>", acodec_samplerate_menu_hover)
-            acodec_samplerate_menu.bind("<Leave>", acodec_samplerate_menu_hover_leave)
+        flac_custom_cmd = StringVar()
+        flac_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W,
+                                        background="#434547",
+                                        foreground="white")
+        flac_cmd_entrybox_label.grid(row=8, column=0, columnspan=2, padx=10, pady=(15, 0),
+                                     sticky=N + S + W + E)
+        flac_cmd_entrybox = Entry(audio_window, textvariable=flac_custom_cmd, borderwidth=4,
+                                  background="#CACACA")
+        flac_cmd_entrybox.grid(row=9, column=0, columnspan=3, padx=10, pady=(0, 15), sticky=W + E)
+        flac_custom_cmd.trace('w', flac_cmd)
+        flac_custom_cmd.set("")
+        # --------------------------------------------------------------------------------- Custom Command Line
 
-            # ----------------------------------------------------------------------------------------- Sample Rate
+        # Audio Atempo Selection ------------------------------------------------------------------------------
+        acodec_atempo = StringVar(audio_window)
+        acodec_atempo_choices = {'Original': '',
+                                 '23.976 to 24': '"atempo=23.976/24"',
+                                 '23.976 to 25': '"atempo=23.976/25"',
+                                 '24 to 23.976': '"atempo=24/23.976"',
+                                 '24 to 25': '"atempo=24/25"',
+                                 '25 to 23.976': '"atempo=25/23.976"',
+                                 '25 to 24': '"atempo=25/24"',
+                                 '1/4 Slow-down': '"atempo=0.5,atempo=0.5"',
+                                 '1/2 Slow-down': '"atempo=0.5"',
+                                 '3/4 Slow-down': '"atempo=0.75"',
+                                 '1/4 Speed-up': '"atempo=1.25"',
+                                 '1/2 Speed-up': '"atempo=1.5"',
+                                 '3/4 Speed-up': '"atempo=1.75"',
+                                 '2x Speed-up': '"atempo=2.0"',
+                                 '2.5x Speed-up': '"atempo=2.5"',
+                                 '3x Speed-up': '"atempo=3.0"',
+                                 '3.5x Speed-up': '"atempo=3.5"',
+                                 '4x Speed-up': '"atempo=4.0"'}
+        acodec_atempo_menu_label = Label(audio_window, text="Time Modification :", background="#434547",
+                                         foreground="white")
+        acodec_atempo_menu_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
+        acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
+        acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15)
+        acodec_atempo_menu.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        acodec_atempo.set(config_profile['FFMPEG ALAC - SETTINGS']['tempo'])
+        acodec_atempo_menu["menu"].configure(activebackground="dim grey")
+        acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
+        acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
 
-            # Entry Box for Custom Command Line -------------------------------------------------------------------
-            def flac_cmd(*args):
-                global flac_custom_cmd_input
-                if flac_custom_cmd.get().strip() == "":
-                    flac_custom_cmd_input = ""
-                else:
-                    cstmcmd = flac_custom_cmd.get().strip()
-                    flac_custom_cmd_input = cstmcmd + " "
-
-            flac_custom_cmd = StringVar()
-            flac_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W,
-                                            background="#434547",
-                                            foreground="white")
-            flac_cmd_entrybox_label.grid(row=8, column=0, columnspan=2, padx=10, pady=(15, 0),
-                                         sticky=N + S + W + E)
-            flac_cmd_entrybox = Entry(audio_window, textvariable=flac_custom_cmd, borderwidth=4,
-                                      background="#CACACA")
-            flac_cmd_entrybox.grid(row=9, column=0, columnspan=3, padx=10, pady=(0, 15), sticky=W + E)
-            flac_custom_cmd.trace('w', flac_cmd)
-            flac_custom_cmd.set("")
-            # --------------------------------------------------------------------------------- Custom Command Line
-
-            # Audio Atempo Selection ------------------------------------------------------------------------------
-            acodec_atempo = StringVar(audio_window)
-            acodec_atempo_choices = {'Original': '',
-                                     '23.976 to 24': '"atempo=23.976/24"',
-                                     '23.976 to 25': '"atempo=23.976/25"',
-                                     '24 to 23.976': '"atempo=24/23.976"',
-                                     '24 to 25': '"atempo=24/25"',
-                                     '25 to 23.976': '"atempo=25/23.976"',
-                                     '25 to 24': '"atempo=25/24"',
-                                     '1/4 Slow-down': '"atempo=0.5,atempo=0.5"',
-                                     '1/2 Slow-down': '"atempo=0.5"',
-                                     '3/4 Slow-down': '"atempo=0.75"',
-                                     '1/4 Speed-up': '"atempo=1.25"',
-                                     '1/2 Speed-up': '"atempo=1.5"',
-                                     '3/4 Speed-up': '"atempo=1.75"',
-                                     '2x Speed-up': '"atempo=2.0"',
-                                     '2.5x Speed-up': '"atempo=2.5"',
-                                     '3x Speed-up': '"atempo=3.0"',
-                                     '3.5x Speed-up': '"atempo=3.5"',
-                                     '4x Speed-up': '"atempo=4.0"'}
-            acodec_atempo_menu_label = Label(audio_window, text="Time Modification :", background="#434547",
-                                             foreground="white")
-            acodec_atempo_menu_label.grid(row=2, column=2, columnspan=1, padx=10, pady=3, sticky=W + E)
-            acodec_atempo_menu = OptionMenu(audio_window, acodec_atempo, *acodec_atempo_choices.keys())
-            acodec_atempo_menu.config(background="#23272A", foreground="white", highlightthickness=1, width=15)
-            acodec_atempo_menu.grid(row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
-            acodec_atempo.set(config_profile['FFMPEG ALAC - SETTINGS']['tempo'])
-            acodec_atempo_menu["menu"].configure(activebackground="dim grey")
-            acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
-            acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
-
-        # -------------------------------------------------------------------------------------------- Audio Atempo
+    # -------------------------------------------------------------------------------------------- Audio Atempo
 
         # Min-Prediction-Order ------------------------------------------------------------------------------------
         def get_min_pre_order(*args):
