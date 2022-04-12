@@ -15,10 +15,12 @@ def set_window_geometry_settings():
     def gsw_exit_function():  # Exit function when hitting the 'X' button
         if window_pos_toggle.get() == 'yes':  # If auto save position on close is checked
             try:
-                config.set('save_window_locations', 'window location settings position',
-                           geometry_settings_window.geometry())
-                with open(config_file, 'w') as configfile:
-                    config.write(configfile)
+                if config['save_window_locations']['window location settings position'] != \
+                        geometry_settings_window.geometry():
+                    config.set('save_window_locations', 'window location settings position',
+                               geometry_settings_window.geometry())
+                    with open(config_file, 'w') as configfile:
+                        config.write(configfile)
             except (Exception,):
                 pass
 
@@ -147,9 +149,28 @@ def set_window_geometry_settings():
     about_pos_toggle.set(config['save_window_locations']['about'])  # Set box from config.ini
     about_pos_toggle_checkbox = Checkbutton(option_frame, text='About Window', variable=about_pos_toggle,
                                             onvalue='yes', offvalue='no', command=about_win_pos_toggle)
-    about_pos_toggle_checkbox.grid(row=1, column=0, rowspan=1, columnspan=2, padx=10, pady=(0, 0), sticky=W + N + E)
+    about_pos_toggle_checkbox.grid(row=1, column=1, rowspan=1, columnspan=2, padx=10, pady=(0, 0), sticky=N + E)
     about_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                         activeforeground=color5, selectcolor=color3, font=(set_font, set_font_size + 2))
+
+    def progress_win_pos_toggle():
+        try:  # Write to config
+            config.set('save_window_locations', 'progress window', progress_pos_toggle.get())
+            if progress_pos_toggle.get() == 'no':
+                config.set('save_window_locations', 'progress window position', '')
+            with open(config_file, 'w') as configfile:
+                config.write(configfile)
+        except (Exception,):
+            pass
+
+    progress_pos_toggle = StringVar()  # variable
+    progress_pos_toggle.set(config['save_window_locations']['progress window'])  # Set box from config.ini
+    progress_pos_toggle_checkbox = Checkbutton(option_frame, text='Progress Window', variable=progress_pos_toggle,
+                                               onvalue='yes', offvalue='no', command=progress_win_pos_toggle)
+    progress_pos_toggle_checkbox.grid(row=1, column=0, rowspan=1, columnspan=2, padx=10, pady=(0, 0), sticky=N + W)
+    progress_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
+                                           activeforeground=color5, selectcolor=color3,
+                                           font=(set_font, set_font_size + 2))
 
     # Right click menu for "Window Options" frame ---------------------------------------------------------------------
     def option_popup_menu(e):  # Function for mouse button 3 (right click) to pop up menu
@@ -170,6 +191,9 @@ def set_window_geometry_settings():
         option_menu.add_command(label='Reset: "Window Location Settings"', command=lambda: [
             window_pos_toggle.set('no'), window_location_pos_toggle(), window_pos_toggle.set('yes'),
             window_location_pos_toggle()])
+        option_menu.add_command(label='Reset: "Progress Window"', command=lambda: [
+            progress_pos_toggle.set('no'), progress_win_pos_toggle(), progress_pos_toggle.set('yes'),
+            progress_win_pos_toggle()])
         option_menu.add_command(label='Reset: "About Window"', command=lambda: [
             about_pos_toggle.set('no'), about_win_pos_toggle(), about_pos_toggle.set('yes'),
             about_win_pos_toggle()])
@@ -180,6 +204,7 @@ def set_window_geometry_settings():
     option_frame.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
     ffmpeg_pos_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
     window_pos_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
+    progress_pos_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
     about_pos_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
 
     # --------------------------------------------------------------------- Right click menu for "Window Options" frame
