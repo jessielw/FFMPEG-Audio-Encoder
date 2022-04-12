@@ -60,6 +60,7 @@ def set_window_geometry_settings():
     geometry_settings_window.rowconfigure(0, weight=1)
     geometry_settings_window.rowconfigure(1, weight=4)
     geometry_settings_window.rowconfigure(2, weight=10)
+    geometry_settings_window.rowconfigure(3, weight=1)
     geometry_settings_window.grid_columnconfigure(0, weight=1)
 
     # Track Frame -----------------------------------------------------------------------------
@@ -74,17 +75,23 @@ def set_window_geometry_settings():
 
     option_frame.rowconfigure(1, weight=1)
     option_frame.rowconfigure(2, weight=1)
+    option_frame.rowconfigure(3, weight=1)
     option_frame.grid_columnconfigure(0, weight=1)
     option_frame.grid_columnconfigure(1, weight=1)
 
     option_frame_audio = LabelFrame(geometry_settings_window, text=' Audio Codec Window Options ', labelanchor=N)
-    option_frame_audio.grid(row=2, column=0, columnspan=2, sticky=E + W + S + N, padx=10, pady=(3, 10))
+    option_frame_audio.grid(row=2, column=0, columnspan=2, sticky=E + W + S + N, padx=10, pady=(3, 0))
     option_frame_audio.configure(fg=color2, bg=color3, bd=4, font=(set_font, 12, "bold"))
 
     for n in range(0, 4):
         option_frame_audio.rowconfigure(n, weight=1)
     option_frame_audio.grid_columnconfigure(0, weight=1)
     option_frame_audio.grid_columnconfigure(1, weight=1)
+
+    info_label = Label(geometry_settings_window, anchor='center', bg=color3, fg=color4,
+                       text="Info: Right click inside each frame to reset")
+    info_label.grid(row=3, column=0, columnspan=2, padx=10, pady=(0, 10), sticky=W + E + S + N)
+    info_label.config(font=(set_font, set_font_size, "italic"))
 
     # ----------------------------------------------------------------------------- Track Frame
 
@@ -102,7 +109,7 @@ def set_window_geometry_settings():
     ffmpeg_pos_toggle.set(config['save_window_locations']['ffmpeg audio encoder'])  # Set box from config.ini
     ffmpeg_pos_toggle_checkbox = Checkbutton(option_frame, text='FFMPEG Audio Encoder', variable=ffmpeg_pos_toggle,
                                              onvalue='yes', offvalue='no', command=ffmpeg_gui_pos_toggle)
-    ffmpeg_pos_toggle_checkbox.grid(row=1, column=0, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=W + N)
+    ffmpeg_pos_toggle_checkbox.grid(row=0, column=0, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=W + N)
     ffmpeg_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                          activeforeground=color5, selectcolor=color3,
                                          font=(set_font, set_font_size + 2))
@@ -121,10 +128,61 @@ def set_window_geometry_settings():
     window_pos_toggle.set(config['save_window_locations']['window location settings'])  # Set box from config.ini
     window_pos_toggle_checkbox = Checkbutton(option_frame, text='Window Location Settings', variable=window_pos_toggle,
                                              onvalue='yes', offvalue='no', command=window_location_pos_toggle)
-    window_pos_toggle_checkbox.grid(row=1, column=1, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=E + N)
+    window_pos_toggle_checkbox.grid(row=0, column=1, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=E + N)
     window_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                          activeforeground=color5, selectcolor=color3,
                                          font=(set_font, set_font_size + 2))
+
+    def about_win_pos_toggle():
+        try:  # Write to config
+            config.set('save_window_locations', 'about', about_pos_toggle.get())
+            if about_pos_toggle.get() == 'no':
+                config.set('save_window_locations', 'about position', '')
+            with open(config_file, 'w') as configfile:
+                config.write(configfile)
+        except (Exception,):
+            pass
+
+    about_pos_toggle = StringVar()  # variable
+    about_pos_toggle.set(config['save_window_locations']['about'])  # Set box from config.ini
+    about_pos_toggle_checkbox = Checkbutton(option_frame, text='About Window', variable=about_pos_toggle,
+                                            onvalue='yes', offvalue='no', command=about_win_pos_toggle)
+    about_pos_toggle_checkbox.grid(row=1, column=0, rowspan=1, columnspan=2, padx=10, pady=(0, 0), sticky=W + N + E)
+    about_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
+                                        activeforeground=color5, selectcolor=color3, font=(set_font, set_font_size + 2))
+
+    # Right click menu for "Window Options" frame ---------------------------------------------------------------------
+    def option_popup_menu(e):  # Function for mouse button 3 (right click) to pop up menu
+        def reset():  # Function to reset all items in frame to default
+            msg = messagebox.askyesno(title='Prompt', parent=geometry_settings_window,
+                                      message='Are you sure you want to reset all "Window Options" to default?')
+            if msg:  # If user selects "yes" to prompt
+                config.set('save_window_locations', 'ffmpeg audio encoder position', '')
+                config.set('save_window_locations', 'window location settings position', '')
+                config.set('save_window_locations', 'about position', '')
+                with open(config_file, 'w') as configfile:
+                    config.write(configfile)
+
+        option_menu = Menu(geometry_settings_window, tearoff=False)  # Menu
+        option_menu.add_command(label='Reset: "FFMPEG Audio Encoder"', command=lambda: [
+            ffmpeg_pos_toggle.set('no'), ffmpeg_gui_pos_toggle(), ffmpeg_pos_toggle.set('yes'),
+            ffmpeg_gui_pos_toggle()])
+        option_menu.add_command(label='Reset: "Window Location Settings"', command=lambda: [
+            window_pos_toggle.set('no'), window_location_pos_toggle(), window_pos_toggle.set('yes'),
+            window_location_pos_toggle()])
+        option_menu.add_command(label='Reset: "About Window"', command=lambda: [
+            about_pos_toggle.set('no'), about_win_pos_toggle(), about_pos_toggle.set('yes'),
+            about_win_pos_toggle()])
+        option_menu.add_separator()
+        option_menu.add_command(label='Reset: All "Window Options"', command=reset)
+        option_menu.tk_popup(e.x_root, e.y_root)  # This gets the position of 'e' on the root widget
+
+    option_frame.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
+    ffmpeg_pos_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
+    window_pos_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
+    about_pos_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
+
+    # --------------------------------------------------------------------- Right click menu for "Window Options" frame
 
     def ac3_location_pos_toggle():
         try:  # Write to config
@@ -308,34 +366,6 @@ def set_window_geometry_settings():
     alac_pos_toggle_checkbox.grid(row=4, column=1, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=E + N)
     alac_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                        activeforeground=color5, selectcolor=color3, font=(set_font, set_font_size + 2))
-
-    # Right click menu for "Window Options" frame ---------------------------------------------------------------------
-    def option_popup_menu(e):  # Function for mouse button 3 (right click) to pop up menu
-        def reset():  # Function to reset all items in frame to default
-            msg = messagebox.askyesno(title='Prompt', parent=geometry_settings_window,
-                                      message='Are you sure you want to reset all "Window Options" to default?')
-            if msg:  # If user selects "yes" to prompt
-                config.set('save_window_locations', 'ffmpeg audio encoder position', '')
-                config.set('save_window_locations', 'window location settings position', '')
-                with open(config_file, 'w') as configfile:
-                    config.write(configfile)
-
-        option_menu = Menu(geometry_settings_window, tearoff=False)  # Menu
-        option_menu.add_command(label='Reset: "FFMPEG Audio Encoder"', command=lambda: [
-            ffmpeg_pos_toggle.set('no'), ffmpeg_gui_pos_toggle(), ffmpeg_pos_toggle.set('yes'),
-            ffmpeg_gui_pos_toggle()])
-        option_menu.add_command(label='Reset: "Window Location Settings"', command=lambda: [
-            window_pos_toggle.set('no'), window_location_pos_toggle(), window_pos_toggle.set('yes'),
-            window_location_pos_toggle()])
-        option_menu.add_separator()
-        option_menu.add_command(label='Reset: All "Window Options"', command=reset)
-        option_menu.tk_popup(e.x_root, e.y_root)  # This gets the position of 'e' on the root widget
-
-    option_frame.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
-    ffmpeg_pos_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
-    window_pos_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
-
-    # --------------------------------------------------------------------- Right click menu for "Window Options" frame
 
     # Right click menu for "Audio Codec Window Options" frame ---------------------------------------------------------
     def option_audio_popup_menu(e):  # Function for mouse button 3 (right click) to pop up menu
