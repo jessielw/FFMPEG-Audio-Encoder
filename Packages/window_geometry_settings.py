@@ -1,4 +1,4 @@
-from tkinter import Toplevel, LabelFrame, N, S, E, W, Label, StringVar, Checkbutton, font
+from tkinter import Toplevel, LabelFrame, N, S, E, W, Label, StringVar, Checkbutton, font, Menu, messagebox
 from configparser import ConfigParser
 
 
@@ -85,8 +85,8 @@ def set_window_geometry_settings():
         option_frame_audio.rowconfigure(n, weight=1)
     option_frame_audio.grid_columnconfigure(0, weight=1)
     option_frame_audio.grid_columnconfigure(1, weight=1)
-    # ----------------------------------------------------------------------------- Track Frame
 
+    # ----------------------------------------------------------------------------- Track Frame
 
     def ffmpeg_gui_pos_toggle():
         try:  # Write to config
@@ -308,4 +308,96 @@ def set_window_geometry_settings():
     alac_pos_toggle_checkbox.grid(row=4, column=1, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=E + N)
     alac_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                        activeforeground=color5, selectcolor=color3, font=(set_font, set_font_size + 2))
-# -------------------------------------------------------------------------------------------- Window geometry settings
+
+    # Right click menu for "Window Options" frame ---------------------------------------------------------------------
+    def option_popup_menu(e):  # Function for mouse button 3 (right click) to pop up menu
+        def reset():  # Function to reset all items in frame to default
+            msg = messagebox.askyesno(title='Prompt', parent=geometry_settings_window,
+                                      message='Are you sure you want to reset all "Window Options" to default?')
+            if msg:  # If user selects "yes" to prompt
+                config.set('save_window_locations', 'ffmpeg audio encoder position', '')
+                config.set('save_window_locations', 'window location settings position', '')
+                with open(config_file, 'w') as configfile:
+                    config.write(configfile)
+
+        option_menu = Menu(geometry_settings_window, tearoff=False)  # Menu
+        option_menu.add_command(label='Reset: "FFMPEG Audio Encoder"', command=lambda: [
+            ffmpeg_pos_toggle.set('no'), ffmpeg_gui_pos_toggle(), ffmpeg_pos_toggle.set('yes'),
+            ffmpeg_gui_pos_toggle()])
+        option_menu.add_command(label='Reset: "Window Location Settings"', command=lambda: [
+            window_pos_toggle.set('no'), window_location_pos_toggle(), window_pos_toggle.set('yes'),
+            window_location_pos_toggle()])
+        option_menu.add_separator()
+        option_menu.add_command(label='Reset: All "Window Options"', command=reset)
+        option_menu.tk_popup(e.x_root, e.y_root)  # This gets the position of 'e' on the root widget
+
+    option_frame.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
+    ffmpeg_pos_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
+    window_pos_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
+
+    # --------------------------------------------------------------------- Right click menu for "Window Options" frame
+
+    # Right click menu for "Audio Codec Window Options" frame ---------------------------------------------------------
+    def option_audio_popup_menu(e):  # Function for mouse button 3 (right click) to pop up menu
+        def reset():  # Function to reset all items in frame to default
+            msg = messagebox.askyesno(title='Prompt', parent=geometry_settings_window,
+                                      message='Are you sure you want to reset all '
+                                              '"Audio Codec Window Options" to default?')
+            if msg:  # If user selects yes to prompt
+                config.set('save_window_locations', 'audio window - ac3 - position', '')
+                config.set('save_window_locations', 'audio window - aac - position', '')
+                config.set('save_window_locations', 'audio window - e-ac3 - position', '')
+                config.set('save_window_locations', 'audio window - dts - position', '')
+                config.set('save_window_locations', 'audio window - opus - position', '')
+                config.set('save_window_locations', 'audio window - mp3 - position', '')
+                config.set('save_window_locations', 'audio window - fdk-aac - position', '')
+                config.set('save_window_locations', 'audio window - qaac - position', '')
+                config.set('save_window_locations', 'audio window - flac - position', '')
+                config.set('save_window_locations', 'audio window - alac - position', '')
+                with open(config_file, 'w') as configfile:
+                    config.write(configfile)
+
+        option_menu = Menu(geometry_settings_window, tearoff=False)  # Menu
+        option_menu.add_command(label='Reset: "AC3"', command=lambda: [
+            ac3_pos_toggle.set('no'), ac3_location_pos_toggle(), ac3_pos_toggle.set('yes'),
+            ac3_location_pos_toggle()])
+        option_menu.add_command(label='Reset: "AAC"', command=lambda: [
+            aac_pos_toggle.set('no'), aac_location_pos_toggle(), aac_pos_toggle.set('yes'),
+            aac_location_pos_toggle()])
+        option_menu.add_command(label='Reset: "E-AC3"', command=lambda: [
+            e_ac3_pos_toggle.set('no'), e_ac3_location_pos_toggle(), e_ac3_pos_toggle.set('yes'),
+            e_ac3_location_pos_toggle()])
+        option_menu.add_command(label='Reset: "DTS"', command=lambda: [
+            dts_pos_toggle.set('no'), dts_location_pos_toggle(), dts_pos_toggle.set('yes'),
+            dts_location_pos_toggle()])
+        option_menu.add_command(label='Reset: "Opus"', command=lambda: [
+            opus_pos_toggle.set('no'), opus_location_pos_toggle(), opus_pos_toggle.set('yes'),
+            opus_location_pos_toggle()])
+        option_menu.add_command(label='Reset: "Mp3"', command=lambda: [
+            mp3_pos_toggle.set('no'), mp3_location_pos_toggle(), mp3_pos_toggle.set('yes'),
+            mp3_location_pos_toggle()])
+        option_menu.add_command(label='Reset: "FDK-AAC"', command=lambda: [
+            fdk_aac_pos_toggle.set('no'), fdk_aac_location_pos_toggle(), fdk_aac_pos_toggle.set('yes'),
+            fdk_aac_location_pos_toggle()])
+        option_menu.add_command(label='Reset: "QAAC"', command=lambda: [
+            qaac_pos_toggle.set('no'), qaac_location_pos_toggle(), qaac_pos_toggle.set('yes'),
+            qaac_location_pos_toggle()])
+        option_menu.add_command(label='Reset: "FLAC"', command=lambda: [
+            flac_pos_toggle.set('no'), flac_location_pos_toggle(), flac_pos_toggle.set('yes'),
+            flac_location_pos_toggle()])
+        option_menu.add_command(label='Reset: "ALAC"', command=lambda: [
+            alac_pos_toggle.set('no'), alac_location_pos_toggle(), alac_pos_toggle.set('yes'),
+            alac_location_pos_toggle()])
+        option_menu.add_separator()
+        option_menu.add_command(label='Reset: All "Audio Codec Window Options"', command=reset)
+        option_menu.tk_popup(e.x_root, e.y_root)  # This gets the position of 'e' on the root widget
+
+    option_frame_audio.bind('<Button-3>', option_audio_popup_menu)  # Right click to pop up menu in frame
+    list_of_check_buttons = [ac3_pos_toggle_checkbox, aac_pos_toggle_checkbox, e_ac3_pos_toggle_checkbox,
+                             dts_pos_toggle_checkbox, opus_pos_toggle_checkbox, mp3_pos_toggle_checkbox,
+                             fdk_aac_pos_toggle_checkbox, qaac_pos_toggle_checkbox, flac_pos_toggle_checkbox,
+                             alac_pos_toggle_checkbox]
+    for check_buttons in list_of_check_buttons:  # Use list of check buttons to bind
+        check_buttons.bind('<Button-3>', option_audio_popup_menu)  # Right click to pop up menu in frame
+    # --------------------------------------------------------- Right click menu for "Audio Codec Window Options" frame
+    # ---------------------------------------------------------------------------------------- Window geometry settings
