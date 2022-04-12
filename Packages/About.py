@@ -35,13 +35,16 @@ def openaboutwindow():
     about_window = Toplevel()
     about_window.title('About')
     about_window.configure(background="#434547")
-    window_height = 140
-    window_width = 470
-    screen_width = about_window.winfo_screenwidth()
-    screen_height = about_window.winfo_screenheight()
-    x_cordinate = int((screen_width / 2) - (window_width / 2))
-    y_cordinate = int((screen_height / 2) - (window_height / 2))
-    about_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+    if config['save_window_locations']['about position'] == '' or config['save_window_locations']['about'] == 'no':
+        window_height = 140
+        window_width = 470
+        screen_width = about_window.winfo_screenwidth()
+        screen_height = about_window.winfo_screenheight()
+        x_coordinate = int((screen_width / 2) - (window_width / 2))
+        y_coordinate = int((screen_height / 2) - (window_height / 2))
+        about_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
+    elif config['save_window_locations']['about position'] != '' and config['save_window_locations']['about'] == 'yes':
+        about_window.geometry(config['save_window_locations']['about position'])
     about_window.protocol('WM_DELETE_WINDOW', about_exit_function)
     about_window_text = Text(about_window, background="#434547", foreground="white", relief=SUNKEN)
     about_window_text.pack()
