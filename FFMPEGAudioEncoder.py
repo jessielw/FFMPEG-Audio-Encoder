@@ -1,17 +1,9 @@
 # Imports--------------------------------------------------------------------
-import webbrowser
-from tkinter import *
-from tkinter import filedialog, StringVar
-from tkinter import ttk
-import subprocess
-import tkinter as tk
-import pathlib
-import tkinter.scrolledtext as scrolledtextwidget
+from tkinter import filedialog, StringVar, ttk, messagebox, PhotoImage, Menu, NORMAL, DISABLED, N, S, W, E, Toplevel, \
+    LabelFrame, END, INSERT, Label, Checkbutton, Spinbox, CENTER, GROOVE, OptionMenu, Entry, HORIZONTAL, SUNKEN, Button
 from TkinterDnD2 import *
-from tkinter import messagebox
+import subprocess, pathlib, threading, shutil, re, webbrowser, pyperclip, tkinter.scrolledtext as scrolledtextwidget
 from time import sleep
-import threading
-import shutil
 from Packages.DirectoryCheck import directory_check
 from Packages.SimpleYoutubeDLGui import youtube_dl_launcher_for_ffmpegaudioencoder
 from Packages.FFMPEGAudioEncoderBatch import batch_processing
@@ -21,7 +13,6 @@ from Packages.window_geometry_settings import set_window_geometry_settings
 from configparser import ConfigParser
 from ctypes import windll
 from pymediainfo import MediaInfo
-import pyperclip
 from idlelib.tooltip import Hovertip
 
 
@@ -36,22 +27,21 @@ def root_exit_function():
             except (Exception,):
                 pass
 
-    try:  # Check to see if any children window are open before displaying message
-        if audio_window.winfo_exists() or cmd_line_window.winfo_exists() or progress_window.winfo_exists():
-            # If open display message
-            confirm_exit = messagebox.askyesno(title='Prompt', message="Are you sure you want to exit the program?\n\n"
-                                                                       "Warning:\nThis will end all current tasks "
-                                                                       "and close all windows!", parent=root)
-            if confirm_exit:
-                try:
-                    subprocess.Popen(f"TASKKILL /F /im FFMPEGAudioEncoder.exe /T",
-                                     creationflags=subprocess.CREATE_NO_WINDOW)
-                    save_root_pos()
-                    root.destroy()
-                except (Exception,):
-                    save_root_pos()
-                    root.destroy()
-    except NameError:  # If no children window are present close main gui without prompt
+    toplevel_list = []  # Create an empty list
+    for widgets in root.winfo_children():
+        toplevel_list.append(widgets)  # Add all off root's children to list
+    toplevel_search = re.search(r"toplevel", str(toplevel_list))  # Search through list for any top levels
+    if toplevel_search:  # If any top levels are found, ask user if they want to exit before exiting
+        # If open display message
+        confirm_exit = messagebox.askyesno(title='Prompt', message="Are you sure you want to exit the program?\n\n"
+                                                                   "Warning:\nThis will end all current tasks "
+                                                                   "and close all windows!", parent=root)
+        if confirm_exit:  # If user wants to exit, kill app and all of it's children
+            subprocess.Popen(f"TASKKILL /F /im FFMPEGAudioEncoder.exe /T",
+                             creationflags=subprocess.CREATE_NO_WINDOW)
+            save_root_pos()
+            root.destroy()
+    else:  # If no top levels are found, exit the program without prompt
         save_root_pos()
         root.destroy()
 
@@ -115,9 +105,9 @@ custom_style.configure("custom.Horizontal.TProgressbar", background="#3a4145")
 
 # ------------------------------------------ Custom Tkinter Theme
 # Hover over button theme ---------------------------------------
-class HoverButton(tk.Button):
+class HoverButton(Button):
     def __init__(self, master, **kw):
-        tk.Button.__init__(self, master=master, **kw)
+        Button.__init__(self, master=master, **kw)
         self.defaultBackground = self["background"]
         self.bind("<Enter>", self.on_enter)
         self.bind("<Leave>", self.on_leave)
@@ -5409,7 +5399,7 @@ def startaudiojob():
     complete_or_not = ''  # Set empty placeholder variable for complete_or_not
 
     if shell_options.get() == "Default":  # Default progress bars
-        global total_duration, progress_window
+        global total_duration
         media_info = MediaInfo.parse(pathlib.Path(VideoInput))  # Parse input file
         track_selection_mediainfo = media_info.audio_tracks[int(acodec_stream_choices[acodec_stream.get()].strip()[-1])]
         # track_selection_mediainfo uses the -map 0:a:x code to get the track input, the code grabs only the last number
@@ -5422,13 +5412,26 @@ def startaudiojob():
             total_duration = track_selection_mediainfo.duration
 
         def close_encode():
+            def save_close_position():  # Function to save size/position upon exit
+                if config['save_window_locations']['progress window'] == 'yes':  # If checkbutton is checked
+                    try:
+                        if config['save_window_locations']['progress window position'] != progress_window.geometry():
+                            config.set('save_window_locations', 'progress window position', progress_window.geometry())
+                            with open(config_file, 'w') as configfile:
+                                config.write(configfile)
+                    except (Exception,):
+                        pass
+
             if complete_or_not == 'complete':
+                save_close_position()
                 progress_window.destroy()
+
             else:
                 confirm_exit = messagebox.askyesno(title='Prompt', parent=progress_window,
                                                    message="Are you sure you want to stop the encode?")
                 if confirm_exit:
                     subprocess.Popen(f"TASKKILL /F /PID {job.pid} /T", creationflags=subprocess.CREATE_NO_WINDOW)
+                    save_close_position()
                     progress_window.destroy()
 
         def close_window():
@@ -5438,6 +5441,9 @@ def startaudiojob():
         progress_window = Toplevel(root)
         progress_window.title('Codec : ' + encoder.get() + '  |  ' + str(pathlib.Path(VideoInput).stem))
         progress_window.configure(background="#434547")
+        if config['save_window_locations']['progress window position'] != '' and \
+                config['save_window_locations']['progress window'] == 'yes':
+            progress_window.geometry(config['save_window_locations']['progress window position'])
         progress_window.grid_columnconfigure(0, weight=1)
         progress_window.grid_rowconfigure(1, weight=1)
         progress_window.protocol('WM_DELETE_WINDOW', close_window)
@@ -5867,7 +5873,7 @@ def startaudiojob():
             encode_window_progress.configure(state=DISABLED)  # Disable progress window editing
             copy_text.config(state=NORMAL)  # Enable copy button once all the code completes
             if config['auto_close_progress_window']['option'] == 'on':
-                progress_window.destroy()  # If program is set to auto close encoding window when complete, close
+                close_window()  # If program is set to auto close encoding window when complete, close
 
         elif shell_options.get() == "Debug":  # Debug mode, only opens a cmd.exe terminal for raw output
             subprocess.Popen('cmd /k ' + finalcommand + '"')
