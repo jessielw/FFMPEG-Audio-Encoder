@@ -43,6 +43,14 @@ def create_config_params():
         config.set('save_window_locations', 'window location settings', 'yes')
     if not config.has_option('save_window_locations', 'window location settings position'):
         config.set('save_window_locations', 'window location settings position', '')
+    if not config.has_option('save_window_locations', 'about'):
+        config.set('save_window_locations', 'about', 'yes')
+    if not config.has_option('save_window_locations', 'about position'):
+        config.set('save_window_locations', 'about position', '')
+    if not config.has_option('save_window_locations', 'progress window'):
+        config.set('save_window_locations', 'progress window', 'yes')
+    if not config.has_option('save_window_locations', 'progress window position'):
+        config.set('save_window_locations', 'progress window position', '')
     if not config.has_option('save_window_locations', 'audio window - aac'):
         config.set('save_window_locations', 'audio window - aac', 'yes')
     if not config.has_option('save_window_locations', 'audio window - aac - position'):
@@ -83,10 +91,7 @@ def create_config_params():
         config.set('save_window_locations', 'audio window - alac', 'yes')
     if not config.has_option('save_window_locations', 'audio window - alac - position'):
         config.set('save_window_locations', 'audio window - alac - position', '')
-    if not config.has_option('save_window_locations', 'about'):
-        config.set('save_window_locations', 'about', 'yes')
-    if not config.has_option('save_window_locations', 'about position'):
-        config.set('save_window_locations', 'about position', '')
+
     try:
         with open(config_file, 'w') as configfile:
             config.write(configfile)
