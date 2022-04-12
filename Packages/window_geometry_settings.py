@@ -45,8 +45,8 @@ def set_window_geometry_settings():
     geometry_settings_window.configure(background=color1)
     if config['save_window_locations']['window location settings position'] == '' or \
             config['save_window_locations']['window location settings'] == 'no':
-        window_height = 550
-        window_width = 368
+        window_height = 420
+        window_width = 550
         screen_width = geometry_settings_window.winfo_screenwidth()
         screen_height = geometry_settings_window.winfo_screenheight()
         x_cordinate = int((screen_width / 2) - (window_width / 2))
