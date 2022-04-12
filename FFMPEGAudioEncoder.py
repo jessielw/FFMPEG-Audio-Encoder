@@ -319,16 +319,10 @@ def reset_config():
     msg = messagebox.askyesno(title='Warning', message='Are you sure you want to reset the config.ini file settings?')
     if msg:
         try:
-            config.set('ffmpeg_path', 'path', '')
-            config.set('mpv_player_path', 'path', '')
-            config.set('mediainfocli_path', 'path', '')
-            config.set('mediainfogui_path', 'path', '')
-            config.set('debug_option', 'option', 'Default')
-            with open(config_file, 'w') as configfile:
-                config.write(configfile)
+            pathlib.Path(config_file).unlink()
             messagebox.showinfo(title='Prompt', message='Please restart the program')
-        except (Exception,):
-            pass
+        except FileNotFoundError:
+            messagebox.showerror(title='Error!', message='"Config.ini" is already deleted, please restart the program')
         root.destroy()
 
 
@@ -749,6 +743,7 @@ def openaudiowindow():
                     config.write(configfile)
             except (Exception,):
                 pass
+
     # -------------------------------------------------------------------------- Save audio codec window size/positions
 
     # 'Apply' button function -----------------------------------------------------------------------------------------
@@ -5050,7 +5045,7 @@ def openaudiowindow():
         acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
         acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
 
-    # -------------------------------------------------------------------------------------------- Audio Atempo
+        # -------------------------------------------------------------------------------------------- Audio Atempo
 
         # Min-Prediction-Order ------------------------------------------------------------------------------------
         def get_min_pre_order(*args):
