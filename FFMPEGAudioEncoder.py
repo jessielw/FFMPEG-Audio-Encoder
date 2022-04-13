@@ -1,6 +1,7 @@
 # Imports--------------------------------------------------------------------
 from tkinter import filedialog, StringVar, ttk, messagebox, PhotoImage, Menu, NORMAL, DISABLED, N, S, W, E, Toplevel, \
-    LabelFrame, END, INSERT, Label, Checkbutton, Spinbox, CENTER, GROOVE, OptionMenu, Entry, HORIZONTAL, SUNKEN, Button
+    LabelFrame, END, INSERT, Label, Checkbutton, Spinbox, CENTER, GROOVE, OptionMenu, Entry, HORIZONTAL, SUNKEN, \
+    Button, TclError
 from TkinterDnD2 import *
 import subprocess, pathlib, threading, shutil, re, webbrowser, pyperclip, tkinter.scrolledtext as scrolledtextwidget
 from time import sleep
@@ -379,6 +380,171 @@ def encoder_changed(*args):
 
 # --------------------------------------------------------------------------------------------- File Auto Save Function
 
+# Show Streams Inside Audio Settings Window -----------------------------------------------------------------------
+def show_streams_mediainfo():  # Stream Viewer
+    global stream_win_text_area, exit_stream_window
+
+    # # WORK IN HERE, MAKE WINDOW BETTER, TEST CODE, SAVE POSITIONING, ETC
+    def exit_stream_window():
+        stream_window.destroy()
+
+    try:
+        stream_win_text_area.config(state=NORMAL)
+        stream_win_text_area.delete(1.0, END)
+    except (NameError, TclError):
+        stream_window = Toplevel()
+        stream_window.title("Audio Streams")
+        stream_window.configure(background="#434547")
+        stream_window.protocol('WM_DELETE_WINDOW', exit_stream_window)
+        stream_win_text_area = scrolledtextwidget.ScrolledText(stream_window, width=50, height=25, tabs=10, spacing2=3,
+                                                    spacing1=2, spacing3=3)
+        stream_win_text_area.grid(column=0, pady=10, padx=10)
+        stream_window.grid_columnconfigure(0, weight=1)
+    media_info = MediaInfo.parse(VideoInput)  # Uses pymediainfo to get information for track selection
+    for track in media_info.tracks:
+        if track.track_type == 'Audio':
+            if str(track.stream_identifier) != 'None':  # Gets track ID of audio inputs (this is needed for map 0:a:x)
+                audio_track_id = '|  Track#:          ' + str(
+                    int(track.stream_identifier) + 1) + '\n'  # Code for viewing in drop down
+            else:
+                pass
+            if str(track.format) != 'None':  # Gets format string of tracks (aac, ac3 etc...)
+                audio_format = '|  Codec:           ' + str(track.commercial_name) + ' - ' + str(
+                    track.format) + '\n'
+            else:
+                audio_format = ''
+            if str(track.channel_s) != 'None':  # Gets audio channels of input tracks
+                if str(track.channel_s) == '8':
+                    show_channels = '7.1'
+                elif str(track.channel_s) == '6':
+                    show_channels = '5.1'
+                else:
+                    show_channels = str(track.channel_s)
+                audio_channels = '|  ' + 'Channels:        ' + show_channels + '  -  ' + str(
+                    f'({track.channel_layout})') + '\n'
+            else:
+                audio_channels = ''
+            if str(track.other_bit_rate) != 'None':  # Gets audio bitrate of input tracks
+                audio_bitrate = '|  Bitrate:         ' + str(track.other_bit_rate).replace('[', '') \
+                    .replace(']', '').replace("'", '') + '\n'
+            else:
+                audio_bitrate = ''
+            if str(track.other_language) != 'None':  # Gets audio language of input tracks
+                audio_language = '|  Language:        ' + str(track.other_language[0]) + '\n'
+            else:
+                audio_language = ''
+            if str(track.title) != 'None':  # Gets audio title of input tracks
+                if len(str(track.title)) > 50:  # Counts title character length
+                    audio_title = '|  Title:           ' + str(track.title)[
+                                                           :50] + '...\n'  # If title > 50 characters
+                else:
+                    audio_title = '|  Title:           ' + str(track.title) + '\n'  # If title is < 50 characters
+            else:
+                audio_title = ''
+            if str(track.other_sampling_rate) != 'None':  # Gets audio sampling rate of input tracks
+                audio_sampling_rate = '|  Sampling Rate:   ' + str(track.other_sampling_rate) \
+                    .replace('[', '').replace(']', '').replace("'", '') + '\n'
+            else:
+                audio_sampling_rate = ''
+            if str(track.other_duration) != 'None':  # Gets audio duration of input tracks
+                audio_duration = '|  Duration:        ' + str(track.other_duration[0]) + '\n'
+            else:
+                audio_duration = ''
+            if str(track.delay) != 'None':  # Gets audio delay of input tracks
+                if str(track.delay) == '0':
+                    audio_delay = ''
+                else:
+                    audio_delay = '|  Delay:   ' + f'        "{str(track.delay)}ms"' \
+                                  + f'\n|  Delay to Video:  "{str(track.delay_relative_to_video)}ms"' + '\n'
+            else:
+                audio_delay = ''
+            if str(track.compression_mode) != 'None':
+                audio_track_compression = '|  Compression:     ' + str(track.compression_mode)
+            else:
+                audio_track_compression = ''
+            audio_track_info = str(audio_track_id + audio_format + audio_channels + audio_bitrate +
+                                   audio_sampling_rate + audio_delay + audio_duration + audio_language +
+                                   audio_title + audio_track_compression)
+            media_info_track_string = 50 * '#' + '\n' + audio_track_info + '\n' + 50 * '#' + '\n'
+            stream_win_text_area.configure(state=NORMAL)
+            stream_win_text_area.insert(INSERT, media_info_track_string)
+            stream_win_text_area.insert(INSERT, '\n')
+            # stream_win_text_area.configure(font=("Helvetica", 12))
+            stream_win_text_area.configure(state=DISABLED)
+
+
+# ---------------------------------------------------------------------------------------------------- Show Streams
+
+def open_mini_cmd_window():
+    global mini_cmd_scrolled, exit_mini_cmd_window
+
+    def exit_mini_cmd_window():
+        mini_cmd_line_window.destroy()
+
+    try:
+        mini_cmd_scrolled.configure(state=NORMAL)
+        mini_cmd_scrolled.delete(1.0, END)
+    except (NameError, TclError):
+        mini_cmd_line_window = Toplevel()
+        mini_cmd_line_window.title('Mini Command Line')
+        mini_cmd_line_window.configure(background="#434547")
+        mini_cmd_line_window.protocol('WM_DELETE_WINDOW', exit_mini_cmd_window)
+        mini_cmd_line_window.resizable(False, False)  # Disables resizable functions of window
+        mini_cmd_scrolled = scrolledtextwidget.ScrolledText(mini_cmd_line_window, width=70, height=10, tabs=10,
+                                                            spacing2=3, spacing1=2, spacing3=3)
+        mini_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
+        mini_cmd_scrolled.configure(bg='black', fg='#CFD2D1', bd=8)
+    mini_cmd_scrolled.insert(END, mini_cmd_output)
+    # mini_cmd_scrolled.see(END)
+    mini_cmd_scrolled.configure(state=DISABLED)
+
+    def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
+        pyperclip.copy(mini_cmd_scrolled.get(1.0, END))
+
+    copy_text = HoverButton(mini_cmd_line_window, text='Copy to clipboard', command=copy_to_clipboard,
+                            foreground='white', background='#23272A', borderwidth='3',
+                            activebackground='grey')
+    copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
+
+
+# # Help Button for FDK -----------------------------------------------------------------------------------------
+# def gotofdkaachelp():
+#     helpfile_window = Toplevel()
+#     helpfile_window.title("FDK-AAC Advanced Settings Help")
+#     helpfile_window.configure(background="#434547")
+#     Label(helpfile_window, text="Advanced Settings Information",
+#           font=("Times New Roman", 14), background='#434547', foreground="white").grid(column=0, row=0)
+#     helpfile_window.grid_columnconfigure(0, weight=1)
+#     helpfile_window.grid_rowconfigure(0, weight=1)
+#     text_area = scrolledtextwidget.ScrolledText(helpfile_window, width=80, height=25)
+#     text_area.grid(column=0, pady=10, padx=10)
+#     with open("Apps/fdkaac/FDK-AAC-Help.txt", "r") as helpfile:
+#         text_area.insert(INSERT, helpfile.read())
+#         text_area.configure(font=("Helvetica", 14))
+#         text_area.configure(state=DISABLED)
+#
+#
+# # ---------------------------------------------------------------------------------------------------- FDK Help
+#
+# # Help --------------------------------------------------------------------------------------------------------
+# def gotoqaachelp():
+#     helpfile_window = Toplevel()
+#     helpfile_window.title("QAAC Advanced Settings Help")
+#     helpfile_window.configure(background="#434547")
+#     Label(helpfile_window, text="Advanced Settings Information",
+#           font=("Times New Roman", 14), background='#434547', foreground="white").grid(column=0, row=0)
+#     helpfile_window.grid_columnconfigure(0, weight=1)
+#     helpfile_window.grid_rowconfigure(0, weight=1)
+#     text_area = scrolledtextwidget.ScrolledText(helpfile_window, width=80, height=25)
+#     text_area.grid(column=0, pady=10, padx=10)
+#     with open("Apps/qaac/qaac information.txt", "r") as helpfile:
+#         text_area.insert(INSERT, helpfile.read())
+#         text_area.configure(font=("Helvetica", 14))
+#         text_area.configure(state=DISABLED)
+#
+# # -------------------------------------------------------------------------------------------------------- Help
+
+
 # Uses MediaInfo CLI to get total audio track count and gives us a total track count ----------------------------------
 def track_counter(*args):  # Thanks for helping me shorten this 'gmes78'
     global acodec_stream_track_counter, t_info
@@ -742,14 +908,17 @@ def openaudiowindow():
         output_button.config(state=NORMAL)  # Enable buttons upon save file
         start_audio_button.config(state=NORMAL)
         command_line_button.config(state=NORMAL)
-        root.attributes('-alpha', 1.0)  # Restore transparency
-        audio_window.grab_release()  # Release grab on audio window
         save_codec_window_positions()  # Call function to save window size/positions
 
-        try:  # If cmd_line_window is open, withdraw it (close it)
-            cmd_line_window.withdraw()
-        except (Exception,):
-            pass
+        def close_misc_audio_windows():  # Function to run misc audio setting windows
+            try:
+                exit_stream_window()
+            except NameError:
+                pass
+            try:
+                exit_mini_cmd_window()
+            except NameError:
+                pass
 
         language_string = ''  # Place holder variable
         delay_string = ''  # Place holder variable
@@ -788,7 +957,9 @@ def openaudiowindow():
             if total_streams == 1:  # If total streams is equal to 1
                 try:
                     if auto_or_manual == 'manual':  # If normal encoding is used with the start job button
+                        close_misc_audio_windows()  # Close misc audio windows if opened
                         audio_window.destroy()  # Close audio window
+                        root.deiconify()
                         track_selection_mediainfo = media_info.audio_tracks[
                             int(acodec_stream_choices[acodec_stream.get()].strip()[-1])]
                 except NameError:  # If auto_or_manual does not exist yet
@@ -820,12 +991,15 @@ def openaudiowindow():
 
                 except NameError:
                     audio_window.destroy()
+                    root.deiconify()
 
-            if total_streams >= 2:  # If total streamss are greater than 1 (video input, remux, bluray, dvd, etc...)
+            if total_streams >= 2:  # If total streams are greater than 1 (video input, remux, bluray, dvd, etc...)
                 # Check delay and add delay string to variable --------------------------------------------------------
                 try:
                     if auto_or_manual == 'manual':  # If normal encoding is used with the start job button
+                        close_misc_audio_windows()  # Close misc audio windows if opened
                         audio_window.destroy()  # Close audio window
+                        root.deiconify()
                         track_selection_mediainfo = media_info.audio_tracks[
                             int(acodec_stream_choices[acodec_stream.get()].strip()[-1])]
                 except NameError:  # If auto_or_manual does not exist yet
@@ -1235,50 +1409,6 @@ def openaudiowindow():
 
     # ----------------------------------------------------------------------------------------------- Profile Functions
 
-    # Show Streams Inside Audio Settings Window -----------------------------------------------------------------------
-    def show_streams_mediainfo():  # Stream Viewer
-        global track_count
-        if int(track_count) == 1:
-            stream_id_type = '1'
-        else:
-            stream_id_type = '%StreamKindPos%'
-        commands = '"' + mediainfocli + ' --Output="Audio;Track #:..............................' \
-                                        f'{stream_id_type}\\nFormat:..' + \
-                   '..............................%Format%\\nDuration:.........................' + \
-                   '.....%Duration/String2%\\nBit Rate Mode:.....................%BitRate_Mode/String%\\nBitrate:.' + \
-                   '................................%BitRate/String%\\nSampling Rate:................' + \
-                   '....%SamplingRate/String%\\nAudio Channels:..................%Channel(s)%\\nChannel Layout:..' + \
-                   '................%ChannelLayout%\\nCompression Mode:.........' + \
-                   '...%Compression_Mode/String%\\nStream Size:......................' + \
-                   '..%StreamSize/String5%\\nTitle:....................................%Title%\\nLanguage:..' + \
-                   '.........................%Language/String%\\n\\n" ' + \
-                   str(pathlib.Path(VideoInputQuoted.replace('&', '^&'))) + '"'
-        run = subprocess.Popen('cmd /c ' + commands, creationflags=subprocess.CREATE_NO_WINDOW, universal_newlines=True,
-                               stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                               stdin=subprocess.PIPE, shell=True, encoding="utf-8")
-        clean_communicate_string = str(run.communicate()).replace(r'\n', '\n').replace('{', '').replace('}', '') \
-            .replace('(', '').replace(')', '').replace(',', '').replace("'", '')
-        try:
-            global text_area
-            text_area.delete("1.0", END)
-            text_area.insert(END, clean_communicate_string)
-        except (Exception,):
-            stream_window = Toplevel(audio_window)
-            stream_window.title("Audio Streams")
-            stream_window.configure(background="#434547")
-            Label(stream_window, text="---------- Audio Streams ----------", font=("Times New Roman", 16),
-                  background='#434547', foreground="white").grid(column=0, row=0)
-            text_area = scrolledtextwidget.ScrolledText(stream_window, width=50, height=25, tabs=10, spacing2=3,
-                                                        spacing1=2,
-                                                        spacing3=3)
-            text_area.grid(column=0, pady=10, padx=10)
-            text_area.insert(INSERT, clean_communicate_string)
-            text_area.configure(font=("Helvetica", 12))
-            text_area.configure(state=DISABLED)
-            stream_window.grid_columnconfigure(0, weight=1)
-
-    # ---------------------------------------------------------------------------------------------------- Show Streams
-
     # FFMPEG Volume Spinbox Menu + HoverToolTip -----------------------------------------------------------------------
     def volume_right_click_options():
         def popup_auto_e_b_menu(e):  # Function for mouse button 3 (right click) to pop up menu
@@ -1324,8 +1454,7 @@ def openaudiowindow():
                 config['save_window_locations']['audio window - ac3'] == 'yes':
             audio_window.geometry(config['save_window_locations']['audio window - ac3 - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
-        audio_window.grab_set()  # Forces everything to this window
-        root.attributes('-alpha', 0.7)  # Set's some transparency during
+        root.withdraw()  # Hide root
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -1346,47 +1475,15 @@ def openaudiowindow():
 
         # Views Command -------------------------------------------------------------------------------------------
         def view_command():
-            global cmd_line_window, show_cmd_scrolled
+            global mini_cmd_output
             audio_filter_function()
-            example_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                              encoder_dropdownmenu_choices[encoder.get()] +
-                                              acodec_bitrate_choices[acodec_bitrate.get()] +
-                                              acodec_channel_choices[acodec_channel.get()] +
-                                              acodec_samplerate_choices[acodec_samplerate.get()] +
-                                              audio_filter_setting + ac3_custom_cmd_input).split())
-            try:
-                show_cmd_scrolled.configure(state=NORMAL)
-                show_cmd_scrolled.delete(1.0, END)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.deiconify()
-            except (AttributeError, NameError):
-                cmd_line_window = Toplevel()
-                cmd_line_window.title('Command Line')
-                cmd_line_window.configure(background="#434547")
-
-                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
-                                                                    spacing2=3, spacing1=2, spacing3=3)
-                show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
-                show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.resizable(False, False)  # Disables resizable functions of window
-
-                def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
-                    pyperclip.copy(show_cmd_scrolled.get(1.0, END))
-
-                copy_text = HoverButton(cmd_line_window, text='Copy to clipboard', command=copy_to_clipboard,
-                                        foreground='white', background='#23272A', borderwidth='3',
-                                        activebackground='grey')
-                copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
-
-                def hide_instead():
-                    cmd_line_window.withdraw()
-
-                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
+            mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
+                                           encoder_dropdownmenu_choices[encoder.get()] +
+                                           acodec_bitrate_choices[acodec_bitrate.get()] +
+                                           acodec_channel_choices[acodec_channel.get()] +
+                                           acodec_samplerate_choices[acodec_samplerate.get()] +
+                                           audio_filter_setting + ac3_custom_cmd_input).split())
+            open_mini_cmd_window()
 
         # ------------------------------------------------------------------------------------------- Views Command
 
@@ -1584,8 +1681,7 @@ def openaudiowindow():
                 config['save_window_locations']['audio window - aac'] == 'yes':
             audio_window.geometry(config['save_window_locations']['audio window - aac - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
-        audio_window.grab_set()  # Forces everything to this window
-        root.attributes('-alpha', 0.7)  # Set's some transparency during
+        root.withdraw()  # Hide root
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -1607,57 +1703,25 @@ def openaudiowindow():
         audio_window.grid_rowconfigure(10, weight=1)
 
         def view_command():  # Views Command --------------------------------------------------------------------------
-            global cmd_line_window, show_cmd_scrolled
+            global mini_cmd_output
             audio_filter_function()
             if aac_vbr_toggle.get() == "-c:a ":
-                example_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                                  encoder_dropdownmenu_choices[encoder.get()] + "-b:a " +
-                                                  aac_bitrate_spinbox.get() + "k " +
-                                                  acodec_channel_choices[acodec_channel.get()] +
-                                                  acodec_samplerate_choices[acodec_samplerate.get()] +
-                                                  audio_filter_setting + aac_custom_cmd_input +
-                                                  aac_title_input).split())
+                mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
+                                               encoder_dropdownmenu_choices[encoder.get()] + "-b:a " +
+                                               aac_bitrate_spinbox.get() + "k " +
+                                               acodec_channel_choices[acodec_channel.get()] +
+                                               acodec_samplerate_choices[acodec_samplerate.get()] +
+                                               audio_filter_setting + aac_custom_cmd_input +
+                                               aac_title_input).split())
             elif aac_vbr_toggle.get() == "-q:a ":
-                example_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                                  encoder_dropdownmenu_choices[encoder.get()] + \
-                                                  "-q:a " + aac_quality_spinbox.get() + " " +
-                                                  acodec_channel_choices[acodec_channel.get()] +
-                                                  acodec_samplerate_choices[acodec_samplerate.get()] +
-                                                  audio_filter_setting + aac_custom_cmd_input +
-                                                  aac_title_input).split())
-            try:
-                show_cmd_scrolled.configure(state=NORMAL)
-                show_cmd_scrolled.delete(1.0, END)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.deiconify()
-            except (AttributeError, NameError):
-                cmd_line_window = Toplevel()
-                cmd_line_window.title('Command Line')
-                cmd_line_window.configure(background="#434547")
-
-                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
-                                                                    spacing2=3, spacing1=2, spacing3=3)
-                show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
-                show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.resizable(False, False)  # Disables resizable functions of window
-
-                def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
-                    pyperclip.copy(show_cmd_scrolled.get(1.0, END))
-
-                copy_text = HoverButton(cmd_line_window, text='Copy to clipboard', command=copy_to_clipboard,
-                                        foreground='white', background='#23272A', borderwidth='3',
-                                        activebackground='grey')
-                copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
-
-                def hide_instead():
-                    cmd_line_window.withdraw()
-
-                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
+                mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
+                                               encoder_dropdownmenu_choices[encoder.get()] + \
+                                               "-q:a " + aac_quality_spinbox.get() + " " +
+                                               acodec_channel_choices[acodec_channel.get()] +
+                                               acodec_samplerate_choices[acodec_samplerate.get()] +
+                                               audio_filter_setting + aac_custom_cmd_input +
+                                               aac_title_input).split())
+            open_mini_cmd_window()
 
         # ----------------------------------------------------------------------------------------------- Views Command
 
@@ -1910,8 +1974,7 @@ def openaudiowindow():
                 config['save_window_locations']['audio window - dts'] == 'yes':
             audio_window.geometry(config['save_window_locations']['audio window - dts - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
-        audio_window.grab_set()  # Forces everything to this window
-        root.attributes('-alpha', 0.7)  # Set's some transparency during
+        root.withdraw()  # Hide root
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -1954,52 +2017,20 @@ def openaudiowindow():
 
         # Views Command -----------------------------------------------------------------------------------------------
         def view_command():
-            global cmd_line_window, show_cmd_scrolled
+            global mini_cmd_output
             audio_filter_function()
             if dts_settings.get() == 'DTS Encoder':
-                example_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                                  dts_settings_choices[dts_settings.get()] + "-b:a " +
-                                                  dts_bitrate_spinbox.get() + "k " +
-                                                  acodec_channel_choices[acodec_channel.get()] +
-                                                  acodec_samplerate_choices[acodec_samplerate.get()] +
-                                                  audio_filter_setting + dts_custom_cmd_input).split())
+                mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
+                                               dts_settings_choices[dts_settings.get()] + "-b:a " +
+                                               dts_bitrate_spinbox.get() + "k " +
+                                               acodec_channel_choices[acodec_channel.get()] +
+                                               acodec_samplerate_choices[acodec_samplerate.get()] +
+                                               audio_filter_setting + dts_custom_cmd_input).split())
             else:
-                example_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                                  dts_settings_choices[dts_settings.get()] +
-                                                  dts_custom_cmd_input).split())
-            try:
-                show_cmd_scrolled.configure(state=NORMAL)
-                show_cmd_scrolled.delete(1.0, END)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.deiconify()
-            except (AttributeError, NameError):
-                cmd_line_window = Toplevel()
-                cmd_line_window.title('Command Line')
-                cmd_line_window.configure(background="#434547")
-
-                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
-                                                                    spacing2=3, spacing1=2, spacing3=3)
-                show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
-                show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.resizable(False, False)  # Disables resizable functions of window
-
-                def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
-                    pyperclip.copy(show_cmd_scrolled.get(1.0, END))
-
-                copy_text = HoverButton(cmd_line_window, text='Copy to clipboard', command=copy_to_clipboard,
-                                        foreground='white', background='#23272A', borderwidth='3',
-                                        activebackground='grey')
-                copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
-
-                def hide_instead():
-                    cmd_line_window.withdraw()
-
-                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
+                mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
+                                               dts_settings_choices[dts_settings.get()] +
+                                               dts_custom_cmd_input).split())
+            open_mini_cmd_window()
 
         # ----------------------------------------------------------------------------------------------- Views Command
 
@@ -2198,8 +2229,7 @@ def openaudiowindow():
                 config['save_window_locations']['audio window - opus'] == 'yes':
             audio_window.geometry(config['save_window_locations']['audio window - opus - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
-        audio_window.grab_set()  # Forces everything to this window
-        root.attributes('-alpha', 0.7)  # Set's some transparency during
+        root.withdraw()  # Hide root
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -2235,52 +2265,20 @@ def openaudiowindow():
 
         # Views Command -----------------------------------------------------------------------------------------------
         def view_command():
-            global show_cmd_scrolled, cmd_line_window
+            global mini_cmd_output
             audio_filter_function()
-            example_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                              encoder_dropdownmenu_choices[encoder.get()] +
-                                              acodec_bitrate_choices[acodec_bitrate.get()] +
-                                              acodec_channel_choices[acodec_channel.get()] +
-                                              acodec_vbr_choices[acodec_vbr.get()] +
-                                              acodec_application_choices[acodec_application.get()] +
-                                              opus_mapping_family_choices[opus_mapping_family.get()] +
-                                              "-packet_loss " + packet_loss.get() + " -frame_duration " +
-                                              frame_duration.get() + " " +
-                                              acodec_samplerate_choices[acodec_samplerate.get()] +
-                                              audio_filter_setting + opus_custom_cmd_input).split())
-            try:
-                show_cmd_scrolled.configure(state=NORMAL)
-                show_cmd_scrolled.delete(1.0, END)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.deiconify()
-            except (AttributeError, NameError):
-                cmd_line_window = Toplevel()
-                cmd_line_window.title('Command Line')
-                cmd_line_window.configure(background="#434547")
-
-                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
-                                                                    spacing2=3, spacing1=2, spacing3=3)
-                show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
-                show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.resizable(False, False)  # Disables resizable functions of window
-
-                def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
-                    pyperclip.copy(show_cmd_scrolled.get(1.0, END))
-
-                copy_text = HoverButton(cmd_line_window, text='Copy to clipboard', command=copy_to_clipboard,
-                                        foreground='white', background='#23272A', borderwidth='3',
-                                        activebackground='grey')
-                copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
-
-                def hide_instead():
-                    cmd_line_window.withdraw()
-
-                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
+            mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
+                                           encoder_dropdownmenu_choices[encoder.get()] +
+                                           acodec_bitrate_choices[acodec_bitrate.get()] +
+                                           acodec_channel_choices[acodec_channel.get()] +
+                                           acodec_vbr_choices[acodec_vbr.get()] +
+                                           acodec_application_choices[acodec_application.get()] +
+                                           opus_mapping_family_choices[opus_mapping_family.get()] +
+                                           "-packet_loss " + packet_loss.get() + " -frame_duration " +
+                                           frame_duration.get() + " " +
+                                           acodec_samplerate_choices[acodec_samplerate.get()] +
+                                           audio_filter_setting + opus_custom_cmd_input).split())
+            open_mini_cmd_window()
 
         # ----------------------------------------------------------------------------------------------- Views Command
 
@@ -2559,8 +2557,7 @@ def openaudiowindow():
                 config['save_window_locations']['audio window - mp3'] == 'yes':
             audio_window.geometry(config['save_window_locations']['audio window - mp3 - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
-        audio_window.grab_set()  # Forces everything to this window
-        root.attributes('-alpha', 0.7)  # Set's some transparency during
+        root.withdraw()  # Hide root
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -2663,47 +2660,15 @@ def openaudiowindow():
 
         # Views Command -----------------------------------------------------------------------------------------------
         def view_command():
-            global show_cmd_scrolled, cmd_line_window
+            global mini_cmd_output
             audio_filter_function()
-            example_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                              encoder_dropdownmenu_choices[encoder.get()] +
-                                              acodec_bitrate_choices[acodec_bitrate.get()] +
-                                              acodec_channel_choices[acodec_channel.get()] + mp3_abr.get() +
-                                              acodec_samplerate_choices[acodec_samplerate.get()] +
-                                              audio_filter_setting + mp3_custom_cmd_input).split())
-            try:
-                show_cmd_scrolled.configure(state=NORMAL)
-                show_cmd_scrolled.delete(1.0, END)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.deiconify()
-            except (AttributeError, NameError):
-                cmd_line_window = Toplevel()
-                cmd_line_window.title('Command Line')
-                cmd_line_window.configure(background="#434547")
-
-                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
-                                                                    spacing2=3, spacing1=2, spacing3=3)
-                show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
-                show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.resizable(False, False)  # Disables resizable functions of window
-
-                def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
-                    pyperclip.copy(show_cmd_scrolled.get(1.0, END))
-
-                copy_text = HoverButton(cmd_line_window, text='Copy to clipboard', command=copy_to_clipboard,
-                                        foreground='white', background='#23272A', borderwidth='3',
-                                        activebackground='grey')
-                copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
-
-                def hide_instead():
-                    cmd_line_window.withdraw()
-
-                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
+            mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
+                                           encoder_dropdownmenu_choices[encoder.get()] +
+                                           acodec_bitrate_choices[acodec_bitrate.get()] +
+                                           acodec_channel_choices[acodec_channel.get()] + mp3_abr.get() +
+                                           acodec_samplerate_choices[acodec_samplerate.get()] +
+                                           audio_filter_setting + mp3_custom_cmd_input).split())
+            open_mini_cmd_window()
 
         # ----------------------------------------------------------------------------------------------- Views Command
 
@@ -2904,8 +2869,7 @@ def openaudiowindow():
                 config['save_window_locations']['audio window - e-ac3'] == 'yes':
             audio_window.geometry(config['save_window_locations']['audio window - e-ac3 - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
-        audio_window.grab_set()  # Forces everything to this window
-        root.attributes('-alpha', 0.7)  # Set's some transparency during
+        root.withdraw()  # Hide root
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -2934,63 +2898,31 @@ def openaudiowindow():
 
         # Views Command -----------------------------------------------------------------------------------------------
         def view_command():
-            global show_cmd_scrolled, cmd_line_window
+            global mini_cmd_output
             audio_filter_function()
-            example_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                              encoder_dropdownmenu_choices[encoder.get()] + "-b:a " +
-                                              eac3_spinbox.get() + " " + acodec_channel_choices[acodec_channel.get()] +
-                                              acodec_samplerate_choices[acodec_samplerate.get()] +
-                                              audio_filter_setting + eac3_custom_cmd_input +
-                                              per_frame_metadata_choices[per_frame_metadata.get()] +
-                                              "-mixing_level " + eac3_mixing_level.get() + " " +
-                                              room_type_choices[room_type.get()] + "-copyright " +
-                                              copyright_bit.get() + " " + "-dialnorm " + dialogue_level.get() + " " +
-                                              dolby_surround_mode_choices[dolby_surround_mode.get()] +
-                                              "-original " + original_bit_stream.get() + " " +
-                                              downmix_mode_choices[downmix_mode.get()] + "-ltrt_cmixlev " +
-                                              lt_rt_center_mix.get() + " " + "-ltrt_surmixlev " +
-                                              lt_rt_surround_mix.get() + " " + "-loro_cmixlev " +
-                                              lo_ro_center_mix.get() + " " + "\n \n" + "-loro_surmixlev " +
-                                              lo_ro_surround_mix.get() + " " +
-                                              dolby_surround_ex_mode_choices[dolby_surround_ex_mode.get()] +
-                                              dolby_headphone_mode_choices[dolby_headphone_mode.get()] +
-                                              a_d_converter_type_choices[a_d_converter_type.get()] +
-                                              stereo_rematrixing_choices[stereo_rematrixing.get()] +
-                                              "-channel_coupling " + channel_coupling.get() + " " +
-                                              "-cpl_start_band " + cpl_start_band.get() + " ").split())
-            try:
-                show_cmd_scrolled.configure(state=NORMAL)
-                show_cmd_scrolled.delete(1.0, END)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.deiconify()
-            except (AttributeError, NameError):
-                cmd_line_window = Toplevel()
-                cmd_line_window.title('Command Line')
-                cmd_line_window.configure(background="#434547")
-
-                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
-                                                                    spacing2=3, spacing1=2, spacing3=3)
-                show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
-                show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.resizable(False, False)  # Disables resizable functions of window
-
-                def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
-                    pyperclip.copy(show_cmd_scrolled.get(1.0, END))
-
-                copy_text = HoverButton(cmd_line_window, text='Copy to clipboard', command=copy_to_clipboard,
-                                        foreground='white', background='#23272A', borderwidth='3',
-                                        activebackground='grey')
-                copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
-
-                def hide_instead():
-                    cmd_line_window.withdraw()
-
-                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
+            mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
+                                           encoder_dropdownmenu_choices[encoder.get()] + "-b:a " +
+                                           eac3_spinbox.get() + " " + acodec_channel_choices[acodec_channel.get()] +
+                                           acodec_samplerate_choices[acodec_samplerate.get()] +
+                                           audio_filter_setting + eac3_custom_cmd_input +
+                                           per_frame_metadata_choices[per_frame_metadata.get()] +
+                                           "-mixing_level " + eac3_mixing_level.get() + " " +
+                                           room_type_choices[room_type.get()] + "-copyright " +
+                                           copyright_bit.get() + " " + "-dialnorm " + dialogue_level.get() + " " +
+                                           dolby_surround_mode_choices[dolby_surround_mode.get()] +
+                                           "-original " + original_bit_stream.get() + " " +
+                                           downmix_mode_choices[downmix_mode.get()] + "-ltrt_cmixlev " +
+                                           lt_rt_center_mix.get() + " " + "-ltrt_surmixlev " +
+                                           lt_rt_surround_mix.get() + " " + "-loro_cmixlev " +
+                                           lo_ro_center_mix.get() + " " + "\n \n" + "-loro_surmixlev " +
+                                           lo_ro_surround_mix.get() + " " +
+                                           dolby_surround_ex_mode_choices[dolby_surround_ex_mode.get()] +
+                                           dolby_headphone_mode_choices[dolby_headphone_mode.get()] +
+                                           a_d_converter_type_choices[a_d_converter_type.get()] +
+                                           stereo_rematrixing_choices[stereo_rematrixing.get()] +
+                                           "-channel_coupling " + channel_coupling.get() + " " +
+                                           "-cpl_start_band " + cpl_start_band.get() + " ").split())
+            open_mini_cmd_window()
 
         # ----------------------------------------------------------------------------------------------- Views Command
 
@@ -3455,8 +3387,7 @@ def openaudiowindow():
                 config['save_window_locations']['audio window - fdk-aac'] == 'yes':
             audio_window.geometry(config['save_window_locations']['audio window - fdk-aac - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
-        audio_window.grab_set()  # Forces everything to this window
-        root.attributes('-alpha', 0.7)  # Set's some transparency during
+        root.withdraw()  # Hide root
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -3510,73 +3441,24 @@ def openaudiowindow():
         def acodec_profile_menu_hover_leave(e):
             acodec_profile_menu["bg"] = "#23272A"
 
-        # Help Button for FDK -----------------------------------------------------------------------------------------
-        def gotofdkaachelp():
-            helpfile_window = Toplevel(audio_window)
-            helpfile_window.title("FDK-AAC Advanced Settings Help")
-            helpfile_window.configure(background="#434547")
-            Label(helpfile_window, text="Advanced Settings Information",
-                  font=("Times New Roman", 14), background='#434547', foreground="white").grid(column=0, row=0)
-            helpfile_window.grid_columnconfigure(0, weight=1)
-            helpfile_window.grid_rowconfigure(0, weight=1)
-            text_area = scrolledtextwidget.ScrolledText(helpfile_window, width=80, height=25)
-            text_area.grid(column=0, pady=10, padx=10)
-            with open("Apps/fdkaac/FDK-AAC-Help.txt", "r") as helpfile:
-                text_area.insert(INSERT, helpfile.read())
-                text_area.configure(font=("Helvetica", 14))
-                text_area.configure(state=DISABLED)
-
-        # ---------------------------------------------------------------------------------------------------- FDK Help
 
         # Views Command -----------------------------------------------------------------------------------------------
         def view_command():
-            global show_cmd_scrolled, cmd_line_window
+            global mini_cmd_output
             audio_filter_function()
-            example_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                              acodec_channel_choices[acodec_channel.get()] +
-                                              acodec_samplerate_choices[acodec_samplerate.get()] +
-                                              audio_filter_setting + "-f caf - | " + "fdkaac.exe" + " " +
-                                              acodec_profile_choices[acodec_profile.get()] + afterburnervar.get() +
-                                              fdkaac_title_input + fdkaac_custom_cmd_input +
-                                              acodec_gapless_mode_choices[acodec_gapless_mode.get()] +
-                                              crccheck.get() + moovbox.get() + sbrdelay.get() + headerperiod.get() +
-                                              acodec_lowdelay_choices[acodec_lowdelay.get()] +
-                                              acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] +
-                                              acodec_transport_format_choices[acodec_transport_format.get()] +
-                                              acodec_bitrate_choices[acodec_bitrate.get()] + "- -o ").split())
-            try:
-                show_cmd_scrolled.configure(state=NORMAL)
-                show_cmd_scrolled.delete(1.0, END)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.deiconify()
-            except (AttributeError, NameError):
-                cmd_line_window = Toplevel()
-                cmd_line_window.title('Command Line')
-                cmd_line_window.configure(background="#434547")
-
-                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
-                                                                    spacing2=3, spacing1=2, spacing3=3)
-                show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
-                show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.resizable(False, False)  # Disables resizable functions of window
-
-                def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
-                    pyperclip.copy(show_cmd_scrolled.get(1.0, END))
-
-                copy_text = HoverButton(cmd_line_window, text='Copy to clipboard', command=copy_to_clipboard,
-                                        foreground='white', background='#23272A', borderwidth='3',
-                                        activebackground='grey')
-                copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
-
-                def hide_instead():
-                    cmd_line_window.withdraw()
-
-                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
+            mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
+                                           acodec_channel_choices[acodec_channel.get()] +
+                                           acodec_samplerate_choices[acodec_samplerate.get()] +
+                                           audio_filter_setting + "-f caf - | " + "fdkaac.exe" + " " +
+                                           acodec_profile_choices[acodec_profile.get()] + afterburnervar.get() +
+                                           fdkaac_title_input + fdkaac_custom_cmd_input +
+                                           acodec_gapless_mode_choices[acodec_gapless_mode.get()] +
+                                           crccheck.get() + moovbox.get() + sbrdelay.get() + headerperiod.get() +
+                                           acodec_lowdelay_choices[acodec_lowdelay.get()] +
+                                           acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] +
+                                           acodec_transport_format_choices[acodec_transport_format.get()] +
+                                           acodec_bitrate_choices[acodec_bitrate.get()] + "- -o ").split())
+            open_mini_cmd_window()
 
         # ----------------------------------------------------------------------------------------------- Views Command
 
@@ -3591,9 +3473,9 @@ def openaudiowindow():
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
 
-        help_button = HoverButton(audio_window, text="Help + Information", foreground="white", background="#23272A",
-                                  command=gotofdkaachelp, activebackground='grey')
-        help_button.grid(row=15, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        # help_button = HoverButton(audio_window, text="Help + Information", foreground="white", background="#23272A",
+        #                           command=gotofdkaachelp, activebackground='grey')
+        # help_button.grid(row=15, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         # ----------------------------------------------------------------------------------------------------- Buttons
 
         advanced_label = Label(audio_window,
@@ -3953,8 +3835,7 @@ def openaudiowindow():
                 config['save_window_locations']['audio window - qaac'] == 'yes':
             audio_window.geometry(config['save_window_locations']['audio window - qaac - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
-        audio_window.grab_set()  # Forces everything to this window
-        root.attributes('-alpha', 0.7)  # Set's some transparency during
+        root.withdraw()  # Hide root
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -3984,87 +3865,37 @@ def openaudiowindow():
 
         # ----------------------------------------------------------------------------------------------- QAAC Get Gain
 
-        # Help --------------------------------------------------------------------------------------------------------
-        def gotoqaachelp():
-            helpfile_window = Toplevel(audio_window)
-            helpfile_window.title("QAAC Advanced Settings Help")
-            helpfile_window.configure(background="#434547")
-            Label(helpfile_window, text="Advanced Settings Information",
-                  font=("Times New Roman", 14), background='#434547', foreground="white").grid(column=0, row=0)
-            helpfile_window.grid_columnconfigure(0, weight=1)
-            helpfile_window.grid_rowconfigure(0, weight=1)
-            text_area = scrolledtextwidget.ScrolledText(helpfile_window, width=80, height=25)
-            text_area.grid(column=0, pady=10, padx=10)
-            with open("Apps/qaac/qaac information.txt", "r") as helpfile:
-                text_area.insert(INSERT, helpfile.read())
-                text_area.configure(font=("Helvetica", 14))
-                text_area.configure(state=DISABLED)
-
-        # -------------------------------------------------------------------------------------------------------- Help
-
         # Views Command -----------------------------------------------------------------------------------------------
         def view_command():
-            global show_cmd_scrolled, cmd_line_window
+            global mini_cmd_output
             audio_filter_function()
             if q_acodec_profile.get() == "True VBR":
-                example_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                                  acodec_channel_choices[acodec_channel.get()] +
-                                                  acodec_samplerate_choices[acodec_samplerate.get()] +
-                                                  audio_filter_setting + "-f wav - | " + qaac + " --ignorelength " +
-                                                  q_acodec_profile_choices[q_acodec_profile.get()] +
-                                                  q_acodec_quality_amnt.get() + " " + qaac_high_efficiency.get() +
-                                                  qaac_nodither.get() + set_qaac_gain +
-                                                  q_acodec_quality_choices[q_acodec_quality.get()] +
-                                                  qaac_normalize.get() + qaac_nodelay.get() +
-                                                  q_gapless_mode_choices[q_gapless_mode.get()] +
-                                                  qaac_nooptimize.get() + qaac_threading.get() + qaac_limiter.get() +
-                                                  qaac_title_input + qaac_custom_cmd_input).split())
+                mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
+                                               acodec_channel_choices[acodec_channel.get()] +
+                                               acodec_samplerate_choices[acodec_samplerate.get()] +
+                                               audio_filter_setting + "-f wav - | " + qaac + " --ignorelength " +
+                                               q_acodec_profile_choices[q_acodec_profile.get()] +
+                                               q_acodec_quality_amnt.get() + " " + qaac_high_efficiency.get() +
+                                               qaac_nodither.get() + set_qaac_gain +
+                                               q_acodec_quality_choices[q_acodec_quality.get()] +
+                                               qaac_normalize.get() + qaac_nodelay.get() +
+                                               q_gapless_mode_choices[q_gapless_mode.get()] +
+                                               qaac_nooptimize.get() + qaac_threading.get() + qaac_limiter.get() +
+                                               qaac_title_input + qaac_custom_cmd_input).split())
             else:
-                example_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                                  acodec_channel_choices[acodec_channel.get()] +
-                                                  acodec_samplerate_choices[acodec_samplerate.get()] +
-                                                  audio_filter_setting + "-f wav - | " + qaac + " --ignorelength " +
-                                                  q_acodec_profile_choices[q_acodec_profile.get()] +
-                                                  q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() +
-                                                  qaac_nodither.get() + set_qaac_gain +
-                                                  q_acodec_quality_choices[q_acodec_quality.get()] +
-                                                  qaac_normalize.get() + qaac_nodelay.get() +
-                                                  q_gapless_mode_choices[q_gapless_mode.get()] +
-                                                  qaac_nooptimize.get() + qaac_threading.get() + qaac_limiter.get() +
-                                                  qaac_title_input + qaac_custom_cmd_input).split())
-            try:
-                show_cmd_scrolled.configure(state=NORMAL)
-                show_cmd_scrolled.delete(1.0, END)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.deiconify()
-            except (AttributeError, NameError):
-                cmd_line_window = Toplevel()
-                cmd_line_window.title('Command Line')
-                cmd_line_window.configure(background="#434547")
-
-                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
-                                                                    spacing2=3, spacing1=2, spacing3=3)
-                show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
-                show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.resizable(False, False)  # Disables resizable functions of window
-
-                def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
-                    pyperclip.copy(show_cmd_scrolled.get(1.0, END))
-
-                copy_text = HoverButton(cmd_line_window, text='Copy to clipboard', command=copy_to_clipboard,
-                                        foreground='white', background='#23272A', borderwidth='3',
-                                        activebackground='grey')
-                copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
-
-                def hide_instead():
-                    cmd_line_window.withdraw()
-
-                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
+                mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
+                                               acodec_channel_choices[acodec_channel.get()] +
+                                               acodec_samplerate_choices[acodec_samplerate.get()] +
+                                               audio_filter_setting + "-f wav - | " + qaac + " --ignorelength " +
+                                               q_acodec_profile_choices[q_acodec_profile.get()] +
+                                               q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() +
+                                               qaac_nodither.get() + set_qaac_gain +
+                                               q_acodec_quality_choices[q_acodec_quality.get()] +
+                                               qaac_normalize.get() + qaac_nodelay.get() +
+                                               q_gapless_mode_choices[q_gapless_mode.get()] +
+                                               qaac_nooptimize.get() + qaac_threading.get() + qaac_limiter.get() +
+                                               qaac_title_input + qaac_custom_cmd_input).split())
+            open_mini_cmd_window()
 
         # ----------------------------------------------------------------------------------------------- Views Command
         # Buttons -----------------------------------------------------------------------------------------------------
@@ -4078,9 +3909,9 @@ def openaudiowindow():
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
 
-        help_button = HoverButton(audio_window, text="Help + Information", foreground="white", background="#23272A",
-                                  command=gotoqaachelp, activebackground='grey')
-        help_button.grid(row=16, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        # help_button = HoverButton(audio_window, text="Help + Information", foreground="white", background="#23272A",
+        #                           command=gotoqaachelp, activebackground='grey')
+        # help_button.grid(row=16, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         # ----------------------------------------------------------------------------------------------------- Buttons
 
         advanced_label = Label(audio_window,
@@ -4454,8 +4285,7 @@ def openaudiowindow():
                 config['save_window_locations']['audio window - flac'] == 'yes':
             audio_window.geometry(config['save_window_locations']['audio window - flac - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
-        audio_window.grab_set()  # Forces everything to this window
-        root.attributes('-alpha', 0.7)  # Set's some transparency during
+        root.withdraw()  # Hide root
 
         my_menu_bar = Menu(audio_window, tearoff=0)
         audio_window.config(menu=my_menu_bar)
@@ -4476,50 +4306,18 @@ def openaudiowindow():
 
         # Views Command -------------------------------------------------------------------------------------------
         def view_command():
-            global show_cmd_scrolled, cmd_line_window
+            global mini_cmd_output
             audio_filter_function()
-            example_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                              encoder_dropdownmenu_choices[encoder.get()] +
-                                              acodec_bitrate_choices[acodec_bitrate.get()] +
-                                              acodec_channel_choices[acodec_channel.get()] +
-                                              acodec_samplerate_choices[acodec_samplerate.get()] +
-                                              audio_filter_setting + set_flac_acodec_coefficient +
-                                              acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] +
-                                              acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] +
-                                              flac_custom_cmd_input).split())
-            try:
-                show_cmd_scrolled.configure(state=NORMAL)
-                show_cmd_scrolled.delete(1.0, END)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.deiconify()
-            except (AttributeError, NameError):
-                cmd_line_window = Toplevel()
-                cmd_line_window.title('Command Line')
-                cmd_line_window.configure(background="#434547")
-
-                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
-                                                                    spacing2=3, spacing1=2, spacing3=3)
-                show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
-                show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.resizable(False, False)  # Disables resizable functions of window
-
-                def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
-                    pyperclip.copy(show_cmd_scrolled.get(1.0, END))
-
-                copy_text = HoverButton(cmd_line_window, text='Copy to clipboard', command=copy_to_clipboard,
-                                        foreground='white', background='#23272A', borderwidth='3',
-                                        activebackground='grey')
-                copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
-
-                def hide_instead():
-                    cmd_line_window.withdraw()
-
-                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
+            mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
+                                           encoder_dropdownmenu_choices[encoder.get()] +
+                                           acodec_bitrate_choices[acodec_bitrate.get()] +
+                                           acodec_channel_choices[acodec_channel.get()] +
+                                           acodec_samplerate_choices[acodec_samplerate.get()] +
+                                           audio_filter_setting + set_flac_acodec_coefficient +
+                                           acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] +
+                                           acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] +
+                                           flac_custom_cmd_input).split())
+            open_mini_cmd_window()
 
         # ------------------------------------------------------------------------------------------- Views Command
 
@@ -4802,8 +4600,7 @@ def openaudiowindow():
                 config['save_window_locations']['audio window - alac'] == 'yes':
             audio_window.geometry(config['save_window_locations']['audio window - alac - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
-        audio_window.grab_set()  # Forces everything to this window
-        root.attributes('-alpha', 0.7)  # Set's some transparency during
+        root.withdraw()  # Hide root
 
         for n in range(3):
             audio_window.grid_columnconfigure(n, weight=1)
@@ -4826,47 +4623,15 @@ def openaudiowindow():
 
         # Views Command ---------------------------------------------------------------------------------------
         def view_command():
-            global cmd_line_window, show_cmd_scrolled
+            global mini_cmd_output
             audio_filter_function()
-            example_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                              encoder_dropdownmenu_choices[encoder.get()] +
-                                              acodec_channel_choices[acodec_channel.get()] +
-                                              acodec_samplerate_choices[acodec_samplerate.get()] +
-                                              audio_filter_setting + min_pre_order + max_pre_order +
-                                              flac_custom_cmd_input).split())
-            try:
-                show_cmd_scrolled.configure(state=NORMAL)
-                show_cmd_scrolled.delete(1.0, END)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.deiconify()
-            except (AttributeError, NameError):
-                cmd_line_window = Toplevel()
-                cmd_line_window.title('Command Line')
-                cmd_line_window.configure(background="#434547")
-
-                show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=70, height=10, tabs=10,
-                                                                    spacing2=3, spacing1=2, spacing3=3)
-                show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
-                show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
-                show_cmd_scrolled.insert(END, example_cmd_output)
-                show_cmd_scrolled.see(END)
-                show_cmd_scrolled.configure(state=DISABLED)
-                cmd_line_window.resizable(False, False)  # Disables resizable functions of window
-
-                def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
-                    pyperclip.copy(show_cmd_scrolled.get(1.0, END))
-
-                copy_text = HoverButton(cmd_line_window, text='Copy to clipboard', command=copy_to_clipboard,
-                                        foreground='white', background='#23272A', borderwidth='3',
-                                        activebackground='grey')
-                copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
-
-                def hide_instead():
-                    cmd_line_window.withdraw()
-
-                cmd_line_window.protocol('WM_DELETE_WINDOW', hide_instead)
+            mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
+                                           encoder_dropdownmenu_choices[encoder.get()] +
+                                           acodec_channel_choices[acodec_channel.get()] +
+                                           acodec_samplerate_choices[acodec_samplerate.get()] +
+                                           audio_filter_setting + min_pre_order + max_pre_order +
+                                           flac_custom_cmd_input).split())
+            open_mini_cmd_window()
 
         # --------------------------------------------------------------------------------------- Views Command
 
@@ -5080,11 +4845,6 @@ def openaudiowindow():
         max_prediction_order_spinbox.grid(row=6, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         # ------------------------------------------------------------------------------------ Max-Prediction-Order
     # -------------------------------------------------------------------------------------------------------- ALAC
-
-    try:  # If "View Command" window is opened, when the user selected "Apply" in the codec window it will close
-        cmd_line_window
-    except NameError:  # If "View Command" window does not exist, do nothing
-        pass
 
 
 # ---------------------------------------------------------------------------------------------- End Audio Codec Window
