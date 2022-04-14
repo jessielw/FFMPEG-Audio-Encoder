@@ -15,6 +15,7 @@ from configparser import ConfigParser
 from ctypes import windll
 from pymediainfo import MediaInfo
 from idlelib.tooltip import Hovertip
+from Packages.show_streams import show_streams_mediainfo_function, exit_stream_window
 
 
 # Main Gui & Windows --------------------------------------------------------
@@ -380,101 +381,7 @@ def encoder_changed(*args):
 
 # --------------------------------------------------------------------------------------------- File Auto Save Function
 
-# Show Streams Inside Audio Settings Window -----------------------------------------------------------------------
-def show_streams_mediainfo():  # Stream Viewer
-    global stream_win_text_area, exit_stream_window
-
-    # # WORK IN HERE, MAKE WINDOW BETTER, TEST CODE, SAVE POSITIONING, ETC
-    def exit_stream_window():
-        stream_window.destroy()
-
-    try:
-        stream_win_text_area.config(state=NORMAL)
-        stream_win_text_area.delete(1.0, END)
-    except (NameError, TclError):
-        stream_window = Toplevel()
-        stream_window.title("Audio Streams")
-        stream_window.configure(background="#434547")
-        stream_window.protocol('WM_DELETE_WINDOW', exit_stream_window)
-        stream_win_text_area = scrolledtextwidget.ScrolledText(stream_window, width=50, height=25, tabs=10, spacing2=3,
-                                                    spacing1=2, spacing3=3)
-        stream_win_text_area.grid(column=0, pady=10, padx=10)
-        stream_window.grid_columnconfigure(0, weight=1)
-    media_info = MediaInfo.parse(VideoInput)  # Uses pymediainfo to get information for track selection
-    for track in media_info.tracks:
-        if track.track_type == 'Audio':
-            if str(track.stream_identifier) != 'None':  # Gets track ID of audio inputs (this is needed for map 0:a:x)
-                audio_track_id = '|  Track#:          ' + str(
-                    int(track.stream_identifier) + 1) + '\n'  # Code for viewing in drop down
-            else:
-                pass
-            if str(track.format) != 'None':  # Gets format string of tracks (aac, ac3 etc...)
-                audio_format = '|  Codec:           ' + str(track.commercial_name) + ' - ' + str(
-                    track.format) + '\n'
-            else:
-                audio_format = ''
-            if str(track.channel_s) != 'None':  # Gets audio channels of input tracks
-                if str(track.channel_s) == '8':
-                    show_channels = '7.1'
-                elif str(track.channel_s) == '6':
-                    show_channels = '5.1'
-                else:
-                    show_channels = str(track.channel_s)
-                audio_channels = '|  ' + 'Channels:        ' + show_channels + '  -  ' + str(
-                    f'({track.channel_layout})') + '\n'
-            else:
-                audio_channels = ''
-            if str(track.other_bit_rate) != 'None':  # Gets audio bitrate of input tracks
-                audio_bitrate = '|  Bitrate:         ' + str(track.other_bit_rate).replace('[', '') \
-                    .replace(']', '').replace("'", '') + '\n'
-            else:
-                audio_bitrate = ''
-            if str(track.other_language) != 'None':  # Gets audio language of input tracks
-                audio_language = '|  Language:        ' + str(track.other_language[0]) + '\n'
-            else:
-                audio_language = ''
-            if str(track.title) != 'None':  # Gets audio title of input tracks
-                if len(str(track.title)) > 50:  # Counts title character length
-                    audio_title = '|  Title:           ' + str(track.title)[
-                                                           :50] + '...\n'  # If title > 50 characters
-                else:
-                    audio_title = '|  Title:           ' + str(track.title) + '\n'  # If title is < 50 characters
-            else:
-                audio_title = ''
-            if str(track.other_sampling_rate) != 'None':  # Gets audio sampling rate of input tracks
-                audio_sampling_rate = '|  Sampling Rate:   ' + str(track.other_sampling_rate) \
-                    .replace('[', '').replace(']', '').replace("'", '') + '\n'
-            else:
-                audio_sampling_rate = ''
-            if str(track.other_duration) != 'None':  # Gets audio duration of input tracks
-                audio_duration = '|  Duration:        ' + str(track.other_duration[0]) + '\n'
-            else:
-                audio_duration = ''
-            if str(track.delay) != 'None':  # Gets audio delay of input tracks
-                if str(track.delay) == '0':
-                    audio_delay = ''
-                else:
-                    audio_delay = '|  Delay:   ' + f'        "{str(track.delay)}ms"' \
-                                  + f'\n|  Delay to Video:  "{str(track.delay_relative_to_video)}ms"' + '\n'
-            else:
-                audio_delay = ''
-            if str(track.compression_mode) != 'None':
-                audio_track_compression = '|  Compression:     ' + str(track.compression_mode)
-            else:
-                audio_track_compression = ''
-            audio_track_info = str(audio_track_id + audio_format + audio_channels + audio_bitrate +
-                                   audio_sampling_rate + audio_delay + audio_duration + audio_language +
-                                   audio_title + audio_track_compression)
-            media_info_track_string = 50 * '#' + '\n' + audio_track_info + '\n' + 50 * '#' + '\n'
-            stream_win_text_area.configure(state=NORMAL)
-            stream_win_text_area.insert(INSERT, media_info_track_string)
-            stream_win_text_area.insert(INSERT, '\n')
-            # stream_win_text_area.configure(font=("Helvetica", 12))
-            stream_win_text_area.configure(state=DISABLED)
-
-
-# ---------------------------------------------------------------------------------------------------- Show Streams
-
+# Command line viewer window that is opened from all codecs "Audio" settings window -----------------------------------
 def open_mini_cmd_window():
     global mini_cmd_scrolled, exit_mini_cmd_window
 
@@ -495,7 +402,6 @@ def open_mini_cmd_window():
         mini_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
         mini_cmd_scrolled.configure(bg='black', fg='#CFD2D1', bd=8)
     mini_cmd_scrolled.insert(END, mini_cmd_output)
-    # mini_cmd_scrolled.see(END)
     mini_cmd_scrolled.configure(state=DISABLED)
 
     def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
@@ -505,6 +411,7 @@ def open_mini_cmd_window():
                             foreground='white', background='#23272A', borderwidth='3',
                             activebackground='grey')
     copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
+# ----------------------------------- Command line viewer window that is opened from all codecs "Audio" settings window
 
 
 # # Help Button for FDK -----------------------------------------------------------------------------------------
@@ -543,6 +450,11 @@ def open_mini_cmd_window():
 #         text_area.configure(state=DISABLED)
 #
 # # -------------------------------------------------------------------------------------------------------- Help
+
+# Calls to show_streams.py show_streams_mediainfo_function to display a window with track information -----------------
+def show_streams_mediainfo():  # All audio codecs can call this function in their menu's
+    show_streams_mediainfo_function(VideoInput)
+# ----------------- Calls to show_streams.py show_streams_mediainfo_function to display a window with track information
 
 
 # Uses MediaInfo CLI to get total audio track count and gives us a total track count ----------------------------------
