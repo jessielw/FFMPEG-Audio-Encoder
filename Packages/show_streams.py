@@ -4,6 +4,8 @@ from pathlib import Path
 from pymediainfo import MediaInfo
 from pyperclip import copy as pyperclip_copy
 from idlelib.tooltip import Hovertip
+from pyautogui import hotkey as pya_hotkey
+from time import sleep as time_sleep
 
 
 def exit_stream_window():  # Global function to exit stream window (so it can be accessed via main script)
@@ -35,7 +37,7 @@ def show_streams_mediainfo_function(x):  # Stream Viewer
             if str(track.stream_identifier) != 'None':  # Gets stream #
                 audio_track_id = 'Track#:          ' + str(int(track.stream_identifier) + 1) + '\n'
             else:
-                pass
+                audio_track_id = ''
             if str(track.format) != 'None':  # Gets format string of tracks (aac, ac3 etc...)
                 audio_format = 'Codec:           ' + str(track.commercial_name) + ' - ' + str(track.format) + '\n'
             else:
@@ -90,7 +92,7 @@ def show_streams_mediainfo_function(x):  # Stream Viewer
             else:
                 audio_track_compression = ''
 
-            # -------------------------------------------------------------------------------------------------- Formatting
+            # ---------------------------------------------------------------------------------------------- Formatting
             audio_track_info = str(audio_track_id + audio_format + audio_channels + audio_bitrate +
                                    audio_sampling_rate + audio_delay + audio_duration + audio_language +
                                    audio_title + audio_track_compression)  # Formatting variable
@@ -103,8 +105,13 @@ def show_streams_mediainfo_function(x):  # Stream Viewer
     def right_click_menu_func(x_y_pos):  # Function for mouse button 3 (right click) to pop up menu
         right_click_menu.tk_popup(x_y_pos.x_root, x_y_pos.y_root)  # This gets the position of cursor
 
+    def copy_selected_text():  # Function to copy only selected text
+        pya_hotkey('ctrl', 'c')
+        time_sleep(.01)  # Slow program incase ctrl+c is slower
+
     right_click_menu = Menu(stream_window, tearoff=False)  # This is the right click menu
-    right_click_menu.add_command(label='Copy', command=pyperclip_copy(stream_win_text_area.get(1.0, END)))
+    right_click_menu.add_command(label='Copy Selected Text', command=copy_selected_text)
+    right_click_menu.add_command(label='Copy All Text', command=pyperclip_copy(stream_win_text_area.get(1.0, END)))
     stream_window.bind('<Button-3>', right_click_menu_func)  # Uses mouse button 3 (right click) to pop up menu
-    Hovertip(stream_win_text_area, 'Right click to copy', hover_delay=1000)  # Hover tip tool-tip
+    Hovertip(stream_win_text_area, 'Right click to copy', hover_delay=1200)  # Hover tip tool-tip
 # ---------------------------------------------------------------------------------------------------- Show Streams
