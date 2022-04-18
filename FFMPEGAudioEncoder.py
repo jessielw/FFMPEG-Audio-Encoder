@@ -11,11 +11,13 @@ from Packages.FFMPEGAudioEncoderBatch import batch_processing
 from Packages.About import openaboutwindow
 from Packages.config_params import create_config_params
 from Packages.window_geometry_settings import set_window_geometry_settings
+from Packages.show_streams import show_streams_mediainfo_function, exit_stream_window
+from Packages.icon import gui_icon
 from configparser import ConfigParser
 from ctypes import windll
 from pymediainfo import MediaInfo
 from idlelib.tooltip import Hovertip
-from Packages.show_streams import show_streams_mediainfo_function, exit_stream_window
+
 
 
 # Main Gui & Windows --------------------------------------------------------
@@ -64,7 +66,7 @@ config_profile.read(config_profile_ini)
 
 root = TkinterDnD.Tk()
 root.title("FFMPEG Audio Encoder v3.38")
-root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
+root.iconphoto(True, PhotoImage(data=gui_icon))
 root.configure(background="#434547")
 if config['save_window_locations']['ffmpeg audio encoder position'] == '' or \
         config['save_window_locations']['ffmpeg audio encoder'] == 'no':
