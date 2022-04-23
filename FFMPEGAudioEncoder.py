@@ -834,11 +834,13 @@ def openaudiowindow():
 
     # 'Apply' button function -----------------------------------------------------------------------------------------
     def gotosavefile():
-        global file_input, delay_string, language_string
+        global file_input, delay_string, language_string, auto_or_manual
         output_button.config(state=NORMAL)  # Enable buttons upon save file
         start_audio_button.config(state=NORMAL)
         command_line_button.config(state=NORMAL)
-        save_codec_window_positions()  # Call function to save window size/positions
+
+        if auto_or_manual == 'manual':
+            save_codec_window_positions()  # Call functions to save window size/positions
 
         def close_misc_audio_windows():  # Function to run misc audio setting windows
             try:
