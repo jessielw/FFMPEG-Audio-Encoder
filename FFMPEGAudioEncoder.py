@@ -5580,30 +5580,30 @@ def file_input_check(file_input):
         command_line_button.config(state=DISABLED)  # Disable button
         if config_profile['Auto Encode']['codec'] == '':  # If auto-encode profile has no information keep disabled
             auto_encode_last_options.configure(state=DISABLED)
-        else:  # If it has information, define file_out save location for what ever codec
+        else:  # If it has information, define auto_file_out save location for what ever codec
             auto_encode_last_options.configure(state=NORMAL)
             if config_profile['Auto Encode']['codec'] == 'AAC':
-                file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.mp4'
+                auto_file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.mp4'
             elif config_profile['Auto Encode']['codec'] == 'AC3' or \
                     config_profile['Auto Encode']['codec'] == 'E-AC3':
-                file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.ac3'
+                auto_file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.ac3'
             elif config_profile['Auto Encode']['codec'] == "DTS":
-                file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.dts'
+                auto_file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.dts'
             elif config_profile['Auto Encode']['codec'] == "Opus":
-                file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.opus'
+                auto_file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.opus'
             elif config_profile['Auto Encode']['codec'] == 'MP3':
-                file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.mp3'
+                auto_file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.mp3'
             elif config_profile['Auto Encode']['codec'] == "FDK-AAC" or \
                     config_profile['Auto Encode']['codec'] == "QAAC" or \
                     config_profile['Auto Encode']['codec'] == "ALAC":
-                file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.m4a'
+                auto_file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.m4a'
             elif config_profile['Auto Encode']['codec'] == "FLAC":
-                file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.flac'
+                auto_file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.flac'
             output_entry.configure(state=NORMAL)  # Enable output_entry
             output_entry.delete(0, END)  # Clear contents of output entry
-            output_entry.insert(0, file_out)  # Insert file_out information
+            output_entry.insert(0, auto_file_out)  # Insert auto_file_out information
             output_entry.configure(state=DISABLED)  # Disable output entry
-            autosavefilename = pathlib.Path(file_out).name  # Set autosavefilename var
+            autosavefilename = pathlib.Path(auto_file_out).name  # Set autosavefilename var
     elif total_audio_streams_in_input is None:  # If input has 0 audio tracks
         input_entry.config(state=DISABLED)  # Disable input entry-box
         messagebox.showinfo(title="No Audio Streams", message=f"{file_input_quoted}:\n\nDoes not "
