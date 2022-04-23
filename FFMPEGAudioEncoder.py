@@ -5527,6 +5527,11 @@ def startaudiojob():
             if config['auto_close_progress_window']['option'] == 'on':
                 close_window()  # If program is set to auto close encoding window when complete, close
 
+            try:
+                root.deiconify()  # This is temporary code, until I decide how I'm going to spawn new encoding windows
+            except NameError:
+                pass
+
         elif shell_options.get() == "Debug":  # Debug mode, only opens a cmd.exe terminal for raw output
             subprocess.Popen('cmd /k ' + finalcommand + '"')
 
