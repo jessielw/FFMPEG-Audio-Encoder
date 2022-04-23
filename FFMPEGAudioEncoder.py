@@ -1,23 +1,34 @@
 # Imports--------------------------------------------------------------------
+import pathlib
+import time
+
+import pyperclip
+import re
+import shutil
+import subprocess
+import threading
+import tkinter.scrolledtext as scrolledtextwidget
+import webbrowser
+from configparser import ConfigParser
+from ctypes import windll
+from idlelib.tooltip import Hovertip
+from time import sleep
+from sys import argv
 from tkinter import filedialog, StringVar, ttk, messagebox, PhotoImage, Menu, NORMAL, DISABLED, N, S, W, E, Toplevel, \
     LabelFrame, END, INSERT, Label, Checkbutton, Spinbox, CENTER, GROOVE, OptionMenu, Entry, HORIZONTAL, SUNKEN, \
     Button, TclError
-from TkinterDnD2 import *
-import subprocess, pathlib, threading, shutil, re, webbrowser, pyperclip, tkinter.scrolledtext as scrolledtextwidget
-from time import sleep
-from Packages.DirectoryCheck import directory_check
-from Packages.SimpleYoutubeDLGui import youtube_dl_launcher_for_ffmpegaudioencoder
-from Packages.FFMPEGAudioEncoderBatch import batch_processing
-from Packages.About import openaboutwindow
-from Packages.config_params import create_config_params
-from Packages.window_geometry_settings import set_window_geometry_settings
-from Packages.show_streams import show_streams_mediainfo_function, exit_stream_window
-from Packages.icon import gui_icon
-from configparser import ConfigParser
-from ctypes import windll
-from pymediainfo import MediaInfo
-from idlelib.tooltip import Hovertip
 
+from TkinterDnD2 import *
+from pymediainfo import MediaInfo
+
+from Packages.About import openaboutwindow
+from Packages.DirectoryCheck import directory_check
+from Packages.FFMPEGAudioEncoderBatch import batch_processing
+from Packages.SimpleYoutubeDLGui import youtube_dl_launcher_for_ffmpegaudioencoder
+from Packages.config_params import create_config_params
+from Packages.icon import gui_icon
+from Packages.show_streams import show_streams_mediainfo_function, exit_stream_window
+from Packages.window_geometry_settings import set_window_geometry_settings
 
 
 # Main Gui & Windows --------------------------------------------------------
@@ -51,7 +62,7 @@ def root_exit_function():
 
 
 # ------------------------------------------------------------------------------------------------------- Config Parser
-create_config_params()  # Runs the funciton to define/create all the parameters in the needed .ini files
+create_config_params()  # Runs the function to define/create all the parameters in the needed .ini files
 # Defines the path to config.ini and opens it for reading/writing
 config_file = 'Runtime/config.ini'  # Creates (if doesn't exist) and defines location of config.ini
 config = ConfigParser()
@@ -67,6 +78,7 @@ config_profile.read(config_profile_ini)
 root = TkinterDnD.Tk()
 root.title("FFMPEG Audio Encoder v3.38")
 root.iconphoto(True, PhotoImage(data=gui_icon))
+# root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 if config['save_window_locations']['ffmpeg audio encoder position'] == '' or \
         config['save_window_locations']['ffmpeg audio encoder'] == 'no':
@@ -162,8 +174,8 @@ mpv_player = config['mpv_player_path']['path']
 # Open InputFile with portable MediaInfo ------------------------------------------------------------------------------
 def mediainfogui():
     try:
-        VideoInputQuoted = '"' + VideoInput + '"'
-        commands = mediainfo + " " + VideoInputQuoted
+        file_input_quoted = '"' + file_input + '"'
+        commands = mediainfo + " " + file_input_quoted
         subprocess.Popen(commands)
     except (Exception,):
         commands = mediainfo
@@ -175,8 +187,8 @@ def mediainfogui():
 # Open InputFile with portable mpv ------------------------------------------------------------------------------------
 def mpv_gui_main_gui():
     try:
-        VideoInputQuoted = '"' + VideoInput + '"'
-        commands = mpv_player + " " + VideoInputQuoted
+        file_input_quoted = '"' + file_input + '"'
+        commands = mpv_player + " " + file_input_quoted
         subprocess.Popen(commands)
     except (Exception,):
         commands = mpv_player
@@ -346,39 +358,39 @@ help_menu.add_command(label="About", command=openaboutwindow)
 
 # File Auto Save Function ---------------------------------------------------------------------------------------------
 def set_auto_save_suffix():
-    global VideoOut
+    global file_out
     if encoder.get() != "Set Codec":
-        filename = pathlib.Path(VideoInput)
+        filename = pathlib.Path(file_input)
         if encoder.get() == 'AAC':
-            VideoOut = filename.with_suffix('._new_.mp4')
+            file_out = filename.with_suffix('._new_.mp4')
         elif encoder.get() == 'AC3' or encoder.get() == 'E-AC3':
-            VideoOut = filename.with_suffix('._new_.ac3')
+            file_out = filename.with_suffix('._new_.ac3')
         elif encoder.get() == "DTS":
-            VideoOut = filename.with_suffix('._new_.dts')
+            file_out = filename.with_suffix('._new_.dts')
         elif encoder.get() == "Opus":
-            VideoOut = filename.with_suffix('._new_.opus')
+            file_out = filename.with_suffix('._new_.opus')
         elif encoder.get() == 'MP3':
-            VideoOut = filename.with_suffix('._new_.mp3')
+            file_out = filename.with_suffix('._new_.mp3')
         elif encoder.get() == "FDK-AAC" or encoder.get() == "QAAC" or encoder.get() == "ALAC":
-            VideoOut = filename.with_suffix('._new_.m4a')
+            file_out = filename.with_suffix('._new_.m4a')
         elif encoder.get() == "FLAC":
-            VideoOut = filename.with_suffix('._new_.flac')
+            file_out = filename.with_suffix('._new_.flac')
 
 
 def encoder_changed(*args):
-    global VideoOutput, autosavefilename, VideoOut
+    global file_output, autosavefilename, file_out
     if encoder.get() != "Set Codec":
         set_auto_save_suffix()
-        VideoOutput = str(VideoOut)
+        file_output = str(file_out)
         output_entry.configure(state=NORMAL)
         output_entry.delete(0, END)
-        output_entry.insert(0, VideoOut)
+        output_entry.insert(0, file_out)
         output_entry.configure(state=DISABLED)
         audiosettings_button.configure(state=NORMAL)
         command_line_button.config(state=DISABLED)
         start_audio_button.config(state=DISABLED)
         auto_encode_last_options.configure(state=DISABLED)
-        autosavefilename = VideoOut.name
+        autosavefilename = file_out.name
 
 
 # --------------------------------------------------------------------------------------------- File Auto Save Function
@@ -413,6 +425,8 @@ def open_mini_cmd_window():
                             foreground='white', background='#23272A', borderwidth='3',
                             activebackground='grey')
     copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
+
+
 # ----------------------------------- Command line viewer window that is opened from all codecs "Audio" settings window
 
 
@@ -455,23 +469,25 @@ def open_mini_cmd_window():
 
 # Calls to show_streams.py show_streams_mediainfo_function to display a window with track information -----------------
 def show_streams_mediainfo():  # All audio codecs can call this function in their menu's
-    show_streams_mediainfo_function(VideoInput)
+    show_streams_mediainfo_function(file_input)
+
+
 # ----------------- Calls to show_streams.py show_streams_mediainfo_function to display a window with track information
 
 
 # Uses MediaInfo CLI to get total audio track count and gives us a total track count ----------------------------------
 def track_counter(*args):  # Thanks for helping me shorten this 'gmes78'
-    global acodec_stream_track_counter, t_info
+    global acodec_stream_track_counter, t_info, track_count
     mediainfocli_cmd_info = '"' + mediainfocli + " " + '--Output="Audio;' \
                             + " |  %Format%  |  %Channel(s)% Channels  |  %BitRate/String% ," \
-                            + '"' + " " + VideoInputQuoted + '"'
+                            + '"' + " " + file_input_quoted + '"'
     mediainfo_count = subprocess.Popen('cmd /c ' + mediainfocli_cmd_info, creationflags=subprocess.CREATE_NO_WINDOW,
                                        universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                        stdin=subprocess.PIPE, encoding="utf-8")
     stdout, stderr = mediainfo_count.communicate()
     t_info = stdout.split(',')[:-1]
     acodec_stream_track_counter = {}
-    for i in range(int(str.split(track_count)[-1])):
+    for i in range(int(track_count)):
         acodec_stream_track_counter[f'Track #{i + 1} {t_info[i]}'] = f' -map 0:a:{i} '
 
 
@@ -700,8 +716,8 @@ def openaudiowindow():
 
     # Open InputFile Track X with portable mpv ------------------------------------------------------------------------
     def mpv_gui_audio_window():
-        VideoInputQuoted = '"' + VideoInput + '"'
-        commands = mpv_player + ' ' + '--volume=50 ' + '--aid=' + mpv_track_number[0] + ' ' + VideoInputQuoted
+        file_input_quoted = '"' + file_input + '"'
+        commands = mpv_player + ' ' + '--volume=50 ' + '--aid=' + mpv_track_number[0] + ' ' + file_input_quoted
         subprocess.Popen(commands)
 
     # ------------------------------------------------------------------------------------------------------------- mpv
@@ -818,7 +834,7 @@ def openaudiowindow():
 
     # 'Apply' button function -----------------------------------------------------------------------------------------
     def gotosavefile():
-        global VideoInput, delay_string, language_string
+        global file_input, delay_string, language_string
         output_button.config(state=NORMAL)  # Enable buttons upon save file
         start_audio_button.config(state=NORMAL)
         command_line_button.config(state=NORMAL)
@@ -838,25 +854,25 @@ def openaudiowindow():
         delay_string = ''  # Place holder variable
 
         def update_video_output():  # Function to add language/delay strings to the output filename
-            global VideoOutput, autosavefilename, total_streams
-            set_auto_save_suffix()  # Run function to apply default VideoOutput before continuing code
+            global file_output, autosavefilename, total_streams
+            set_auto_save_suffix()  # Run function to apply default file_output before continuing code
             audio_track_number_string = f'[Audio#{acodec_stream.get().split()[1][-1]}]'
             if total_streams == 1:  # If total_streams equals 1
-                VideoOutput = str(VideoOutput).replace('_new_', audio_track_number_string)  # Replace _new_ with Audio#
+                file_output = str(file_output).replace('_new_', audio_track_number_string)  # Replace _new_ with Audio#
             elif total_streams >= 2:  # If total_streams is 2 or greater
-                VideoOutput = str(VideoOutput).replace('_new_', audio_track_number_string + language_string
+                file_output = str(file_output).replace('_new_', audio_track_number_string + language_string
                                                        + delay_string)  # Replace '_new_'
-            autosavefilename = pathlib.Path(VideoOutput).stem
+            autosavefilename = pathlib.Path(file_output).stem
             command_line_button.config(state=NORMAL)  # Enable the display command button for main gui
             output_entry.config(state=NORMAL)  # Enable output_entry box for editing
             output_entry.delete(0, END)  # Remove all text from box
-            output_entry.insert(0, VideoOutput)  # Insert new VideoOutput path
+            output_entry.insert(0, file_output)  # Insert new file_output path
             output_entry.config(state=DISABLED)  # Disable output_entry box
 
         def delay_and_lang_check():
             global language_string, delay_string, auto_or_manual, auto_track_input, total_streams
             # If input is only 1 track, parse input file name for language and delay string
-            media_info = MediaInfo.parse(VideoInput)  # Parse VideoInput
+            media_info = MediaInfo.parse(file_input)  # Parse file_input
             general_track = media_info.general_tracks[0]
             total_streams = 0  # Empty variable to add up all the tracks
             if general_track.count_of_video_streams is not None:
@@ -883,7 +899,7 @@ def openaudiowindow():
                     if auto_or_manual == 'auto':
                         audio_window.destroy()  # Destroy audio window, only opens to define variables inside it
                     # parse input file name for language and delay string
-                    # language_code_input = re_findall(r"\[([A-Za-z]+)\]", str(VideoInput))
+                    # language_code_input = re_findall(r"\[([A-Za-z]+)\]", str(file_input))
                     # if language_code_input:  # If re finds language codes within '[]'
                     #     lng_input_lengths = [len(i) for i in language_code_input]
                     #     if 3 in lng_input_lengths:  # If anything within the brackets is 3 digits
@@ -893,7 +909,7 @@ def openaudiowindow():
                     #     language_string = ''
                     #
                     # # parse input filename for delay string, it searches for ms and any numbers (- if it has it)
-                    # input_delay_string = re_search('-*[^a-zA-Z [_{+]*ms', VideoInput)
+                    # input_delay_string = re_search('-*[^a-zA-Z [_{+]*ms', file_input)
                     # if input_delay_string:  # If re finds a delay string in the input filename
                     #     delay_string = f'[delay {str(input_delay_string[0])}]'
                     # if not input_delay_string:
@@ -1030,7 +1046,7 @@ def openaudiowindow():
                     pass
 
                 try:
-                    # Obtain language string from VideoInput's parsed track
+                    # Obtain language string from file_input's parsed track
                     if track_selection_mediainfo.other_language is not None:  # If language is not None
                         l_lengths = [len(i) for i in track_selection_mediainfo.other_language]  # List of language codes
                         if 3 in l_lengths:  # Find strings in l_lengths that only are equal to 3 characters
@@ -3355,7 +3371,6 @@ def openaudiowindow():
         def acodec_profile_menu_hover_leave(e):
             acodec_profile_menu["bg"] = "#23272A"
 
-
         # Views Command -----------------------------------------------------------------------------------------------
         def view_command():
             global mini_cmd_output
@@ -4763,80 +4778,43 @@ def openaudiowindow():
 
 # ---------------------------------------------------------------------------------------------- End Audio Codec Window
 
-# File Input ----------------------------------------------------------------------------------------------------------
-def file_input():
-    global VideoInput, VideoInputQuoted, VideoOutput, autofilesave_dir_path, track_count
-    VideoInput = filedialog.askopenfilename(initialdir="/", title="Select A File", filetypes=[("All Files", "*.*")])
-
-    if VideoInput:  # If user selects a file to open
-        VideoInputQuoted = f'"{VideoInput}"'  # Quote VideInput for use in the code
-        media_info = MediaInfo.parse(pathlib.Path(VideoInput))  # Parse with media_info module
-        total_audio_streams_in_input = media_info.general_tracks[0].count_of_audio_streams  # Check input for audio
-        if total_audio_streams_in_input is not None:  # If audio is not None (1 or more audio tracks)
-            input_entry.configure(state=NORMAL)  # Enable input entry box
-            input_entry.delete(0, END)  # Remove text from input entry box if there is any
-            autofilesave_file_path = pathlib.Path(VideoInput)  # Command to get file input location
-            autofilesave_dir_path = autofilesave_file_path.parents[0]  # Get only the directory from input
-            encoder_menu.config(state=NORMAL)  # Enable encoder_menu
-            track_count = total_audio_streams_in_input  # Get track count from input
-            input_entry.insert(0, str(pathlib.Path(VideoInput)))  # Insert VideoInput into the input entry
-            input_entry.configure(state=DISABLED)  # Disable input entry
-            output_entry.configure(state=NORMAL)  # Enable output entry
-            output_entry.delete(0, END)  # Delete output entry text
-            output_entry.configure(state=DISABLED)  # Disable output entry
-        elif total_audio_streams_in_input is None:  # If input has 0 audio tracks
-            input_entry.config(state=DISABLED)  # Disable input entry-box
-            messagebox.showinfo(title="No Audio Streams", message=f"{VideoInputQuoted}:\n\nDoes not "
-                                                                  f"contain any audio streams!")  # Display error msg
-
-    if not VideoInput:  # If user presses cancel
-        input_entry.configure(state=NORMAL)
-        input_entry.delete(0, END)
-        input_entry.configure(state=DISABLED)
-        output_button.config(state=DISABLED)
-        encoder_menu.config(state=DISABLED)
-        audiosettings_button.configure(state=DISABLED)
-        auto_encode_last_options.configure(state=DISABLED)
-
-
-# ---------------------------------------------------------------------------------------------------------- File Input
 
 # File Output ---------------------------------------------------------------------------------------------------------
 def file_save():
-    global VideoOutput
+    global file_output
     if encoder.get() == "AAC":
-        VideoOutput = filedialog.asksaveasfilename(defaultextension=".mp4", initialdir=autofilesave_dir_path,
+        file_output = filedialog.asksaveasfilename(defaultextension=".mp4", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=[("AAC", "*.mp4")])
     elif encoder.get() == "AC3" or encoder.get() == "E-AC3":
-        VideoOutput = filedialog.asksaveasfilename(defaultextension=".ac3", initialdir=autofilesave_dir_path,
+        file_output = filedialog.asksaveasfilename(defaultextension=".ac3", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=[("'AC3', 'E-AC3,'", "*.ac3")])
     elif encoder.get() == "DTS":
-        VideoOutput = filedialog.asksaveasfilename(defaultextension=".dts", initialdir=autofilesave_dir_path,
+        file_output = filedialog.asksaveasfilename(defaultextension=".dts", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=[("DTS", "*.dts")])
     elif encoder.get() == "Opus":
-        VideoOutput = filedialog.asksaveasfilename(defaultextension=".opus", initialdir=autofilesave_dir_path,
+        file_output = filedialog.asksaveasfilename(defaultextension=".opus", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=[("Opus", "*.opus")])
     elif encoder.get() == "MP3":
-        VideoOutput = filedialog.asksaveasfilename(defaultextension=".mp3", initialdir=autofilesave_dir_path,
+        file_output = filedialog.asksaveasfilename(defaultextension=".mp3", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=[("MP3", "*.mp3")])
     elif encoder.get() == "FDK-AAC" or encoder.get() == "QAAC" or encoder.get() == "ALAC":
-        VideoOutput = filedialog.asksaveasfilename(defaultextension=".m4a", initialdir=autofilesave_dir_path,
+        file_output = filedialog.asksaveasfilename(defaultextension=".m4a", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=[("'AAC,' 'ALAC,'", "*.m4a")])
     elif encoder.get() == "FLAC":
-        VideoOutput = filedialog.asksaveasfilename(defaultextension=".flac", initialdir=autofilesave_dir_path,
+        file_output = filedialog.asksaveasfilename(defaultextension=".flac", initialdir=autofilesave_dir_path,
                                                    title="Select a Save Location", initialfile=autosavefilename,
                                                    filetypes=[("FLAC", "*.flac")])
 
-    if VideoOutput:
+    if file_output:
         output_entry.configure(state=NORMAL)  # Enable entry box for commands under
         output_entry.delete(0, END)  # Remove current text in entry
-        output_entry.insert(0, str(pathlib.Path(VideoOutput)))  # Insert the 'path'
+        output_entry.insert(0, str(pathlib.Path(file_output)))  # Insert the 'path'
         output_entry.configure(state=DISABLED)  # Disables Entry Box
 
 
@@ -4855,26 +4833,26 @@ def print_command_line():
     cmd_line_window = Toplevel()
     cmd_line_window.title('Display Command')
     cmd_line_window.configure(background="#434547")
-    VideoInputQuoted = '"' + VideoInput + '"'
-    VideoOutputQuoted = '"' + VideoOutput + '"'
+    file_input_quoted = '"' + file_input + '"'
+    file_output_quoted = '"' + file_output + '"'
     audio_filter_function()
     # DTS Command Line Main Gui ---------------------------------------------------------------------------------------
     if encoder.get() == "DTS":
         if dts_settings.get() == 'DTS Encoder':
             example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                              VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] +
+                                              file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
                                               dts_settings_choices[dts_settings.get()] + "-b:a " +
                                               dts_bitrate_spinbox.get() + "k " +
                                               acodec_channel_choices[acodec_channel.get()] +
                                               acodec_samplerate_choices[acodec_samplerate.get()] +
                                               audio_filter_setting + dts_custom_cmd_input +
-                                              "-sn -vn -map_chapters -1 " + VideoOutputQuoted +
+                                              "-sn -vn -map_chapters -1 " + file_output_quoted +
                                               " -v error -hide_banner -stats").split())
         else:
             example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                              VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] +
+                                              file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
                                               dts_settings_choices[dts_settings.get()] + dts_custom_cmd_input +
-                                              "-sn -vn -map_chapters -1 " + VideoOutputQuoted +
+                                              "-sn -vn -map_chapters -1 " + file_output_quoted +
                                               " -v error -hide_banner -stats").split())
     # --------------------------------------------------------------------------------------- DTS Command Line Main Gui
     # FDK View Command Line -------------------------------------------------------------------------------------------
@@ -4884,7 +4862,7 @@ def print_command_line():
         else:
             silent = ' '
         example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                          VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] +
+                                          file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
                                           acodec_channel_choices[acodec_channel.get()] +
                                           acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                           "-sn -vn -map_chapters -1 -map_metadata -1 " +
@@ -4897,7 +4875,7 @@ def print_command_line():
                                           acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] +
                                           acodec_transport_format_choices[acodec_transport_format.get()] +
                                           acodec_bitrate_choices[acodec_bitrate.get()] + silent + "- -o " +
-                                          VideoOutputQuoted).split())
+                                          file_output_quoted).split())
     # ---------------------------------------------------------------------------------------------------- FDK CMD LINE
     # QAAC View Command Line ------------------------------------------------------------------------------------------
     elif encoder.get() == "QAAC":
@@ -4907,7 +4885,7 @@ def print_command_line():
             silent = ' '
         if q_acodec_profile.get() == "True VBR":
             example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                              VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] +
+                                              file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
                                               acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
                                               acodec_samplerate_choices[acodec_samplerate.get()] +
                                               "-sn -vn -map_chapters -1 -map_metadata -1 " +
@@ -4920,10 +4898,10 @@ def print_command_line():
                                               qaac_nodelay.get() + q_gapless_mode_choices[q_gapless_mode.get()] +
                                               qaac_nooptimize.get() + qaac_threading.get() + qaac_limiter.get() +
                                               qaac_title_input + qaac_custom_cmd_input + silent + "- -o " +
-                                              VideoOutputQuoted).split())
+                                              file_output_quoted).split())
         else:
             example_cmd_output = ' '.join(str('"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " +
-                                              VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] +
+                                              file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
                                               acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
                                               acodec_samplerate_choices[acodec_samplerate.get()] +
                                               "-sn -vn -map_chapters -1 -map_metadata -1 " +
@@ -4936,7 +4914,7 @@ def print_command_line():
                                               q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() +
                                               qaac_threading.get() + qaac_limiter.get() + qaac_title_input +
                                               qaac_custom_cmd_input + silent + "- -o " +
-                                              VideoOutputQuoted).split())
+                                              file_output_quoted).split())
     # ------------------------------------------------------------------------------------------------------------ QAAC
     # AAC Command Line ------------------------------------------------------------------------------------------------
     elif encoder.get() == "AAC":
@@ -4945,29 +4923,29 @@ def print_command_line():
         elif aac_vbr_toggle.get() == "-q:a ":
             bitrate_or_quality = f"-q:a {aac_quality_spinbox.get()} "
         example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                          VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] +
+                                          file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
                                           encoder_dropdownmenu_choices[encoder.get()] + bitrate_or_quality +
                                           acodec_channel_choices[acodec_channel.get()] +
                                           acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                           "-sn -vn -map_chapters -1 -map_metadata -1 " + aac_custom_cmd_input +
-                                          aac_title_input + VideoOutputQuoted +
+                                          aac_title_input + file_output_quoted +
                                           " -v error -hide_banner -stats").split())
     # ------------------------------------------------------------------------------------------------ AAC Command Line
     # AC3 Command Line ------------------------------------------------------------------------------------------------
     elif encoder.get() == "AC3":
         example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                          VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] +
+                                          file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
                                           encoder_dropdownmenu_choices[encoder.get()] +
                                           acodec_bitrate_choices[acodec_bitrate.get()] +
                                           acodec_channel_choices[acodec_channel.get()] +
                                           acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                           "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input +
-                                          VideoOutputQuoted + " -v error -hide_banner -stats").split())
+                                          file_output_quoted + " -v error -hide_banner -stats").split())
     # ------------------------------------------------------------------------------------------------ AC3 Command Line
     # Opus Command Line -----------------------------------------------------------------------------------------------
     elif encoder.get() == "Opus":
         example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                          VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] +
+                                          file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
                                           encoder_dropdownmenu_choices[encoder.get()] +
                                           acodec_vbr_choices[acodec_vbr.get()] +
                                           acodec_bitrate_choices[acodec_bitrate.get()] +
@@ -4977,23 +4955,23 @@ def print_command_line():
                                           packet_loss.get() + " -frame_duration " + frame_duration.get() + " " +
                                           acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                           "-sn -vn -map_chapters -1 -map_metadata -1 " + opus_custom_cmd_input +
-                                          VideoOutputQuoted + " -v error -hide_banner -stats").split())
+                                          file_output_quoted + " -v error -hide_banner -stats").split())
     # ----------------------------------------------------------------------------------------------- Opus Command Line
     # MP3 Command Line ------------------------------------------------------------------------------------------------
     elif encoder.get() == "MP3":
         example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                          VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] +
+                                          file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
                                           encoder_dropdownmenu_choices[encoder.get()] +
                                           acodec_bitrate_choices[acodec_bitrate.get()] +
                                           acodec_channel_choices[acodec_channel.get()] + mp3_abr.get() +
                                           acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                           "-sn -vn -map_chapters -1 -map_metadata -1 " + mp3_custom_cmd_input +
-                                          VideoOutputQuoted + " -v error -hide_banner -stats").split())
+                                          file_output_quoted + " -v error -hide_banner -stats").split())
     # ------------------------------------------------------------------------------------------------ MP3 Command Line
     # E-AC3 Command Line ----------------------------------------------------------------------------------------------
     elif encoder.get() == "E-AC3":
         example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                          VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] +
+                                          file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
                                           encoder_dropdownmenu_choices[encoder.get()] + "-b:a " + eac3_spinbox.get() +
                                           acodec_channel_choices[acodec_channel.get()] +
                                           acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
@@ -5011,13 +4989,13 @@ def print_command_line():
                                           a_d_converter_type_choices[a_d_converter_type.get()] +
                                           stereo_rematrixing_choices[stereo_rematrixing.get()] + "-channel_coupling " +
                                           channel_coupling.get() + " " + "-cpl_start_band " + cpl_start_band.get() +
-                                          " " + "-sn -vn -map_chapters -1 -map_metadata -1 " + VideoOutputQuoted +
+                                          " " + "-sn -vn -map_chapters -1 -map_metadata -1 " + file_output_quoted +
                                           " -v error -hide_banner -stats").split())
     # ---------------------------------------------------------------------------------------------- E-AC3 Command Line
     # FLAC Command Line -----------------------------------------------------------------------------------------------
     elif encoder.get() == "FLAC":
         example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                          VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] +
+                                          file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
                                           encoder_dropdownmenu_choices[encoder.get()] +
                                           acodec_bitrate_choices[acodec_bitrate.get()] +
                                           acodec_channel_choices[acodec_channel.get()] +
@@ -5026,18 +5004,18 @@ def print_command_line():
                                           acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] +
                                           acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] +
                                           flac_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
-                                          VideoOutputQuoted + " -v error -hide_banner -stats" + '"').split())
+                                          file_output_quoted + " -v error -hide_banner -stats" + '"').split())
     # ----------------------------------------------------------------------------------------------- FLAC Command Line
     # ALAC Command Line -----------------------------------------------------------------------------------------------
     elif encoder.get() == "ALAC":
         example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                          VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] +
+                                          file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
                                           encoder_dropdownmenu_choices[encoder.get()] +
                                           acodec_channel_choices[acodec_channel.get()] +
                                           acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                           min_pre_order + max_pre_order + flac_custom_cmd_input + " " +
                                           "-sn -vn -map_chapters -1 -map_metadata -1 " +
-                                          VideoOutputQuoted + " -v error -hide_banner -stats" + '"').split())
+                                          file_output_quoted + " -v error -hide_banner -stats" + '"').split())
     # ----------------------------------------------------------------------------------------------- ALAC Command Line
     show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=90, height=10, tabs=10, spacing2=3,
                                                         spacing1=2, spacing3=3)
@@ -5063,8 +5041,8 @@ def startaudiojob():
         fdkaac_job, qaac_job, flac_job, alac_job, auto_or_manual, auto_track_input, acodec_stream, \
         acodec_stream_choices
     # Quote File Input/Output Paths------------
-    VideoInputQuoted = '"' + VideoInput + '"'
-    VideoOutputQuoted = '"' + VideoOutput + '"'
+    file_input_quoted = '"' + file_input + '"'
+    file_output_quoted = '"' + file_output + '"'
     # -------------------------- Quote File Paths
     # Combine audio filters for FFMPEG
     audio_filter_function()
@@ -5074,7 +5052,7 @@ def startaudiojob():
 
     if shell_options.get() == "Default":  # Default progress bars
         global total_duration
-        media_info = MediaInfo.parse(pathlib.Path(VideoInput))  # Parse input file
+        media_info = MediaInfo.parse(pathlib.Path(file_input))  # Parse input file
         track_selection_mediainfo = media_info.audio_tracks[int(acodec_stream_choices[acodec_stream.get()].strip()[-1])]
         # track_selection_mediainfo uses the -map 0:a:x code to get the track input, the code grabs only the last number
         if track_selection_mediainfo.duration is not None:  # If track input HAS a duration
@@ -5113,7 +5091,7 @@ def startaudiojob():
             thread.start()
 
         progress_window = Toplevel(root)
-        progress_window.title('Codec : ' + encoder.get() + '  |  ' + str(pathlib.Path(VideoInput).stem))
+        progress_window.title('Codec : ' + encoder.get() + '  |  ' + str(pathlib.Path(file_input).stem))
         progress_window.configure(background="#434547")
         if config['save_window_locations']['progress window position'] != '' and \
                 config['save_window_locations']['progress window'] == 'yes':
@@ -5172,14 +5150,14 @@ def startaudiojob():
 
     # AC3 Start Job ---------------------------------------------------------------------------------------------------
     if encoder.get() == "AC3":
-        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted +
+        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
                                     acodec_stream_choices[acodec_stream.get()] +
                                     encoder_dropdownmenu_choices[encoder.get()] +
                                     acodec_bitrate_choices[acodec_bitrate.get()] +
                                     acodec_channel_choices[acodec_channel.get()] +
                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                     "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input +
-                                    VideoOutputQuoted + " -v error -hide_banner -stats").split())
+                                    file_output_quoted + " -v error -hide_banner -stats").split())
         last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
                                          acodec_bitrate_choices[acodec_bitrate.get()] +
                                          acodec_channel_choices[acodec_channel.get()] +
@@ -5193,13 +5171,13 @@ def startaudiojob():
             bitrate_or_quality = f"-b:a {aac_bitrate_spinbox.get()}k "
         elif aac_vbr_toggle.get() == "-q:a ":
             bitrate_or_quality = f"-q:a {aac_quality_spinbox.get()} "
-        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted +
+        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
                                     acodec_stream_choices[acodec_stream.get()] +
                                     encoder_dropdownmenu_choices[encoder.get()] + bitrate_or_quality +
                                     acodec_channel_choices[acodec_channel.get()] +
                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                     "-sn -vn -map_chapters -1 -map_metadata -1 " + aac_custom_cmd_input +
-                                    aac_title_input + VideoOutputQuoted + " -v error -hide_banner -stats").split())
+                                    aac_title_input + file_output_quoted + " -v error -hide_banner -stats").split())
         last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] + bitrate_or_quality +
                                          acodec_channel_choices[acodec_channel.get()] +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
@@ -5210,12 +5188,12 @@ def startaudiojob():
     elif encoder.get() == 'DTS':
         if dts_settings.get() == 'DTS Encoder':
             finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                        VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] +
+                                        file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
                                         dts_settings_choices[dts_settings.get()] + "-b:a " +
                                         dts_bitrate_spinbox.get() + "k " +
                                         acodec_channel_choices[acodec_channel.get()] +
                                         acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                        dts_custom_cmd_input + "-sn -vn -map_chapters -1 " + VideoOutputQuoted +
+                                        dts_custom_cmd_input + "-sn -vn -map_chapters -1 " + file_output_quoted +
                                         " -v error -hide_banner -stats").split())
             last_used_command = ' '.join(str(dts_settings_choices[dts_settings.get()] + "-b:a " +
                                              dts_bitrate_spinbox.get() + "k " +
@@ -5225,16 +5203,16 @@ def startaudiojob():
                                              "-sn -vn -map_chapters -1 ").split())
         elif dts_settings.get() != 'DTS Encoder':
             finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                        VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] +
+                                        file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
                                         dts_settings_choices[dts_settings.get()] + dts_custom_cmd_input +
-                                        "-sn -vn -map_chapters -1 " + VideoOutputQuoted +
+                                        "-sn -vn -map_chapters -1 " + file_output_quoted +
                                         " -v error -hide_banner -stats").split())
             last_used_command = ' '.join(str(dts_settings_choices[dts_settings.get()] + dts_custom_cmd_input +
                                              "-sn -vn -map_chapters -1 ").split())
     # ------------------------------------------------------------------------------------------------------------- DTS
     # Opus Start Job --------------------------------------------------------------------------------------------------
     elif encoder.get() == "Opus":
-        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted +
+        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
                                     acodec_stream_choices[acodec_stream.get()] +
                                     encoder_dropdownmenu_choices[encoder.get()] +
                                     acodec_vbr_choices[acodec_vbr.get()] +
@@ -5245,7 +5223,7 @@ def startaudiojob():
                                     packet_loss.get() + " -frame_duration " + frame_duration.get() + " " +
                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                     "-sn -vn -map_chapters -1 -map_metadata -1 " + opus_custom_cmd_input +
-                                    VideoOutputQuoted + " -v error -hide_banner -stats").split())
+                                    file_output_quoted + " -v error -hide_banner -stats").split())
         last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
                                          acodec_vbr_choices[acodec_vbr.get()] +
                                          acodec_bitrate_choices[acodec_bitrate.get()] +
@@ -5258,14 +5236,14 @@ def startaudiojob():
     # ------------------------------------------------------------------------------------------------------------ Opus
     # MP3 Start Job ---------------------------------------------------------------------------------------------------
     elif encoder.get() == "MP3":
-        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted +
+        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
                                     acodec_stream_choices[acodec_stream.get()] +
                                     encoder_dropdownmenu_choices[encoder.get()] +
                                     acodec_bitrate_choices[acodec_bitrate.get()] +
                                     acodec_channel_choices[acodec_channel.get()] + mp3_abr.get() +
                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                     "-sn -vn -map_chapters -1 -map_metadata -1 " + mp3_custom_cmd_input +
-                                    VideoOutputQuoted + " -v error -hide_banner -stats").split())
+                                    file_output_quoted + " -v error -hide_banner -stats").split())
         last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
                                          acodec_bitrate_choices[acodec_bitrate.get()] +
                                          acodec_channel_choices[acodec_channel.get()] + mp3_abr.get() +
@@ -5274,7 +5252,7 @@ def startaudiojob():
     # ------------------------------------------------------------------------------------------------------------- MP3
     # E-AC3 Start Job -------------------------------------------------------------------------------------------------
     elif encoder.get() == "E-AC3":
-        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted +
+        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
                                     acodec_stream_choices[acodec_stream.get()] +
                                     encoder_dropdownmenu_choices[encoder.get()] + "-b:a " + eac3_spinbox.get() +
                                     acodec_channel_choices[acodec_channel.get()] +
@@ -5293,7 +5271,7 @@ def startaudiojob():
                                     a_d_converter_type_choices[a_d_converter_type.get()] +
                                     stereo_rematrixing_choices[stereo_rematrixing.get()] + "-channel_coupling " +
                                     channel_coupling.get() + " " + "-cpl_start_band " + cpl_start_band.get() + " " +
-                                    "-sn -vn -map_chapters -1 -map_metadata -1 " + VideoOutputQuoted +
+                                    "-sn -vn -map_chapters -1 -map_metadata -1 " + file_output_quoted +
                                     " -v error -hide_banner -stats").split())
         last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] + "-b:a " + eac3_spinbox.get() +
                                          acodec_channel_choices[acodec_channel.get()] +
@@ -5320,7 +5298,7 @@ def startaudiojob():
             silent = '--silent '
         else:
             silent = ' '
-        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted +
+        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
                                     acodec_stream_choices[acodec_stream.get()] +
                                     acodec_channel_choices[acodec_channel.get()] +
                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
@@ -5334,7 +5312,7 @@ def startaudiojob():
                                     acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] +
                                     acodec_transport_format_choices[acodec_transport_format.get()] +
                                     acodec_bitrate_choices[acodec_bitrate.get()] + silent + "- -o " +
-                                    VideoOutputQuoted).split())
+                                    file_output_quoted).split())
         last_used_command = ' '.join(str(acodec_channel_choices[acodec_channel.get()] +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                          "-sn -vn -map_chapters -1 -map_metadata -1 " +
@@ -5357,7 +5335,7 @@ def startaudiojob():
             silent = ' '
         if q_acodec_profile.get() == "True VBR":
             finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                        VideoInputQuoted + acodec_stream_choices[acodec_stream.get()] +
+                                        file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
                                         acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
                                         acodec_samplerate_choices[acodec_samplerate.get()] +
                                         "-sn -vn -map_chapters -1 -map_metadata -1 " +
@@ -5369,7 +5347,7 @@ def startaudiojob():
                                         qaac_nodelay.get() + q_gapless_mode_choices[q_gapless_mode.get()] +
                                         qaac_nooptimize.get() + qaac_threading.get() + qaac_limiter.get() +
                                         qaac_title_input + qaac_custom_cmd_input + silent + "- -o " +
-                                        VideoOutputQuoted).split())
+                                        file_output_quoted).split())
             last_used_command = ' '.join(str(acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
                                              acodec_samplerate_choices[acodec_samplerate.get()] +
                                              "-sn -vn -map_chapters -1 -map_metadata -1 " +
@@ -5383,7 +5361,7 @@ def startaudiojob():
                                              qaac_threading.get() + qaac_limiter.get() + qaac_title_input +
                                              qaac_custom_cmd_input + silent + "- -o ").split())
         else:
-            finalcommand = ' '.join(str('"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted +
+            finalcommand = ' '.join(str('"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
                                         acodec_stream_choices[acodec_stream.get()] +
                                         acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
                                         acodec_samplerate_choices[acodec_samplerate.get()] +
@@ -5396,7 +5374,7 @@ def startaudiojob():
                                         q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() +
                                         qaac_threading.get() + qaac_limiter.get() + qaac_title_input +
                                         qaac_custom_cmd_input + silent + "- -o " +
-                                        VideoOutputQuoted).split())
+                                        file_output_quoted).split())
             last_used_command = ' '.join(str(acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
                                              acodec_samplerate_choices[acodec_samplerate.get()] +
                                              "-sn -vn -map_chapters -1 -map_metadata -1 " +
@@ -5412,7 +5390,7 @@ def startaudiojob():
     # ------------------------------------------------------------------------------------------------------------ QAAC
     # FLAC Start Job --------------------------------------------------------------------------------------------------
     elif encoder.get() == "FLAC":
-        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted +
+        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
                                     acodec_stream_choices[acodec_stream.get()] +
                                     encoder_dropdownmenu_choices[encoder.get()] +
                                     acodec_bitrate_choices[acodec_bitrate.get()] +
@@ -5422,7 +5400,7 @@ def startaudiojob():
                                     acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] +
                                     acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] +
                                     flac_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
-                                    VideoOutputQuoted + " -v error -hide_banner -stats" + '"').split())
+                                    file_output_quoted + " -v error -hide_banner -stats" + '"').split())
         last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
                                          acodec_bitrate_choices[acodec_bitrate.get()] +
                                          acodec_channel_choices[acodec_channel.get()] +
@@ -5434,14 +5412,14 @@ def startaudiojob():
     # ------------------------------------------------------------------------------------------------------------ FLAC
     # ALAC Start Job --------------------------------------------------------------------------------------------------
     elif encoder.get() == "ALAC":
-        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + VideoInputQuoted +
+        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
                                     acodec_stream_choices[acodec_stream.get()] +
                                     encoder_dropdownmenu_choices[encoder.get()] +
                                     acodec_channel_choices[acodec_channel.get()] +
                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                     min_pre_order + max_pre_order + flac_custom_cmd_input + " " +
                                     "-sn -vn -map_chapters -1 -map_metadata -1 " +
-                                    VideoOutputQuoted + " -v error -hide_banner -stats" + '"').split())
+                                    file_output_quoted + " -v error -hide_banner -stats" + '"').split())
         last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
                                          acodec_channel_choices[acodec_channel.get()] +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
@@ -5462,9 +5440,9 @@ def startaudiojob():
                 else:
                     hide_banner_verbose = ' -v error -hide_banner -stats"'
                 command = '"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " \
-                          + VideoInputQuoted + f' -map 0:a:{str(auto_track_input)} ' + \
+                          + file_input_quoted + f' -map 0:a:{str(auto_track_input)} ' + \
                           config_profile['Auto Encode']['command'].lstrip().rstrip() \
-                          + ' ' + VideoOutputQuoted + hide_banner_verbose
+                          + ' ' + file_output_quoted + hide_banner_verbose
 
             # Use subprocess.Popen to feed the command to the terminal and handle the stder/stdout output
             job = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
@@ -5472,10 +5450,10 @@ def startaudiojob():
                                    creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
 
             if encoder.get() == 'QAAC' or encoder.get() == 'FDK-AAC':  # String to output for fdk/qaac encoder
-                insert_info_string = f'Encoding {str(VideoInputQuoted)} via "FFMPEG" by piping to external encoder: ' \
+                insert_info_string = f'Encoding {str(file_input_quoted)} via "FFMPEG" by piping to external encoder: ' \
                                      f'"{str(encoder.get())}"'
             elif encoder.get() != 'QAAC' or encoder.get() != 'FDK-AAC':  # String to output for all internal encoders
-                insert_info_string = f'Encoding {str(VideoInputQuoted)} via "FFMPEG" with internal encoder: ' \
+                insert_info_string = f'Encoding {str(file_input_quoted)} via "FFMPEG" with internal encoder: ' \
                                      f'"{str(encoder.get())}"'
 
             if auto_or_manual == 'auto':  # If auto_or_manual is set to 'auto', once the user encodes it resets
@@ -5528,14 +5506,14 @@ def startaudiojob():
             encode_window_progress.configure(state=NORMAL)  # Enable progress window editing
             encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
             if progress_error == 'no' and int(percent) >= 99:  # If no error and percent reached 99%, job is complete
-                if pathlib.Path(str(VideoOutputQuoted).replace('"', '')).is_file():  # Check if file exists
+                if pathlib.Path(str(file_output_quoted).replace('"', '')).is_file():  # Check if file exists
                     encode_window_progress.insert(END, str('Job Completed!\n\n'))  # Insert into text window
-                    encode_window_progress.insert(END, f'Output file is: \n{str(VideoOutputQuoted)}')
+                    encode_window_progress.insert(END, f'Output file is: \n{str(file_output_quoted)}')
                     complete_or_not = str('complete')  # Set variable to complete, for closing window without prompt
                 else:  # If job does not complete, string to show the user there was an error
                     messagebox.showerror(title='Error!', message='There was an error in job:\n\n' + '"Codec : '
                                                                  + encoder.get() + '  |  '
-                                                                 + str(pathlib.Path(VideoInput).stem)
+                                                                 + str(pathlib.Path(file_input).stem)
                                                                  + '"\n\n Please run job with program in debug mode')
                     progress_window.destroy()  # Close window and kill job.pid/children
                     subprocess.Popen(f"TASKKILL /F /PID {job.pid} /T", creationflags=subprocess.CREATE_NO_WINDOW)
@@ -5578,73 +5556,18 @@ audiosettings_button.grid(row=1, column=3, columnspan=2, padx=5, pady=5, sticky=
 
 
 # --------------------------------------------------------------------------- # Audio Settings Button
-
-def input_button_commands():
-    global autosavefilename, VideoInput
-    encoder.set('Set Codec')
-    audiosettings_button.configure(state=DISABLED)
-    output_entry.configure(state=NORMAL)
-    output_entry.delete(0, END)
-    output_entry.configure(state=DISABLED)
-    input_entry.configure(state=NORMAL)
-    input_entry.delete(0, END)
-    input_entry.configure(state=DISABLED)
-    encoder_menu.configure(state=DISABLED)
-    command_line_button.configure(state=DISABLED)
-    output_button.config(state=DISABLED)
-    command_line_button.config(state=DISABLED)
-    file_input()
-    if VideoInput:  # If user does not press cancel in file_input() filedialog box
-        if config_profile['Auto Encode']['codec'] == '':
-            auto_encode_last_options.configure(state=DISABLED)
-        else:
-            auto_encode_last_options.configure(state=NORMAL)
-            if config_profile['Auto Encode']['codec'] == 'AAC':
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.mp4'
-            elif config_profile['Auto Encode']['codec'] == 'AC3' or config_profile['Auto Encode']['codec'] == 'E-AC3':
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.ac3'
-            elif config_profile['Auto Encode']['codec'] == "DTS":
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.dts'
-            elif config_profile['Auto Encode']['codec'] == "Opus":
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.opus'
-            elif config_profile['Auto Encode']['codec'] == 'MP3':
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.mp3'
-            elif config_profile['Auto Encode']['codec'] == "FDK-AAC" or \
-                    config_profile['Auto Encode']['codec'] == "QAAC" or config_profile['Auto Encode'][
-                'codec'] == "ALAC":
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.m4a'
-            elif config_profile['Auto Encode']['codec'] == "FLAC":
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.flac'
-            output_entry.configure(state=NORMAL)
-            output_entry.delete(0, END)
-            output_entry.insert(0, VideoOut)
-            output_entry.configure(state=DISABLED)
-            autosavefilename = pathlib.Path(VideoOut).name
-
-
-def drop_input(event):
-    input_dnd.set(event.data)
-
-
-def update_file_input(*args):
-    global VideoInput, track_count, autofilesave_dir_path, VideoInputQuoted, autosavefilename
-    input_entry.configure(state=NORMAL)
-    input_entry.delete(0, END)
-    remove_brackets = str(input_dnd.get())
-
-    if remove_brackets.startswith('{') and remove_brackets.endswith('}'):
-        VideoInput = str(input_dnd.get())[1:-1]
-    else:
-        VideoInput = str(input_dnd.get())
-
-    VideoInputQuoted = f'"{VideoInput}"'  # Quote VideInput for use in the code
-    media_info = MediaInfo.parse(pathlib.Path(VideoInput))  # Parse with media_info module
+def file_input_check(file_input):
+    global track_count, autofilesave_dir_path, file_input_quoted, autosavefilename
+    file_input_quoted = f'"{file_input}"'  # Quote VideInput for use in the code
+    media_info = MediaInfo.parse(pathlib.Path(file_input))  # Parse with media_info module
     total_audio_streams_in_input = media_info.general_tracks[0].count_of_audio_streams  # Check input for audio
     if total_audio_streams_in_input is not None:  # If audio is not None (1 or more audio tracks)
-        autofilesave_file_path = pathlib.Path(VideoInput)  # Command to get file input location
+        autofilesave_file_path = pathlib.Path(file_input)  # Command to get file input location
         autofilesave_dir_path = autofilesave_file_path.parents[0]  # Final command to get only the directory
         track_count = total_audio_streams_in_input  # Get track count from input
-        input_entry.insert(0, str(pathlib.Path(str(VideoInput))))  # Insert VideoInput into the input entrybox
+        input_entry.configure(state=NORMAL)  # Enable input entry box
+        input_entry.delete(0, END)  # Remove text from input entry box if there is any
+        input_entry.insert(0, str(pathlib.Path(str(file_input))))  # Insert file_input into the input entrybox
         input_entry.configure(state=DISABLED)  # Disable input entry
         output_entry.configure(state=NORMAL)  # Enable output entry
         output_entry.delete(0, END)  # Delete anything in output entry if there is anything
@@ -5657,38 +5580,93 @@ def update_file_input(*args):
         command_line_button.config(state=DISABLED)  # Disable button
         if config_profile['Auto Encode']['codec'] == '':  # If auto-encode profile has no information keep disabled
             auto_encode_last_options.configure(state=DISABLED)
-        else:  # If it has information, define VideoOut save location for what ever codec
+        else:  # If it has information, define file_out save location for what ever codec
             auto_encode_last_options.configure(state=NORMAL)
             if config_profile['Auto Encode']['codec'] == 'AAC':
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.mp4'
+                file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.mp4'
             elif config_profile['Auto Encode']['codec'] == 'AC3' or \
                     config_profile['Auto Encode']['codec'] == 'E-AC3':
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.ac3'
+                file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.ac3'
             elif config_profile['Auto Encode']['codec'] == "DTS":
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.dts'
+                file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.dts'
             elif config_profile['Auto Encode']['codec'] == "Opus":
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.opus'
+                file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.opus'
             elif config_profile['Auto Encode']['codec'] == 'MP3':
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.mp3'
+                file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.mp3'
             elif config_profile['Auto Encode']['codec'] == "FDK-AAC" or \
                     config_profile['Auto Encode']['codec'] == "QAAC" or \
                     config_profile['Auto Encode']['codec'] == "ALAC":
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.m4a'
+                file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.m4a'
             elif config_profile['Auto Encode']['codec'] == "FLAC":
-                VideoOut = str(pathlib.Path(VideoInput).with_suffix('')) + '._new_.flac'
+                file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.flac'
             output_entry.configure(state=NORMAL)  # Enable output_entry
             output_entry.delete(0, END)  # Clear contents of output entry
-            output_entry.insert(0, VideoOut)  # Insert VideoOut information
+            output_entry.insert(0, file_out)  # Insert file_out information
             output_entry.configure(state=DISABLED)  # Disable output entry
-            autosavefilename = pathlib.Path(VideoOut).name  # Set autosavefilename var
+            autosavefilename = pathlib.Path(file_out).name  # Set autosavefilename var
     elif total_audio_streams_in_input is None:  # If input has 0 audio tracks
         input_entry.config(state=DISABLED)  # Disable input entry-box
-        messagebox.showinfo(title="No Audio Streams", message=f"{VideoInputQuoted}:\n\nDoes not "
+        messagebox.showinfo(title="No Audio Streams", message=f"{file_input_quoted}:\n\nDoes not "
                                                               f"contain any audio streams!")  # Display error msg
+
+
+# Drag and drop code for file input -----------------------------------------------------------------------------------
+def drop_input(event):
+    input_dnd.set(event.data)
+
+
+def update_file_input(*args):
+    global file_input
+    input_entry.configure(state=NORMAL)
+    input_entry.delete(0, END)
+    remove_brackets = str(input_dnd.get())
+
+    if remove_brackets.startswith('{') and remove_brackets.endswith('}'):
+        file_input = str(input_dnd.get())[1:-1]
+    else:
+        file_input = str(input_dnd.get())
+    file_input_check(file_input)
 
 
 input_dnd = StringVar()
 input_dnd.trace('w', update_file_input)
+
+
+# ----------------------------------------------------------------------------------- Drag and drop code for file input
+
+# Select "Open File" code ---------------------------------------------------------------------------------------------
+def input_button_commands():
+    global file_input, track_count
+    encoder.set('Set Codec')
+    audiosettings_button.configure(state=DISABLED)
+    output_entry.configure(state=NORMAL)
+    output_entry.delete(0, END)
+    output_entry.configure(state=DISABLED)
+    input_entry.configure(state=NORMAL)
+    input_entry.delete(0, END)
+    input_entry.configure(state=DISABLED)
+    encoder_menu.configure(state=DISABLED)
+    command_line_button.configure(state=DISABLED)
+    output_button.config(state=DISABLED)
+    command_line_button.config(state=DISABLED)
+
+    file_input = filedialog.askopenfilename(initialdir="/", title="Select A File", filetypes=[("All Files", "*.*")])
+
+    if file_input:  # If user selects a file to open
+        file_input_check(file_input)
+
+    elif not file_input:  # If user presses cancel
+        input_entry.configure(state=NORMAL)
+        input_entry.delete(0, END)
+        input_entry.configure(state=DISABLED)
+        output_button.config(state=DISABLED)
+        encoder_menu.config(state=DISABLED)
+        audiosettings_button.configure(state=DISABLED)
+        auto_encode_last_options.configure(state=DISABLED)
+
+
+# --------------------------------------------------------------------------------------------- Select "Open File" code
+
 
 # Input Button/Entry Box ----------------------------------------------------------------------
 input_button = HoverButton(root, text="Open File", command=input_button_commands, foreground="white",
@@ -5892,5 +5870,18 @@ if not pathlib.Path(qaac.replace('"', '')).is_file():
                                                 'fdkaac.exe in the "Apps" folder')
 # Checks for bundled app paths path -----------------------------------
 
+# # Arguments -----------------------------------------------------------------------------------------------------------
+# try:  # User can drop a file directly on the .exe without starting the program to begin processing (or .py script)
+#     #################### MUST SET THIS SHIT WHEN OPENING NEW PROGRAM TO 'cd /d pathtodir then exe with args #######
+#     dropped_video_input = pathlib.Path(argv[1])  # Get's file drop
+#     print(dropped_video_input)
+#     messagebox.showinfo(message=str(argv))
+#     if dropped_video_input:
+#         input_entry.configure(state=NORMAL)  # Set's input entry to normal
+#         file_input = dropped_video_input  # Define file_input
+#         file_input_check(dropped_video_input)  # Run file_input_checked(with variable)
+# except IndexError:
+#     pass
+# # ----------------------------------------------------------------------------------------------------------- Arguments
 # End Loop ------------------------------------------------------------------------------------------------------------
 root.mainloop()
