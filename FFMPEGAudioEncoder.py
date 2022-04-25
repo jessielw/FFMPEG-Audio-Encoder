@@ -5081,12 +5081,16 @@ def startaudiojob():
 
         def close_encode():
             def save_close_position():  # Function to save size/position upon exit
-                if config['save_window_locations']['progress window'] == 'yes':  # If checkbutton is checked
+                func_parser = ConfigParser()
+                func_parser.read(config_file)
+                if func_parser['save_window_locations']['progress window'] == 'yes':  # If checkbutton is checked
                     try:
-                        if config['save_window_locations']['progress window position'] != progress_window.geometry():
-                            config.set('save_window_locations', 'progress window position', progress_window.geometry())
+                        if func_parser['save_window_locations']['progress window position'] != \
+                                progress_window.geometry():
+                            func_parser.set('save_window_locations', 'progress window position',
+                                            progress_window.geometry())
                             with open(config_file, 'w') as configfile:
-                                config.write(configfile)
+                                func_parser.write(configfile)
                     except (Exception,):
                         pass
 
