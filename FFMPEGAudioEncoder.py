@@ -1,5 +1,6 @@
 # Imports--------------------------------------------------------------------
 import pathlib
+import sys
 import time
 
 import pyperclip
@@ -34,11 +35,13 @@ from Packages.window_geometry_settings import set_window_geometry_settings
 # Main Gui & Windows --------------------------------------------------------
 def root_exit_function():
     def save_root_pos():  # Function to write to config.ini
-        if config['save_window_locations']['ffmpeg audio encoder'] == 'yes':  # If auto-save position on exit is checked
-            try:
-                config.set('save_window_locations', 'ffmpeg audio encoder position', root.geometry())
+        func_parser = ConfigParser()
+        func_parser.read(config_file)
+        if func_parser['save_window_locations']['ffmpeg audio encoder'] == 'yes':
+            try:  # If auto-save position on exit is checked
+                func_parser.set('save_window_locations', 'ffmpeg audio encoder position', root.geometry())
                 with open(config_file, 'w') as configfile:
-                    config.write(configfile)
+                    func_parser.write(configfile)
             except (Exception,):
                 pass
 
@@ -74,7 +77,13 @@ config_profile = ConfigParser()
 config_profile.read(config_profile_ini)
 # Config Parser -------------------------------------------------------------------------------------------------------
 
-
+# try:
+#     print(sys.argv)
+#     if sys.argv[1] == '-hide':
+#         root = TkinterDnD.Tk()
+#         # root.withdraw()
+# except IndexError:
+#     root = TkinterDnD.Tk()
 root = TkinterDnD.Tk()
 root.title("FFMPEG Audio Encoder v3.38")
 root.iconphoto(True, PhotoImage(data=gui_icon))
@@ -352,6 +361,9 @@ tools_submenu.add_command(label='Batch Processing', command=batch_processing_com
 help_menu = Menu(my_menu_bar, tearoff=0, activebackground="dim grey")
 my_menu_bar.add_cascade(label="Help", menu=help_menu)
 help_menu.add_command(label="About", command=openaboutwindow)
+# def testing():
+#     subprocess.Popen(['python', "FFMPEGAudioEncoder.exe", '-hide'])
+# help_menu.add_command(label="Test", command=testing)
 
 
 # --------------------------------------------------------------------------------------------- Menu Items and Sub-Bars
@@ -822,11 +834,13 @@ def openaudiowindow():
         if encoder.get() == 'ALAC':
             loc_codec_on_off = 'audio window - alac'
             loc_codec_pos_on_off = 'audio window - alac - position'
-        if config['save_window_locations'][loc_codec_on_off] == 'yes':  # If auto-save on exit is checked
+        func_parser = ConfigParser()
+        func_parser.read(config_file)
+        if func_parser['save_window_locations'][loc_codec_on_off] == 'yes':  # If auto-save on exit is checked
             try:
-                config.set('save_window_locations', loc_codec_pos_on_off, audio_window.geometry())
+                func_parser.set('save_window_locations', loc_codec_pos_on_off, audio_window.geometry())
                 with open(config_file, 'w') as configfile:
-                    config.write(configfile)
+                    func_parser.write(configfile)
             except (Exception,):
                 pass
 
@@ -5891,4 +5905,10 @@ if not pathlib.Path(qaac.replace('"', '')).is_file():
 #     pass
 # # ----------------------------------------------------------------------------------------------------------- Arguments
 # End Loop ------------------------------------------------------------------------------------------------------------
+# try:
+#     if sys.argv[1] == '-hide':
+#         set_window_geometry_settings()
+#         root.withdraw()
+# except IndexError:
+#     pass
 root.mainloop()
