@@ -21,12 +21,14 @@ def openaboutwindow():
         pass
 
     def about_exit_function():  # Exit function when hitting the 'X' button
-        if config['save_window_locations']['about'] == 'yes':  # If auto save position on close is checked
+        func_parser = ConfigParser()
+        func_parser.read(config_file)
+        if func_parser['save_window_locations']['about'] == 'yes':  # If auto save position on close is checked
             try:
-                if config['save_window_locations']['about position'] != about_window.geometry():
-                    config.set('save_window_locations', 'about position', about_window.geometry())
+                if func_parser['save_window_locations']['about position'] != about_window.geometry():
+                    func_parser.set('save_window_locations', 'about position', about_window.geometry())
                     with open(config_file, 'w') as configfile:
-                        config.write(configfile)
+                        func_parser.write(configfile)
             except (Exception,):
                 pass
 
