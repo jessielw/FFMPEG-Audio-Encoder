@@ -13,14 +13,16 @@ def set_window_geometry_settings():
         pass
 
     def gsw_exit_function():  # Exit function when hitting the 'X' button
+        func_parser = ConfigParser()
+        func_parser.read(config_file)
         if window_pos_toggle.get() == 'yes':  # If auto save position on close is checked
             try:
-                if config['save_window_locations']['window location settings position'] != \
+                if func_parser['save_window_locations']['window location settings position'] != \
                         geometry_settings_window.geometry():
-                    config.set('save_window_locations', 'window location settings position',
+                    func_parser.set('save_window_locations', 'window location settings position',
                                geometry_settings_window.geometry())
                     with open(config_file, 'w') as configfile:
-                        config.write(configfile)
+                        func_parser.write(configfile)
             except (Exception,):
                 pass
 
@@ -91,7 +93,7 @@ def set_window_geometry_settings():
     option_frame_audio.grid_columnconfigure(1, weight=1)
 
     info_label = Label(geometry_settings_window, anchor='center', bg=color3, fg=color4,
-                       text="Info: Right click inside each frame to reset")
+                       text="Info: Right click inside each frame for more options")
     info_label.grid(row=3, column=0, columnspan=2, padx=10, pady=(0, 10), sticky=W + E + S + N)
     info_label.config(font=(set_font, set_font_size, "italic"))
 
@@ -117,12 +119,14 @@ def set_window_geometry_settings():
                                          font=(set_font, set_font_size + 2))
 
     def window_location_pos_toggle():
+        func_parser = ConfigParser()
+        func_parser.read(config_file)
         try:  # Write to config
-            config.set('save_window_locations', 'window location settings', window_pos_toggle.get())
+            func_parser.set('save_window_locations', 'window location settings', window_pos_toggle.get())
             if window_pos_toggle.get() == 'no':
-                config.set('save_window_locations', 'window location settings position', '')
+                func_parser.set('save_window_locations', 'window location settings position', '')
             with open(config_file, 'w') as configfile:
-                config.write(configfile)
+                func_parser.write(configfile)
         except (Exception,):
             pass
 
@@ -174,35 +178,62 @@ def set_window_geometry_settings():
 
     # Right click menu for "Window Options" frame ---------------------------------------------------------------------
     def option_popup_menu(e):  # Function for mouse button 3 (right click) to pop up menu
+        def select_all():
+            func_parser = ConfigParser()
+            func_parser.read(config_file)
+
+            ffmpeg_pos_toggle.set('yes')
+            func_parser.set('save_window_locations', 'ffmpeg audio encoder', 'yes')
+
+            window_pos_toggle.set('yes')
+            func_parser.set('save_window_locations', 'window location settings', 'yes')
+
+            progress_pos_toggle.set('yes')
+            func_parser.set('save_window_locations', 'progress window', 'yes')
+
+            about_pos_toggle.set('yes')
+            func_parser.set('save_window_locations', 'about', 'yes')
+            with open(config_file, 'w') as configfile:
+                func_parser.write(configfile)
+
         def reset():  # Function to reset all items in frame to default
             msg = messagebox.askyesno(title='Prompt', parent=geometry_settings_window,
                                       message='Are you sure you want to reset all "Window Options" to default?')
             if msg:  # If user selects "yes" to prompt
-                config.set('save_window_locations', 'ffmpeg audio encoder position', '')
-                config.set('save_window_locations', 'window location settings position', '')
-                config.set('save_window_locations', 'about position', '')
+                func_parser = ConfigParser()
+                func_parser.read(config_file)
+
+                ffmpeg_pos_toggle.set('no')
+                func_parser.set('save_window_locations', 'ffmpeg audio encoder', 'no')
+                func_parser.set('save_window_locations', 'ffmpeg audio encoder position', '')
+
+                window_pos_toggle.set('no')
+                func_parser.set('save_window_locations', 'window location settings', 'no')
+                func_parser.set('save_window_locations', 'window location settings position', '')
+
+                progress_pos_toggle.set('no')
+                func_parser.set('save_window_locations', 'progress window', 'no')
+                func_parser.set('save_window_locations', 'progress window position', '')
+
+                about_pos_toggle.set('no')
+                func_parser.set('save_window_locations', 'about', 'no')
+                func_parser.set('save_window_locations', 'about position', '')
                 with open(config_file, 'w') as configfile:
-                    config.write(configfile)
+                    func_parser.write(configfile)
 
         option_menu = Menu(geometry_settings_window, tearoff=False)  # Menu
         option_menu.add_command(label='Reset: "FFMPEG Audio Encoder"', command=lambda: [
-            ffmpeg_pos_toggle.set('no'), ffmpeg_gui_pos_toggle(), messagebox.showinfo(title='Info',
-                                                                                      parent=geometry_settings_window,
-                                                                                      message='Main GUI will need '
-                                                                                              'to manually be checked '
-                                                                                              'to save position '
-                                                                                              'again')])
+            ffmpeg_pos_toggle.set('no'), ffmpeg_gui_pos_toggle()])
         option_menu.add_command(label='Reset: "Window Location Settings"', command=lambda: [
-            window_pos_toggle.set('no'), window_location_pos_toggle(), window_pos_toggle.set('yes'),
-            window_location_pos_toggle()])
+            window_pos_toggle.set('no'), window_location_pos_toggle()])
         option_menu.add_command(label='Reset: "Progress Window"', command=lambda: [
-            progress_pos_toggle.set('no'), progress_win_pos_toggle(), progress_pos_toggle.set('yes'),
-            progress_win_pos_toggle()])
+            progress_pos_toggle.set('no'), progress_win_pos_toggle()])
         option_menu.add_command(label='Reset: "About Window"', command=lambda: [
-            about_pos_toggle.set('no'), about_win_pos_toggle(), about_pos_toggle.set('yes'),
-            about_win_pos_toggle()])
+            about_pos_toggle.set('no'), about_win_pos_toggle()])
         option_menu.add_separator()
         option_menu.add_command(label='Reset: All "Window Options"', command=reset)
+        option_menu.add_separator()
+        option_menu.add_command(label='Check all "Audio Codec Window Options"', command=select_all)
         option_menu.tk_popup(e.x_root, e.y_root)  # This gets the position of 'e' on the root widget
 
     option_frame.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
@@ -398,57 +429,115 @@ def set_window_geometry_settings():
 
     # Right click menu for "Audio Codec Window Options" frame ---------------------------------------------------------
     def option_audio_popup_menu(e):  # Function for mouse button 3 (right click) to pop up menu
+        def select_all():
+            func_parser = ConfigParser()
+            func_parser.read(config_file)
+            ac3_pos_toggle.set('yes')
+            func_parser.set('save_window_locations', 'audio window - ac3', 'yes')
+
+            aac_pos_toggle.set('yes')
+            func_parser.set('save_window_locations', 'audio window - aac', 'yes')
+
+            e_ac3_pos_toggle.set('yes')
+            func_parser.set('save_window_locations', 'audio window - e-ac3', 'yes')
+
+            dts_pos_toggle.set('yes')
+            func_parser.set('save_window_locations', 'audio window - dts', 'yes')
+
+            opus_pos_toggle.set('yes')
+            func_parser.set('save_window_locations', 'audio window - opus', 'yes')
+
+            mp3_pos_toggle.set('yes')
+            func_parser.set('save_window_locations', 'audio window - mp3', 'yes')
+
+            fdk_aac_pos_toggle.set('yes')
+            func_parser.set('save_window_locations', 'audio window - fdk-aac', 'yes')
+
+            qaac_pos_toggle.set('yes')
+            func_parser.set('save_window_locations', 'audio window - qaac', 'yes')
+
+            flac_pos_toggle.set('yes')
+            func_parser.set('save_window_locations', 'audio window - flac', 'yes')
+
+            alac_pos_toggle.set('yes')
+            func_parser.set('save_window_locations', 'audio window - alac', 'yes')
+            with open(config_file, 'w') as configfile:
+                func_parser.write(configfile)
+
         def reset():  # Function to reset all items in frame to default
             msg = messagebox.askyesno(title='Prompt', parent=geometry_settings_window,
                                       message='Are you sure you want to reset all '
                                               '"Audio Codec Window Options" to default?')
             if msg:  # If user selects yes to prompt
-                config.set('save_window_locations', 'audio window - ac3 - position', '')
-                config.set('save_window_locations', 'audio window - aac - position', '')
-                config.set('save_window_locations', 'audio window - e-ac3 - position', '')
-                config.set('save_window_locations', 'audio window - dts - position', '')
-                config.set('save_window_locations', 'audio window - opus - position', '')
-                config.set('save_window_locations', 'audio window - mp3 - position', '')
-                config.set('save_window_locations', 'audio window - fdk-aac - position', '')
-                config.set('save_window_locations', 'audio window - qaac - position', '')
-                config.set('save_window_locations', 'audio window - flac - position', '')
-                config.set('save_window_locations', 'audio window - alac - position', '')
+                func_parser = ConfigParser()
+                func_parser.read(config_file)
+                ac3_pos_toggle.set('no')
+                func_parser.set('save_window_locations', 'audio window - ac3', 'no')
+                func_parser.set('save_window_locations', 'audio window - ac3 - position', '')
+
+                aac_pos_toggle.set('no')
+                func_parser.set('save_window_locations', 'audio window - aac', 'no')
+                func_parser.set('save_window_locations', 'audio window - aac - position', '')
+
+                e_ac3_pos_toggle.set('no')
+                func_parser.set('save_window_locations', 'audio window - e-ac3', 'no')
+                func_parser.set('save_window_locations', 'audio window - e-ac3 - position', '')
+
+                dts_pos_toggle.set('no')
+                func_parser.set('save_window_locations', 'audio window - dts', 'no')
+                func_parser.set('save_window_locations', 'audio window - dts - position', '')
+
+                opus_pos_toggle.set('no')
+                func_parser.set('save_window_locations', 'audio window - opus', 'no')
+                func_parser.set('save_window_locations', 'audio window - opus - position', '')
+
+                mp3_pos_toggle.set('no')
+                func_parser.set('save_window_locations', 'audio window - mp3', 'no')
+                func_parser.set('save_window_locations', 'audio window - mp3 - position', '')
+
+                fdk_aac_pos_toggle.set('no')
+                func_parser.set('save_window_locations', 'audio window - fdk-aac', 'no')
+                func_parser.set('save_window_locations', 'audio window - fdk-aac - position', '')
+
+                qaac_pos_toggle.set('no')
+                func_parser.set('save_window_locations', 'audio window - qaac', 'no')
+                func_parser.set('save_window_locations', 'audio window - qaac - position', '')
+
+                flac_pos_toggle.set('no')
+                func_parser.set('save_window_locations', 'audio window - flac', 'no')
+                func_parser.set('save_window_locations', 'audio window - flac - position', '')
+
+                alac_pos_toggle.set('no')
+                func_parser.set('save_window_locations', 'audio window - alac', 'no')
+                func_parser.set('save_window_locations', 'audio window - alac - position', '')
                 with open(config_file, 'w') as configfile:
-                    config.write(configfile)
+                    func_parser.write(configfile)
 
         option_menu = Menu(geometry_settings_window, tearoff=False)  # Menu
         option_menu.add_command(label='Reset: "AC3"', command=lambda: [
-            ac3_pos_toggle.set('no'), ac3_location_pos_toggle(), ac3_pos_toggle.set('yes'),
-            ac3_location_pos_toggle()])
+            ac3_pos_toggle.set('no'), ac3_location_pos_toggle()])
         option_menu.add_command(label='Reset: "AAC"', command=lambda: [
-            aac_pos_toggle.set('no'), aac_location_pos_toggle(), aac_pos_toggle.set('yes'),
-            aac_location_pos_toggle()])
+            aac_pos_toggle.set('no'), aac_location_pos_toggle()])
         option_menu.add_command(label='Reset: "E-AC3"', command=lambda: [
-            e_ac3_pos_toggle.set('no'), e_ac3_location_pos_toggle(), e_ac3_pos_toggle.set('yes'),
-            e_ac3_location_pos_toggle()])
+            e_ac3_pos_toggle.set('no'), e_ac3_location_pos_toggle()])
         option_menu.add_command(label='Reset: "DTS"', command=lambda: [
-            dts_pos_toggle.set('no'), dts_location_pos_toggle(), dts_pos_toggle.set('yes'),
-            dts_location_pos_toggle()])
+            dts_pos_toggle.set('no'), dts_location_pos_toggle()])
         option_menu.add_command(label='Reset: "Opus"', command=lambda: [
-            opus_pos_toggle.set('no'), opus_location_pos_toggle(), opus_pos_toggle.set('yes'),
-            opus_location_pos_toggle()])
+            opus_pos_toggle.set('no'), opus_location_pos_toggle()])
         option_menu.add_command(label='Reset: "Mp3"', command=lambda: [
-            mp3_pos_toggle.set('no'), mp3_location_pos_toggle(), mp3_pos_toggle.set('yes'),
-            mp3_location_pos_toggle()])
+            mp3_pos_toggle.set('no'), mp3_location_pos_toggle()])
         option_menu.add_command(label='Reset: "FDK-AAC"', command=lambda: [
-            fdk_aac_pos_toggle.set('no'), fdk_aac_location_pos_toggle(), fdk_aac_pos_toggle.set('yes'),
-            fdk_aac_location_pos_toggle()])
+            fdk_aac_pos_toggle.set('no'), fdk_aac_location_pos_toggle()])
         option_menu.add_command(label='Reset: "QAAC"', command=lambda: [
-            qaac_pos_toggle.set('no'), qaac_location_pos_toggle(), qaac_pos_toggle.set('yes'),
-            qaac_location_pos_toggle()])
+            qaac_pos_toggle.set('no'), qaac_location_pos_toggle()])
         option_menu.add_command(label='Reset: "FLAC"', command=lambda: [
-            flac_pos_toggle.set('no'), flac_location_pos_toggle(), flac_pos_toggle.set('yes'),
-            flac_location_pos_toggle()])
+            flac_pos_toggle.set('no'), flac_location_pos_toggle()])
         option_menu.add_command(label='Reset: "ALAC"', command=lambda: [
-            alac_pos_toggle.set('no'), alac_location_pos_toggle(), alac_pos_toggle.set('yes'),
-            alac_location_pos_toggle()])
+            alac_pos_toggle.set('no'), alac_location_pos_toggle()])
         option_menu.add_separator()
         option_menu.add_command(label='Reset: All "Audio Codec Window Options"', command=reset)
+        option_menu.add_separator()
+        option_menu.add_command(label='Check all "Audio Codec Window Options"', command=select_all)
         option_menu.tk_popup(e.x_root, e.y_root)  # This gets the position of 'e' on the root widget
 
     option_frame_audio.bind('<Button-3>', option_audio_popup_menu)  # Right click to pop up menu in frame
