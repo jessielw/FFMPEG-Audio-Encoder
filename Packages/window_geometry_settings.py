@@ -186,8 +186,12 @@ def set_window_geometry_settings():
 
         option_menu = Menu(geometry_settings_window, tearoff=False)  # Menu
         option_menu.add_command(label='Reset: "FFMPEG Audio Encoder"', command=lambda: [
-            ffmpeg_pos_toggle.set('no'), ffmpeg_gui_pos_toggle(), ffmpeg_pos_toggle.set('yes'),
-            ffmpeg_gui_pos_toggle()])
+            ffmpeg_pos_toggle.set('no'), ffmpeg_gui_pos_toggle(), messagebox.showinfo(title='Info',
+                                                                                      parent=geometry_settings_window,
+                                                                                      message='Main GUI will need '
+                                                                                              'to manually be checked '
+                                                                                              'to save position '
+                                                                                              'again')])
         option_menu.add_command(label='Reset: "Window Location Settings"', command=lambda: [
             window_pos_toggle.set('no'), window_location_pos_toggle(), window_pos_toggle.set('yes'),
             window_location_pos_toggle()])
