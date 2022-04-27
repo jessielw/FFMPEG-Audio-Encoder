@@ -73,14 +73,6 @@ config_profile_ini = 'Runtime/profiles.ini'  # Creates (if doesn't exist) and de
 config_profile = ConfigParser()
 config_profile.read(config_profile_ini)
 # Config Parser -------------------------------------------------------------------------------------------------------
-
-# try:
-#     print(sys.argv)
-#     if sys.argv[1] == '-hide':
-#         root = TkinterDnD.Tk()
-#         # root.withdraw()
-# except IndexError:
-#     root = TkinterDnD.Tk()
 root = TkinterDnD.Tk()
 root.title("FFMPEG Audio Encoder v3.38")
 root.iconphoto(True, PhotoImage(data=gui_icon))
@@ -88,8 +80,8 @@ root.iconphoto(True, PhotoImage(data=gui_icon))
 root.configure(background="#434547")
 if config['save_window_locations']['ffmpeg audio encoder position'] == '' or \
         config['save_window_locations']['ffmpeg audio encoder'] == 'no':
-    window_height = 220
-    window_width = 460
+    window_height = 340
+    window_width = 570
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
     x_coordinate = int((screen_width / 2) - (window_width / 2))
@@ -505,6 +497,37 @@ def track_counter(*args):  # Thanks for helping me shorten this 'gmes78'
 
 
 # ---------------------------------------------------------------------------------------------------------------------
+# Root Frames ---------------------------------------------------------------------------------------------------------
+input_frame = LabelFrame(root, text='Input', labelanchor="nw")
+input_frame.grid(column=0, row=0, columnspan=4, padx=5, pady=(0, 3), sticky=N + S + E + W)
+input_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 10, "bold"))
+input_frame.grid_rowconfigure(0, weight=1)
+for i_f in range(4):
+    input_frame.grid_columnconfigure(i_f, weight=1)
+
+audio_setting_frame = LabelFrame(root, text='Codec Settings', labelanchor="n")
+audio_setting_frame.grid(column=1, row=1, columnspan=3, padx=5, pady=(0, 3), sticky=N + S + E + W)
+audio_setting_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 10, "bold"))
+audio_setting_frame.grid_rowconfigure(0, weight=1)
+audio_setting_frame.grid_columnconfigure(0, weight=1)
+audio_setting_frame.grid_columnconfigure(1, weight=1)
+audio_setting_frame.grid_columnconfigure(2, weight=1)
+
+start_buttons_frame = LabelFrame(root, text='Job Control', labelanchor="nw")
+start_buttons_frame.grid(column=0, row=3, columnspan=4, padx=5, pady=(0, 3), sticky=N + S + E + W)
+start_buttons_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 10, "bold"))
+start_buttons_frame.grid_rowconfigure(0, weight=1)
+for s_b_f in range(4):
+    start_buttons_frame.grid_columnconfigure(s_b_f, weight=1)
+
+output_frame = LabelFrame(root, text='Output', labelanchor="nw")
+output_frame.grid(column=0, row=2, columnspan=4, padx=5, pady=(0, 3), sticky=N + S + E + W)
+output_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 10, "bold"))
+output_frame.grid_rowconfigure(0, weight=1)
+for o_f in range(4):
+    output_frame.grid_columnconfigure(o_f, weight=1)
+
+# --------------------------------------------------------------------------------------------------------- Root Frames
 
 # Encoder Codec Drop Down ---------------------------------------------------------------------------------------------
 encoder_dropdownmenu_choices = {
@@ -521,12 +544,10 @@ encoder_dropdownmenu_choices = {
 encoder = StringVar(root)
 encoder.set("Set Codec")
 encoder.trace('w', encoder_changed)
-encoder_menu = OptionMenu(root, encoder, *encoder_dropdownmenu_choices.keys(), command=track_counter)
-encoder_menu.grid(row=1, column=2, columnspan=1, padx=5, pady=5, sticky=N + S + W + E)
-encoder_menu.config(state=DISABLED, background="#23272A", foreground="white", highlightthickness=1, width=10)
+encoder_menu = OptionMenu(audio_setting_frame, encoder, *encoder_dropdownmenu_choices.keys(), command=track_counter)
+encoder_menu.grid(row=0, column=0, columnspan=2, padx=(10, 5), pady=5, sticky=N + S + W + E)
+encoder_menu.config(state=DISABLED, background="#23272A", foreground="white", highlightthickness=1)
 encoder_menu["menu"].configure(activebackground="dim grey")
-codec_label = Label(root, text="Codec ->", background="#434547", foreground="White")
-codec_label.grid(row=1, column=1, columnspan=1, padx=5, pady=5, sticky=N + S + W + E)
 
 
 # -------------------------------------------------------------------------------------------------------- Encoder Menu
@@ -5634,9 +5655,10 @@ encoder_menu.bind("<Leave>", encoder_menu_on_leave)
 # ---------------------------------------------------------------- # Encoder Menu Enter/Leave Binds
 
 # Audio Settings Button --------------------------------------------------------------------------
-audiosettings_button = HoverButton(root, text="Audio Settings", command=openaudiowindow, foreground="white",
-                                   background="#23272A", state=DISABLED, borderwidth="3", activebackground='grey')
-audiosettings_button.grid(row=1, column=3, columnspan=2, padx=5, pady=5, sticky=N + S + W + E)
+audiosettings_button = HoverButton(audio_setting_frame, text="Audio Settings", command=openaudiowindow,
+                                   foreground="white", background="#23272A", state=DISABLED, borderwidth="3",
+                                   activebackground='grey')
+audiosettings_button.grid(row=0, column=2, columnspan=1, padx=5, pady=(5, 4), sticky=N + S + E + W)
 
 
 # --------------------------------------------------------------------------- # Audio Settings Button
@@ -5757,31 +5779,30 @@ def input_button_commands():
 
 
 # Input Button/Entry Box ----------------------------------------------------------------------
-input_button = HoverButton(root, text="Open File", command=input_button_commands, foreground="white",
+input_button = HoverButton(input_frame, text="Open File", command=input_button_commands, foreground="white",
                            background="#23272A", borderwidth="3", activebackground='grey')
 input_button.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
-input_button.drop_target_register(DND_FILES)
-input_button.dnd_bind('<<Drop>>', drop_input)
 
-input_entry = Entry(root, width=35, borderwidth=4, background="#CACACA", state=DISABLED)
+input_entry = Entry(input_frame, borderwidth=4, background="#CACACA", state=DISABLED)
 input_entry.grid(row=0, column=1, columnspan=3, padx=5, pady=5, sticky=S + E + W)
-input_entry.drop_target_register(DND_FILES)
-input_entry.dnd_bind('<<Drop>>', drop_input)
+
+root.drop_target_register(DND_FILES)
+root.dnd_bind('<<Drop>>', drop_input)
 
 # ------------------------------------------------------------------------- Input Button/Entry Box
 
 # Output Button/Entry Box ------------------------------------------------------------------------
-output_button = HoverButton(root, text="Save File", command=file_save, state=DISABLED, foreground="white",
+output_button = HoverButton(output_frame, text="Save File", command=file_save, state=DISABLED, foreground="white",
                             background="#23272A", borderwidth="3", activebackground='grey')
-output_button.grid(row=2, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
-output_entry = Entry(root, width=35, borderwidth=4, background="#CACACA", state=DISABLED)
-output_entry.grid(row=2, column=1, columnspan=3, padx=5, pady=5, sticky=S + E + W)
+output_button.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
+output_entry = Entry(output_frame, borderwidth=4, background="#CACACA", state=DISABLED)
+output_entry.grid(row=0, column=1, columnspan=3, padx=5, pady=5, sticky=S + E + W)
 # ---------------------------------------------------------------------- # Output Button/Entry Box
 
 # Print Final Command Line ---------------------------------------------------------------------
 command_line_button = HoverButton(root, text="Display\nCommand", command=print_command_line, state=DISABLED,
                                   foreground="white", background="#23272A", borderwidth="3", activebackground='grey')
-command_line_button.grid(row=1, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
+command_line_button.grid(row=1, column=0, columnspan=1, padx=10, pady=15, sticky=N + S + E + W)
 
 
 # ----------------------------------------------------------------------- Print Final Command Line
@@ -5875,7 +5896,8 @@ def open_jobs_manager():
             return
 
     start_selected_button = HoverButton(button_frame, text="Start Selected Job", command=start_job_window_encode_single,
-                                        foreground="white", background="#23272A", borderwidth="3", activebackground='grey')
+                                        foreground="white", background="#23272A", borderwidth="3",
+                                        activebackground='grey')
     start_selected_button.grid(row=2, column=0, columnspan=1, padx=5, pady=5, sticky=S + E + W)
 
     start_all_jobs_button = HoverButton(button_frame, text="Start All Jobs", command=None, foreground="white",
@@ -5935,9 +5957,9 @@ def add_to_jobs():
         pickle.dump(job_listbox.get(0, END), pickle_file, pickle.HIGHEST_PROTOCOL)
 
 
-add_job_button = HoverButton(root, text="Add to Jobs List", command=add_to_jobs, state=DISABLED,
+add_job_button = HoverButton(start_buttons_frame, text="Add to Jobs List", command=add_to_jobs, state=DISABLED,
                              foreground="white", background="#23272A", borderwidth="3", activebackground='grey')
-add_job_button.grid(row=3, column=1, columnspan=2, padx=5, pady=5, sticky=N + S + E + W)
+add_job_button.grid(row=0, column=1, columnspan=2, padx=5, pady=5, sticky=N + S + E + W)
 
 
 # ------------------------------------------------------------------------------ Add to jobs list
@@ -5949,9 +5971,9 @@ def start_audio_job_manual():
     threading.Thread(target=startaudiojob).start()
 
 
-start_audio_button = HoverButton(root, text="Start Job", command=start_audio_job_manual, state=DISABLED,
+start_audio_button = HoverButton(start_buttons_frame, text="Start Job", command=start_audio_job_manual, state=DISABLED,
                                  foreground="white", background="#23272A", borderwidth="3", activebackground='grey')
-start_audio_button.grid(row=3, column=3, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
+start_audio_button.grid(row=0, column=3, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
 
 
 # --------------------------------------------------------------------------- Start Audio Job: Manual
@@ -5970,10 +5992,10 @@ def encode_last_used_setting():
         threading.Thread(target=startaudiojob).start()
 
 
-auto_encode_last_options = HoverButton(root, text="Auto Encode:\nLast Used Options", command=encode_last_used_setting,
-                                       foreground="white", background="#23272A", borderwidth="3", state=DISABLED,
-                                       activebackground='grey')
-auto_encode_last_options.grid(row=3, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
+auto_encode_last_options = HoverButton(start_buttons_frame, text="Auto Encode:\nLast Used Options",
+                                       command=encode_last_used_setting, foreground="white", background="#23272A",
+                                       borderwidth="3", state=DISABLED, activebackground='grey')
+auto_encode_last_options.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
 
 
 def popup_auto_e_b_menu(e):  # Function for mouse button 3 (right click) to pop up menu
