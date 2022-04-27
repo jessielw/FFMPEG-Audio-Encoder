@@ -9,3 +9,4 @@ config.ini
 profiles.ini
 ytconfig.ini
 FFMPEGAudioEncoder.exe
+Runtime/jobs.dat
