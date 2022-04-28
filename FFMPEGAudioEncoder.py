@@ -139,8 +139,11 @@ class HoverButton(Button):
             rightclick_on_off = 1
         if self.cget('text') == 'Audio Settings':
             status_label.configure(text='Configure selected audio codec..')
-        if self.cget('text') == 'Start Audio Job':
+        if self.cget('text') == 'Start Job':
             status_label.configure(text='Start job..')
+        if self.cget('text') == 'Add to Jobs List':
+            status_label.configure(text='Add configured job to jobs list...')
+
 
     def on_leave(self, e):
         self['background'] = self.defaultBackground
