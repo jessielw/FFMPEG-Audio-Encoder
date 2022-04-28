@@ -74,13 +74,12 @@ config_profile = ConfigParser()
 config_profile.read(config_profile_ini)
 # Config Parser -------------------------------------------------------------------------------------------------------
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v3.38")
+root.title("FFMPEG Audio Encoder v3.39")
 root.iconphoto(True, PhotoImage(data=gui_icon))
-# root.iconphoto(True, PhotoImage(file="Runtime/Images/topbar.png"))
 root.configure(background="#434547")
 if config['save_window_locations']['ffmpeg audio encoder position'] == '' or \
         config['save_window_locations']['ffmpeg audio encoder'] == 'no':
-    window_height = 340
+    window_height = 325
     window_width = 570
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
@@ -91,14 +90,6 @@ elif config['save_window_locations']['ffmpeg audio encoder position'] != '' and 
         config['save_window_locations']['ffmpeg audio encoder'] == 'yes':
     root.geometry(config['save_window_locations']['ffmpeg audio encoder position'])
 root.protocol('WM_DELETE_WINDOW', root_exit_function)
-
-# from tkinter import font
-# your_font = font.nametofont("TkDefaultFont")  # Get default font value into Font object
-# your_font.config(family="SegoeUIEmoji", size=8)  # Change main gui font
-# print(your_font.actual().get("family"))
-detect_font = font.nametofont("TkDefaultFont")  # Get default font value into Font object
-set_font = detect_font.actual().get("family")
-set_font_size = detect_font.actual().get("size")
 
 # Block of code to fix DPI awareness issues on Windows 7 or higher
 try:
@@ -113,6 +104,11 @@ for n in range(4):
     root.grid_rowconfigure(n, weight=1)
 
 # Themes --------------------------------------------------------------------------------------------------------------
+# Font Variables ---------------------------------------------
+detect_font = font.nametofont("TkDefaultFont")  # Get default font value into Font object
+set_font = detect_font.actual().get("family")
+set_font_size = detect_font.actual().get("size")
+# ---------------------------------------------- Font Variables
 # Custom Tkinter Theme-----------------------------------------
 custom_style = ttk.Style()
 custom_style.theme_create('jlw_style', parent='alt')
@@ -352,11 +348,6 @@ tools_submenu.add_command(label='Batch Processing', command=batch_processing_com
 help_menu = Menu(my_menu_bar, tearoff=0, activebackground="dim grey")
 my_menu_bar.add_cascade(label="Help", menu=help_menu)
 help_menu.add_command(label="About", command=openaboutwindow)
-
-
-# def testing():
-#     subprocess.Popen(['python', "FFMPEGAudioEncoder.exe", '-hide'])
-# help_menu.add_command(label="Test", command=testing)
 
 
 # --------------------------------------------------------------------------------------------- Menu Items and Sub-Bars
@@ -5367,7 +5358,7 @@ def startaudiojob(*args):
     # file_input_quoted = '"' + file_input + '"'
     # file_output_quoted = '"' + file_output + '"'
     # elif encoding_job_type == 'single_job_manager_encode':
-    #     file_input_quoted = str(args[1]).split('-i')[1].split('-map')[0].strip()
+    #     file_input_quoted = str(args[0]).split('-i')[1].split('-map')[0].strip()
     # -------------------------- Quote File Paths
 
     complete_or_not = ''  # Set empty placeholder variable for complete_or_not
@@ -5395,12 +5386,10 @@ def startaudiojob(*args):
             audio_filter_function()
             # ------------------------- Filters
 
-            print('auto or manual')
         elif encoding_job_type == 'single_job_manager_encode':
-            file_input_quoted = str(args[1]).split('-i')[1].split('-map')[0].strip()
-            job_manager_file_input = str(args[1]).split('-i')[1].split('-map')[0].strip().replace('"',
-                                                                                                  '')  # This will be file input
-            job_manager_track_selection = str(args[1]).split('-map 0:a:')[1].split('-c')[0]
+            file_input_quoted = str(args[0]).split('-i')[1].split('-map')[0].strip()
+            job_manager_file_input = str(args[0]).split('-i')[1].split('-map')[0].strip().replace('"', '')  # File input
+            job_manager_track_selection = str(args[0]).split('-map 0:a:')[1].split('-c')[0]
             media_info = MediaInfo.parse(pathlib.Path(job_manager_file_input))  # Parse input file
             track_selection_mediainfo = media_info.audio_tracks[int(job_manager_track_selection)]
             # track_selection_mediainfo uses the -map 0:a:x code to get the track input, the code grabs only the last number
@@ -5408,9 +5397,6 @@ def startaudiojob(*args):
                 total_duration = float(track_selection_mediainfo.duration)
             elif track_selection_mediainfo.duration is None:  # If track input DOES NOT have a duration
                 total_duration = track_selection_mediainfo.duration
-
-            # job_selection_duration = str(args[1]).split('Command:')[1].split('>>>>  Duration =')[1].strip()
-            # total_duration = job_selection_duration
 
         def close_encode():
             def save_close_position():  # Function to save size/position upon exit
@@ -5445,7 +5431,7 @@ def startaudiojob(*args):
 
         progress_window = Toplevel(root)
         if encoding_job_type == 'single_job_manager_encode':
-            title = str(args[1]).split('Command')[0].replace('  >>>>  ', ' | ')[:-2].strip()
+            title = str(args[0]).split('Command')[0].replace('  >>>>  ', ' | ')[:-2].strip()
         else:
             title = 'Codec : ' + encoder.get() + '  |  ' + str(pathlib.Path(file_input).stem)
         progress_window.title(title)
@@ -5523,8 +5509,7 @@ def startaudiojob(*args):
                       config_profile['Auto Encode']['command'].lstrip().rstrip() \
                       + ' ' + file_output_quoted + hide_banner_verbose
         elif encoding_job_type == 'single_job_manager_encode':
-            command = str(args[1]).split('Command:')[1].split('>>>>  Duration =')[0].strip()
-            # job_listbox.delete(args[0])
+            command = str(args[0]).split('Command:')[1].split('>>>>  Duration =')[0].strip()
 
         # Use subprocess.Popen to feed the command to the terminal and handle the stder/stdout output
         job = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
@@ -5539,7 +5524,7 @@ def startaudiojob(*args):
                 insert_info_string = f'Encoding {str(file_input_quoted)} via "FFMPEG" with internal encoder: ' \
                                      f'"{str(encoder.get())}"'
         elif encoding_job_type == 'single_job_manager_encode':
-            encoder_string = str(args[1].split('Codec: ')[1].split('  >>>>')[0])
+            encoder_string = str(args[0].split('Codec: ')[1].split('  >>>>')[0])
             if encoder_string == 'QAAC' or encoder_string == 'FDK-AAC':  # String to output for fdk/qaac encoder
                 insert_info_string = f'Encoding {str(file_input_quoted)} via "FFMPEG" by piping to external encoder: ' \
                                      f'"{encoder_string}"'
@@ -5599,7 +5584,7 @@ def startaudiojob(*args):
         encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
         if progress_error == 'no' and int(percent) >= 99:  # If no error and percent reached 99%, job is complete
             if encoding_job_type == 'single_job_manager_encode':
-                file_output_quoted = '"' + args[1].split('Output Filename =')[1].strip()[1:-1] + '"'
+                file_output_quoted = '"' + args[0].split('Output Filename =')[1].strip()[1:-1] + '"'
             if pathlib.Path(str(file_output_quoted).replace('"', '')).is_file():  # Check if file exists
                 encode_window_progress.insert(END, str('Job Completed!\n\n'))  # Insert into text window
                 encode_window_progress.insert(END, f'Output file is: \n{str(file_output_quoted)}')
@@ -5607,8 +5592,8 @@ def startaudiojob(*args):
             else:  # If job does not complete, string to show the user there was an error
                 if encoding_job_type == 'single_job_manager_encode':
                     error_message = 'There was an error in job:\n\n' + '"' + \
-                                    args[1].split('Codec: ')[1].split('  >>>>')[0].split() + '  |  ' + \
-                                    str(pathlib.Path(args[1].split('-i')[1].split('-map')[0].strip()).stem) + \
+                                    args[0].split('Codec: ')[1].split('  >>>>')[0].split() + '  |  ' + \
+                                    str(pathlib.Path(args[0].split('-i')[1].split('-map')[0].strip()).stem) + \
                                     '"\n\n Please run job with program in debug mode'
                 elif encoding_job_type == 'auto' or encoding_job_type == 'manual':
                     error_message = 'There was an error in job:\n\n' + '"Codec : ' + encoder.get() + '  |  ' + \
@@ -5882,11 +5867,9 @@ def open_jobs_manager():
     def start_job_window_encode_single():
         global encoding_job_type, job_listbox
         encoding_job_type = 'single_job_manager_encode'
-        job_index = job_listbox.curselection()  # Get currently selection
-        # job_selection_number = str(job_listbox.selection_get())[0]  # Get job_number (for parsing dat file)
         try:
-            selected_job = job_listbox.selection_get()  # Get selected job index from listbox
-            threading.Thread(target=startaudiojob, args=(job_index, selected_job)).start()  # Start encode with args
+            selected_job = [job_listbox.selection_get()]  # Get selected job index from listbox
+            threading.Thread(target=startaudiojob, args=selected_job).start()  # Start encode with args
             job_listbox.delete(job_listbox.curselection())  # Delete current selection from job window
             with open('Runtime/jobs.dat', "wb") as pickle_file:
                 pickle.dump(job_listbox.get(0, END), pickle_file, pickle.HIGHEST_PROTOCOL)
@@ -5918,7 +5901,7 @@ def open_jobs_manager():
     with open("Runtime/jobs.dat", "rb") as pickle_file:
         saved_jobs = pickle.load(pickle_file)
 
-    for jobs in saved_jobs:
+    for jobs in saved_jobs:  # Go through jobs.dat file to load all of the jobs into the listbox window
         job_listbox.insert(END, jobs)
 
 
