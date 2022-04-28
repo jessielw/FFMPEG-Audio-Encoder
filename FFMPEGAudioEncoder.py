@@ -5351,54 +5351,32 @@ def collect_final_job_commands():
 
 
 # Start Audio Job -----------------------------------------------------------------------------------------------------
-def startaudiojob(*args):
+def startaudiojob():
     global example_cmd_output, ac3_job, aac_job, dts_job, opus_job, mp3_job, eac3_job, \
         fdkaac_job, qaac_job, flac_job, alac_job, encoding_job_type, auto_track_input, acodec_stream, \
-        acodec_stream_choices, job_listbox
+        acodec_stream_choices
     # Quote File Input/Output Paths------------
-    # if encoding_job_type == 'auto' or encoding_job_type == 'manual':
-    # file_input_quoted = '"' + file_input + '"'
-    # file_output_quoted = '"' + file_output + '"'
-    # elif encoding_job_type == 'single_job_manager_encode':
-    #     file_input_quoted = str(args[0]).split('-i')[1].split('-map')[0].strip()
+    file_input_quoted = '"' + file_input + '"'
+    file_output_quoted = '"' + file_output + '"'
     # -------------------------- Quote File Paths
+    # Combine audio filters for FFMPEG
+    audio_filter_function()
+    # ------------------------- Filters
 
     complete_or_not = ''  # Set empty placeholder variable for complete_or_not
 
-    if progress_output_view.get() == "Default":
+    if progress_output_view.get() == "Default":  # Default progress bars
         global total_duration
-        if encoding_job_type == 'auto' or encoding_job_type == 'manual':
-
-            file_input_quoted = '"' + file_input + '"'
-            file_output_quoted = '"' + file_output + '"'
-
-            media_info = MediaInfo.parse(pathlib.Path(file_input))  # Parse input file
-            track_selection_mediainfo = media_info.audio_tracks[
-                int(acodec_stream_choices[acodec_stream.get()].strip()[-1])]
-            # track_selection_mediainfo uses the -map 0:a:x code to get the track input, the code grabs only the last number
-            if track_selection_mediainfo.duration is not None:  # If track input HAS a duration
-                total_duration = float(track_selection_mediainfo.duration)
-            elif track_selection_mediainfo.duration is None:  # If track input DOES NOT have a duration
-                messagebox.showinfo(title='Info', message='Input file has no duration, consider muxing elementary '
-                                                          'stream into mka/mkv/etc...\n\nProgress bar is '
-                                                          'temporarily disabled')
-                total_duration = track_selection_mediainfo.duration
-
-            # Combine audio filters for FFMPEG
-            audio_filter_function()
-            # ------------------------- Filters
-
-        elif encoding_job_type == 'single_job_manager_encode':
-            file_input_quoted = str(args[0]).split('-i')[1].split('-map')[0].strip()
-            job_manager_file_input = str(args[0]).split('-i')[1].split('-map')[0].strip().replace('"', '')  # File input
-            job_manager_track_selection = str(args[0]).split('-map 0:a:')[1].split('-c')[0]
-            media_info = MediaInfo.parse(pathlib.Path(job_manager_file_input))  # Parse input file
-            track_selection_mediainfo = media_info.audio_tracks[int(job_manager_track_selection)]
-            # track_selection_mediainfo uses the -map 0:a:x code to get the track input, the code grabs only the last number
-            if track_selection_mediainfo.duration is not None:  # If track input HAS a duration
-                total_duration = float(track_selection_mediainfo.duration)
-            elif track_selection_mediainfo.duration is None:  # If track input DOES NOT have a duration
-                total_duration = track_selection_mediainfo.duration
+        media_info = MediaInfo.parse(pathlib.Path(file_input))  # Parse input file
+        track_selection_mediainfo = media_info.audio_tracks[int(acodec_stream_choices[acodec_stream.get()].strip()[-1])]
+        # track_selection_mediainfo uses the -map 0:a:x code to get the track input, the code grabs only the last number
+        if track_selection_mediainfo.duration is not None:  # If track input HAS a duration
+            total_duration = float(track_selection_mediainfo.duration)
+        elif track_selection_mediainfo.duration is None:  # If track input DOES NOT have a duration
+            messagebox.showinfo(title='Info', message='Input file has no duration, consider muxing elementary '
+                                                      'stream into mka/mkv/etc...\n\nProgress bar is '
+                                                      'temporarily disabled')
+            total_duration = track_selection_mediainfo.duration
 
         def close_encode():
             def save_close_position():  # Function to save size/position upon exit
@@ -5432,11 +5410,7 @@ def startaudiojob(*args):
             thread.start()
 
         progress_window = Toplevel(root)
-        if encoding_job_type == 'single_job_manager_encode':
-            title = str(args[0]).split('Command')[0].replace('  >>>>  ', ' | ')[:-2].strip()
-        else:
-            title = 'Codec : ' + encoder.get() + '  |  ' + str(pathlib.Path(file_input).stem)
-        progress_window.title(title)
+        progress_window.title('Codec : ' + encoder.get() + '  |  ' + str(pathlib.Path(file_input).stem))
         progress_window.configure(background="#434547")
         if config['save_window_locations']['progress window position'] != '' and \
                 config['save_window_locations']['progress window'] == 'yes':
@@ -5493,11 +5467,10 @@ def startaudiojob(*args):
             encoder.set('Set Codec')
             audiosettings_button.configure(state=DISABLED)
 
-    if encoding_job_type == 'auto' or encoding_job_type == 'manual':
-        collect_final_job_commands()
+    collect_final_job_commands()
 
     if progress_output_view.get() == "Default":  # If program is set to progress bars
-        if encoding_job_type == 'manual':  # If variable encoding_job_type is set to 'manual'
+        if encoding_job_type == 'manual':  # If variable encoding_job_type is set to 'manual', the command = final command
             command = finalcommand
             update_last_codec_command()  # Calls a function that set's the auto encode information to ini file
         elif encoding_job_type == 'auto':  # If variable encoding_job_type is set to 'auto' it uses the info in the
@@ -5510,29 +5483,18 @@ def startaudiojob(*args):
                       + file_input_quoted + f' -map 0:a:{str(auto_track_input)} ' + \
                       config_profile['Auto Encode']['command'].lstrip().rstrip() \
                       + ' ' + file_output_quoted + hide_banner_verbose
-        elif encoding_job_type == 'single_job_manager_encode':
-            command = str(args[0]).split('Command:')[1].split('>>>>  Duration =')[0].strip()
 
         # Use subprocess.Popen to feed the command to the terminal and handle the stder/stdout output
         job = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
 
-        if encoding_job_type == 'auto' or encoding_job_type == 'manual':
-            if encoder.get() == 'QAAC' or encoder.get() == 'FDK-AAC':  # String to output for fdk/qaac encoder
-                insert_info_string = f'Encoding {str(file_input_quoted)} via "FFMPEG" by piping to external encoder: ' \
-                                     f'"{str(encoder.get())}"'
-            elif encoder.get() != 'QAAC' or encoder.get() != 'FDK-AAC':  # String to output for all internal encoders
-                insert_info_string = f'Encoding {str(file_input_quoted)} via "FFMPEG" with internal encoder: ' \
-                                     f'"{str(encoder.get())}"'
-        elif encoding_job_type == 'single_job_manager_encode':
-            encoder_string = str(args[0].split('Codec: ')[1].split('  >>>>')[0])
-            if encoder_string == 'QAAC' or encoder_string == 'FDK-AAC':  # String to output for fdk/qaac encoder
-                insert_info_string = f'Encoding {str(file_input_quoted)} via "FFMPEG" by piping to external encoder: ' \
-                                     f'"{encoder_string}"'
-            elif encoder_string != 'QAAC' or encoder_string != 'FDK-AAC':  # String to output for all internal encoders
-                insert_info_string = f'Encoding {str(file_input_quoted)} via "FFMPEG" with internal encoder: ' \
-                                     f'"{encoder_string}"'
+        if encoder.get() == 'QAAC' or encoder.get() == 'FDK-AAC':  # String to output for fdk/qaac encoder
+            insert_info_string = f'Encoding {str(file_input_quoted)} via "FFMPEG" by piping to external encoder: ' \
+                                 f'"{str(encoder.get())}"'
+        elif encoder.get() != 'QAAC' or encoder.get() != 'FDK-AAC':  # String to output for all internal encoders
+            insert_info_string = f'Encoding {str(file_input_quoted)} via "FFMPEG" with internal encoder: ' \
+                                 f'"{str(encoder.get())}"'
 
         if encoding_job_type == 'auto':  # If encoding_job_type is set to 'auto', once the user encodes it resets
             # main gui back to default settings
@@ -5552,7 +5514,7 @@ def startaudiojob(*args):
             encode_window_progress.see(END)  # Scrolls the textbox to bottom every single pass
             encode_window_progress.configure(state=DISABLED)
 
-            if total_duration is None:  # Set percent to 100% if input has no duration
+            if total_duration is None:  # Set's the percent to 100% if input has no duration
                 percent = 100  # this way the job code can complete without error
                 if line.split()[0] == 'size=' and progress_error != 'no':  # Find string 'size=',
                     # if found program is running correctly, also only check if progress error isn't == 'no'
@@ -5565,8 +5527,7 @@ def startaudiojob(*args):
                         time = line.split()[2].rsplit('=', 1)[1]
                         progress = sum(x * float(t) for x, t in zip([1, 60, 3600],
                                                                     reversed(time.split(":")))) * 1000
-                        percent = float(str('{:.1%}'.
-                                            format(float(progress) / float(total_duration))).replace('%', ''))
+                        percent = float(str('{:.1%}'.format(float(progress) / float(total_duration))).replace('%', ''))
                         try:
                             app_progress_bar['value'] = int(percent)  # Input progress into progress bar
                         except (Exception,):
@@ -5585,23 +5546,15 @@ def startaudiojob(*args):
         encode_window_progress.configure(state=NORMAL)  # Enable progress window editing
         encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
         if progress_error == 'no' and int(percent) >= 99:  # If no error and percent reached 99%, job is complete
-            if encoding_job_type == 'single_job_manager_encode':
-                file_output_quoted = '"' + args[0].split('Output Filename =')[1].strip()[1:-1] + '"'
             if pathlib.Path(str(file_output_quoted).replace('"', '')).is_file():  # Check if file exists
                 encode_window_progress.insert(END, str('Job Completed!\n\n'))  # Insert into text window
                 encode_window_progress.insert(END, f'Output file is: \n{str(file_output_quoted)}')
                 complete_or_not = str('complete')  # Set variable to complete, for closing window without prompt
             else:  # If job does not complete, string to show the user there was an error
-                if encoding_job_type == 'single_job_manager_encode':
-                    error_message = 'There was an error in job:\n\n' + '"' + \
-                                    args[0].split('Codec: ')[1].split('  >>>>')[0].split() + '  |  ' + \
-                                    str(pathlib.Path(args[0].split('-i')[1].split('-map')[0].strip()).stem) + \
-                                    '"\n\n Please run job with program in debug mode'
-                elif encoding_job_type == 'auto' or encoding_job_type == 'manual':
-                    error_message = 'There was an error in job:\n\n' + '"Codec : ' + encoder.get() + '  |  ' + \
-                                    str(pathlib.Path(file_input).stem) + \
-                                    '"\n\n Please run job with program in debug mode'
-                messagebox.showerror(title='Error!', message=error_message)
+                messagebox.showerror(title='Error!', message='There was an error in job:\n\n' + '"Codec : '
+                                                             + encoder.get() + '  |  '
+                                                             + str(pathlib.Path(file_input).stem)
+                                                             + '"\n\n Please run job with program in debug mode')
                 progress_window.destroy()  # Close window and kill job.pid/children
                 subprocess.Popen(f"TASKKILL /F /PID {job.pid} /T", creationflags=subprocess.CREATE_NO_WINDOW)
 
@@ -5613,11 +5566,6 @@ def startaudiojob(*args):
         copy_text.config(state=NORMAL)  # Enable copy button once all the code completes
         if config['auto_close_progress_window']['option'] == 'on':
             close_window()  # If program is set to auto close encoding window when complete, close
-
-        try:
-            root.deiconify()  # This is temporary code, until I decide how I'm going to spawn new encoding windows
-        except NameError:
-            pass
 
     elif progress_output_view.get() == "Debug":  # Debug mode, only opens a cmd.exe terminal for raw output
         subprocess.Popen('cmd /k ' + finalcommand + '"')
@@ -5885,8 +5833,71 @@ def open_jobs_manager():
                                         activebackground='grey')
     start_selected_button.grid(row=2, column=0, columnspan=1, padx=5, pady=5, sticky=S + E + W)
 
-    start_all_jobs_button = HoverButton(button_frame, text="Start All Jobs", command=None, foreground="white",
-                                        background="#23272A", borderwidth="3", activebackground='grey')
+    def start_job_window_encode_list():
+        global encoding_job_type, job_listbox
+        encoding_job_type = 'multi_job_manager_encode'
+        # try:
+        #     selected_job = [job_listbox.selection_get()]  # Get selected job index from listbox
+        #     threading.Thread(target=startaudiojob, args=selected_job).start()  # Start encode with args
+        #     job_listbox.delete(job_listbox.curselection())  # Delete current selection from job window
+        #     with open('Runtime/jobs.dat', "wb") as pickle_file:
+        #         pickle.dump(job_listbox.get(0, END), pickle_file, pickle.HIGHEST_PROTOCOL)
+        #     job_listbox.xview_moveto(0)
+        #     job_listbox.yview_moveto(0)
+        # except TclError:
+        #     return
+
+        job_list = []
+
+        def update_job_list():
+            for all_items in job_listbox.get(0, END):
+                # print(all_items[0])
+                job_list.append(all_items)
+
+        if not job_list:
+            update_job_list()
+        if job_listbox.size() > 0:
+            # print('killing job ' + job_listbox.get(0))
+            # progress_window = Toplevel(root)
+            def stuff():
+                encode_window_progress = scrolledtextwidget.ScrolledText(jobs_window, width=90, height=5, tabs=10,
+                                                                         spacing2=3, spacing1=2, spacing3=3)
+                encode_window_progress.grid(row=1, column=0, columnspan=2, pady=(0, 6), padx=10, sticky=E + W)
+                command = str(job_listbox.get(0)).split('Command:')[1].split('>>>>  Duration =')[0].strip()
+                job = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
+                                       creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
+                for line in job.stdout:
+                    encode_window_progress.configure(state=NORMAL)
+                    # Code removes any/all double or white space from string to keep it looking nice (ffmpeg is messy)
+                    encode_window_progress.insert(END, str('\n'.join(' '.join(x.split()) for x in line.split('\n'))))
+                    encode_window_progress.see(END)  # Scrolls the textbox to bottom every single pass
+                    encode_window_progress.configure(state=DISABLED)
+                job_listbox.delete(0)
+                if job_listbox.size() > 0:
+                    threading.Thread(target=stuff).start()
+                # encode_window_progress.destroy()
+                encode_window_progress.grid_remove()
+
+            threading.Thread(target=stuff).start()
+            # jobs_window.destroy()
+
+            # do_something()
+        # while len(job_list) > 0:
+        #     print('killing job ' + job_listbox.get(0))
+        #     job_listbox.delete(0)
+
+        # job_listbox.delete(0)
+        # input()
+
+        # print(job_list[0])
+        # print(job_listbox.get(0, END)[0])
+        # for selected_items in (job_listbox.curselection()):
+        #     my_listbox.delete(selected_items)
+
+    start_all_jobs_button = HoverButton(button_frame, text="Start All Jobs", command=start_job_window_encode_list,
+                                        foreground="white", background="#23272A", borderwidth="3",
+                                        activebackground='grey')
     start_all_jobs_button.grid(row=6, column=0, columnspan=1, padx=5, pady=5, sticky=S + E + W)
 
     def popup_menu(e):
@@ -5895,7 +5906,7 @@ def open_jobs_manager():
         option_menu.add_command(label='Delete All', command=delete_all)
         option_menu.add_separator()
         option_menu.add_command(label='Start Selected Job', command=start_job_window_encode_single)
-        option_menu.add_command(label='Start All Jobs', command=None)
+        option_menu.add_command(label='Start All Jobs', command=start_job_window_encode_list)
         option_menu.tk_popup(e.x_, e.y_root)  # This gets the position of 'e' on the root widget
 
     job_listbox.bind('<Button-3>', popup_menu)  # Right click to pop up menu in frame
