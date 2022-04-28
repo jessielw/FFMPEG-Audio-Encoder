@@ -144,7 +144,6 @@ class HoverButton(Button):
         if self.cget('text') == 'Add to Jobs List':
             status_label.configure(text='Add configured job to jobs list...')
 
-
     def on_leave(self, e):
         self['background'] = self.defaultBackground
         if self.cget('text') == 'Auto Encode:\nLast Used Options':
@@ -208,18 +207,18 @@ options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
 my_menu_bar.add_cascade(label='Options', menu=options_menu)
 
 options_submenu = Menu(root, tearoff=0, activebackground='dim grey')
-options_menu.add_cascade(label='Shell Options', menu=options_submenu)
-shell_options = StringVar()
-shell_options.set(config['debug_option']['option'])
-if shell_options.get() == '':
-    shell_options.set('Default')
-elif shell_options.get() != '':
-    shell_options.set(config['debug_option']['option'])
+options_menu.add_cascade(label='Progress Output', menu=options_submenu)
+progress_output_view = StringVar()
+progress_output_view.set(config['debug_option']['option'])
+if progress_output_view.get() == '':
+    progress_output_view.set('Default')
+elif progress_output_view.get() != '':
+    progress_output_view.set(config['debug_option']['option'])
 
 
 def update_shell_option():
     try:
-        config.set('debug_option', 'option', shell_options.get())
+        config.set('debug_option', 'option', progress_output_view.get())
         with open(config_file, 'w') as configfile:
             config.write(configfile)
     except (Exception,):
@@ -227,9 +226,9 @@ def update_shell_option():
 
 
 update_shell_option()
-options_submenu.add_radiobutton(label='Progress Bars', variable=shell_options,
+options_submenu.add_radiobutton(label='Progress Bars', variable=progress_output_view,
                                 value="Default", command=update_shell_option)
-options_submenu.add_radiobutton(label='CMD Shell (Debug)', variable=shell_options,
+options_submenu.add_radiobutton(label='CMD Shell (Debug)', variable=progress_output_view,
                                 value="Debug", command=update_shell_option)
 
 auto_close_window = StringVar()
@@ -4890,7 +4889,7 @@ def print_command_line():
     # --------------------------------------------------------------------------------------- DTS Command Line Main Gui
     # FDK View Command Line -------------------------------------------------------------------------------------------
     elif encoder.get() == "FDK-AAC":
-        if shell_options.get() == "Default":
+        if progress_output_view.get() == "Default":
             silent = '--silent '
         else:
             silent = ' '
@@ -4912,7 +4911,7 @@ def print_command_line():
     # ---------------------------------------------------------------------------------------------------- FDK CMD LINE
     # QAAC View Command Line ------------------------------------------------------------------------------------------
     elif encoder.get() == "QAAC":
-        if shell_options.get() == "Default":
+        if progress_output_view.get() == "Default":
             silent = '--silent '
         else:
             silent = ' '
@@ -5217,7 +5216,7 @@ def collect_final_job_commands():
     # ----------------------------------------------------------------------------------------------------------- E-AC3
     # FDK_AAC Start Job -----------------------------------------------------------------------------------------------
     elif encoder.get() == "FDK-AAC":
-        if shell_options.get() == "Default":
+        if progress_output_view.get() == "Default":
             silent = '--silent '
         else:
             silent = ' '
@@ -5252,7 +5251,7 @@ def collect_final_job_commands():
     # ------------------------------------------------------------------------------------------------------------- FDK
     # QAAC Start Job --------------------------------------------------------------------------------------------------
     elif encoder.get() == "QAAC":
-        if shell_options.get() == "Default":
+        if progress_output_view.get() == "Default":
             silent = '--silent '
         else:
             silent = ' '
@@ -5366,7 +5365,7 @@ def startaudiojob(*args):
 
     complete_or_not = ''  # Set empty placeholder variable for complete_or_not
 
-    if shell_options.get() == "Default":
+    if progress_output_view.get() == "Default":
         global total_duration
         if encoding_job_type == 'auto' or encoding_job_type == 'manual':
 
@@ -5497,7 +5496,7 @@ def startaudiojob(*args):
     if encoding_job_type == 'auto' or encoding_job_type == 'manual':
         collect_final_job_commands()
 
-    if shell_options.get() == "Default":  # If program is set to progress bars
+    if progress_output_view.get() == "Default":  # If program is set to progress bars
         if encoding_job_type == 'manual':  # If variable encoding_job_type is set to 'manual'
             command = finalcommand
             update_last_codec_command()  # Calls a function that set's the auto encode information to ini file
@@ -5620,7 +5619,7 @@ def startaudiojob(*args):
         except NameError:
             pass
 
-    elif shell_options.get() == "Debug":  # Debug mode, only opens a cmd.exe terminal for raw output
+    elif progress_output_view.get() == "Debug":  # Debug mode, only opens a cmd.exe terminal for raw output
         subprocess.Popen('cmd /k ' + finalcommand + '"')
 
 
@@ -5907,6 +5906,7 @@ def open_jobs_manager():
     for jobs in saved_jobs:  # Go through jobs.dat file to load all of the jobs into the listbox window
         job_listbox.insert(END, jobs)
 
+
 file_menu.add_command(label='Open File', command=input_button_commands)
 file_menu.add_command(label='Job Manager', command=open_jobs_manager)
 file_menu.add_separator()
@@ -6118,7 +6118,7 @@ if not pathlib.Path(fdkaac.replace('"', '')).is_file():
                                                 'fdkaac.exe in the "Apps" folder')
 if not pathlib.Path(qaac.replace('"', '')).is_file():
     messagebox.showerror(title='Error', message='Program is missing QAAC, please redownload or replace '
-                                                'fdkaac.exe in the "Apps" folder')
+                                                'qaac.exe in the "Apps" folder')
 # Checks for bundled app paths path -----------------------------------
 
 # # Arguments -----------------------------------------------------------------------------------------------------------
