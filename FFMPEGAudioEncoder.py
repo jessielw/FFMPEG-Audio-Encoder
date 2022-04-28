@@ -5907,7 +5907,7 @@ def open_jobs_manager():
     for jobs in saved_jobs:  # Go through jobs.dat file to load all of the jobs into the listbox window
         job_listbox.insert(END, jobs)
 
-
+file_menu.add_command(label='Open File', command=input_button_commands)
 file_menu.add_command(label='Job Manager', command=open_jobs_manager)
 file_menu.add_separator()
 file_menu.add_command(label='Exit', command=root_exit_function)
