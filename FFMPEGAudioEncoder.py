@@ -561,7 +561,7 @@ encoder.set("Set Codec")
 encoder.trace('w', encoder_changed)
 encoder_menu = OptionMenu(audio_setting_frame, encoder, *encoder_dropdownmenu_choices.keys(), command=track_counter)
 encoder_menu.grid(row=0, column=0, columnspan=2, padx=(10, 5), pady=5, sticky=N + S + W + E)
-encoder_menu.config(state=DISABLED, background="#23272A", foreground="white", highlightthickness=1)
+encoder_menu.config(state=DISABLED, background="#23272A", foreground="white", highlightthickness=1, width=7)
 encoder_menu["menu"].configure(activebackground="dim grey")
 
 
