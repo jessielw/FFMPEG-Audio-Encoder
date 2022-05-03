@@ -20,7 +20,7 @@ def set_window_geometry_settings():
                 if func_parser['save_window_locations']['window location settings position'] != \
                         geometry_settings_window.geometry():
                     func_parser.set('save_window_locations', 'window location settings position',
-                               geometry_settings_window.geometry())
+                                    geometry_settings_window.geometry())
                     with open(config_file, 'w') as configfile:
                         func_parser.write(configfile)
             except (Exception,):
@@ -176,6 +176,25 @@ def set_window_geometry_settings():
                                            activeforeground=color5, selectcolor=color3,
                                            font=(set_font, set_font_size + 2))
 
+    def job_manager_win_pos_toggle():
+        try:  # Write to config
+            config.set('save_window_locations', 'job window', job_manager_win_toggle.get())
+            if job_manager_win_toggle.get() == 'no':
+                config.set('save_window_locations', 'job window position', '')
+            with open(config_file, 'w') as configfile:
+                config.write(configfile)
+        except (Exception,):
+            pass
+
+    job_manager_win_toggle = StringVar()  # variable
+    job_manager_win_toggle.set(config['save_window_locations']['job window'])  # Set box from config.ini
+    job_manager_win_toggle_checkbox = Checkbutton(option_frame, text='Job Manager', variable=job_manager_win_toggle,
+                                                  onvalue='yes', offvalue='no', command=job_manager_win_pos_toggle)
+    job_manager_win_toggle_checkbox.grid(row=2, column=0, rowspan=1, columnspan=2, padx=10, pady=(0, 0), sticky=N + W)
+    job_manager_win_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
+                                              activeforeground=color5, selectcolor=color3,
+                                              font=(set_font, set_font_size + 2))
+
     # Right click menu for "Window Options" frame ---------------------------------------------------------------------
     def option_popup_menu(e):  # Function for mouse button 3 (right click) to pop up menu
         def select_all():
@@ -190,6 +209,9 @@ def set_window_geometry_settings():
 
             progress_pos_toggle.set('yes')
             func_parser.set('save_window_locations', 'progress window', 'yes')
+
+            job_manager_win_toggle.set('yes')
+            func_parser.set('save_window_locations', 'job window', 'yes')
 
             about_pos_toggle.set('yes')
             func_parser.set('save_window_locations', 'about', 'yes')
@@ -215,6 +237,10 @@ def set_window_geometry_settings():
                 func_parser.set('save_window_locations', 'progress window', 'no')
                 func_parser.set('save_window_locations', 'progress window position', '')
 
+                job_manager_win_toggle.set('no')
+                func_parser.set('save_window_locations', 'job window', 'no')
+                func_parser.set('save_window_locations', 'job window position', '')
+
                 about_pos_toggle.set('no')
                 func_parser.set('save_window_locations', 'about', 'no')
                 func_parser.set('save_window_locations', 'about position', '')
@@ -228,6 +254,8 @@ def set_window_geometry_settings():
             window_pos_toggle.set('no'), window_location_pos_toggle()])
         option_menu.add_command(label='Reset: "Progress Window"', command=lambda: [
             progress_pos_toggle.set('no'), progress_win_pos_toggle()])
+        option_menu.add_command(label='Reset: "Job Manager Window"', command=lambda: [
+            job_manager_win_toggle.set('no'), job_manager_win_pos_toggle()])
         option_menu.add_command(label='Reset: "About Window"', command=lambda: [
             about_pos_toggle.set('no'), about_win_pos_toggle()])
         option_menu.add_separator()
@@ -241,6 +269,7 @@ def set_window_geometry_settings():
     window_pos_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
     progress_pos_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
     about_pos_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
+    job_manager_win_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
 
     # --------------------------------------------------------------------- Right click menu for "Window Options" frame
 
