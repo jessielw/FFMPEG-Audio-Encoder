@@ -1418,18 +1418,22 @@ def openaudiowindow():
 
     # ----------------------------------------------------------------------- FFMPEG Volume Spinbox Menu + HoverToolTip
 
-    # Set Config Profile Parser ---------------------------------------------------------------------------------------
+    # Parsers ---------------------------------------------------------------------------------------------------------
+    # Audio Codec ConfigParser
     config_profile = ConfigParser()
     config_profile.read(config_profile_ini)
-    # --------------------------------------------------------------------------------------- Set Config Profile Parser
+    # Audio Codec Window Local ConfigParser
+    audio_win_parser = ConfigParser()
+    audio_win_parser.read(config_file)
+    # --------------------------------------------------------------------------------------------------------- Parsers
 
     # AC3 Window ------------------------------------------------------------------------------------------------------
     if encoder.get() == "AC3":
         audio_window = Toplevel()
         audio_window.title('AC3 Settings')
         audio_window.configure(background="#434547")
-        if config['save_window_locations']['audio window - ac3 - position'] == '' or \
-                config['save_window_locations']['audio window - ac3'] == 'no':
+        if audio_win_parser['save_window_locations']['audio window - ac3 - position'] == '' or \
+                audio_win_parser['save_window_locations']['audio window - ac3'] == 'no':
             window_height = 400
             window_width = 600
             screen_width = audio_window.winfo_screenwidth()
@@ -1437,9 +1441,9 @@ def openaudiowindow():
             x_coordinate = int((screen_width / 2) - (window_width / 2))
             y_coordinate = int((screen_height / 2) - (window_height / 2))
             audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
-        elif config['save_window_locations']['audio window - ac3 - position'] != '' and \
-                config['save_window_locations']['audio window - ac3'] == 'yes':
-            audio_window.geometry(config['save_window_locations']['audio window - ac3 - position'])
+        elif audio_win_parser['save_window_locations']['audio window - ac3 - position'] != '' and \
+                audio_win_parser['save_window_locations']['audio window - ac3'] == 'yes':
+            audio_window.geometry(audio_win_parser['save_window_locations']['audio window - ac3 - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         root.withdraw()  # Hide root
 
@@ -1655,8 +1659,8 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('AAC Settings')
         audio_window.configure(background="#434547")
-        if config['save_window_locations']['audio window - aac - position'] == '' or \
-                config['save_window_locations']['audio window - aac'] == 'no':
+        if audio_win_parser['save_window_locations']['audio window - aac - position'] == '' or \
+                audio_win_parser['save_window_locations']['audio window - aac'] == 'no':
             window_height = 420
             window_width = 620
             screen_width = audio_window.winfo_screenwidth()
@@ -1664,9 +1668,9 @@ def openaudiowindow():
             x_coordinate = int((screen_width / 2) - (window_width / 2))
             y_coordinate = int((screen_height / 2) - (window_height / 2))
             audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
-        elif config['save_window_locations']['audio window - aac - position'] != '' and \
-                config['save_window_locations']['audio window - aac'] == 'yes':
-            audio_window.geometry(config['save_window_locations']['audio window - aac - position'])
+        elif audio_win_parser['save_window_locations']['audio window - aac - position'] != '' and \
+                audio_win_parser['save_window_locations']['audio window - aac'] == 'yes':
+            audio_window.geometry(audio_win_parser['save_window_locations']['audio window - aac - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         root.withdraw()  # Hide root
 
@@ -1948,8 +1952,8 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('DTS Settings')
         audio_window.configure(background="#434547")
-        if config['save_window_locations']['audio window - dts - position'] == '' or \
-                config['save_window_locations']['audio window - dts'] == 'no':
+        if audio_win_parser['save_window_locations']['audio window - dts - position'] == '' or \
+                audio_win_parser['save_window_locations']['audio window - dts'] == 'no':
             window_height = 420
             window_width = 550
             screen_width = audio_window.winfo_screenwidth()
@@ -1957,9 +1961,9 @@ def openaudiowindow():
             x_coordinate = int((screen_width / 2) - (window_width / 2))
             y_coordinate = int((screen_height / 2) - (window_height / 2))
             audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
-        elif config['save_window_locations']['audio window - dts - position'] != '' and \
-                config['save_window_locations']['audio window - dts'] == 'yes':
-            audio_window.geometry(config['save_window_locations']['audio window - dts - position'])
+        elif audio_win_parser['save_window_locations']['audio window - dts - position'] != '' and \
+                audio_win_parser['save_window_locations']['audio window - dts'] == 'yes':
+            audio_window.geometry(audio_win_parser['save_window_locations']['audio window - dts - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         root.withdraw()  # Hide root
 
@@ -2203,8 +2207,8 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('Opus Settings')
         audio_window.configure(background="#434547")
-        if config['save_window_locations']['audio window - opus - position'] == '' or \
-                config['save_window_locations']['audio window - opus'] == 'no':
+        if audio_win_parser['save_window_locations']['audio window - opus - position'] == '' or \
+                audio_win_parser['save_window_locations']['audio window - opus'] == 'no':
             window_height = 580
             window_width = 650
             screen_width = audio_window.winfo_screenwidth()
@@ -2212,9 +2216,9 @@ def openaudiowindow():
             x_coordinate = int((screen_width / 2) - (window_width / 2))
             y_coordinate = int((screen_height / 2) - (window_height / 2))
             audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
-        elif config['save_window_locations']['audio window - opus - position'] != '' and \
-                config['save_window_locations']['audio window - opus'] == 'yes':
-            audio_window.geometry(config['save_window_locations']['audio window - opus - position'])
+        elif audio_win_parser['save_window_locations']['audio window - opus - position'] != '' and \
+                audio_win_parser['save_window_locations']['audio window - opus'] == 'yes':
+            audio_window.geometry(audio_win_parser['save_window_locations']['audio window - opus - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         root.withdraw()  # Hide root
 
@@ -2531,8 +2535,8 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('MP3 Settings')
         audio_window.configure(background="#434547")
-        if config['save_window_locations']['audio window - mp3 - position'] == '' or \
-                config['save_window_locations']['audio window - mp3'] == 'no':
+        if audio_win_parser['save_window_locations']['audio window - mp3 - position'] == '' or \
+                audio_win_parser['save_window_locations']['audio window - mp3'] == 'no':
             window_height = 360
             window_width = 550
             screen_width = audio_window.winfo_screenwidth()
@@ -2540,9 +2544,9 @@ def openaudiowindow():
             x_coordinate = int((screen_width / 2) - (window_width / 2))
             y_coordinate = int((screen_height / 2) - (window_height / 2))
             audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
-        elif config['save_window_locations']['audio window - mp3 - position'] != '' and \
-                config['save_window_locations']['audio window - mp3'] == 'yes':
-            audio_window.geometry(config['save_window_locations']['audio window - mp3 - position'])
+        elif audio_win_parser['save_window_locations']['audio window - mp3 - position'] != '' and \
+                audio_win_parser['save_window_locations']['audio window - mp3'] == 'yes':
+            audio_window.geometry(audio_win_parser['save_window_locations']['audio window - mp3 - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         root.withdraw()  # Hide root
 
@@ -2843,8 +2847,8 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('E-AC3 Settings')
         audio_window.configure(background="#434547")
-        if config['save_window_locations']['audio window - e-ac3 - position'] == '' or \
-                config['save_window_locations']['audio window - e-ac3'] == 'no':
+        if audio_win_parser['save_window_locations']['audio window - e-ac3 - position'] == '' or \
+                audio_win_parser['save_window_locations']['audio window - e-ac3'] == 'no':
             window_height = 850
             window_width = 850
             screen_width = audio_window.winfo_screenwidth()
@@ -2852,9 +2856,9 @@ def openaudiowindow():
             x_coordinate = int((screen_width / 2) - (window_width / 2))
             y_coordinate = int((screen_height / 2) - (window_height / 2))
             audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
-        elif config['save_window_locations']['audio window - e-ac3 - position'] != '' and \
-                config['save_window_locations']['audio window - e-ac3'] == 'yes':
-            audio_window.geometry(config['save_window_locations']['audio window - e-ac3 - position'])
+        elif audio_win_parser['save_window_locations']['audio window - e-ac3 - position'] != '' and \
+                audio_win_parser['save_window_locations']['audio window - e-ac3'] == 'yes':
+            audio_window.geometry(audio_win_parser['save_window_locations']['audio window - e-ac3 - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         root.withdraw()  # Hide root
 
@@ -3361,8 +3365,8 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('FDK-AAC Settings')
         audio_window.configure(background="#434547")
-        if config['save_window_locations']['audio window - fdk-aac - position'] == '' or \
-                config['save_window_locations']['audio window - fdk-aac'] == 'no':
+        if audio_win_parser['save_window_locations']['audio window - fdk-aac - position'] == '' or \
+                audio_win_parser['save_window_locations']['audio window - fdk-aac'] == 'no':
             window_height = 700
             window_width = 780
             screen_width = audio_window.winfo_screenwidth()
@@ -3370,9 +3374,9 @@ def openaudiowindow():
             x_coordinate = int((screen_width / 2) - (window_width / 2))
             y_coordinate = int((screen_height / 2) - (window_height / 2))
             audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
-        elif config['save_window_locations']['audio window - fdk-aac - position'] != '' and \
-                config['save_window_locations']['audio window - fdk-aac'] == 'yes':
-            audio_window.geometry(config['save_window_locations']['audio window - fdk-aac - position'])
+        elif audio_win_parser['save_window_locations']['audio window - fdk-aac - position'] != '' and \
+                audio_win_parser['save_window_locations']['audio window - fdk-aac'] == 'yes':
+            audio_window.geometry(audio_win_parser['save_window_locations']['audio window - fdk-aac - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         root.withdraw()  # Hide root
 
@@ -3808,8 +3812,8 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('QAAC Settings')
         audio_window.configure(background="#434547")
-        if config['save_window_locations']['audio window - qaac - position'] == '' or \
-                config['save_window_locations']['audio window - qaac'] == 'no':
+        if audio_win_parser['save_window_locations']['audio window - qaac - position'] == '' or \
+                audio_win_parser['save_window_locations']['audio window - qaac'] == 'no':
             window_height = 700
             window_width = 750
             screen_width = audio_window.winfo_screenwidth()
@@ -3817,9 +3821,9 @@ def openaudiowindow():
             x_coordinate = int((screen_width / 2) - (window_width / 2))
             y_coordinate = int((screen_height / 2) - (window_height / 2))
             audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
-        elif config['save_window_locations']['audio window - qaac - position'] != '' and \
-                config['save_window_locations']['audio window - qaac'] == 'yes':
-            audio_window.geometry(config['save_window_locations']['audio window - qaac - position'])
+        elif audio_win_parser['save_window_locations']['audio window - qaac - position'] != '' and \
+                audio_win_parser['save_window_locations']['audio window - qaac'] == 'yes':
+            audio_window.geometry(audio_win_parser['save_window_locations']['audio window - qaac - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         root.withdraw()  # Hide root
 
@@ -4258,8 +4262,8 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('FLAC Settings')
         audio_window.configure(background="#434547")
-        if config['save_window_locations']['audio window - flac - position'] == '' or \
-                config['save_window_locations']['audio window - flac'] == 'no':
+        if audio_win_parser['save_window_locations']['audio window - flac - position'] == '' or \
+                audio_win_parser['save_window_locations']['audio window - flac'] == 'no':
             window_height = 550
             window_width = 650
             screen_width = audio_window.winfo_screenwidth()
@@ -4267,9 +4271,9 @@ def openaudiowindow():
             x_coordinate = int((screen_width / 2) - (window_width / 2))
             y_coordinate = int((screen_height / 2) - (window_height / 2))
             audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
-        elif config['save_window_locations']['audio window - flac - position'] != '' and \
-                config['save_window_locations']['audio window - flac'] == 'yes':
-            audio_window.geometry(config['save_window_locations']['audio window - flac - position'])
+        elif audio_win_parser['save_window_locations']['audio window - flac - position'] != '' and \
+                audio_win_parser['save_window_locations']['audio window - flac'] == 'yes':
+            audio_window.geometry(audio_win_parser['save_window_locations']['audio window - flac - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         root.withdraw()  # Hide root
 
@@ -4573,8 +4577,8 @@ def openaudiowindow():
         audio_window = Toplevel()
         audio_window.title('ALAC Settings')
         audio_window.configure(background="#434547")
-        if config['save_window_locations']['audio window - alac - position'] == '' or \
-                config['save_window_locations']['audio window - alac'] == 'no':
+        if audio_win_parser['save_window_locations']['audio window - alac - position'] == '' or \
+                audio_win_parser['save_window_locations']['audio window - alac'] == 'no':
             window_height = 470
             window_width = 650
             screen_width = audio_window.winfo_screenwidth()
@@ -4582,9 +4586,9 @@ def openaudiowindow():
             x_coordinate = int((screen_width / 2) - (window_width / 2))
             y_coordinate = int((screen_height / 2) - (window_height / 2))
             audio_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
-        elif config['save_window_locations']['audio window - alac - position'] != '' and \
-                config['save_window_locations']['audio window - alac'] == 'yes':
-            audio_window.geometry(config['save_window_locations']['audio window - alac - position'])
+        elif audio_win_parser['save_window_locations']['audio window - alac - position'] != '' and \
+                audio_win_parser['save_window_locations']['audio window - alac'] == 'yes':
+            audio_window.geometry(audio_win_parser['save_window_locations']['audio window - alac - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         root.withdraw()  # Hide root
 
