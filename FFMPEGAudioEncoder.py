@@ -51,7 +51,9 @@ def root_exit_function():
         # If open display message
         confirm_exit = messagebox.askyesno(title='Prompt', message="Are you sure you want to exit the program?\n\n"
                                                                    "Warning:\nThis will end all current tasks "
-                                                                   "and close all windows!", parent=root)
+                                                                   "and close all windows!\n\nNote: This will close "
+                                                                   "ALL instances of FFMPEGAudioEncoder.exe, plus "
+                                                                   "any child processes in all instances!", parent=root)
         if confirm_exit:  # If user wants to exit, kill app and all of it's children
             subprocess.Popen(f"TASKKILL /F /im FFMPEGAudioEncoder.exe /T",
                              creationflags=subprocess.CREATE_NO_WINDOW)
