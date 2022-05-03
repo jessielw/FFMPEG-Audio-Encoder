@@ -1,4 +1,5 @@
 # Imports--------------------------------------------------------------------
+import os
 import psutil
 import pathlib
 import pickle
@@ -43,25 +44,27 @@ def root_exit_function():
             except (Exception,):
                 pass
 
-    toplevel_list = []  # Create an empty list
-    for widgets in root.winfo_children():
-        toplevel_list.append(widgets)  # Add all off root's children to list
-    toplevel_search = re.search(r"toplevel", str(toplevel_list))  # Search through list for any top levels
-    if toplevel_search:  # If any top levels are found, ask user if they want to exit before exiting
-        # If open display message
+    open_tops = False  # Set variable for open toplevel windows
+    for widget in root.winfo_children():  # Loop through roots children
+        if isinstance(widget, Toplevel):  # If any of roots children is a TopLevel window
+            open_tops = True  # Set variable for open tops to True
+    if open_tops:  # If open_tops is True
         confirm_exit = messagebox.askyesno(title='Prompt', message="Are you sure you want to exit the program?\n\n"
-                                                                   "Warning:\nThis will end all current tasks "
-                                                                   "and close all windows!\n\nNote: This will close "
-                                                                   "ALL instances of FFMPEGAudioEncoder.exe, plus "
-                                                                   "any child processes in all instances!", parent=root)
+                                                                   "Warning:\nThis will end all current tasks, "
+                                                                   "child-processes, and close all open windows!",
+                                           parent=root)
         if confirm_exit:  # If user wants to exit, kill app and all of it's children
-            subprocess.Popen(f"TASKKILL /F /im FFMPEGAudioEncoder.exe /T",
-                             creationflags=subprocess.CREATE_NO_WINDOW)
-            save_root_pos()
-            root.destroy()
-    else:  # If no top levels are found, exit the program without prompt
-        save_root_pos()
-        root.destroy()
+            parent = psutil.Process(root_pid)  # Set psutil parent ID
+            for child in parent.children(recursive=True):
+                child.kill()  # Loop through all the children processes and kill them with psutil module
+            save_root_pos()  # Save root position
+            root.destroy()  # Root destroy
+    if not open_tops:  # If no top levels are found, exit the program without prompt
+        parent = psutil.Process(root_pid)  # Set psutil parent ID
+        for child in parent.children(recursive=True):
+            child.kill()  # Loop through all the children processes and kill them with psutil module
+        save_root_pos()  # Save root posotion
+        root.destroy()  # Root destroy
 
 
 # ------------------------------------------------------------------------------------------------------- Config Parser
@@ -93,6 +96,7 @@ elif config['save_window_locations']['ffmpeg audio encoder position'] != '' and 
         config['save_window_locations']['ffmpeg audio encoder'] == 'yes':
     root.geometry(config['save_window_locations']['ffmpeg audio encoder position'])
 root.protocol('WM_DELETE_WINDOW', root_exit_function)
+root_pid = os.getpid()  # Get root process ID
 
 # Block of code to fix DPI awareness issues on Windows 7 or higher
 try:
