@@ -5392,6 +5392,10 @@ def startaudiojob():
     audio_filter_function()
     # ------------------------- Filters
 
+    # Start job ConfigParser
+    single_progress_win_parser = ConfigParser()
+    single_progress_win_parser.read(config_file)
+
     complete_or_not = ''  # Set empty placeholder variable for complete_or_not
 
     if progress_output_view.get() == "Default":  # Default progress bars
@@ -5441,9 +5445,9 @@ def startaudiojob():
         progress_window = Toplevel(root)
         progress_window.title('Codec : ' + encoder.get() + '  |  ' + str(pathlib.Path(file_input).stem))
         progress_window.configure(background="#434547")
-        if config['save_window_locations']['progress window position'] != '' and \
-                config['save_window_locations']['progress window'] == 'yes':
-            progress_window.geometry(config['save_window_locations']['progress window position'])
+        if single_progress_win_parser['save_window_locations']['progress window position'] != '' and \
+                single_progress_win_parser['save_window_locations']['progress window'] == 'yes':
+            progress_window.geometry(single_progress_win_parser['save_window_locations']['progress window position'])
         progress_window.grid_columnconfigure(0, weight=1)
         progress_window.grid_rowconfigure(1, weight=1)
         progress_window.protocol('WM_DELETE_WINDOW', close_window)
