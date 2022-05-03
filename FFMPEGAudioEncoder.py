@@ -1002,17 +1002,12 @@ def openaudiowindow():
                             audio_track_win.configure(background='#191a1a')  # Set color of audio_track_win background
                             window_height = 340  # win height
                             window_width = 478  # win width
-                            screen_width = audio_track_win.winfo_screenwidth()  # down
-                            screen_height = audio_track_win.winfo_screenheight()  # down
-                            x_coordinate = int((screen_width / 2) - (window_width / 2))  # down
-                            y_coordinate = int((screen_height / 2) - (window_height / 2))  # down
-                            audio_track_win.geometry(
-                                f'{window_width}x{window_height}+{x_coordinate}+{y_coordinate}')  # code calculates
-                            # middle position of window
+                            # Open on top left of root window
+                            audio_track_win.geometry(f'{window_width}x{window_height}+'
+                                                     f'{root.geometry().split("+")[1]}+{root.geometry().split("+")[2]}')
                             audio_track_win.resizable(0, 0)  # makes window not resizable
                             audio_track_win.overrideredirect(1)  # will remove the top badge of window
                             audio_track_win.grab_set()  # forces audio_track_win to stay on top of root
-                            root.attributes('-alpha', 0.8)  # Lowers mp4root transparency to .8
 
                             # Track Frame -----------------------------------------------------------------------------
                             # Define track frame
@@ -1057,9 +1052,11 @@ def openaudiowindow():
 
                             # ------------------------------------------------------- Menu to show track(s) information
 
-                            def close_audio_start():  # Funciton is used when 'Confirm Track and Start' is clicked
+                            def close_audio_start():  # Function is used when 'Confirm Track and Start' is clicked
                                 global auto_track_input
-                                root.attributes('-alpha', 1.0)  # Restores root transparency to default
+                                # root.attributes('-alpha', 1.0)  # Restores root transparency to default
+                                open_all_toplevels()  # Open all top levels if they existed
+                                root.deiconify()  # Re-Open root window
                                 audio_track_win.grab_release()
                                 audio_track_win.destroy()  # Closes audio window
                                 # Get track number  and subtract 1 for ffmpeg (Track 1 = -map 0:a:0)
@@ -1067,7 +1064,8 @@ def openaudiowindow():
 
                             def close_audio_cancel():  # Function is used when 'Cancel' is clicked
                                 global acodec_stream
-                                root.attributes('-alpha', 1.0)  # Restores root transparency to default
+                                open_all_toplevels()  # Open all top levels if they existed
+                                root.deiconify()  # Re-Open root window
                                 audio_track_win.grab_release()
                                 audio_track_win.destroy()  # Closes audio window
                                 acodec_stream.set('None')  # Set acodec_stream to None, so job does not start
@@ -5429,6 +5427,8 @@ def startaudiojob():
             if complete_or_not == 'complete':
                 save_close_position()
                 progress_window.destroy()
+                root.deiconify()
+                open_all_toplevels()
 
             else:
                 confirm_exit = messagebox.askyesno(title='Prompt', parent=progress_window,
@@ -5437,6 +5437,8 @@ def startaudiojob():
                     subprocess.Popen(f"TASKKILL /F /PID {job.pid} /T", creationflags=subprocess.CREATE_NO_WINDOW)
                     save_close_position()
                     progress_window.destroy()
+                    root.deiconify()
+                    open_all_toplevels()
 
         def close_window():
             thread = threading.Thread(target=close_encode)
