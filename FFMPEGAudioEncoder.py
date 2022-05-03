@@ -1,4 +1,5 @@
 # Imports--------------------------------------------------------------------
+import psutil
 import pathlib
 import pickle
 import re
@@ -256,7 +257,8 @@ options_submenu2.add_radiobutton(label='Off', variable=auto_close_window, value=
 
 options_menu.add_separator()
 
-options_menu.add_command(label='Window Location Settings', command=set_window_geometry_settings)
+options_menu.add_command(label='Window Location Settings     [CTRL + W]', command=set_window_geometry_settings)
+root.bind("<Control-w>", lambda event: set_window_geometry_settings())
 
 options_menu.add_separator()
 
@@ -465,6 +467,21 @@ def open_mini_cmd_window():
 #
 # # -------------------------------------------------------------------------------------------------------- Help
 
+# Hide/Open all top level window function -----------------------------------------------------------------------------
+def hide_all_toplevels():
+    for widget in root.winfo_children():
+        if isinstance(widget, Toplevel):
+            widget.withdraw()
+
+
+def open_all_toplevels():
+    for widget in root.winfo_children():
+        if isinstance(widget, Toplevel):
+            widget.deiconify()
+
+
+# ----------------------------------------------------------------------------- Hide/Open all top level window function
+
 # Calls to show_streams.py show_streams_mediainfo_function to display a window with track information -----------------
 def show_streams_mediainfo():  # All audio codecs can call this function in their menu's
     show_streams_mediainfo_function(file_input)
@@ -562,6 +579,8 @@ def openaudiowindow():
             return  # Code to return 'None', to break from function
     except NameError:  # If no "Audio Settings" window exists, open a new one
         pass  # Continue
+
+    hide_all_toplevels()
 
     def show_cmd_hover(e):
         show_cmd["bg"] = "grey"
@@ -868,6 +887,7 @@ def openaudiowindow():
         start_audio_button.config(state=NORMAL)
         command_line_button.config(state=NORMAL)
         add_job_button.config(state=NORMAL)
+        open_all_toplevels()
 
         if encoding_job_type == 'manual':
             save_codec_window_positions()  # Call functions to save window size/positions
@@ -5743,45 +5763,93 @@ command_line_button.grid(row=1, column=0, columnspan=1, padx=10, pady=15, sticky
 # ----------------------------------------------------------------------- Print Final Command Line
 
 
-def open_jobs_manager():
-    global file_input, jobs_window, job_listbox, job_number, jobs_dat_file
+def open_jobs_manager():  # Opens the job manager window --------------------------------------------------------------
+    global file_input, jobs_window, job_listbox, job_number, jobs_dat_file, jobs_window_progress_frame, \
+        jobs_window_button_frame, jobs_window_progress, job_jw
 
-    try:
+    top_level_width = 1068  # This top level, needs dynamic resizing, so adjust height/width here
+    top_level_height = 276
+
+    try:  # If the job manager window is already open do nothing when the button is hit
         if jobs_window.winfo_exists():
             return
     except NameError:
         pass
 
-    def jobs_window_exit_function():
-        jobs_window.destroy()
+    def jobs_window_exit_function():  # Job Manager exit function
+        # If either frame that has to do with progress is viewable, prompt user
+        if jobs_window_progress_frame.winfo_viewable() and jobs_window_button_frame.winfo_viewable():
+            msg = messagebox.askyesno(message='Are you sure you want to close the Jobs Manager window?\nNote: '
+                                              'This will end current tasks', title='Prompt')
+            if msg:  # If user selects yes, recursively stop all processes that has to do with encode
+                try:
+                    job_id = psutil.Process(job_jw.pid)
+                    for job_ids in job_id.children(recursive=True):
+                        job_ids.kill()
+                except psutil.NoSuchProcess:
+                    pass
 
-    jobs_window = Toplevel()
-    jobs_window.configure(background="#434547")
-    jobs_window.title('Job Manager')
-    jobs_window.resizable(False, False)
-    jobs_window.protocol('WM_DELETE_WINDOW', jobs_window_exit_function)
-    jobs_window.grid_columnconfigure(0, weight=1)
+            close_jobs_progress_drawer()  # Close progress drawer
+        # Set custom geometry variables for this window to save to config ini
+        jobs_window_geometry = f"+{jobs_window.geometry().split('+')[1]}+{jobs_window.geometry().split('+')[2]}"
+        func_parser = ConfigParser()
+        func_parser.read(config_file)
+        if func_parser['save_window_locations']['job window'] == 'yes':
+            if func_parser['save_window_locations']['job window position'] != jobs_window_geometry:
+                func_parser.set('save_window_locations', 'job window position', jobs_window_geometry)
+                with open(config_file, 'w') as configfile:
+                    func_parser.write(configfile)
+        open_all_toplevels()  # Re-open all hidden toplevels if they exist
+        root.deiconify()  # Re-open main gui
+        jobs_window.destroy()  # Destroy the jobs window
+
+    hide_all_toplevels()  # Hide any/all top levels if they exist upon launching this
+
+    jobs_window_parser = ConfigParser()  # Parser for jobs_window function
+    jobs_window_parser.read(config_file)
+
+    jobs_window = Toplevel()  # Toplevel loop
+    jobs_window.configure(background="#434547")  # Set's the background color
+    jobs_window.title('Job Manager')  # Toplevel Title
+    jobs_window.resizable(False, False)  # Disables resizing window
+    # Code to check window position and set geometry
+    if jobs_window_parser['save_window_locations']['job window position'] == '' or \
+            jobs_window_parser['save_window_locations']['job window'] == 'no':
+        x_cordinate = int((jobs_window.winfo_screenwidth() / 2) - (top_level_width / 2))
+        y_cordinate = int((jobs_window.winfo_screenheight() / 3) - (top_level_height / 2))
+        jobs_window.geometry(f"+{x_cordinate}+{y_cordinate}")
+        jobs_window.geometry("+109+154")
+    if jobs_window_parser['save_window_locations']['job window position'] != '' and \
+            jobs_window_parser['save_window_locations']['job window'] == 'yes':
+        jobs_window.geometry(jobs_window_parser['save_window_locations']['job window position'])
+    jobs_window.protocol('WM_DELETE_WINDOW', jobs_window_exit_function)  # Define exit function
+
+    # Row/Grid configures
+    jobs_window.grid_columnconfigure(0, weight=20)
     jobs_window.grid_columnconfigure(1, weight=1)
     jobs_window.grid_rowconfigure(0, weight=1)
+    jobs_window.grid_rowconfigure(1, weight=1)
+    # Row/Grid configures
 
-    listbox_frame = Frame(jobs_window)
+    listbox_frame = Frame(jobs_window)  # Set dynamic listbox frame
     listbox_frame.grid(column=0, row=0, padx=5, pady=5, sticky=N + S + E + W)
 
-    right_scrollbar = Scrollbar(listbox_frame, orient=VERTICAL)
-
+    right_scrollbar = Scrollbar(listbox_frame, orient=VERTICAL)  # Scrollbars
     bottom_scrollbar = Scrollbar(listbox_frame, orient=HORIZONTAL)
 
-    job_listbox = Listbox(listbox_frame, width=100, height=20, xscrollcommand=bottom_scrollbar.set, activestyle="none",
-                          yscrollcommand=right_scrollbar.set, bd=2, bg="#636669", fg='white',
-                          selectbackground='light grey', font=(set_font, set_font_size + 2))
+    # Create listbox
+    job_listbox = Listbox(listbox_frame, width=100, height=10, xscrollcommand=bottom_scrollbar.set,
+                          activestyle="underline", yscrollcommand=right_scrollbar.set, bd=2, bg="black", fg="#3498db",
+                          selectbackground='black', selectforeground='light green', font=(set_font, set_font_size + 2))
     job_listbox.grid(row=0, column=0)
 
+    # Add scrollbars to the listbox
     right_scrollbar.config(command=job_listbox.yview)
     right_scrollbar.grid(row=0, column=1, sticky=N + E + S)
-
     bottom_scrollbar.config(command=job_listbox.xview)
     bottom_scrollbar.grid(row=1, column=0, sticky=W + E + S)
 
+    # Create drawer frames/widgets
     button_frame = Frame(jobs_window)
     button_frame.grid(column=1, row=0, sticky=N + S + E + W)
     button_frame.config(bg="#434547")
@@ -5791,7 +5859,36 @@ def open_jobs_manager():
     button_frame.grid_rowconfigure(2, weight=300)
     button_frame.grid_rowconfigure(3, weight=1)
 
-    def delete():
+    jobs_window_progress_frame = LabelFrame(jobs_window, text=' Encoding Progress ', labelanchor="nw")
+    jobs_window_progress_frame.grid(column=0, row=1, columnspan=1, padx=5, pady=(0, 3), sticky=N + S + E + W)
+    jobs_window_progress_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 10, "bold"))
+    jobs_window_progress_frame.grid_rowconfigure(0, weight=1)
+    jobs_window_progress_frame.grid_columnconfigure(0, weight=1)
+
+    jobs_window_button_frame = LabelFrame(jobs_window, text=' Options ', labelanchor="n")
+    jobs_window_button_frame.grid(column=1, row=1, columnspan=1, padx=5, pady=(0, 3), sticky=N + S + E + W)
+    jobs_window_button_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 10, "bold"))
+    jobs_window_button_frame.grid_rowconfigure(0, weight=1)
+    jobs_window_button_frame.grid_columnconfigure(0, weight=1)
+
+    jobs_window_progress = scrolledtextwidget.ScrolledText(
+        jobs_window_progress_frame, width=90, height=0, tabs=10, spacing2=3, spacing1=2, spacing3=3)
+    jobs_window_progress.grid(row=0, column=0, columnspan=2, pady=(0, 6), padx=10, sticky=E + W)
+    jobs_window_progress.config(bg='black', fg='light green', bd=8)
+
+    app_progress_bar = ttk.Progressbar(jobs_window_progress_frame, orient=HORIZONTAL, mode='determinate',
+                                       style="custom.Horizontal.TProgressbar")
+    app_progress_bar.grid(column=0, row=1, columnspan=4, sticky=W + E, pady=(0, 2), padx=3)
+    temp_label = Label(jobs_window_progress_frame, text='Input has no duration - progress bar is temporarily disabled',
+                       bd=4, relief=SUNKEN, anchor=E, background='#717171', foreground="white")
+    temp_label.grid(column=0, row=1, columnspan=4, pady=(0, 2), padx=3, sticky=E + W)
+
+    jobs_window_progress_frame.grid_remove()  # Hide widgets after creation
+    jobs_window_button_frame.grid_remove()
+    app_progress_bar.grid_remove()
+    temp_label.grid_remove()
+
+    def delete():  # Define delete for single items code and button
         msg = messagebox.askyesno(parent=jobs_window, title='Prompt!', message='Delete selected item?')
         if msg:
             for selected_items in reversed(job_listbox.curselection()):
@@ -5803,7 +5900,7 @@ def open_jobs_manager():
                                     background="#23272A", borderwidth="3", activebackground='grey')
     delete_job_button.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N + E + W)
 
-    def delete_all():
+    def delete_all():  # Define delete for all items code and button
         msg = messagebox.askyesno(parent=jobs_window, title='Prompt!', message='Delete all items?')
         if msg:
             job_listbox.delete(0, END)
@@ -5814,114 +5911,376 @@ def open_jobs_manager():
                                     background="#23272A", borderwidth="3", activebackground='grey')
     delete_all_button.grid(row=1, column=0, columnspan=1, padx=5, pady=(5, 5), sticky=N + E + W)
 
-    def start_job_window_encode_single():
-        global encoding_job_type, job_listbox
-        encoding_job_type = 'single_job_manager_encode'
+    def open_jobs_progress_drawer():  # Code to "animate" progress drawer opening
+        jobs_window_progress_frame.grid()
+        jobs_window_button_frame.grid()
+        start_selected_button.config(state=DISABLED)
+        start_all_jobs_button.config(state=DISABLED)
+        root.withdraw()
+        for x_open in range(10):
+            jobs_window_progress.config(height=x_open + 1)
+            sleep(.0167)  # Open drawer at 60fps
+
+    def close_jobs_progress_drawer():  # Code to "animate" progress drawer closing
+        for x_close in reversed(range(10)):
+            jobs_window_progress.config(height=x_close - 1)
+            sleep(.0167)  # Close drawer at 60fps
+        jobs_window_progress.delete(0, END)
+        jobs_window_progress_frame.grid_remove()
+        jobs_window_button_frame.grid_remove()
+        start_selected_button.config(state=NORMAL)
+        start_all_jobs_button.config(state=NORMAL)
+        root.deiconify()
+        jobs_window.deiconify()
+
+    def start_job_window_encode_single():  # Code for single file selection encoding
+        global jobs_window_progress_frame, jobs_window_progress, jobs_window_button_frame
+
         try:
             selected_job = [job_listbox.selection_get()]  # Get selected job index from listbox
-            threading.Thread(target=startaudiojob, args=selected_job).start()  # Start encode with args
-            job_listbox.delete(job_listbox.curselection())  # Delete current selection from job window
-            with open('Runtime/jobs.dat', "wb") as pickle_file:
-                pickle.dump(job_listbox.get(0, END), pickle_file, pickle.HIGHEST_PROTOCOL)
-            job_listbox.xview_moveto(0)
-            job_listbox.yview_moveto(0)
-        except TclError:
-            return
+            current_selection = job_listbox.curselection()
+        except TclError:  # If user hits the button and there is nothing selected
+            messagebox.showerror(title='Error', message='Please select a job before continuing',
+                                 parent=jobs_window_progress)
+            return  # Exit function if no job is selected
+
+        def start_single_file_encode():
+            global job_jw
+            job_duration = str(selected_job[0]).split('Command:')[1].split(
+                '>>>>  Duration =')[1].split('>>>>')[0].strip()  # Used to extract duration from listbox string
+            if job_duration != 'None':  # If track input HAS a duration
+                total_duration = float(job_duration)
+                app_progress_bar.grid()
+            elif job_duration == 'None':
+                total_duration = job_duration
+                temp_label.grid()
+
+            if not jobs_window_progress_frame.winfo_viewable() and not jobs_window_button_frame.winfo_viewable():
+                open_jobs_progress_drawer()  # If the drawer is already opened, do not attempt to re-open it
+
+            command = str(selected_job[0]).split('Command:')[1].split('>>>>  Duration =')[0].strip()  # Command
+            job_jw = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
+                                      stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
+                                      creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW,
+                                      encoding="utf-8", shell=False)  # Run the job with subprocess module
+
+            def cancel_job(*args):  # Cancel job code
+                confirm_exit = messagebox.askyesno(title='Prompt', parent=jobs_window,
+                                                   message="Are you sure you want to stop the encode(s)?")
+                if confirm_exit:  # If user selects yes
+                    job_id = psutil.Process(job_jw.pid)
+                    for job_ids in job_id.children(recursive=True):
+                        job_ids.kill()
+                    close_jobs_progress_drawer()  # Close progress drawer
+                    if args[0] == 'exit all':  # If exit function is ran by cancel all jobs button
+                        jobs_window_exit_function()  # Run exit function
+                        open_jobs_manager()  # Re-open job window
+
+            # Cancel buttons
+            cancel_encode_job = HoverButton(jobs_window_button_frame, text="Cancel",
+                                            command=lambda: cancel_job('exit'),
+                                            foreground="white", background="#23272A", borderwidth="3",
+                                            activebackground='grey')
+            cancel_encode_job.grid(row=1, column=1, columnspan=1, padx=5, pady=(5, 4), sticky=E + W + S)
+
+            cancel_all_jobs = HoverButton(jobs_window_button_frame, text="Cancel\nAll Jobs",
+                                          command=lambda: cancel_job('exit all'),
+                                          foreground="white", background="#23272A", borderwidth="3",
+                                          activebackground='grey')
+            cancel_all_jobs.grid(row=1, column=0, columnspan=1, padx=5, pady=(5, 4), sticky=E + W + S)
+
+            def pause_job():  # Pause function/button
+                pause_current_job = psutil.Process(job_jw.pid)
+                for p_current_job in pause_current_job.children(recursive=True):
+                    p_current_job.suspend()
+                pause_encode_job.config(state=DISABLED)
+                resume_encode_job.config(state=NORMAL)
+
+            pause_encode_job = HoverButton(jobs_window_button_frame, text="Pause", command=pause_job,
+                                           foreground="white", background="#23272A", borderwidth="3",
+                                           activebackground='grey')
+            pause_encode_job.grid(row=0, column=0, columnspan=1, padx=5, pady=(5, 4), sticky=E + W + N)
+
+            def resume_job():  # Resume function/button
+                resume_current_job = psutil.Process(job_jw.pid)
+                for r_current_job in resume_current_job.children(recursive=True):
+                    r_current_job.resume()
+                pause_encode_job.config(state=NORMAL)
+                resume_encode_job.config(state=DISABLED)
+
+            resume_encode_job = HoverButton(jobs_window_button_frame, text="Resume", command=resume_job,
+                                            foreground="white", background="#23272A", borderwidth="3",
+                                            activebackground='grey', state=DISABLED)
+            resume_encode_job.grid(row=0, column=1, columnspan=1, padx=5, pady=(5, 4), sticky=E + W + N)
+
+            job_input = pathlib.Path(str(selected_job[0]).split('-i')[1].split('-map')[0]
+                                     .strip().replace('"', '')).name  # file input
+            job_codec = str(selected_job[0]).split('Codec: ')[1].split('  >>>>')[0].strip().upper()  # codec
+            jobs_window_progress.configure(state=NORMAL)
+            jobs_window_progress.insert(END, '- ' * 18 + 'Encode Started' + ' -' * 18 + '\n\n')
+            jobs_window_progress.insert(END, f'Encoding: "{job_input}" with codec [{job_codec}]\n\n')
+            jobs_window_progress.see(END)
+            jobs_window_progress.configure(state=DISABLED)
+
+            new_file = True  # Set's a temporary variable to True, this is set to false so it only deletes 1
+            size_string_multiplier = 0  # Set's a string to 0, to be added to, to error check
+            progress_error = 'yes'
+
+            for line in job_jw.stdout:  # Getting output from Popen for job_jw progress
+                try:
+                    jobs_window_progress.configure(state=NORMAL)
+                    # Code removes all extra white space from string to keep it looking nice (ffmpeg is messy)
+                    jobs_window_progress.insert(END, str('\n'.join(' '.join(x.split()) for x in line.split('\n'))))
+                    jobs_window_progress.see(END)  # Scrolls the textbox to bottom every single pass
+                    jobs_window_progress.configure(state=DISABLED)
+                except TclError:
+                    return
+
+                if total_duration != 'None':  # If input file has duration metadata
+                    if line.split()[0] == 'size=':  # Find string 'size='
+                        size_string_multiplier += 1  # Add 1 to the variable
+                        if size_string_multiplier >= 1:
+                            progress_error = 'no'  # Once 'size=' is found 3 times, set progress_error to 'no'
+                        try:  # Block of code to turn 00:00:00 frmt to ms (same as duration) for progress bar
+                            time = line.split()[2].rsplit('=', 1)[1]
+                            progress = sum(x * float(t) for x, t in zip([1, 60, 3600],
+                                                                        reversed(time.split(":")))) * 1000
+                            percent = float(
+                                str('{:.1%}'.format(float(progress) / float(total_duration))).replace('%', ''))
+                            app_progress_bar['value'] = int(percent)  # Input progress into progress bar
+                        except (Exception,):
+                            pass
+
+                elif total_duration == 'None':  # If input file has duration metadata
+                    if line.split()[0] == 'size=' and size_string_multiplier < 1:  # Find string 'size='
+                        size_string_multiplier += 1  # Add 1 to the variable
+                        if size_string_multiplier == 1:  # Once variable hits 1
+                            progress_error = 'no'  # Once 'size=' is found 1 times, set progress_error to 'no'
+
+                if new_file is True and progress_error == 'no':  # If new file is True and no error
+                    new_file = False  # Set new file to False
+                    output_file = str(selected_job[0]).split('Output Filename =')[1].strip()[1:-1]
+                    job_listbox.delete(current_selection)  # Deletes selected item in list
+                    with open('Runtime/jobs.dat', "wb") as pickle_file:  # Updates dat file
+                        pickle.dump(job_listbox.get(0, END), pickle_file, pickle.HIGHEST_PROTOCOL)
+                    job_listbox.xview_moveto(0)
+                    job_listbox.yview_moveto(0)
+                    # job_listbox.config(state=DISABLED)
+
+            if pathlib.Path(output_file).is_file() and progress_error == 'no':
+                # This block of code will show FILE OUTPUT ETC
+                jobs_window_progress.configure(state=NORMAL)
+                jobs_window_progress.insert(END, f'\nSaved Output to:\n"{output_file}"')
+                jobs_window_progress.insert(END, '\n' + '- ' * 18 + 'Encode Completed' + ' -' * 18 + '\n\n')
+                jobs_window_progress.see(END)
+                jobs_window_progress.configure(state=DISABLED)
+
+            start_all_jobs_button.config(state=NORMAL)
+            start_selected_button.config(state=NORMAL)
+            job_listbox.config(state=NORMAL)
+            close_jobs_progress_drawer()
+
+        threading.Thread(target=start_single_file_encode).start()  # Use threading module to start job in a new thread
 
     start_selected_button = HoverButton(button_frame, text="Start Selected Job", command=start_job_window_encode_single,
                                         foreground="white", background="#23272A", borderwidth="3",
                                         activebackground='grey')
     start_selected_button.grid(row=2, column=0, columnspan=1, padx=5, pady=5, sticky=S + E + W)
 
-    def start_job_window_encode_list():
-        global encoding_job_type, job_listbox
-        encoding_job_type = 'multi_job_manager_encode'
-        # try:
-        #     selected_job = [job_listbox.selection_get()]  # Get selected job index from listbox
-        #     threading.Thread(target=startaudiojob, args=selected_job).start()  # Start encode with args
-        #     job_listbox.delete(job_listbox.curselection())  # Delete current selection from job window
-        #     with open('Runtime/jobs.dat', "wb") as pickle_file:
-        #         pickle.dump(job_listbox.get(0, END), pickle_file, pickle.HIGHEST_PROTOCOL)
-        #     job_listbox.xview_moveto(0)
-        #     job_listbox.yview_moveto(0)
-        # except TclError:
-        #     return
+    def start_job_window_encode_list():  # Start encoding entire list
+        global job_listbox
 
-        job_list = []
-
-        def update_job_list():
+        def update_job_list():  # Takes all of the items in the lisbox and converts them to a python list
             for all_items in job_listbox.get(0, END):
-                # print(all_items[0])
                 job_list.append(all_items)
 
-        if not job_list:
+        job_list = []  # Creates an empty list
+        if not job_list:  # If no data is inside the list, run the update_job_list()
             update_job_list()
-        if job_listbox.size() > 0:
-            # print('killing job ' + job_listbox.get(0))
-            # progress_window = Toplevel(root)
-            def stuff():
-                encode_window_progress = scrolledtextwidget.ScrolledText(jobs_window, width=90, height=5, tabs=10,
-                                                                         spacing2=3, spacing1=2, spacing3=3)
-                encode_window_progress.grid(row=1, column=0, columnspan=2, pady=(0, 6), padx=10, sticky=E + W)
+
+        if job_listbox.size() > 0:  # If the listbox has 1 or more elements inside
+            def start_multi_file_processing():
+                global jobs_window_progress_frame, jobs_window_progress, jobs_window_button_frame, job_jw
+                job_duration = str(job_listbox.get(0)).split('Command:')[1].split(
+                    '>>>>  Duration =')[1].split('>>>>')[0].strip()  # Used to extract duration from listbox string
+                if job_duration != 'None':  # If track input HAS a duration
+                    total_duration = float(job_duration)
+                    app_progress_bar.grid()  # Put progress bar on the app
+                elif job_duration == 'None':  # IF track input does not have a duration
+                    total_duration = job_duration
+                    temp_label.grid()  # But temp label on the app
+
+                if not jobs_window_progress_frame.winfo_viewable() and not jobs_window_button_frame.winfo_viewable():
+                    open_jobs_progress_drawer()  # If the drawer is already opened, do not attempt to re-open it
+
                 command = str(job_listbox.get(0)).split('Command:')[1].split('>>>>  Duration =')[0].strip()
-                job = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                                       creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
-                for line in job.stdout:
-                    encode_window_progress.configure(state=NORMAL)
-                    # Code removes any/all double or white space from string to keep it looking nice (ffmpeg is messy)
-                    encode_window_progress.insert(END, str('\n'.join(' '.join(x.split()) for x in line.split('\n'))))
-                    encode_window_progress.see(END)  # Scrolls the textbox to bottom every single pass
-                    encode_window_progress.configure(state=DISABLED)
-                job_listbox.delete(0)
-                if job_listbox.size() > 0:
-                    threading.Thread(target=stuff).start()
-                # encode_window_progress.destroy()
-                encode_window_progress.grid_remove()
+                job_jw = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
+                                          stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
+                                          creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW,
+                                          encoding="utf-8", shell=False)
 
-            threading.Thread(target=stuff).start()
-            # jobs_window.destroy()
+                def cancel_job(*args):
+                    confirm_exit = messagebox.askyesno(title='Prompt', parent=jobs_window,
+                                                       message="Are you sure you want to stop the encode(s)?")
+                    if confirm_exit:
+                        job_id = psutil.Process(job_jw.pid)
+                        for job_ids in job_id.children(recursive=True):
+                            job_ids.kill()
+                        if args[0] == 'exit':
+                            jobs_window_exit_function()
+                            open_jobs_manager()
 
-            # do_something()
-        # while len(job_list) > 0:
-        #     print('killing job ' + job_listbox.get(0))
-        #     job_listbox.delete(0)
+                cancel_encode_job = HoverButton(jobs_window_button_frame, text="Cancel", command=cancel_job,
+                                                foreground="white", background="#23272A", borderwidth="3",
+                                                activebackground='grey')
+                cancel_encode_job.grid(row=1, column=1, columnspan=1, padx=5, pady=(5, 4), sticky=E + W + S)
 
-        # job_listbox.delete(0)
-        # input()
+                cancel_all_jobs = HoverButton(jobs_window_button_frame, text="Cancel\nAll Jobs",
+                                              command=lambda: cancel_job('exit'),
+                                              foreground="white", background="#23272A", borderwidth="3",
+                                              activebackground='grey')
+                cancel_all_jobs.grid(row=1, column=0, columnspan=1, padx=5, pady=(5, 4), sticky=E + W + S)
 
-        # print(job_list[0])
-        # print(job_listbox.get(0, END)[0])
-        # for selected_items in (job_listbox.curselection()):
-        #     my_listbox.delete(selected_items)
+                def pause_job():  # Pause function/button
+                    pause_current_job = psutil.Process(job_jw.pid)
+                    for p_current_job in pause_current_job.children(recursive=True):
+                        p_current_job.suspend()
+                    pause_encode_job.config(state=DISABLED)
+                    resume_encode_job.config(state=NORMAL)
+
+                pause_encode_job = HoverButton(jobs_window_button_frame, text="Pause", command=pause_job,
+                                               foreground="white", background="#23272A", borderwidth="3",
+                                               activebackground='grey')
+                pause_encode_job.grid(row=0, column=0, columnspan=1, padx=5, pady=(5, 4), sticky=E + W + N)
+
+                def resume_job():  # Resume function/button
+                    resume_current_job = psutil.Process(job_jw.pid)
+                    for r_current_job in resume_current_job.children(recursive=True):
+                        r_current_job.resume()
+                    pause_encode_job.config(state=NORMAL)
+                    resume_encode_job.config(state=DISABLED)
+
+                resume_encode_job = HoverButton(jobs_window_button_frame, text="Resume", command=resume_job,
+                                                foreground="white", background="#23272A", borderwidth="3",
+                                                activebackground='grey', state=DISABLED)
+                resume_encode_job.grid(row=0, column=1, columnspan=1, padx=5, pady=(5, 4), sticky=E + W + N)
+
+                job_input = pathlib.Path(str(job_listbox.get(0)).split('-i')[1].split('-map')[0]
+                                         .strip().replace('"', '')).name  # file input
+                job_codec = str(job_listbox.get(0)).split('Codec: ')[1].split('  >>>>')[0].strip().upper()  # codec
+                jobs_window_progress.configure(state=NORMAL)
+                jobs_window_progress.insert(END, '- ' * 18 + 'Encode Started' + ' -' * 18 + '\n\n')
+                jobs_window_progress.insert(END, f'Encoding: "{job_input}" with codec [{job_codec}]\n\n')
+                jobs_window_progress.see(END)
+                jobs_window_progress.configure(state=DISABLED)
+
+                new_file = True  # Set's a temporary variable to True, this is set to false, so it only deletes 1
+                size_string_multiplier = 0  # Set's a variable to 0, to be added to, for error checking
+                progress_error = 'yes'  # Set's variable with error mode automatically set to 'yes'
+
+                for line in job_jw.stdout:  # Getting output from Popen for job_jw progress
+                    try:
+                        jobs_window_progress.configure(state=NORMAL)
+                        # Code removes all extra white space from string to keep it looking nice (ffmpeg is messy)
+                        jobs_window_progress.insert(END, str('\n'.join(' '.join(x.split()) for x in line.split('\n'))))
+                        jobs_window_progress.see(END)  # Scrolls the textbox to bottom every single pass
+                        jobs_window_progress.configure(state=DISABLED)
+                    except TclError:
+                        return
+
+                    if total_duration != 'None':  # If input file has duration metadata
+                        if line.split()[0] == 'size=':  # Find string 'size='
+                            size_string_multiplier += 1  # Add 1 to the variable
+                            if size_string_multiplier >= 1:
+                                progress_error = 'no'  # Once 'size=' is found 3 times, set progress_error to 'no'
+                            try:  # Block of code to turn 00:00:00 frmt to ms (same as duration) for progress bar
+                                time = line.split()[2].rsplit('=', 1)[1]
+                                progress = sum(x * float(t) for x, t in zip([1, 60, 3600],
+                                                                            reversed(time.split(":")))) * 1000
+                                percent = float(
+                                    str('{:.1%}'.format(float(progress) / float(total_duration))).replace('%', ''))
+                                app_progress_bar['value'] = int(percent)  # Input progress into progress bar
+                            except (Exception,):
+                                pass
+
+                    elif total_duration == 'None':  # If input file has duration metadata
+                        if line.split()[0] == 'size=' and size_string_multiplier < 1:  # Find string 'size='
+                            size_string_multiplier += 1  # Add 1 to the variable
+                            if size_string_multiplier == 1:  # Once variable hits 1
+                                progress_error = 'no'  # Once 'size=' is found 1 times, set progress_error to 'no'
+
+                    if new_file is True and progress_error == 'no':  # If new file is True and no error
+                        new_file = False  # Set new file to False
+                        output_file = job_listbox.get(0).split('Output Filename =')[1].strip()[1:-1]
+                        job_listbox.delete(0)  # Deletes top item from listbox
+                        with open('Runtime/jobs.dat', "wb") as pickle_file:  # Updates dat file
+                            pickle.dump(job_listbox.get(0, END), pickle_file, pickle.HIGHEST_PROTOCOL)
+                        job_listbox.xview_moveto(0)
+                        job_listbox.yview_moveto(0)
+
+                if pathlib.Path(output_file).is_file() and progress_error == 'no':
+                    # This block of code will show FILE OUTPUT ETC
+                    jobs_window_progress.configure(state=NORMAL)
+                    jobs_window_progress.insert(END, f'\nSaved Output to:\n"{output_file}"')
+                    if job_listbox.size() == 0:
+                        jobs_window_progress.insert(END, '\n' + '- ' * 18 + 'Encode Completed' + ' -' * 18)
+                    elif job_listbox.size() > 0:
+                        jobs_window_progress.insert(END, '\n' + '- ' * 18 + 'Encode Completed' + ' -' * 18 + '\n\n\n')
+                        # jobs_window_progress.insert(END, '- ' * 18 + 'Encode Started' + ' -' * 18 + '\n')
+                    jobs_window_progress.see(END)
+                    jobs_window_progress.configure(state=DISABLED)
+
+                if job_listbox.size() > 0:  # If listbox has more then 0 items in it
+                    threading.Thread(target=start_multi_file_processing).start()  # Start job again
+                elif job_listbox.size() == 0:  # If listbox has 0 items
+                    close_jobs_progress_drawer()  # Close processing drawer
+
+            threading.Thread(target=start_multi_file_processing).start()  # Start multi-file job work
 
     start_all_jobs_button = HoverButton(button_frame, text="Start All Jobs", command=start_job_window_encode_list,
                                         foreground="white", background="#23272A", borderwidth="3",
                                         activebackground='grey')
     start_all_jobs_button.grid(row=6, column=0, columnspan=1, padx=5, pady=5, sticky=S + E + W)
 
-    def popup_menu(e):
+    def popup_menu(e):  # Right click menu inside the listbox
         option_menu = Menu(listbox_frame, tearoff=False)  # Menu
         option_menu.add_command(label='Delete Selection', command=delete)
         option_menu.add_command(label='Delete All', command=delete_all)
         option_menu.add_separator()
         option_menu.add_command(label='Start Selected Job', command=start_job_window_encode_single)
         option_menu.add_command(label='Start All Jobs', command=start_job_window_encode_list)
-        option_menu.tk_popup(e.x_, e.y_root)  # This gets the position of 'e' on the root widget
+        option_menu.tk_popup(e.x_root, e.y_root)  # This gets the position of 'e' on the root widget
 
     job_listbox.bind('<Button-3>', popup_menu)  # Right click to pop up menu in frame
 
-    with open("Runtime/jobs.dat", "rb") as pickle_file:
-        saved_jobs = pickle.load(pickle_file)
+    def update_listbox_with_saved_jobs():
+        with open("Runtime/jobs.dat", "rb") as pickle_file:
+            saved_jobs = pickle.load(pickle_file)
 
-    for jobs in saved_jobs:  # Go through jobs.dat file to load all of the jobs into the listbox window
-        job_listbox.insert(END, jobs)
+        for jobs in saved_jobs:  # Go through jobs.dat file to load all the jobs into the listbox window
+            job_listbox.insert(END, jobs)
+
+        def updater():  # Updater to update files between multiple processes
+            with open("Runtime/jobs.dat", "rb") as pickle_file:
+                saved_jobs = pickle.load(pickle_file)
+            job_tuple = job_listbox.get(0, END)  # Check listbox window
+            if saved_jobs != job_tuple:  # If saved jobs does not equal the same as listbox window
+                job_listbox.delete(0, END)  # Delete listbox window contents fully
+                for jobs in saved_jobs:  # Update listbox window with list of saved jobs in dat file
+                    job_listbox.insert(END, jobs)
+            job_listbox.after(100, updater)  # Check ever .1 of a second for updates on the dat file
+
+        job_listbox.after(500, updater)
+
+    update_listbox_with_saved_jobs()
 
 
-file_menu.add_command(label='Open File', command=input_button_commands)
-file_menu.add_command(label='Job Manager', command=open_jobs_manager)
+file_menu.add_command(label='Open File         [CTRL + O]', command=input_button_commands)
+root.bind("<Control-o>", lambda event: input_button_commands())
+file_menu.add_command(label='Job Manager    [CTRL + J]', command=open_jobs_manager)
+root.bind("<Control-j>", lambda event: open_jobs_manager())
 file_menu.add_separator()
-file_menu.add_command(label='Exit', command=root_exit_function)
+file_menu.add_command(label='Exit                   [ALT + F4]', command=root_exit_function)
 
 
 # Add to jobs list ------------------------------------------------------------------------------
