@@ -955,6 +955,8 @@ def openaudiowindow():
                 try:
                     if encoding_job_type == 'auto':
                         audio_window.destroy()  # Destroy audio window, only opens to define variables inside it
+                        hide_all_toplevels()  # Hide all TopLevels
+                        set_frest_launch_for_auto_encode()  # Reset Main Gui
                     # parse input file name for language and delay string
                     # language_code_input = re_findall(r"\[([A-Za-z]+)\]", str(file_input))
                     # if language_code_input:  # If re finds language codes within '[]'
@@ -978,6 +980,7 @@ def openaudiowindow():
 
                 except NameError:
                     audio_window.destroy()
+                    hide_all_toplevels()  # Hide all TopLevels
                     root.deiconify()
 
             if total_streams >= 2:  # If total streams are greater than 1 (video input, remux, bluray, dvd, etc...)
@@ -995,6 +998,8 @@ def openaudiowindow():
                 try:
                     if encoding_job_type == 'auto':
                         audio_window.destroy()  # Destroy audio window, only opens to define variables inside it
+                        hide_all_toplevels()  # Hide all TopLevels
+                        set_frest_launch_for_auto_encode()  # Reset Main Gui
 
                         def track_window():  # Function to select which audio track user would like to encode with
                             global auto_track_input, acodec_stream, acodec_stream_choices
@@ -1054,7 +1059,6 @@ def openaudiowindow():
 
                             def close_audio_start():  # Function is used when 'Confirm Track and Start' is clicked
                                 global auto_track_input
-                                # root.attributes('-alpha', 1.0)  # Restores root transparency to default
                                 open_all_toplevels()  # Open all top levels if they existed
                                 root.deiconify()  # Re-Open root window
                                 audio_track_win.grab_release()
@@ -6301,6 +6305,33 @@ root.bind("<Control-o>", lambda event: input_button_commands())
 file_menu.add_command(label='Job Manager    [CTRL + J]', command=open_jobs_manager)
 root.bind("<Control-j>", lambda event: open_jobs_manager())
 file_menu.add_separator()
+
+
+# Reset GUI -----------------------------------------------------------------------------------------------------------
+def set_frest_launch_for_auto_encode():
+    encoder.set('Set Codec')
+    audiosettings_button.config(state=DISABLED)
+    add_job_button.config(state=DISABLED)
+    start_audio_button.config(state=DISABLED)
+    command_line_button.config(state=DISABLED)
+    output_button.config(state=DISABLED)
+
+
+def set_frest_launch():
+    set_frest_launch_for_auto_encode()
+    encoder_menu.config(state=DISABLED)
+    input_entry.config(state=NORMAL)
+    input_entry.delete(0, END)
+    input_entry.config(state=DISABLED)
+    output_entry.config(state=NORMAL)
+    output_entry.delete(0, END)
+    output_entry.config(state=DISABLED)
+    auto_encode_last_options.config(state=DISABLED)
+
+
+file_menu.add_command(label='Reset GUI         [CTRL + R]', command=set_frest_launch)
+root.bind("<Control-r>", lambda event: set_frest_launch())
+# ----------------------------------------------------------------------------------------------------------- Reset GUI
 file_menu.add_command(label='Exit                   [ALT + F4]', command=root_exit_function)
 
 
