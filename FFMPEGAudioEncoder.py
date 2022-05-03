@@ -1,9 +1,7 @@
 # Imports--------------------------------------------------------------------
 import os
-import psutil
 import pathlib
 import pickle
-import re
 import shutil
 import subprocess
 import threading
@@ -17,6 +15,7 @@ from tkinter import filedialog, StringVar, ttk, messagebox, PhotoImage, Menu, NO
     LabelFrame, END, INSERT, Label, Checkbutton, Spinbox, CENTER, GROOVE, OptionMenu, Entry, HORIZONTAL, SUNKEN, \
     Button, TclError, font, Frame, Scrollbar, VERTICAL, Listbox
 
+import psutil
 import pyperclip
 from TkinterDnD2 import *
 from pymediainfo import MediaInfo
