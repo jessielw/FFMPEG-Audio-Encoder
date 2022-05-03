@@ -5442,6 +5442,9 @@ def startaudiojob():
             thread = threading.Thread(target=close_encode)
             thread.start()
 
+        hide_all_toplevels()  # Hide all top levels
+        root.withdraw()  # Hide root
+
         progress_window = Toplevel(root)
         progress_window.title('Codec : ' + encoder.get() + '  |  ' + str(pathlib.Path(file_input).stem))
         progress_window.configure(background="#434547")
@@ -5599,6 +5602,9 @@ def startaudiojob():
         copy_text.config(state=NORMAL)  # Enable copy button once all the code completes
         if config['auto_close_progress_window']['option'] == 'on':
             close_window()  # If program is set to auto close encoding window when complete, close
+
+        root.deiconify()  # Re-Open Root
+        open_all_toplevels()  # Re-Open all toplevels if there was any open
 
     elif progress_output_view.get() == "Debug":  # Debug mode, only opens a cmd.exe terminal for raw output
         subprocess.Popen('cmd /k ' + finalcommand + '"')
