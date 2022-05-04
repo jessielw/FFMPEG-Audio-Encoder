@@ -3994,7 +3994,7 @@ def openaudiowindow():
     # ----------------------------------------------------------------------------------------------------------- QAAC
 
     # FLAC Window -----------------------------------------------------------------------------------------------------
-    if encoder.get() == "FLAC":
+    elif encoder.get() == "FLAC":
         audio_window = Toplevel()
         audio_window.title('FLAC Settings')
         audio_window.configure(background="#434547")
@@ -4286,7 +4286,7 @@ def openaudiowindow():
     # -------------------------------------------------------------------------------------------------------- FLAC
 
     # ALAC Window -------------------------------------------------------------------------------------------------
-    if encoder.get() == "ALAC":
+    elif encoder.get() == "ALAC":
         audio_window = Toplevel()
         audio_window.title('ALAC Settings')
         audio_window.configure(background="#434547")
@@ -5318,23 +5318,24 @@ def startaudiojob():
                                creationflags=subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP)
 
         def cancel_job():  # Cancel job code
-            confirm_exit = messagebox.askyesno(title='Prompt', parent=progress_window,
-                                               message="Are you sure you want to stop the encode?")
-            if confirm_exit:  # If user selects yes
-                try:
-                    job_id = psutil.Process(job.pid)
-                    for job_ids in job_id.children(recursive=True):
-                        job_ids.kill()
-                        job_ids.wait()
-                    if pathlib.Path(str(file_output_quoted).replace('"', '')).is_file():
-                        file_del = pathlib.Path(str(file_output_quoted).replace('"', ''))
-                        file_del.unlink(missing_ok=True)
-                except psutil.NoSuchProcess:
-                    pass
-                save_close_position()  # Save position
-                progress_window.destroy()  # Destroy progress window
-                root.deiconify()  # Re-Open root
-                open_all_toplevels()  # Re-open top levels if there was any
+            if complete_or_not != 'complete':
+                confirm_exit = messagebox.askyesno(title='Prompt', parent=progress_window,
+                                                   message="Are you sure you want to stop the encode?")
+                if confirm_exit:  # If user selects yes
+                    try:
+                        job_id = psutil.Process(job.pid)
+                        for job_ids in job_id.children(recursive=True):
+                            job_ids.kill()
+                            job_ids.wait()
+                        if pathlib.Path(str(file_output_quoted).replace('"', '')).is_file():
+                            file_del = pathlib.Path(str(file_output_quoted).replace('"', ''))
+                            file_del.unlink(missing_ok=True)
+                    except psutil.NoSuchProcess:
+                        pass
+            save_close_position()  # Save position
+            progress_window.destroy()  # Destroy progress window
+            root.deiconify()  # Re-Open root
+            open_all_toplevels()  # Re-open top levels if there was any
 
         # Cancel buttons
         cancel_encode_job = HoverButton(progress_button_frame, text="Cancel", command=cancel_job,
