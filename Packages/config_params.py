@@ -33,6 +33,10 @@ def create_config_params():
         config.add_section('auto_close_progress_window')
     if not config.has_option('auto_close_progress_window', 'option'):
         config.set('auto_close_progress_window', 'option', '')
+    if not config.has_section('audio_settings_command_toggle'):
+        config.add_section('audio_settings_command_toggle')
+    if not config.has_option('audio_settings_command_toggle', 'option'):
+        config.set('audio_settings_command_toggle', 'option', '')
     if not config.has_section('save_window_locations'):
         config.add_section('save_window_locations')
     if not config.has_option('save_window_locations', 'ffmpeg audio encoder'):
