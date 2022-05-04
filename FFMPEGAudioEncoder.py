@@ -4783,7 +4783,16 @@ def encoder_menu_hover_leave(e):
 
 # Print Command Line from ROOT ----------------------------------------------------------------------------------------
 def exit_cmd_window():  # Global function to exit the command line window
+    func_parser = ConfigParser()
+    func_parser.read(config_file)
     try:
+        if func_parser['save_window_locations']['display command'] == 'yes':
+            try:  # If auto-save position on exit is checked
+                func_parser.set('save_window_locations', 'display command position', cmd_line_window.geometry())
+                with open(config_file, 'w') as configfile:
+                    func_parser.write(configfile)
+            except (Exception,):
+                pass
         cmd_line_window.destroy()
     except NameError:  # If it doesn't exist return from the function
         return
@@ -4795,6 +4804,9 @@ def print_command_line():
     audio_filter_function()
     collect_final_job_commands()
 
+    cmd_line_parser = ConfigParser()
+    cmd_line_parser.read(config_file)
+
     try:
         show_cmd_scrolled_main.configure(state=NORMAL)
         show_cmd_scrolled_main.delete(1.0, END)
@@ -4802,6 +4814,9 @@ def print_command_line():
         cmd_line_window = Toplevel()
         cmd_line_window.title('Display Command')
         cmd_line_window.configure(background="#434547")
+        if cmd_line_parser['save_window_locations']['display command position'] != '' and \
+                cmd_line_parser['save_window_locations']['display command'] == 'yes':
+            cmd_line_window.geometry(cmd_line_parser['save_window_locations']['display command position'])
         cmd_line_window.protocol('WM_DELETE_WINDOW', exit_cmd_window)
         show_cmd_scrolled_main = scrolledtextwidget.ScrolledText(cmd_line_window, width=90, height=10, tabs=10,
                                                                  spacing2=3, spacing1=2, spacing3=3)
