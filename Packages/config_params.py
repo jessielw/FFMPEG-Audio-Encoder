@@ -59,6 +59,10 @@ def create_config_params():
         config.set('save_window_locations', 'job window', 'yes')
     if not config.has_option('save_window_locations', 'job window position'):
         config.set('save_window_locations', 'job window position', '')
+    if not config.has_option('save_window_locations', 'display command'):
+        config.set('save_window_locations', 'display command', 'yes')
+    if not config.has_option('save_window_locations', 'display command position'):
+        config.set('save_window_locations', 'display command position', '')
     if not config.has_option('save_window_locations', 'audio window - aac'):
         config.set('save_window_locations', 'audio window - aac', 'yes')
     if not config.has_option('save_window_locations', 'audio window - aac - position'):
