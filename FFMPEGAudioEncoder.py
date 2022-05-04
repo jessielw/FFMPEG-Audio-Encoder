@@ -1397,8 +1397,8 @@ def openaudiowindow():
         audio_window.configure(background="#434547")
         if audio_win_parser['save_window_locations']['audio window - ac3 - position'] == '' or \
                 audio_win_parser['save_window_locations']['audio window - ac3'] == 'no':
-            window_height = 400
-            window_width = 600
+            window_height = 410
+            window_width = 590
             screen_width = audio_window.winfo_screenwidth()
             screen_height = audio_window.winfo_screenheight()
             x_coordinate = int((screen_width / 2) - (window_width / 2))
@@ -1605,8 +1605,8 @@ def openaudiowindow():
         audio_window.configure(background="#434547")
         if audio_win_parser['save_window_locations']['audio window - aac - position'] == '' or \
                 audio_win_parser['save_window_locations']['audio window - aac'] == 'no':
-            window_height = 420
-            window_width = 620
+            window_height = 480
+            window_width = 628
             screen_width = audio_window.winfo_screenwidth()
             screen_height = audio_window.winfo_screenheight()
             x_coordinate = int((screen_width / 2) - (window_width / 2))
@@ -2137,7 +2137,7 @@ def openaudiowindow():
 
         for opus_n in range(3):
             audio_window.grid_columnconfigure(opus_n, weight=1)
-        for opus_n in [0, 1, 2, 3, 4 , 5, 6, 7 , 8, 9, 13]:
+        for opus_n in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 13]:
             audio_window.grid_rowconfigure(opus_n, weight=1)
 
         # Buttons -----------------------------------------------------------------------------------------------------
@@ -2689,7 +2689,7 @@ def openaudiowindow():
         audio_window.configure(background="#434547")
         if audio_win_parser['save_window_locations']['audio window - e-ac3 - position'] == '' or \
                 audio_win_parser['save_window_locations']['audio window - e-ac3'] == 'no':
-            window_height = 850
+            window_height = 800
             window_width = 850
             screen_width = audio_window.winfo_screenwidth()
             screen_height = audio_window.winfo_screenheight()
@@ -3170,7 +3170,7 @@ def openaudiowindow():
         audio_window.configure(background="#434547")
         if audio_win_parser['save_window_locations']['audio window - fdk-aac - position'] == '' or \
                 audio_win_parser['save_window_locations']['audio window - fdk-aac'] == 'no':
-            window_height = 700
+            window_height = 660
             window_width = 780
             screen_width = audio_window.winfo_screenwidth()
             screen_height = audio_window.winfo_screenheight()
@@ -3590,7 +3590,7 @@ def openaudiowindow():
         audio_window.configure(background="#434547")
         if audio_win_parser['save_window_locations']['audio window - qaac - position'] == '' or \
                 audio_win_parser['save_window_locations']['audio window - qaac'] == 'no':
-            window_height = 700
+            window_height = 644
             window_width = 750
             screen_width = audio_window.winfo_screenwidth()
             screen_height = audio_window.winfo_screenheight()
@@ -5151,21 +5151,21 @@ def startaudiojob():
                                                       'temporarily disabled')
             total_duration = track_selection_mediainfo.duration
 
-        def close_encode():
-            def save_close_position():  # Function to save size/position upon exit
-                func_parser = ConfigParser()
-                func_parser.read(config_file)
-                if func_parser['save_window_locations']['progress window'] == 'yes':  # If checkbutton is checked
-                    try:
-                        if func_parser['save_window_locations']['progress window position'] != \
-                                progress_window.geometry():
-                            func_parser.set('save_window_locations', 'progress window position',
-                                            progress_window.geometry())
-                            with open(config_file, 'w') as configfile:
-                                func_parser.write(configfile)
-                    except (Exception,):
-                        pass
+        def save_close_position():  # Function to save size/position upon exit
+            func_parser = ConfigParser()
+            func_parser.read(config_file)
+            if func_parser['save_window_locations']['progress window'] == 'yes':  # If checkbutton is checked
+                try:
+                    if func_parser['save_window_locations']['progress window position'] != \
+                            progress_window.geometry():
+                        func_parser.set('save_window_locations', 'progress window position',
+                                        progress_window.geometry())
+                        with open(config_file, 'w') as configfile:
+                            func_parser.write(configfile)
+                except (Exception,):
+                    pass
 
+        def close_encode():
             if complete_or_not == 'complete':
                 save_close_position()
                 progress_window.destroy()
@@ -5176,11 +5176,20 @@ def startaudiojob():
                 confirm_exit = messagebox.askyesno(title='Prompt', parent=progress_window,
                                                    message="Are you sure you want to stop the encode?")
                 if confirm_exit:
-                    subprocess.Popen(f"TASKKILL /F /PID {job.pid} /T", creationflags=subprocess.CREATE_NO_WINDOW)
-                    save_close_position()
-                    progress_window.destroy()
-                    root.deiconify()
-                    open_all_toplevels()
+                    try:
+                        parent = psutil.Process(job.pid)  # Set psutil parent ID
+                        for child in parent.children(recursive=True):
+                            child.kill()  # Loop through all the children processes and kill them with psutil module
+                            child.wait()
+                        if pathlib.Path(str(file_output_quoted).replace('"', '')).is_file():  # Delete file if forced
+                            file_del = pathlib.Path(str(file_output_quoted).replace('"', ''))
+                            file_del.unlink(missing_ok=True)
+                    except psutil.NoSuchProcess:
+                        pass
+                    save_close_position()  # Save position
+                    progress_window.destroy()  # Destroy progress window
+                    root.deiconify()  # Re-Open root
+                    open_all_toplevels()  # Re-open top levels if there was any
 
         def close_window():
             thread = threading.Thread(target=close_encode)
@@ -5195,14 +5204,37 @@ def startaudiojob():
         if single_progress_win_parser['save_window_locations']['progress window position'] != '' and \
                 single_progress_win_parser['save_window_locations']['progress window'] == 'yes':
             progress_window.geometry(single_progress_win_parser['save_window_locations']['progress window position'])
-        progress_window.grid_columnconfigure(0, weight=1)
-        progress_window.grid_rowconfigure(1, weight=1)
         progress_window.protocol('WM_DELETE_WINDOW', close_window)
-        encode_window_progress = scrolledtextwidget.ScrolledText(progress_window, width=90, height=15, tabs=10,
-                                                                 spacing2=3, spacing1=2, spacing3=3)
-        encode_window_progress.grid(row=0, column=0, pady=(10, 6), padx=10, sticky=E + W)
+        progress_window.grid_rowconfigure(0, weight=1)
+        progress_window.grid_rowconfigure(1, weight=1)
+        progress_window.grid_columnconfigure(0, weight=1)
+
+        progress_window_frame = LabelFrame(progress_window, text=' Encoding Progress ', labelanchor="nw")
+        progress_window_frame.grid(column=0, row=0, columnspan=1, padx=5, pady=(0, 3), sticky=N + S + E + W)
+        progress_window_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 10, "bold"))
+        progress_window_frame.grid_rowconfigure(0, weight=1)
+        progress_window_frame.grid_columnconfigure(0, weight=1)
+
+        progress_button_frame = LabelFrame(progress_window, text=' Options ', labelanchor="nw")
+        progress_button_frame.grid(column=0, row=1, columnspan=1, padx=5, pady=(0, 3), sticky=N + S + E + W)
+        progress_button_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 10, "bold"))
+        progress_button_frame.grid_rowconfigure(0, weight=1)
+        for pbf_n in range(5):
+            progress_button_frame.grid_columnconfigure(pbf_n, weight=1)
+
+        encode_window_progress = scrolledtextwidget.ScrolledText(progress_window_frame, tabs=10, spacing2=3,
+                                                                 spacing1=2, spacing3=3, height=10)
+        encode_window_progress.grid(row=0, column=0, pady=(0, 6), padx=10, sticky=E + W + N + S)
         encode_window_progress.config(bg='black', fg='#CFD2D1', bd=8)
-        encode_window_progress.insert(END, ' - - - - - - - - - - - Encode Started - - - - - - - - - - - \n\n')
+        encode_window_progress.insert(END, ' -' * 16 + ' Encode Started ' + '- ' * 16 + '\n\n')
+
+        def right_click_menu_func(x_y_pos):  # Function for mouse button 3 (right click) to pop up menu
+            right_click_menu.tk_popup(x_y_pos.x_root, x_y_pos.y_root)  # This gets the position of cursor
+
+        right_click_menu = Menu(encode_window_progress, tearoff=False)  # This is the right click menu
+        right_click_menu.add_command(label='Copy',
+                                     command=lambda: pyperclip.copy(encode_window_progress.get(1.0, END).strip()))
+        encode_window_progress.bind('<Button-3>', right_click_menu_func)  # Uses right click to pop up menu
 
         def auto_close_window_toggle():  # Function to save input from the checkbox below to config.ini
             try:
@@ -5212,11 +5244,11 @@ def startaudiojob():
             except (Exception,):
                 pass
 
-        auto_close_window_checkbox = Checkbutton(progress_window, text='Automatically Close',
-                                                 variable=auto_close_window,
-                                                 onvalue='on', offvalue='off', command=auto_close_window_toggle,
-                                                 takefocus=False)
-        auto_close_window_checkbox.grid(row=1, column=0, columnspan=1, rowspan=1, padx=10, pady=(10, 5), sticky=W)
+        auto_close_window_checkbox = Checkbutton(progress_button_frame, text='Automatically Close',
+                                                 variable=auto_close_window, takefocus=False, width='10',
+                                                 onvalue='on', offvalue='off', command=auto_close_window_toggle)
+        auto_close_window_checkbox.grid(row=0, column=0, columnspan=1, rowspan=1, padx=5, pady=(10, 5),
+                                        sticky=S + E + W + N)
         auto_close_window_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                              activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
         auto_close_window.set(config['auto_close_progress_window']['option'])
@@ -5224,18 +5256,19 @@ def startaudiojob():
         def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
             pyperclip.copy(encode_window_progress.get(1.0, END))
 
-        copy_text = HoverButton(progress_window, text='Copy to clipboard', command=copy_to_clipboard, state=DISABLED,
+        copy_text = HoverButton(progress_button_frame, text='Copy to clipboard', command=copy_to_clipboard,
                                 foreground='white', background='#23272A', borderwidth='3', activebackground='grey')
-        copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(10, 5), sticky=E)
+        copy_text.grid(row=0, column=1, columnspan=1, padx=10, pady=(5, 4), sticky=S + E + W + N)
 
         if total_duration is not None:
-            app_progress_bar = ttk.Progressbar(progress_window, orient=HORIZONTAL, mode='determinate',
+            app_progress_bar = ttk.Progressbar(progress_window_frame, orient=HORIZONTAL, mode='determinate',
                                                style="custom.Horizontal.TProgressbar")
-            app_progress_bar.grid(column=0, row=6, columnspan=4, sticky=W + E, pady=(0, 2), padx=3)
+            app_progress_bar.grid(column=0, row=1, sticky=W + E, pady=(0, 2), padx=3)
         if total_duration is None:
-            temp_label = Label(progress_window, text='Input has no duration - progress bar is temporarily disabled',
+            temp_label = Label(progress_window_frame,
+                               text='Input has no duration - progress bar is temporarily disabled',
                                bd=4, relief=SUNKEN, anchor=E, background='#717171', foreground="white")
-            temp_label.grid(column=0, row=6, columnspan=4, pady=(0, 2), padx=3, sticky=E + W)
+            temp_label.grid(column=0, row=1, pady=(0, 2), padx=3, sticky=E + W)
 
         def update_last_codec_command():  # Updates 'profiles.ini' last used codec/commands
             config_profile.set('Auto Encode', 'codec', encoder.get())
@@ -5266,8 +5299,57 @@ def startaudiojob():
 
         # Use subprocess.Popen to feed the command to the terminal and handle the stder/stdout output
         job = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                               creationflags=subprocess.CREATE_NO_WINDOW, encoding="utf-8")
+                               stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, encoding="utf-8",
+                               creationflags=subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP)
+
+        def cancel_job():  # Cancel job code
+            confirm_exit = messagebox.askyesno(title='Prompt', parent=progress_window,
+                                               message="Are you sure you want to stop the encode?")
+            if confirm_exit:  # If user selects yes
+                try:
+                    job_id = psutil.Process(job.pid)
+                    for job_ids in job_id.children(recursive=True):
+                        job_ids.kill()
+                        job_ids.wait()
+                    if pathlib.Path(str(file_output_quoted).replace('"', '')).is_file():
+                        file_del = pathlib.Path(str(file_output_quoted).replace('"', ''))
+                        file_del.unlink(missing_ok=True)
+                except psutil.NoSuchProcess:
+                    pass
+                save_close_position()  # Save position
+                progress_window.destroy()  # Destroy progress window
+                root.deiconify()  # Re-Open root
+                open_all_toplevels()  # Re-open top levels if there was any
+
+        # Cancel buttons
+        cancel_encode_job = HoverButton(progress_button_frame, text="Cancel", command=cancel_job,
+                                        foreground="white", background="#23272A", borderwidth="3",
+                                        activebackground='grey')
+        cancel_encode_job.grid(row=0, column=4, columnspan=1, padx=10, pady=(5, 4), sticky=S + E + W + N)
+
+        def pause_job():  # Pause function/button
+            pause_current_job = psutil.Process(job.pid)
+            for p_current_job in pause_current_job.children(recursive=True):
+                p_current_job.suspend()
+            pause_encode_job.config(state=DISABLED)
+            resume_encode_job.config(state=NORMAL)
+
+        pause_encode_job = HoverButton(progress_button_frame, text="Pause", command=pause_job,
+                                       foreground="white", background="#23272A", borderwidth="3",
+                                       activebackground='grey')
+        pause_encode_job.grid(row=0, column=2, columnspan=1, padx=10, pady=(5, 4), sticky=S + E + W + N)
+
+        def resume_job():  # Resume function/button
+            resume_current_job = psutil.Process(job.pid)
+            for r_current_job in resume_current_job.children(recursive=True):
+                r_current_job.resume()
+            pause_encode_job.config(state=NORMAL)
+            resume_encode_job.config(state=DISABLED)
+
+        resume_encode_job = HoverButton(progress_button_frame, text="Resume", command=resume_job,
+                                        foreground="white", background="#23272A", borderwidth="3",
+                                        activebackground='grey', state=DISABLED)
+        resume_encode_job.grid(row=0, column=3, columnspan=1, padx=10, pady=(5, 4), sticky=S + E + W + N)
 
         if encoder.get() == 'QAAC' or encoder.get() == 'FDK-AAC':  # String to output for fdk/qaac encoder
             insert_info_string = f'Encoding {str(file_input_quoted)} via "FFMPEG" by piping to external encoder: ' \
@@ -5343,7 +5425,6 @@ def startaudiojob():
         encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
         encode_window_progress.see(END)  # Scroll to bottom of text window
         encode_window_progress.configure(state=DISABLED)  # Disable progress window editing
-        copy_text.config(state=NORMAL)  # Enable copy button once all the code completes
         if config['auto_close_progress_window']['option'] == 'on':
             close_window()  # If program is set to auto close encoding window when complete, close
 
@@ -5732,13 +5813,17 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
                 confirm_exit = messagebox.askyesno(title='Prompt', parent=jobs_window,
                                                    message="Are you sure you want to stop the encode(s)?")
                 if confirm_exit:  # If user selects yes
-                    job_id = psutil.Process(job_jw.pid)
-                    for job_ids in job_id.children(recursive=True):
-                        job_ids.kill()
-                    close_jobs_progress_drawer()  # Close progress drawer
-                    if args[0] == 'exit all':  # If exit function is ran by cancel all jobs button
-                        jobs_window_exit_function()  # Run exit function
-                        open_jobs_manager()  # Re-open job window
+                    if args[0] == 'exit':
+                        try:
+                            job_id = psutil.Process(job_jw.pid)
+                            for job_ids in job_id.children(recursive=True):
+                                job_ids.kill()
+                                job_ids.wait()
+                            close_jobs_progress_drawer()  # Close progress drawer
+                            if pathlib.Path(output_file).is_file():
+                                pathlib.Path(output_file).unlink(missing_ok=True)
+                        except psutil.NoSuchProcess:
+                            pass
 
             # Cancel buttons
             cancel_encode_job = HoverButton(jobs_window_button_frame, text="Cancel",
@@ -5747,11 +5832,6 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
                                             activebackground='grey')
             cancel_encode_job.grid(row=1, column=1, columnspan=1, padx=5, pady=(5, 4), sticky=E + W + S)
 
-            cancel_all_jobs = HoverButton(jobs_window_button_frame, text="Cancel\nAll Jobs",
-                                          command=lambda: cancel_job('exit all'),
-                                          foreground="white", background="#23272A", borderwidth="3",
-                                          activebackground='grey')
-            cancel_all_jobs.grid(row=1, column=0, columnspan=1, padx=5, pady=(5, 4), sticky=E + W + S)
 
             def pause_job():  # Pause function/button
                 pause_current_job = psutil.Process(job_jw.pid)
@@ -5786,7 +5866,7 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
             jobs_window_progress.see(END)
             jobs_window_progress.configure(state=DISABLED)
 
-            new_file = True  # Set's a temporary variable to True, this is set to false so it only deletes 1
+            new_file = True  # Set's a temporary variable to True, this is set to false, so it only deletes 1
             size_string_multiplier = 0  # Set's a string to 0, to be added to, to error check
             progress_error = 'yes'
 
@@ -5852,7 +5932,7 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
     start_selected_button.grid(row=2, column=0, columnspan=1, padx=5, pady=5, sticky=S + E + W)
 
     def start_job_window_encode_list():  # Start encoding entire list
-        global job_listbox
+        global job_listbox, continue_multiprocess_job
 
         def update_job_list():  # Takes all of the items in the lisbox and converts them to a python list
             for all_items in job_listbox.get(0, END):
@@ -5861,6 +5941,8 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
         job_list = []  # Creates an empty list
         if not job_list:  # If no data is inside the list, run the update_job_list()
             update_job_list()
+
+        continue_multiprocess_job = True
 
         if job_listbox.size() > 0:  # If the listbox has 1 or more elements inside
             def start_multi_file_processing():
@@ -5884,23 +5966,35 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
                                           encoding="utf-8", shell=False)
 
                 def cancel_job(*args):
+                    global continue_multiprocess_job
                     confirm_exit = messagebox.askyesno(title='Prompt', parent=jobs_window,
                                                        message="Are you sure you want to stop the encode(s)?")
                     if confirm_exit:
-                        job_id = psutil.Process(job_jw.pid)
-                        for job_ids in job_id.children(recursive=True):
-                            job_ids.kill()
                         if args[0] == 'exit':
-                            jobs_window_exit_function()
-                            open_jobs_manager()
+                            job_id = psutil.Process(job_jw.pid)
+                            for job_ids in job_id.children(recursive=True):
+                                job_ids.kill()
+                                job_ids.wait()
+                            if pathlib.Path(output_file).is_file():
+                                pathlib.Path(output_file).unlink(missing_ok=True)
+                        elif args[0] == 'exit all':  # If exit function is ran by cancel all jobs button
+                            job_id = psutil.Process(job_jw.pid)
+                            for job_ids in job_id.children(recursive=True):
+                                job_ids.kill()
+                                job_ids.wait()
+                            if pathlib.Path(output_file).is_file():
+                                pathlib.Path(output_file).unlink(missing_ok=True)
+                            continue_multiprocess_job = False
 
-                cancel_encode_job = HoverButton(jobs_window_button_frame, text="Cancel", command=cancel_job,
+
+                cancel_encode_job = HoverButton(jobs_window_button_frame, text="Cancel",
+                                                command=lambda: cancel_job('exit'),
                                                 foreground="white", background="#23272A", borderwidth="3",
                                                 activebackground='grey')
                 cancel_encode_job.grid(row=1, column=1, columnspan=1, padx=5, pady=(5, 4), sticky=E + W + S)
 
                 cancel_all_jobs = HoverButton(jobs_window_button_frame, text="Cancel\nAll Jobs",
-                                              command=lambda: cancel_job('exit'),
+                                              command=lambda: cancel_job('exit all'),
                                               foreground="white", background="#23272A", borderwidth="3",
                                               activebackground='grey')
                 cancel_all_jobs.grid(row=1, column=0, columnspan=1, padx=5, pady=(5, 4), sticky=E + W + S)
@@ -5994,10 +6088,14 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
                     jobs_window_progress.see(END)
                     jobs_window_progress.configure(state=DISABLED)
 
-                if job_listbox.size() > 0:  # If listbox has more then 0 items in it
-                    threading.Thread(target=start_multi_file_processing).start()  # Start job again
-                elif job_listbox.size() == 0:  # If listbox has 0 items
-                    close_jobs_progress_drawer()  # Close processing drawer
+                if continue_multiprocess_job:
+                    if job_listbox.size() > 0:  # If listbox has more than 0 items in it
+                        threading.Thread(target=start_multi_file_processing).start()  # Start job again
+                    elif job_listbox.size() == 0:  # If listbox has 0 items
+                        close_jobs_progress_drawer()  # Close processing drawer
+
+                if not continue_multiprocess_job:
+                    close_jobs_progress_drawer()
 
             threading.Thread(target=start_multi_file_processing).start()  # Start multi-file job work
 
