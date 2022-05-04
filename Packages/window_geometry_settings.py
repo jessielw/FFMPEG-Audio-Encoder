@@ -70,11 +70,11 @@ def set_window_geometry_settings():
     # Track Frame -----------------------------------------------------------------------------
     info_label = Label(geometry_settings_window, anchor='center', bg=color3, fg=color4,
                        text="Checked: Automatically saves last window size/positions when closed")
-    info_label.grid(row=0, column=0, columnspan=2, padx=10, pady=(10, 0), sticky=W + E + S + N)
+    info_label.grid(row=0, column=0, columnspan=1, padx=10, pady=(10, 0), sticky=W + E + S + N)
     info_label.config(font=(set_font, set_font_size, "italic"))
 
     option_frame = LabelFrame(geometry_settings_window, text=' Window Options ', labelanchor=N)
-    option_frame.grid(row=1, column=0, columnspan=2, sticky=E + W + S + N, padx=10, pady=(0, 3))
+    option_frame.grid(row=1, column=0, columnspan=1, sticky=E + W + S + N, padx=10, pady=(0, 3))
     option_frame.configure(fg=color2, bg=color3, bd=4, font=(set_font, 12, "bold"))
 
     option_frame.rowconfigure(1, weight=1)
@@ -84,7 +84,7 @@ def set_window_geometry_settings():
     option_frame.grid_columnconfigure(1, weight=1)
 
     option_frame_audio = LabelFrame(geometry_settings_window, text=' Audio Codec Window Options ', labelanchor=N)
-    option_frame_audio.grid(row=2, column=0, columnspan=2, sticky=E + W + S + N, padx=10, pady=(3, 0))
+    option_frame_audio.grid(row=2, column=0, columnspan=1, sticky=E + W + S + N, padx=10, pady=(3, 0))
     option_frame_audio.configure(fg=color2, bg=color3, bd=4, font=(set_font, 12, "bold"))
 
     for n in range(0, 5):
@@ -94,7 +94,7 @@ def set_window_geometry_settings():
 
     info_label = Label(geometry_settings_window, anchor='center', bg=color3, fg=color4,
                        text="Info: Right click inside each frame for more options")
-    info_label.grid(row=3, column=0, columnspan=2, padx=10, pady=(0, 10), sticky=W + E + S + N)
+    info_label.grid(row=3, column=0, columnspan=1, padx=10, pady=(0, 10), sticky=W + E + S + N)
     info_label.config(font=(set_font, set_font_size, "italic"))
 
     # ----------------------------------------------------------------------------- Track Frame
@@ -153,7 +153,7 @@ def set_window_geometry_settings():
     about_pos_toggle.set(config['save_window_locations']['about'])  # Set box from config.ini
     about_pos_toggle_checkbox = Checkbutton(option_frame, text='About Window', variable=about_pos_toggle,
                                             onvalue='yes', offvalue='no', command=about_win_pos_toggle)
-    about_pos_toggle_checkbox.grid(row=1, column=1, rowspan=1, columnspan=2, padx=10, pady=(0, 0), sticky=N + E)
+    about_pos_toggle_checkbox.grid(row=1, column=1, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=N + E)
     about_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                         activeforeground=color5, selectcolor=color3, font=(set_font, set_font_size + 2))
 
@@ -171,7 +171,7 @@ def set_window_geometry_settings():
     progress_pos_toggle.set(config['save_window_locations']['progress window'])  # Set box from config.ini
     progress_pos_toggle_checkbox = Checkbutton(option_frame, text='Progress Window', variable=progress_pos_toggle,
                                                onvalue='yes', offvalue='no', command=progress_win_pos_toggle)
-    progress_pos_toggle_checkbox.grid(row=1, column=0, rowspan=1, columnspan=2, padx=10, pady=(0, 0), sticky=N + W)
+    progress_pos_toggle_checkbox.grid(row=1, column=0, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=N + W)
     progress_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                            activeforeground=color5, selectcolor=color3,
                                            font=(set_font, set_font_size + 2))
@@ -190,10 +190,29 @@ def set_window_geometry_settings():
     job_manager_win_toggle.set(config['save_window_locations']['job window'])  # Set box from config.ini
     job_manager_win_toggle_checkbox = Checkbutton(option_frame, text='Job Manager', variable=job_manager_win_toggle,
                                                   onvalue='yes', offvalue='no', command=job_manager_win_pos_toggle)
-    job_manager_win_toggle_checkbox.grid(row=2, column=0, rowspan=1, columnspan=2, padx=10, pady=(0, 0), sticky=N + W)
+    job_manager_win_toggle_checkbox.grid(row=2, column=0, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=N + W)
     job_manager_win_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                               activeforeground=color5, selectcolor=color3,
                                               font=(set_font, set_font_size + 2))
+
+    def display_command_pos_toggle():
+        try:  # Write to config
+            config.set('save_window_locations', 'display command', display_command_pos.get())
+            if job_manager_win_toggle.get() == 'no':
+                config.set('save_window_locations', 'display command position', '')
+            with open(config_file, 'w') as configfile:
+                config.write(configfile)
+        except (Exception,):
+            pass
+
+    display_command_pos = StringVar()  # variable
+    display_command_pos.set(config['save_window_locations']['display command'])  # Set box from config.ini
+    display_command_pos_checkbox = Checkbutton(option_frame, text='Display Command', variable=display_command_pos,
+                                               onvalue='yes', offvalue='no', command=display_command_pos_toggle)
+    display_command_pos_checkbox.grid(row=2, column=1, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=N + E)
+    display_command_pos_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
+                                           activeforeground=color5, selectcolor=color3,
+                                           font=(set_font, set_font_size + 2))
 
     # Right click menu for "Window Options" frame ---------------------------------------------------------------------
     def option_popup_menu(e):  # Function for mouse button 3 (right click) to pop up menu
@@ -215,6 +234,9 @@ def set_window_geometry_settings():
 
             about_pos_toggle.set('yes')
             func_parser.set('save_window_locations', 'about', 'yes')
+
+            display_command_pos.set('yes')
+            func_parser.set('save_window_locations', 'display command', 'yes')
             with open(config_file, 'w') as configfile:
                 func_parser.write(configfile)
 
@@ -244,6 +266,10 @@ def set_window_geometry_settings():
                 about_pos_toggle.set('no')
                 func_parser.set('save_window_locations', 'about', 'no')
                 func_parser.set('save_window_locations', 'about position', '')
+
+                display_command_pos.set('no')
+                func_parser.set('save_window_locations', 'display command', 'no')
+                func_parser.set('save_window_locations', 'display command position', '')
                 with open(config_file, 'w') as configfile:
                     func_parser.write(configfile)
 
@@ -258,6 +284,8 @@ def set_window_geometry_settings():
             job_manager_win_toggle.set('no'), job_manager_win_pos_toggle()])
         option_menu.add_command(label='Reset: "About Window"', command=lambda: [
             about_pos_toggle.set('no'), about_win_pos_toggle()])
+        option_menu.add_command(label='Reset: "Display Command"', command=lambda: [
+            display_command_pos.set('no'), display_command_pos_toggle()])
         option_menu.add_separator()
         option_menu.add_command(label='Reset: All "Window Options"', command=reset)
         option_menu.add_separator()
@@ -270,6 +298,7 @@ def set_window_geometry_settings():
     progress_pos_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
     about_pos_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
     job_manager_win_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
+    display_command_pos_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
 
     # --------------------------------------------------------------------- Right click menu for "Window Options" frame
 
