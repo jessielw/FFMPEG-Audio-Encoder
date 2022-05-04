@@ -5660,10 +5660,9 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
     # Code to check window position and set geometry
     if jobs_window_parser['save_window_locations']['job window position'] == '' or \
             jobs_window_parser['save_window_locations']['job window'] == 'no':
-        x_cordinate = int((jobs_window.winfo_screenwidth() / 2) - (top_level_width / 2))
-        y_cordinate = int((jobs_window.winfo_screenheight() / 3) - (top_level_height / 2))
-        jobs_window.geometry(f"+{x_cordinate}+{y_cordinate}")
-        jobs_window.geometry("+109+154")
+        x_coordinate = int((jobs_window.winfo_screenwidth() / 2) - (top_level_width / 2))
+        y_coordinate = int((jobs_window.winfo_screenheight() / 3) - (top_level_height / 2))
+        jobs_window.geometry(f"+{x_coordinate}+{y_coordinate}")
     if jobs_window_parser['save_window_locations']['job window position'] != '' and \
             jobs_window_parser['save_window_locations']['job window'] == 'yes':
         jobs_window.geometry(jobs_window_parser['save_window_locations']['job window position'])
