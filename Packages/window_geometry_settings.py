@@ -49,13 +49,13 @@ def set_window_geometry_settings():
     geometry_settings_window.configure(background=color1)
     if config['save_window_locations']['window location settings position'] == '' or \
             config['save_window_locations']['window location settings'] == 'no':
-        window_height = 420
+        window_height = 450
         window_width = 550
         screen_width = geometry_settings_window.winfo_screenwidth()
         screen_height = geometry_settings_window.winfo_screenheight()
-        x_cordinate = int((screen_width / 2) - (window_width / 2))
-        y_cordinate = int((screen_height / 2) - (window_height / 2))
-        geometry_settings_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+        x_coordinate = int((screen_width / 2) - (window_width / 2))
+        y_coordinate = int((screen_height / 2) - (window_height / 2))
+        geometry_settings_window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_coordinate, y_coordinate))
     elif config['save_window_locations']['window location settings position'] != '' and \
             config['save_window_locations']['window location settings'] == 'yes':
         geometry_settings_window.geometry(config['save_window_locations']['window location settings position'])
@@ -87,7 +87,7 @@ def set_window_geometry_settings():
     option_frame_audio.grid(row=2, column=0, columnspan=2, sticky=E + W + S + N, padx=10, pady=(3, 0))
     option_frame_audio.configure(fg=color2, bg=color3, bd=4, font=(set_font, 12, "bold"))
 
-    for n in range(0, 4):
+    for n in range(0, 5):
         option_frame_audio.rowconfigure(n, weight=1)
     option_frame_audio.grid_columnconfigure(0, weight=1)
     option_frame_audio.grid_columnconfigure(1, weight=1)
@@ -456,6 +456,26 @@ def set_window_geometry_settings():
     alac_pos_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                        activeforeground=color5, selectcolor=color3, font=(set_font, set_font_size + 2))
 
+    # View Streams in Audio Settings Windows
+    def view_streams_toggle_function():
+        try:  # Write to config
+            config.set('save_window_locations', 'audio window - view streams', view_streams_toggle.get())
+            if alac_pos_toggle.get() == 'no':
+                config.set('save_window_locations', 'audio window - view streams - position', '')
+            with open(config_file, 'w') as configfile:
+                config.write(configfile)
+        except (Exception,):
+            pass
+
+    view_streams_toggle = StringVar()  # variable
+    view_streams_toggle.set(config['save_window_locations']['audio window - view streams'])  # Set box from config.ini
+    view_streams_toggle_checkbox = Checkbutton(option_frame_audio, text='View Streams', variable=view_streams_toggle,
+                                               onvalue='yes', offvalue='no', command=view_streams_toggle_function)
+    view_streams_toggle_checkbox.grid(row=5, column=0, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=W + N)
+    view_streams_toggle_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
+                                           activeforeground=color5, selectcolor=color3,
+                                           font=(set_font, set_font_size + 2))
+
     # Right click menu for "Audio Codec Window Options" frame ---------------------------------------------------------
     def option_audio_popup_menu(e):  # Function for mouse button 3 (right click) to pop up menu
         def select_all():
@@ -490,6 +510,9 @@ def set_window_geometry_settings():
 
             alac_pos_toggle.set('yes')
             func_parser.set('save_window_locations', 'audio window - alac', 'yes')
+
+            view_streams_toggle.set('yes')
+            func_parser.set('save_window_locations', 'audio window - view streams', 'yes')
             with open(config_file, 'w') as configfile:
                 func_parser.write(configfile)
 
@@ -539,6 +562,10 @@ def set_window_geometry_settings():
                 alac_pos_toggle.set('no')
                 func_parser.set('save_window_locations', 'audio window - alac', 'no')
                 func_parser.set('save_window_locations', 'audio window - alac - position', '')
+
+                view_streams_toggle.set('no')
+                func_parser.set('save_window_locations', 'audio window - view streams', 'no')
+                func_parser.set('save_window_locations', 'audio window - view streams - position', '')
                 with open(config_file, 'w') as configfile:
                     func_parser.write(configfile)
 
@@ -563,6 +590,8 @@ def set_window_geometry_settings():
             flac_pos_toggle.set('no'), flac_location_pos_toggle()])
         option_menu.add_command(label='Reset: "ALAC"', command=lambda: [
             alac_pos_toggle.set('no'), alac_location_pos_toggle()])
+        option_menu.add_command(label='Reset: "View Streams"', command=lambda: [
+            view_streams_toggle.set('no'), view_streams_toggle_function()])
         option_menu.add_separator()
         option_menu.add_command(label='Reset: All "Audio Codec Window Options"', command=reset)
         option_menu.add_separator()
@@ -573,7 +602,7 @@ def set_window_geometry_settings():
     list_of_check_buttons = [ac3_pos_toggle_checkbox, aac_pos_toggle_checkbox, e_ac3_pos_toggle_checkbox,
                              dts_pos_toggle_checkbox, opus_pos_toggle_checkbox, mp3_pos_toggle_checkbox,
                              fdk_aac_pos_toggle_checkbox, qaac_pos_toggle_checkbox, flac_pos_toggle_checkbox,
-                             alac_pos_toggle_checkbox]
+                             alac_pos_toggle_checkbox, view_streams_toggle_checkbox]
     for check_buttons in list_of_check_buttons:  # Use list of check buttons to bind
         check_buttons.bind('<Button-3>', option_audio_popup_menu)  # Right click to pop up menu in frame
     # --------------------------------------------------------- Right click menu for "Audio Codec Window Options" frame
