@@ -384,6 +384,7 @@ def set_auto_save_suffix():
 
 def encoder_changed(*args):
     global file_output, autosavefilename, file_out
+    exit_cmd_window()  # Close cmd window if it's opened
     if encoder.get() != "Set Codec":
         set_auto_save_suffix()
         file_output = str(file_out)
@@ -399,40 +400,6 @@ def encoder_changed(*args):
 
 
 # --------------------------------------------------------------------------------------------- File Auto Save Function
-
-# Command line viewer window that is opened from all codecs "Audio" settings window -----------------------------------
-def open_mini_cmd_window():
-    global mini_cmd_scrolled, exit_mini_cmd_window
-
-    def exit_mini_cmd_window():
-        mini_cmd_line_window.destroy()
-
-    try:
-        mini_cmd_scrolled.configure(state=NORMAL)
-        mini_cmd_scrolled.delete(1.0, END)
-    except (NameError, TclError):
-        mini_cmd_line_window = Toplevel()
-        mini_cmd_line_window.title('Mini Command Line')
-        mini_cmd_line_window.configure(background="#434547")
-        mini_cmd_line_window.protocol('WM_DELETE_WINDOW', exit_mini_cmd_window)
-        mini_cmd_line_window.resizable(False, False)  # Disables resizable functions of window
-        mini_cmd_scrolled = scrolledtextwidget.ScrolledText(mini_cmd_line_window, width=70, height=10, tabs=10,
-                                                            spacing2=3, spacing1=2, spacing3=3)
-        mini_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
-        mini_cmd_scrolled.configure(bg='black', fg='#CFD2D1', bd=8)
-    mini_cmd_scrolled.insert(END, mini_cmd_output)
-    mini_cmd_scrolled.configure(state=DISABLED)
-
-    def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
-        pyperclip.copy(mini_cmd_scrolled.get(1.0, END))
-
-    copy_text = HoverButton(mini_cmd_line_window, text='Copy to clipboard', command=copy_to_clipboard,
-                            foreground='white', background='#23272A', borderwidth='3',
-                            activebackground='grey')
-    copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
-
-
-# ----------------------------------- Command line viewer window that is opened from all codecs "Audio" settings window
 
 
 # # Help Button for FDK -----------------------------------------------------------------------------------------
@@ -585,7 +552,7 @@ def openaudiowindow():
     except NameError:  # If no "Audio Settings" window exists, open a new one
         pass  # Continue
 
-    hide_all_toplevels()
+    root.withdraw()
 
     def show_cmd_hover(e):
         show_cmd["bg"] = "grey"
@@ -897,15 +864,16 @@ def openaudiowindow():
         if encoding_job_type == 'manual':
             save_codec_window_positions()  # Call functions to save window size/positions
 
-        def close_misc_audio_windows():  # Function to run misc audio setting windows
-            try:
-                exit_stream_window()
-            except NameError:
-                pass
-            try:
-                exit_mini_cmd_window()
-            except NameError:
-                pass
+        try:
+            exit_stream_window()
+        except NameError:
+            pass
+
+        try:  # If window is open update the command line
+            if cmd_line_window.winfo_exists():
+                print_command_line()
+        except NameError:
+            pass
 
         language_string = ''  # Place holder variable
         delay_string = ''  # Place holder variable
@@ -944,7 +912,6 @@ def openaudiowindow():
             if total_streams == 1:  # If total streams is equal to 1
                 try:
                     if encoding_job_type == 'manual':  # If normal encoding is used with the start job button
-                        close_misc_audio_windows()  # Close misc audio windows if opened
                         audio_window.destroy()  # Close audio window
                         root.deiconify()
                         track_selection_mediainfo = media_info.audio_tracks[
@@ -987,7 +954,6 @@ def openaudiowindow():
                 # Check delay and add delay string to variable --------------------------------------------------------
                 try:
                     if encoding_job_type == 'manual':  # If normal encoding is used with the start job button
-                        close_misc_audio_windows()  # Close misc audio windows if opened
                         audio_window.destroy()  # Close audio window
                         root.deiconify()
                         track_selection_mediainfo = media_info.audio_tracks[
@@ -1466,27 +1432,13 @@ def openaudiowindow():
         for n in range(4):
             audio_window.grid_rowconfigure(n, weight=1)
 
-        # Views Command -------------------------------------------------------------------------------------------
-        def view_command():
-            global mini_cmd_output
-            audio_filter_function()
-            mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                           encoder_dropdownmenu_choices[encoder.get()] +
-                                           acodec_bitrate_choices[acodec_bitrate.get()] +
-                                           acodec_channel_choices[acodec_channel.get()] +
-                                           acodec_samplerate_choices[acodec_samplerate.get()] +
-                                           audio_filter_setting + ac3_custom_cmd_input).split())
-            open_mini_cmd_window()
-
-        # ------------------------------------------------------------------------------------------- Views Command
-
         # Buttons -------------------------------------------------------------------------------------------------
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
                                    command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
         apply_button.grid(row=8, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
 
         show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
-                               command=view_command, activebackground='grey')
+                               command=print_command_line, activebackground='grey')
         show_cmd.grid(row=8, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
@@ -1695,36 +1647,13 @@ def openaudiowindow():
             audio_window.grid_rowconfigure(n, weight=1)
         audio_window.grid_rowconfigure(10, weight=1)
 
-        def view_command():  # Views Command --------------------------------------------------------------------------
-            global mini_cmd_output
-            audio_filter_function()
-            if aac_vbr_toggle.get() == "-c:a ":
-                mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                               encoder_dropdownmenu_choices[encoder.get()] + "-b:a " +
-                                               aac_bitrate_spinbox.get() + "k " +
-                                               acodec_channel_choices[acodec_channel.get()] +
-                                               acodec_samplerate_choices[acodec_samplerate.get()] +
-                                               audio_filter_setting + aac_custom_cmd_input +
-                                               aac_title_input).split())
-            elif aac_vbr_toggle.get() == "-q:a ":
-                mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                               encoder_dropdownmenu_choices[encoder.get()] + \
-                                               "-q:a " + aac_quality_spinbox.get() + " " +
-                                               acodec_channel_choices[acodec_channel.get()] +
-                                               acodec_samplerate_choices[acodec_samplerate.get()] +
-                                               audio_filter_setting + aac_custom_cmd_input +
-                                               aac_title_input).split())
-            open_mini_cmd_window()
-
-        # ----------------------------------------------------------------------------------------------- Views Command
-
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
                                    command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
         apply_button.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
 
         show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
-                               command=view_command, activebackground='grey')
+                               command=print_command_line, activebackground='grey')
         show_cmd.grid(row=10, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
@@ -2008,32 +1937,13 @@ def openaudiowindow():
                 dolby_pro_logic_ii_checkbox.config(state=DISABLED)
                 acodec_atempo_menu.config(state=DISABLED)
 
-        # Views Command -----------------------------------------------------------------------------------------------
-        def view_command():
-            global mini_cmd_output
-            audio_filter_function()
-            if dts_settings.get() == 'DTS Encoder':
-                mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                               dts_settings_choices[dts_settings.get()] + "-b:a " +
-                                               dts_bitrate_spinbox.get() + "k " +
-                                               acodec_channel_choices[acodec_channel.get()] +
-                                               acodec_samplerate_choices[acodec_samplerate.get()] +
-                                               audio_filter_setting + dts_custom_cmd_input).split())
-            else:
-                mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                               dts_settings_choices[dts_settings.get()] +
-                                               dts_custom_cmd_input).split())
-            open_mini_cmd_window()
-
-        # ----------------------------------------------------------------------------------------------- Views Command
-
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
                                    command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
         apply_button.grid(row=9, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
 
         show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
-                               command=view_command, activebackground='grey')
+                               command=print_command_line, activebackground='grey')
         show_cmd.grid(row=9, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
@@ -2256,32 +2166,13 @@ def openaudiowindow():
         for n in [8, 9, 13]:
             audio_window.grid_rowconfigure(n, weight=1)
 
-        # Views Command -----------------------------------------------------------------------------------------------
-        def view_command():
-            global mini_cmd_output
-            audio_filter_function()
-            mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                           encoder_dropdownmenu_choices[encoder.get()] +
-                                           acodec_bitrate_choices[acodec_bitrate.get()] +
-                                           acodec_channel_choices[acodec_channel.get()] +
-                                           acodec_vbr_choices[acodec_vbr.get()] +
-                                           acodec_application_choices[acodec_application.get()] +
-                                           opus_mapping_family_choices[opus_mapping_family.get()] +
-                                           "-packet_loss " + packet_loss.get() + " -frame_duration " +
-                                           frame_duration.get() + " " +
-                                           acodec_samplerate_choices[acodec_samplerate.get()] +
-                                           audio_filter_setting + opus_custom_cmd_input).split())
-            open_mini_cmd_window()
-
-        # ----------------------------------------------------------------------------------------------- Views Command
-
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
                                    command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
         apply_button.grid(row=13, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
 
         show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
-                               command=view_command, activebackground='grey')
+                               command=print_command_line, activebackground='grey')
         show_cmd.grid(row=13, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
@@ -2651,27 +2542,13 @@ def openaudiowindow():
                 acodec_bitrate_menu.bind("<Leave>", acodec_bitrate_menu_hover_leave)
             # ------------------------------------------------------------------------------------------ VBR or CBR/ABR
 
-        # Views Command -----------------------------------------------------------------------------------------------
-        def view_command():
-            global mini_cmd_output
-            audio_filter_function()
-            mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                           encoder_dropdownmenu_choices[encoder.get()] +
-                                           acodec_bitrate_choices[acodec_bitrate.get()] +
-                                           acodec_channel_choices[acodec_channel.get()] + mp3_abr.get() +
-                                           acodec_samplerate_choices[acodec_samplerate.get()] +
-                                           audio_filter_setting + mp3_custom_cmd_input).split())
-            open_mini_cmd_window()
-
-        # ----------------------------------------------------------------------------------------------- Views Command
-
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
                                    command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
         apply_button.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
 
         show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
-                               command=view_command, activebackground='grey')
+                               command=print_command_line, activebackground='grey')
         show_cmd.grid(row=7, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
@@ -2889,43 +2766,13 @@ def openaudiowindow():
                                background="#434547", foreground="white", relief=GROOVE)
         advanced_label.grid(row=4, column=0, columnspan=3, padx=10, pady=10, sticky=W + E)
 
-        # Views Command -----------------------------------------------------------------------------------------------
-        def view_command():
-            global mini_cmd_output
-            audio_filter_function()
-            mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                           encoder_dropdownmenu_choices[encoder.get()] + "-b:a " +
-                                           eac3_spinbox.get() + " " + acodec_channel_choices[acodec_channel.get()] +
-                                           acodec_samplerate_choices[acodec_samplerate.get()] +
-                                           audio_filter_setting + eac3_custom_cmd_input +
-                                           per_frame_metadata_choices[per_frame_metadata.get()] +
-                                           "-mixing_level " + eac3_mixing_level.get() + " " +
-                                           room_type_choices[room_type.get()] + "-copyright " +
-                                           copyright_bit.get() + " " + "-dialnorm " + dialogue_level.get() + " " +
-                                           dolby_surround_mode_choices[dolby_surround_mode.get()] +
-                                           "-original " + original_bit_stream.get() + " " +
-                                           downmix_mode_choices[downmix_mode.get()] + "-ltrt_cmixlev " +
-                                           lt_rt_center_mix.get() + " " + "-ltrt_surmixlev " +
-                                           lt_rt_surround_mix.get() + " " + "-loro_cmixlev " +
-                                           lo_ro_center_mix.get() + " " + "\n \n" + "-loro_surmixlev " +
-                                           lo_ro_surround_mix.get() + " " +
-                                           dolby_surround_ex_mode_choices[dolby_surround_ex_mode.get()] +
-                                           dolby_headphone_mode_choices[dolby_headphone_mode.get()] +
-                                           a_d_converter_type_choices[a_d_converter_type.get()] +
-                                           stereo_rematrixing_choices[stereo_rematrixing.get()] +
-                                           "-channel_coupling " + channel_coupling.get() + " " +
-                                           "-cpl_start_band " + cpl_start_band.get() + " ").split())
-            open_mini_cmd_window()
-
-        # ----------------------------------------------------------------------------------------------- Views Command
-
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
                                    command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
         apply_button.grid(row=22, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
 
         show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
-                               command=view_command, activebackground='grey')
+                               command=print_command_line, activebackground='grey')
         show_cmd.grid(row=22, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
@@ -3434,33 +3281,13 @@ def openaudiowindow():
         def acodec_profile_menu_hover_leave(e):
             acodec_profile_menu["bg"] = "#23272A"
 
-        # Views Command -----------------------------------------------------------------------------------------------
-        def view_command():
-            global mini_cmd_output
-            audio_filter_function()
-            mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                           acodec_channel_choices[acodec_channel.get()] +
-                                           acodec_samplerate_choices[acodec_samplerate.get()] +
-                                           audio_filter_setting + "-f caf - | " + "fdkaac.exe" + " " +
-                                           acodec_profile_choices[acodec_profile.get()] + afterburnervar.get() +
-                                           fdkaac_title_input + fdkaac_custom_cmd_input +
-                                           acodec_gapless_mode_choices[acodec_gapless_mode.get()] +
-                                           crccheck.get() + moovbox.get() + sbrdelay.get() + headerperiod.get() +
-                                           acodec_lowdelay_choices[acodec_lowdelay.get()] +
-                                           acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] +
-                                           acodec_transport_format_choices[acodec_transport_format.get()] +
-                                           acodec_bitrate_choices[acodec_bitrate.get()] + "- -o ").split())
-            open_mini_cmd_window()
-
-        # ----------------------------------------------------------------------------------------------- Views Command
-
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
                                    command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
         apply_button.grid(row=15, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
 
         show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
-                               command=view_command, activebackground='grey')
+                               command=print_command_line, activebackground='grey')
         show_cmd.grid(row=15, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
@@ -3857,46 +3684,13 @@ def openaudiowindow():
 
         # ----------------------------------------------------------------------------------------------- QAAC Get Gain
 
-        # Views Command -----------------------------------------------------------------------------------------------
-        def view_command():
-            global mini_cmd_output
-            audio_filter_function()
-            if q_acodec_profile.get() == "True VBR":
-                mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                               acodec_channel_choices[acodec_channel.get()] +
-                                               acodec_samplerate_choices[acodec_samplerate.get()] +
-                                               audio_filter_setting + "-f wav - | " + qaac + " --ignorelength " +
-                                               q_acodec_profile_choices[q_acodec_profile.get()] +
-                                               q_acodec_quality_amnt.get() + " " + qaac_high_efficiency.get() +
-                                               qaac_nodither.get() + set_qaac_gain +
-                                               q_acodec_quality_choices[q_acodec_quality.get()] +
-                                               qaac_normalize.get() + qaac_nodelay.get() +
-                                               q_gapless_mode_choices[q_gapless_mode.get()] +
-                                               qaac_nooptimize.get() + qaac_threading.get() + qaac_limiter.get() +
-                                               qaac_title_input + qaac_custom_cmd_input).split())
-            else:
-                mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                               acodec_channel_choices[acodec_channel.get()] +
-                                               acodec_samplerate_choices[acodec_samplerate.get()] +
-                                               audio_filter_setting + "-f wav - | " + qaac + " --ignorelength " +
-                                               q_acodec_profile_choices[q_acodec_profile.get()] +
-                                               q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() +
-                                               qaac_nodither.get() + set_qaac_gain +
-                                               q_acodec_quality_choices[q_acodec_quality.get()] +
-                                               qaac_normalize.get() + qaac_nodelay.get() +
-                                               q_gapless_mode_choices[q_gapless_mode.get()] +
-                                               qaac_nooptimize.get() + qaac_threading.get() + qaac_limiter.get() +
-                                               qaac_title_input + qaac_custom_cmd_input).split())
-            open_mini_cmd_window()
-
-        # ----------------------------------------------------------------------------------------------- Views Command
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
                                    command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
         apply_button.grid(row=16, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
 
         show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
-                               command=view_command, activebackground='grey')
+                               command=print_command_line, activebackground='grey')
         show_cmd.grid(row=16, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
@@ -4296,30 +4090,13 @@ def openaudiowindow():
         for n in [0, 1, 2, 3, 4, 6, 7, 10]:
             audio_window.grid_rowconfigure(n, weight=1)
 
-        # Views Command -------------------------------------------------------------------------------------------
-        def view_command():
-            global mini_cmd_output
-            audio_filter_function()
-            mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                           encoder_dropdownmenu_choices[encoder.get()] +
-                                           acodec_bitrate_choices[acodec_bitrate.get()] +
-                                           acodec_channel_choices[acodec_channel.get()] +
-                                           acodec_samplerate_choices[acodec_samplerate.get()] +
-                                           audio_filter_setting + set_flac_acodec_coefficient +
-                                           acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] +
-                                           acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] +
-                                           flac_custom_cmd_input).split())
-            open_mini_cmd_window()
-
-        # ------------------------------------------------------------------------------------------- Views Command
-
         # Buttons -------------------------------------------------------------------------------------------------
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
                                    command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
         apply_button.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
 
         show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
-                               command=view_command, activebackground='grey')
+                               command=print_command_line, activebackground='grey')
         show_cmd.grid(row=10, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
@@ -4613,27 +4390,13 @@ def openaudiowindow():
         options_menu.add_command(label='Save Current Settings', command=save_profile)
         options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
 
-        # Views Command ---------------------------------------------------------------------------------------
-        def view_command():
-            global mini_cmd_output
-            audio_filter_function()
-            mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
-                                           encoder_dropdownmenu_choices[encoder.get()] +
-                                           acodec_channel_choices[acodec_channel.get()] +
-                                           acodec_samplerate_choices[acodec_samplerate.get()] +
-                                           audio_filter_setting + min_pre_order + max_pre_order +
-                                           flac_custom_cmd_input).split())
-            open_mini_cmd_window()
-
-        # --------------------------------------------------------------------------------------- Views Command
-
         # Buttons ---------------------------------------------------------------------------------------------
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
                                    command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
         apply_button.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
 
         show_cmd = HoverButton(audio_window, text="View Command", foreground="white", background="#23272A",
-                               command=view_command, activebackground='grey')
+                               command=print_command_line, activebackground='grey')
         show_cmd.grid(row=10, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         show_cmd.bind("<Enter>", show_cmd_hover)
         show_cmd.bind("<Leave>", show_cmd_hover_leave)
@@ -4892,208 +4655,56 @@ def encoder_menu_hover_leave(e):
 
 
 # Print Command Line from ROOT ----------------------------------------------------------------------------------------
+def exit_cmd_window():  # Global function to exit the command line window
+    try:
+        cmd_line_window.destroy()
+    except NameError:  # If it doesn't exist return from the function
+        return
+
+
 def print_command_line():
-    cmd_line_window = Toplevel()
-    cmd_line_window.title('Display Command')
-    cmd_line_window.configure(background="#434547")
-    file_input_quoted = '"' + file_input + '"'
-    file_output_quoted = '"' + file_output + '"'
+    global cmd_line_window, show_cmd_scrolled_main
+
     audio_filter_function()
-    # DTS Command Line Main Gui ---------------------------------------------------------------------------------------
-    if encoder.get() == "DTS":
-        if dts_settings.get() == 'DTS Encoder':
-            example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                              file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
-                                              dts_settings_choices[dts_settings.get()] + "-b:a " +
-                                              dts_bitrate_spinbox.get() + "k " +
-                                              acodec_channel_choices[acodec_channel.get()] +
-                                              acodec_samplerate_choices[acodec_samplerate.get()] +
-                                              audio_filter_setting + dts_custom_cmd_input +
-                                              "-sn -vn -map_chapters -1 " + file_output_quoted +
-                                              " -v error -hide_banner -stats").split())
-        else:
-            example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                              file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
-                                              dts_settings_choices[dts_settings.get()] + dts_custom_cmd_input +
-                                              "-sn -vn -map_chapters -1 " + file_output_quoted +
-                                              " -v error -hide_banner -stats").split())
-    # --------------------------------------------------------------------------------------- DTS Command Line Main Gui
-    # FDK View Command Line -------------------------------------------------------------------------------------------
-    elif encoder.get() == "FDK-AAC":
-        if progress_output_view.get() == "Default":
-            silent = '--silent '
-        else:
-            silent = ' '
-        example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                          file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
-                                          acodec_channel_choices[acodec_channel.get()] +
-                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                          "-sn -vn -map_chapters -1 -map_metadata -1 " +
-                                          "-f caf - -v error -hide_banner -stats | " +
-                                          fdkaac + " " + acodec_profile_choices[acodec_profile.get()] +
-                                          fdkaac_title_input + fdkaac_custom_cmd_input +
-                                          acodec_gapless_mode_choices[acodec_gapless_mode.get()] +
-                                          afterburnervar.get() + crccheck.get() + moovbox.get() + sbrdelay.get() +
-                                          headerperiod.get() + acodec_lowdelay_choices[acodec_lowdelay.get()] +
-                                          acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] +
-                                          acodec_transport_format_choices[acodec_transport_format.get()] +
-                                          acodec_bitrate_choices[acodec_bitrate.get()] + silent + "- -o " +
-                                          file_output_quoted).split())
-    # ---------------------------------------------------------------------------------------------------- FDK CMD LINE
-    # QAAC View Command Line ------------------------------------------------------------------------------------------
-    elif encoder.get() == "QAAC":
-        if progress_output_view.get() == "Default":
-            silent = '--silent '
-        else:
-            silent = ' '
-        if q_acodec_profile.get() == "True VBR":
-            example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                              file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
-                                              acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
-                                              acodec_samplerate_choices[acodec_samplerate.get()] +
-                                              "-sn -vn -map_chapters -1 -map_metadata -1 " +
-                                              "-f wav - -v error -hide_banner -stats | " + qaac +
-                                              " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
-                                              q_acodec_quality_amnt.get() + ' ' + qaac_high_efficiency.get() +
-                                              qaac_normalize.get() + qaac_nodither.get() + "--gain " +
-                                              q_acodec_gain.get() + ' ' +
-                                              q_acodec_quality_choices[q_acodec_quality.get()] +
-                                              qaac_nodelay.get() + q_gapless_mode_choices[q_gapless_mode.get()] +
-                                              qaac_nooptimize.get() + qaac_threading.get() + qaac_limiter.get() +
-                                              qaac_title_input + qaac_custom_cmd_input + silent + "- -o " +
-                                              file_output_quoted).split())
-        else:
-            example_cmd_output = ' '.join(str('"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " +
-                                              file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
-                                              acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
-                                              acodec_samplerate_choices[acodec_samplerate.get()] +
-                                              "-sn -vn -map_chapters -1 -map_metadata -1 " +
-                                              "-f wav - -v error -hide_banner -stats | " + qaac +
-                                              " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
-                                              q_acodec_bitrate.get() + qaac_high_efficiency.get() +
-                                              qaac_normalize.get() + qaac_nodither.get() + "--gain " +
-                                              q_acodec_gain.get() + ' ' +
-                                              q_acodec_quality_choices[q_acodec_quality.get()] + qaac_nodelay.get() +
-                                              q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() +
-                                              qaac_threading.get() + qaac_limiter.get() + qaac_title_input +
-                                              qaac_custom_cmd_input + silent + "- -o " +
-                                              file_output_quoted).split())
-    # ------------------------------------------------------------------------------------------------------------ QAAC
-    # AAC Command Line ------------------------------------------------------------------------------------------------
-    elif encoder.get() == "AAC":
-        if aac_vbr_toggle.get() == "-c:a ":
-            bitrate_or_quality = f"-b:a {aac_bitrate_spinbox.get()}k "
-        elif aac_vbr_toggle.get() == "-q:a ":
-            bitrate_or_quality = f"-q:a {aac_quality_spinbox.get()} "
-        example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                          file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
-                                          encoder_dropdownmenu_choices[encoder.get()] + bitrate_or_quality +
-                                          acodec_channel_choices[acodec_channel.get()] +
-                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                          "-sn -vn -map_chapters -1 -map_metadata -1 " + aac_custom_cmd_input +
-                                          aac_title_input + file_output_quoted +
-                                          " -v error -hide_banner -stats").split())
-    # ------------------------------------------------------------------------------------------------ AAC Command Line
-    # AC3 Command Line ------------------------------------------------------------------------------------------------
-    elif encoder.get() == "AC3":
-        example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                          file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
-                                          encoder_dropdownmenu_choices[encoder.get()] +
-                                          acodec_bitrate_choices[acodec_bitrate.get()] +
-                                          acodec_channel_choices[acodec_channel.get()] +
-                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                          "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input +
-                                          file_output_quoted + " -v error -hide_banner -stats").split())
-    # ------------------------------------------------------------------------------------------------ AC3 Command Line
-    # Opus Command Line -----------------------------------------------------------------------------------------------
-    elif encoder.get() == "Opus":
-        example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                          file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
-                                          encoder_dropdownmenu_choices[encoder.get()] +
-                                          acodec_vbr_choices[acodec_vbr.get()] +
-                                          acodec_bitrate_choices[acodec_bitrate.get()] +
-                                          acodec_channel_choices[acodec_channel.get()] +
-                                          acodec_application_choices[acodec_application.get()] +
-                                          opus_mapping_family_choices[opus_mapping_family.get()] + "-packet_loss " +
-                                          packet_loss.get() + " -frame_duration " + frame_duration.get() + " " +
-                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                          "-sn -vn -map_chapters -1 -map_metadata -1 " + opus_custom_cmd_input +
-                                          file_output_quoted + " -v error -hide_banner -stats").split())
-    # ----------------------------------------------------------------------------------------------- Opus Command Line
-    # MP3 Command Line ------------------------------------------------------------------------------------------------
-    elif encoder.get() == "MP3":
-        example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                          file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
-                                          encoder_dropdownmenu_choices[encoder.get()] +
-                                          acodec_bitrate_choices[acodec_bitrate.get()] +
-                                          acodec_channel_choices[acodec_channel.get()] + mp3_abr.get() +
-                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                          "-sn -vn -map_chapters -1 -map_metadata -1 " + mp3_custom_cmd_input +
-                                          file_output_quoted + " -v error -hide_banner -stats").split())
-    # ------------------------------------------------------------------------------------------------ MP3 Command Line
-    # E-AC3 Command Line ----------------------------------------------------------------------------------------------
-    elif encoder.get() == "E-AC3":
-        example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                          file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
-                                          encoder_dropdownmenu_choices[encoder.get()] + "-b:a " + eac3_spinbox.get() +
-                                          acodec_channel_choices[acodec_channel.get()] +
-                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                          eac3_custom_cmd_input + per_frame_metadata_choices[per_frame_metadata.get()] +
-                                          "-mixing_level " + eac3_mixing_level.get() + " " +
-                                          room_type_choices[room_type.get()] + "-copyright " + copyright_bit.get() +
-                                          " " + "-dialnorm " + dialogue_level.get() + " " +
-                                          dolby_surround_mode_choices[dolby_surround_mode.get()] + "-original " +
-                                          original_bit_stream.get() + " " + downmix_mode_choices[downmix_mode.get()] +
-                                          "-ltrt_cmixlev " + lt_rt_center_mix.get() + " " + "-ltrt_surmixlev " +
-                                          lt_rt_surround_mix.get() + " " + "-loro_cmixlev " + lo_ro_center_mix.get() +
-                                          " " + "-loro_surmixlev " + lo_ro_surround_mix.get() + " " +
-                                          dolby_surround_ex_mode_choices[dolby_surround_ex_mode.get()] +
-                                          dolby_headphone_mode_choices[dolby_headphone_mode.get()] +
-                                          a_d_converter_type_choices[a_d_converter_type.get()] +
-                                          stereo_rematrixing_choices[stereo_rematrixing.get()] + "-channel_coupling " +
-                                          channel_coupling.get() + " " + "-cpl_start_band " + cpl_start_band.get() +
-                                          " " + "-sn -vn -map_chapters -1 -map_metadata -1 " + file_output_quoted +
-                                          " -v error -hide_banner -stats").split())
-    # ---------------------------------------------------------------------------------------------- E-AC3 Command Line
-    # FLAC Command Line -----------------------------------------------------------------------------------------------
-    elif encoder.get() == "FLAC":
-        example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                          file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
-                                          encoder_dropdownmenu_choices[encoder.get()] +
-                                          acodec_bitrate_choices[acodec_bitrate.get()] +
-                                          acodec_channel_choices[acodec_channel.get()] +
-                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                          set_flac_acodec_coefficient +
-                                          acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] +
-                                          acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] +
-                                          flac_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
-                                          file_output_quoted + " -v error -hide_banner -stats" + '"').split())
-    # ----------------------------------------------------------------------------------------------- FLAC Command Line
-    # ALAC Command Line -----------------------------------------------------------------------------------------------
-    elif encoder.get() == "ALAC":
-        example_cmd_output = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                          file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
-                                          encoder_dropdownmenu_choices[encoder.get()] +
-                                          acodec_channel_choices[acodec_channel.get()] +
-                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                          min_pre_order + max_pre_order + flac_custom_cmd_input + " " +
-                                          "-sn -vn -map_chapters -1 -map_metadata -1 " +
-                                          file_output_quoted + " -v error -hide_banner -stats" + '"').split())
-    # ----------------------------------------------------------------------------------------------- ALAC Command Line
-    show_cmd_scrolled = scrolledtextwidget.ScrolledText(cmd_line_window, width=90, height=10, tabs=10, spacing2=3,
-                                                        spacing1=2, spacing3=3)
-    show_cmd_scrolled.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
-    show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
-    show_cmd_scrolled.insert(END, example_cmd_output)
-    show_cmd_scrolled.see(END)
-    show_cmd_scrolled.configure(state=DISABLED)
+    collect_final_job_commands()
+
+    try:
+        show_cmd_scrolled_main.configure(state=NORMAL)
+        show_cmd_scrolled_main.delete(1.0, END)
+    except (NameError, TclError):
+        cmd_line_window = Toplevel()
+        cmd_line_window.title('Display Command')
+        cmd_line_window.configure(background="#434547")
+        cmd_line_window.protocol('WM_DELETE_WINDOW', exit_cmd_window)
+        show_cmd_scrolled_main = scrolledtextwidget.ScrolledText(cmd_line_window, width=90, height=10, tabs=10,
+                                                                 spacing2=3, spacing1=2, spacing3=3)
+        show_cmd_scrolled_main.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
+        show_cmd_scrolled_main.configure(bg='black', fg='#CFD2D1', bd=8)
+    show_cmd_scrolled_main.insert(END, finalcommand)
+    show_cmd_scrolled_main.see(END)
+    show_cmd_scrolled_main.configure(state=DISABLED)
 
     def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
-        pyperclip.copy(show_cmd_scrolled.get(1.0, END))
+        pyperclip.copy(show_cmd_scrolled_main.get(1.0, END))
 
     copy_text = HoverButton(cmd_line_window, text='Copy to clipboard', command=copy_to_clipboard,
                             foreground='white', background='#23272A', borderwidth='3', activebackground='grey')
     copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
+
+    def print_command_line_updater():
+        try:
+            audio_filter_function()
+            collect_final_job_commands()
+            show_cmd_scrolled_main.configure(state=NORMAL)
+            show_cmd_scrolled_main.delete(1.0, END)
+            show_cmd_scrolled_main.insert(END, finalcommand)
+            show_cmd_scrolled_main.see(END)
+            show_cmd_scrolled_main.configure(state=DISABLED)
+            root.after(50, print_command_line_updater)
+        except (NameError, AttributeError, TclError):
+            return
+
+    print_command_line_updater()
 
 
 # ---------------------------------------------------------------------------------------- Print Command Line from ROOT
@@ -5644,6 +5255,7 @@ audiosettings_button.grid(row=0, column=2, columnspan=1, padx=5, pady=(5, 4), st
 # --------------------------------------------------------------------------- # Audio Settings Button
 def file_input_check(file_input):
     global track_count, autofilesave_dir_path, file_input_quoted, autosavefilename
+    exit_cmd_window()  # Close cmd window upon opening a new file
     file_input_quoted = f'"{file_input}"'  # Quote VideInput for use in the code
     media_info = MediaInfo.parse(pathlib.Path(file_input))  # Parse with media_info module
     total_audio_streams_in_input = media_info.general_tracks[0].count_of_audio_streams  # Check input for audio
