@@ -99,6 +99,10 @@ def create_config_params():
         config.set('save_window_locations', 'audio window - alac', 'yes')
     if not config.has_option('save_window_locations', 'audio window - alac - position'):
         config.set('save_window_locations', 'audio window - alac - position', '')
+    if not config.has_option('save_window_locations', 'audio window - view streams'):
+        config.set('save_window_locations', 'audio window - view streams', 'yes')
+    if not config.has_option('save_window_locations', 'audio window - view streams - position'):
+        config.set('save_window_locations', 'audio window - view streams - position', '')
 
     try:
         with open(config_file, 'w') as configfile:
