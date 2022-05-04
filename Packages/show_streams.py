@@ -1,20 +1,43 @@
 # Show Streams Inside Audio Settings Window -----------------------------------------------------------------------
-from tkinter import NORMAL, END, TclError, Toplevel, scrolledtext, INSERT, DISABLED, Menu
+from tkinter import NORMAL, END, TclError, Toplevel, scrolledtext, INSERT, DISABLED, Menu, LabelFrame, font, N, E, W, S
 from pathlib import Path
 from pymediainfo import MediaInfo
 from pyperclip import copy as pyperclip_copy
 from idlelib.tooltip import Hovertip
 from pyautogui import hotkey as pya_hotkey
 from time import sleep as time_sleep
+from configparser import ConfigParser
 
 
 def exit_stream_window():  # Global function to exit stream window (so it can be accessed via main script)
+    config_file = 'Runtime/config.ini'  # Creates (if doesn't exist) and defines location of config.ini
+    func_parser = ConfigParser()
+    func_parser.read(config_file)
+    if func_parser['save_window_locations']['audio window - view streams'] == 'yes':  # If auto save position on
+        try:
+            if func_parser['save_window_locations']['audio window - view streams - position'] != \
+                    stream_window.geometry():
+                func_parser.set('save_window_locations', 'audio window - '
+                                                         'view streams - position', stream_window.geometry())
+                with open(config_file, 'w') as configfile:
+                    func_parser.write(configfile)
+        except (Exception,):
+            pass
     stream_window.destroy()  # Destroy global stream_window
 
 
 def show_streams_mediainfo_function(x):  # Stream Viewer
     global stream_win_text_area, exit_stream_window, stream_window
     video_input = Path(x)  # "x" is passed through from main GUI
+
+    # Defines the path to config.ini and opens it for reading/writing
+    config_file = 'Runtime/config.ini'  # Creates (if doesn't exist) and defines location of config.ini
+    config = ConfigParser()
+    config.read(config_file)
+
+    detect_font = font.nametofont("TkDefaultFont")  # Get default font value into Font object
+    set_font = detect_font.actual().get("family")
+    # set_font_size = detect_font.actual().get("size")
 
     try:
         stream_win_text_area.config(state=NORMAL)
@@ -24,12 +47,24 @@ def show_streams_mediainfo_function(x):  # Stream Viewer
         stream_window.title("Audio Streams")
         stream_window.configure(background="#434547")
         stream_window.resizable(False, False)  # Disable resize of this window
+        if config['save_window_locations']['audio window - view streams - position'] != '' and \
+                config['save_window_locations']['audio window - view streams'] == 'yes':
+            stream_window.geometry(config['save_window_locations']['audio window - view streams - position'])
         stream_window.protocol('WM_DELETE_WINDOW', exit_stream_window)
-        stream_win_text_area = scrolledtext.ScrolledText(stream_window, width=80, height=25, tabs=10, spacing2=3,
+        stream_window.grid_columnconfigure(0, weight=1)
+        stream_window.grid_rowconfigure(0, weight=1)
+
+        stream_window_frame = LabelFrame(stream_window, text=' Audio Streams ', labelanchor="n")
+        stream_window_frame.grid(column=0, row=0, columnspan=1, padx=5, pady=(0, 3), sticky=N + S + E + W)
+        stream_window_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 10, "bold"))
+        stream_window_frame.grid_rowconfigure(0, weight=1)
+        stream_window_frame.grid_columnconfigure(0, weight=1)
+
+        stream_win_text_area = scrolledtext.ScrolledText(stream_window_frame, width=80, height=25, tabs=10, spacing2=3,
                                                          spacing1=2, spacing3=3)
         stream_win_text_area.config(bg='black', fg='#CFD2D1', bd=8)
-        stream_win_text_area.grid(column=0, pady=5, padx=5)
-        stream_window.grid_columnconfigure(0, weight=1)
+        stream_win_text_area.grid(column=0, pady=5, padx=5, sticky=N + E + S + W)
+
     character_space = 30  # Can be changed to adjust space of all items in the list automatically
     media_info = MediaInfo.parse(video_input)  # Uses pymediainfo to get information for track selection
     for track in media_info.tracks:  # For loop to loop through mediainfo tracks
