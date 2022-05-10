@@ -12,7 +12,7 @@ def create_config_params():
     if not config.has_section('output_path'):  # Create config parameters
         config.add_section('output_path')
     if not config.has_option('output_path', 'path'):
-        config.set('output_path', 'path', '')
+        config.set('output_path', 'path', 'file input directory')
     if not config.has_section('ffmpeg_path'):  # Create config parameters
         config.add_section('ffmpeg_path')
     if not config.has_option('ffmpeg_path', 'path'):
