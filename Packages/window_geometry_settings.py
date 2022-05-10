@@ -198,7 +198,7 @@ def set_window_geometry_settings():
     def display_command_pos_toggle():
         try:  # Write to config
             config.set('save_window_locations', 'display command', display_command_pos.get())
-            if job_manager_win_toggle.get() == 'no':
+            if display_command_pos.get() == 'no':
                 config.set('save_window_locations', 'display command position', '')
             with open(config_file, 'w') as configfile:
                 config.write(configfile)
@@ -213,6 +213,25 @@ def set_window_geometry_settings():
     display_command_pos_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
                                            activeforeground=color5, selectcolor=color3,
                                            font=(set_font, set_font_size + 2))
+
+    def general_settings_pos_toggle():
+        try:  # Write to config
+            config.set('save_window_locations', 'general settings', general_settings_pos.get())
+            if general_settings_pos.get() == 'no':
+                config.set('save_window_locations', 'general settings position', '')
+            with open(config_file, 'w') as configfile:
+                config.write(configfile)
+        except (Exception,):
+            pass
+
+    general_settings_pos = StringVar()  # variable
+    general_settings_pos.set(config['save_window_locations']['general settings'])  # Set box from config.ini
+    general_settings_pos_checkbox = Checkbutton(option_frame, text='General Settings', variable=general_settings_pos,
+                                                onvalue='yes', offvalue='no', command=general_settings_pos_toggle)
+    general_settings_pos_checkbox.grid(row=3, column=0, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=N + W)
+    general_settings_pos_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
+                                            activeforeground=color5, selectcolor=color3,
+                                            font=(set_font, set_font_size + 2))
 
     # Right click menu for "Window Options" frame ---------------------------------------------------------------------
     def option_popup_menu(e):  # Function for mouse button 3 (right click) to pop up menu
@@ -237,6 +256,9 @@ def set_window_geometry_settings():
 
             display_command_pos.set('yes')
             func_parser.set('save_window_locations', 'display command', 'yes')
+
+            general_settings_pos.set('yes')
+            func_parser.set('save_window_locations', 'general settings', 'yes')
             with open(config_file, 'w') as configfile:
                 func_parser.write(configfile)
 
@@ -270,6 +292,10 @@ def set_window_geometry_settings():
                 display_command_pos.set('no')
                 func_parser.set('save_window_locations', 'display command', 'no')
                 func_parser.set('save_window_locations', 'display command position', '')
+
+                general_settings_pos.set('no')
+                func_parser.set('save_window_locations', 'general settings', 'no')
+                func_parser.set('save_window_locations', 'general settings position', '')
                 with open(config_file, 'w') as configfile:
                     func_parser.write(configfile)
 
@@ -286,6 +312,8 @@ def set_window_geometry_settings():
             about_pos_toggle.set('no'), about_win_pos_toggle()])
         option_menu.add_command(label='Reset: "Display Command"', command=lambda: [
             display_command_pos.set('no'), display_command_pos_toggle()])
+        option_menu.add_command(label='Reset: "General Settings"', command=lambda: [
+            general_settings_pos.set('no'), general_settings_pos_toggle()])
         option_menu.add_separator()
         option_menu.add_command(label='Reset: All "Window Options"', command=reset)
         option_menu.add_separator()
@@ -299,6 +327,7 @@ def set_window_geometry_settings():
     about_pos_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
     job_manager_win_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
     display_command_pos_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
+    general_settings_pos_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
 
     # --------------------------------------------------------------------- Right click menu for "Window Options" frame
 
