@@ -212,8 +212,9 @@ def open_general_settings():  # General Settings Window
     manual_auto_frame.grid(column=0, row=0, columnspan=4, padx=5, pady=(5, 3), sticky=E + W)
     manual_auto_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 9, "italic"))
     manual_auto_frame.grid_rowconfigure(0, weight=1)
-    manual_auto_frame.grid_columnconfigure(0, weight=1)
+    manual_auto_frame.grid_columnconfigure(0, weight=2)
     manual_auto_frame.grid_columnconfigure(1, weight=20)
+    manual_auto_frame.grid_columnconfigure(3, weight=1)
 
     def set_manual_auto_path():
         path = filedialog.askdirectory(title='Output Path Manual/Auto', parent=general_settings_window)
@@ -236,6 +237,25 @@ def open_general_settings():  # General Settings Window
 
     saved_manual_auto_path = pathlib.Path(str(config_parser['output_path']['path']).replace('"', '')).resolve()
     manual_auto_entry_box = Entry(manual_auto_frame, borderwidth=4, background="#CACACA")
-    manual_auto_entry_box.grid(row=0, column=1, columnspan=3, padx=5, pady=5, sticky=N + S + E + W)
+    manual_auto_entry_box.grid(row=0, column=1, columnspan=2, padx=5, pady=5, sticky=N + S + E + W)
     manual_auto_entry_box.insert(0, str(saved_manual_auto_path))
     manual_auto_entry_box.config(state=DISABLED)
+
+    def reset_manual_auto_path():
+        from tkinter import messagebox
+        msg = messagebox.askyesno(title='Prompt', message='Reset path to default?', parent=general_settings_window)
+        if msg:
+            func_parser = ConfigParser()
+            func_parser.read(config_file)
+            func_parser.set('output_path', 'path', '')
+            with open(config_file, 'w') as configfile:
+                func_parser.write(configfile)
+            manual_auto_entry_box.config(state=NORMAL)
+            manual_auto_entry_box.delete(0, END)
+            manual_auto_entry_box.insert(0, str(pathlib.Path(str(func_parser['output_path']['path']))))
+            manual_auto_entry_box.config(state=DISABLED)
+
+    set_manual_auto_path = HoverButton(manual_auto_frame, text="X", command=reset_manual_auto_path,
+                                       foreground="white", background="#23272A", borderwidth="3",
+                                       activebackground='grey')
+    set_manual_auto_path.grid(row=0, column=3, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
