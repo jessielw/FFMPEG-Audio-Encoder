@@ -9,6 +9,10 @@ def create_config_params():
     config = ConfigParser()
     config.read(config_file)
 
+    if not config.has_section('output_path'):  # Create config parameters
+        config.add_section('output_path')
+    if not config.has_option('output_path', 'path'):
+        config.set('output_path', 'path', '')
     if not config.has_section('ffmpeg_path'):  # Create config parameters
         config.add_section('ffmpeg_path')
     if not config.has_option('ffmpeg_path', 'path'):
@@ -63,6 +67,10 @@ def create_config_params():
         config.set('save_window_locations', 'display command', 'yes')
     if not config.has_option('save_window_locations', 'display command position'):
         config.set('save_window_locations', 'display command position', '')
+    if not config.has_option('save_window_locations', 'general settings'):
+        config.set('save_window_locations', 'general settings', 'yes')
+    if not config.has_option('save_window_locations', 'general settings position'):
+        config.set('save_window_locations', 'general settings position', '')
     if not config.has_option('save_window_locations', 'audio window - aac'):
         config.set('save_window_locations', 'audio window - aac', 'yes')
     if not config.has_option('save_window_locations', 'audio window - aac - position'):
