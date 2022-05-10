@@ -28,6 +28,7 @@ from Packages.config_params import create_config_params
 from Packages.icon import gui_icon
 from Packages.show_streams import show_streams_mediainfo_function, exit_stream_window
 from Packages.window_geometry_settings import set_window_geometry_settings
+from Packages.general_settings import open_general_settings
 
 
 # Main Gui & Windows --------------------------------------------------------
@@ -117,9 +118,20 @@ set_font_size = detect_font.actual().get("size")
 # ---------------------------------------------- Font Variables
 # Custom Tkinter Theme-----------------------------------------
 custom_style = ttk.Style()
-custom_style.theme_create('jlw_style', parent='alt')
+custom_style.theme_create('jlw_style', parent='alt', settings={
+    # Notebook Theme Settings -------------------
+    "TNotebook": {"configure": {"tabmargins": [5, 5, 5, 0]}},
+    "TNotebook.Tab": {
+        "configure": {"padding": [5, 1], "background": 'grey', 'foreground': 'white', 'focuscolor': ''},
+        "map": {"background": [("selected", '#434547')], "expand": [("selected", [1, 1, 1, 0])]}},
+    # Notebook Theme Settings -------------------
+    # ComboBox Theme Settings -------------------
+    'TCombobox': {'configure': {'selectbackground': '#23272A', 'fieldbackground': '#23272A',
+                                'background': 'white', 'foreground': 'white'}}}
+                          # ComboBox Theme Settings -------------------
+                          )
 custom_style.theme_use('jlw_style')  # Enable the use of the custom theme
-custom_style.configure("custom.Horizontal.TProgressbar", background="#3a4145")
+custom_style.configure("custom.Horizontal.TProgressbar", background='#3a4145')
 
 
 # ------------------------------------------ Custom Tkinter Theme
@@ -265,63 +277,25 @@ options_menu.add_separator()
 options_menu.add_command(label='Window Location Settings     [CTRL + W]', command=set_window_geometry_settings)
 root.bind("<Control-w>", lambda event: set_window_geometry_settings())
 
-options_menu.add_separator()
+
+def open_settings_window():
+    open_tops = False  # Set variable for open toplevel windows
+    for widget in root.winfo_children():  # Loop through roots children
+        if isinstance(widget, Toplevel):  # If any of roots children is a TopLevel window
+            open_tops = True  # Set variable for open tops to True
+    if open_tops:  # If open_tops is True
+        prompt = messagebox.askyesno(title='Prompt', message="This will close all secondary windows, are you sure "
+                                                             "you want to continue?")
+        if prompt:
+            set_fresh_launch()
+            open_general_settings()
+    if not open_tops:
+        set_fresh_launch()
+        open_general_settings()
 
 
-def set_ffmpeg_path():
-    global ffmpeg
-    path = filedialog.askopenfilename(title='Select Location to "ffmpeg.exe"', initialdir='/',
-                                      filetypes=[('ffmpeg', 'ffmpeg.exe')])
-    if path != '':
-        ffmpeg = '"' + str(pathlib.Path(path)) + '"'
-        config.set('ffmpeg_path', 'path', ffmpeg)
-        with open(config_file, 'w') as configfile:
-            config.write(configfile)
-
-
-options_menu.add_command(label='Set path to FFMPEG', command=set_ffmpeg_path)
-
-
-def set_mpv_player_path():
-    global mpv_player
-    path = filedialog.askopenfilename(title='Select Location to "mpv.exe"', initialdir='/',
-                                      filetypes=[('mpv', 'mpv.exe')])
-    if path != '':
-        mpv_player = '"' + str(pathlib.Path(path)) + '"'
-        config.set('mpv_player_path', 'path', mpv_player)
-        with open(config_file, 'w') as configfile:
-            config.write(configfile)
-
-
-options_menu.add_command(label='Set path to MPV player', command=set_mpv_player_path)
-
-
-def set_mediainfogui_path():
-    global mediainfo
-    path = filedialog.askopenfilename(title='Select Location to "MediaInfo.exe"', initialdir='/',
-                                      filetypes=[('MediaInfoGUI', 'MediaInfo.exe')])
-    if path != '':
-        mediainfo = '"' + str(pathlib.Path(path)) + '"'
-        config.set('mediainfogui_path', 'path', mediainfo)
-        with open(config_file, 'w') as configfile:
-            config.write(configfile)
-
-
-options_menu.add_command(label='Set path to MediaInfo - GUI', command=set_mediainfogui_path)
-
-
-def set_mediainfocli_path():
-    global mediainfocli
-    path = filedialog.askopenfilename(title='Select Location to "MediaInfo.exe"', initialdir='/',
-                                      filetypes=[('MediaInfo', 'MediaInfo.exe')])
-    if path != '':
-        mediainfocli = '"' + str(pathlib.Path(path)) + '"'
-        config.set('mediainfocli_path', 'path', mediainfocli)
-        with open(config_file, 'w') as configfile:
-            config.write(configfile)
-
-
-options_menu.add_command(label='Set path to MediaInfo - CLI', command=set_mediainfocli_path)
+options_menu.add_command(label='General Settings                    [CTRL + S]', command=open_settings_window)
+root.bind("<Control-s>", lambda event: open_settings_window())
 
 options_menu.add_separator()
 
@@ -363,23 +337,33 @@ help_menu.add_command(label="About", command=openaboutwindow)
 
 # File Auto Save Function ---------------------------------------------------------------------------------------------
 def set_auto_save_suffix():
-    global file_out
+    global file_out, autofilesave_dir_path
+
+    func_parser = ConfigParser()
+    func_parser.read(config_file)
+    autofilesave_file_path = pathlib.Path(file_input)  # Command to get file input location
+    saved_dir = func_parser['output_path']['path']
+    if saved_dir != 'file input directory' and pathlib.Path(saved_dir).is_dir():
+        autofilesave_dir_path = saved_dir
+    elif saved_dir == 'file input directory':
+        autofilesave_dir_path = autofilesave_file_path.parents[0]  # Final command to get only the directory
+
     if encoder.get() != "Set Codec":
-        filename = pathlib.Path(file_input)
+        convert_filename = f'{str(autofilesave_dir_path)}/{str(pathlib.Path(file_input).name)}'
         if encoder.get() == 'AAC':
-            file_out = filename.with_suffix('._new_.mp4')
+            file_out = pathlib.Path(convert_filename).with_suffix("._new_.mp4")
         elif encoder.get() == 'AC3' or encoder.get() == 'E-AC3':
-            file_out = filename.with_suffix('._new_.ac3')
+            file_out = pathlib.Path(convert_filename).with_suffix('._new_.ac3')
         elif encoder.get() == "DTS":
-            file_out = filename.with_suffix('._new_.dts')
+            file_out = pathlib.Path(convert_filename).with_suffix('._new_.dts')
         elif encoder.get() == "Opus":
-            file_out = filename.with_suffix('._new_.opus')
+            file_out = pathlib.Path(convert_filename).with_suffix('._new_.opus')
         elif encoder.get() == 'MP3':
-            file_out = filename.with_suffix('._new_.mp3')
+            file_out = pathlib.Path(convert_filename).with_suffix('._new_.mp3')
         elif encoder.get() == "FDK-AAC" or encoder.get() == "QAAC" or encoder.get() == "ALAC":
-            file_out = filename.with_suffix('._new_.m4a')
+            file_out = pathlib.Path(convert_filename).with_suffix('._new_.m4a')
         elif encoder.get() == "FLAC":
-            file_out = filename.with_suffix('._new_.flac')
+            file_out = pathlib.Path(convert_filename).with_suffix('._new_.flac')
 
 
 def encoder_changed(*args):
@@ -918,7 +902,7 @@ def openaudiowindow():
                     if encoding_job_type == 'auto':
                         audio_window.destroy()  # Destroy audio window, only opens to define variables inside it
                         hide_all_toplevels()  # Hide all TopLevels
-                        set_frest_launch_for_auto_encode()  # Reset Main Gui
+                        set_fresh_launch_for_auto_encode()  # Reset Main Gui
                     # parse input file name for language and delay string
                     # language_code_input = re_findall(r"\[([A-Za-z]+)\]", str(file_input))
                     # if language_code_input:  # If re finds language codes within '[]'
@@ -960,7 +944,7 @@ def openaudiowindow():
                     if encoding_job_type == 'auto':
                         audio_window.destroy()  # Destroy audio window, only opens to define variables inside it
                         hide_all_toplevels()  # Hide all TopLevels
-                        set_frest_launch_for_auto_encode()  # Reset Main Gui
+                        set_fresh_launch_for_auto_encode()  # Reset Main Gui
 
                         def track_window():  # Function to select which audio track user would like to encode with
                             global auto_track_input, acodec_stream, acodec_stream_choices
@@ -1034,6 +1018,9 @@ def openaudiowindow():
                                 audio_track_win.grab_release()
                                 audio_track_win.destroy()  # Closes audio window
                                 acodec_stream.set('None')  # Set acodec_stream to None, so job does not start
+                                output_entry.configure(state=NORMAL)  # Enable output_entry
+                                output_entry.delete(0, END)  # Clear contents of output entry
+                                output_entry.configure(state=DISABLED)  # Disable output entry
                                 auto_encode_last_options.configure(state=NORMAL)  # Keeps auto_encode button enabled
 
                             # Button Code -----------------------------------------------------------------------------
@@ -5186,6 +5173,10 @@ def startaudiojob():
                 progress_window.destroy()
                 root.deiconify()
                 open_all_toplevels()
+                if encoder.get() == 'Set Codec':
+                    output_entry.configure(state=NORMAL)  # Enable output_entry
+                    output_entry.delete(0, END)  # Clear contents of output entry
+                    output_entry.configure(state=DISABLED)  # Disable output entry
 
             else:
                 confirm_exit = messagebox.askyesno(title='Prompt', parent=progress_window,
@@ -5205,6 +5196,10 @@ def startaudiojob():
                     progress_window.destroy()  # Destroy progress window
                     root.deiconify()  # Re-Open root
                     open_all_toplevels()  # Re-open top levels if there was any
+                    if encoder.get() == 'Set Codec':
+                        output_entry.configure(state=NORMAL)  # Enable output_entry
+                        output_entry.delete(0, END)  # Clear contents of output entry
+                        output_entry.configure(state=DISABLED)  # Disable output entry
 
         def close_window():
             thread = threading.Thread(target=close_encode)
@@ -5335,6 +5330,10 @@ def startaudiojob():
             save_close_position()  # Save position
             progress_window.destroy()  # Destroy progress window
             root.deiconify()  # Re-Open root
+            if encoder.get() == 'Set Codec':
+                output_entry.configure(state=NORMAL)  # Enable output_entry
+                output_entry.delete(0, END)  # Clear contents of output entry
+                output_entry.configure(state=DISABLED)  # Disable output entry
             open_all_toplevels()  # Re-open top levels if there was any
 
         # Cancel buttons
@@ -5478,14 +5477,12 @@ audiosettings_button.grid(row=0, column=2, columnspan=1, padx=5, pady=(5, 4), st
 
 # --------------------------------------------------------------------------- # Audio Settings Button
 def file_input_check(file_input):
-    global track_count, autofilesave_dir_path, file_input_quoted, autosavefilename
+    global track_count, file_input_quoted, autosavefilename
     exit_cmd_window()  # Close cmd window upon opening a new file
     file_input_quoted = f'"{file_input}"'  # Quote VideInput for use in the code
     media_info = MediaInfo.parse(pathlib.Path(file_input))  # Parse with media_info module
     total_audio_streams_in_input = media_info.general_tracks[0].count_of_audio_streams  # Check input for audio
     if total_audio_streams_in_input is not None:  # If audio is not None (1 or more audio tracks)
-        autofilesave_file_path = pathlib.Path(file_input)  # Command to get file input location
-        autofilesave_dir_path = autofilesave_file_path.parents[0]  # Final command to get only the directory
         track_count = total_audio_streams_in_input  # Get track count from input
         input_entry.configure(state=NORMAL)  # Enable input entry box
         input_entry.delete(0, END)  # Remove text from input entry box if there is any
@@ -5504,8 +5501,8 @@ def file_input_check(file_input):
         add_job_button.config(state=DISABLED)
         if config_profile['Auto Encode']['codec'] == '':  # If auto-encode profile has no information keep disabled
             auto_encode_last_options.configure(state=DISABLED)
-        else:  # If it has information, define auto_file_out save location for what ever codec
-            auto_encode_last_options.configure(state=NORMAL)
+        elif config_profile['Auto Encode']['codec'] != '':  # If it has information, define auto_file_out save location
+            auto_encode_last_options.configure(state=NORMAL)  # for what ever codec
             if config_profile['Auto Encode']['codec'] == 'AAC':
                 auto_file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.mp4'
             elif config_profile['Auto Encode']['codec'] == 'AC3' or \
@@ -5523,10 +5520,6 @@ def file_input_check(file_input):
                 auto_file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.m4a'
             elif config_profile['Auto Encode']['codec'] == "FLAC":
                 auto_file_out = str(pathlib.Path(file_input).with_suffix('')) + '._new_.flac'
-            output_entry.configure(state=NORMAL)  # Enable output_entry
-            output_entry.delete(0, END)  # Clear contents of output entry
-            output_entry.insert(0, auto_file_out)  # Insert auto_file_out information
-            output_entry.configure(state=DISABLED)  # Disable output entry
             autosavefilename = pathlib.Path(auto_file_out).name  # Set autosavefilename var
     elif total_audio_streams_in_input is None:  # If input has 0 audio tracks
         input_entry.config(state=DISABLED)  # Disable input entry-box
@@ -5847,7 +5840,6 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
                                             activebackground='grey')
             cancel_encode_job.grid(row=1, column=1, columnspan=1, padx=5, pady=(5, 4), sticky=E + W + S)
 
-
             def pause_job():  # Pause function/button
                 pause_current_job = psutil.Process(job_jw.pid)
                 for p_current_job in pause_current_job.children(recursive=True):
@@ -6000,7 +5992,6 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
                             if pathlib.Path(output_file).is_file():
                                 pathlib.Path(output_file).unlink(missing_ok=True)
                             continue_multiprocess_job = False
-
 
                 cancel_encode_job = HoverButton(jobs_window_button_frame, text="Cancel",
                                                 command=lambda: cancel_job('exit'),
@@ -6160,7 +6151,7 @@ file_menu.add_separator()
 
 
 # Reset GUI -----------------------------------------------------------------------------------------------------------
-def set_frest_launch_for_auto_encode():
+def set_fresh_launch_for_auto_encode():
     encoder.set('Set Codec')
     audiosettings_button.config(state=DISABLED)
     add_job_button.config(state=DISABLED)
@@ -6169,8 +6160,8 @@ def set_frest_launch_for_auto_encode():
     output_button.config(state=DISABLED)
 
 
-def set_frest_launch():
-    set_frest_launch_for_auto_encode()
+def set_fresh_launch():
+    set_fresh_launch_for_auto_encode()
     encoder_menu.config(state=DISABLED)
     input_entry.config(state=NORMAL)
     input_entry.delete(0, END)
@@ -6179,10 +6170,13 @@ def set_frest_launch():
     output_entry.delete(0, END)
     output_entry.config(state=DISABLED)
     auto_encode_last_options.config(state=DISABLED)
+    for widget in root.winfo_children():
+        if isinstance(widget, Toplevel):
+            widget.destroy()
 
 
-file_menu.add_command(label='Reset GUI         [CTRL + R]', command=set_frest_launch)
-root.bind("<Control-r>", lambda event: set_frest_launch())
+file_menu.add_command(label='Reset GUI         [CTRL + R]', command=set_fresh_launch)
+root.bind("<Control-r>", lambda event: set_fresh_launch())
 # ----------------------------------------------------------------------------------------------------------- Reset GUI
 file_menu.add_command(label='Exit                   [ALT + F4]', command=root_exit_function)
 
