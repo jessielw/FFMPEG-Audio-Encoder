@@ -17,7 +17,6 @@ def open_general_settings():  # General Settings Window
         func_parser = ConfigParser()
         func_parser.read(config_file)
         if func_parser['save_window_locations']['general settings'] == 'yes':  # If auto save position on
-            print('yes')
             try:
                 if func_parser['save_window_locations']['general settings position'] != \
                         general_settings_window.geometry():
@@ -235,24 +234,29 @@ def open_general_settings():  # General Settings Window
                                        activebackground='grey')
     set_manual_auto_path.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
 
-    saved_manual_auto_path = pathlib.Path(str(config_parser['output_path']['path']).replace('"', '')).resolve()
+    saved_manual_auto_path = ''
+    if config_parser['output_path']['path'] == 'file input directory':
+        saved_manual_auto_path = str(config_parser['output_path']['path']).title()
+    elif config_parser['output_path']['path'] != 'file input directory':
+        saved_manual_auto_path = str(pathlib.Path(config_parser['output_path']['path']).resolve())
     manual_auto_entry_box = Entry(manual_auto_frame, borderwidth=4, background="#CACACA")
     manual_auto_entry_box.grid(row=0, column=1, columnspan=2, padx=5, pady=5, sticky=N + S + E + W)
-    manual_auto_entry_box.insert(0, str(saved_manual_auto_path))
+    manual_auto_entry_box.insert(0, saved_manual_auto_path)
     manual_auto_entry_box.config(state=DISABLED)
 
     def reset_manual_auto_path():
         from tkinter import messagebox
-        msg = messagebox.askyesno(title='Prompt', message='Reset path to default?', parent=general_settings_window)
+        msg = messagebox.askyesno(title='Prompt', message='Reset path to directory of input file?',
+                                  parent=general_settings_window)
         if msg:
             func_parser = ConfigParser()
             func_parser.read(config_file)
-            func_parser.set('output_path', 'path', '')
+            func_parser.set('output_path', 'path', 'file input directory')
             with open(config_file, 'w') as configfile:
                 func_parser.write(configfile)
             manual_auto_entry_box.config(state=NORMAL)
             manual_auto_entry_box.delete(0, END)
-            manual_auto_entry_box.insert(0, str(pathlib.Path(str(func_parser['output_path']['path']))))
+            manual_auto_entry_box.insert(0, str(func_parser['output_path']['path']).title())
             manual_auto_entry_box.config(state=DISABLED)
 
     set_manual_auto_path = HoverButton(manual_auto_frame, text="X", command=reset_manual_auto_path,
