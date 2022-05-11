@@ -7,6 +7,7 @@ import subprocess
 import threading
 import tkinter.scrolledtext as scrolledtextwidget
 import webbrowser
+from random import randint
 from datetime import datetime
 from configparser import ConfigParser
 from ctypes import windll
@@ -5900,6 +5901,27 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
             if not jobs_window_progress_frame.winfo_viewable() and not jobs_window_button_frame.winfo_viewable():
                 open_jobs_progress_drawer()  # If the drawer is already opened, do not attempt to re-open it
 
+            def check_for_existing_output():  # Function to check if output exists, if it does change older file name
+                check_output_file = pathlib.Path(str(
+                    job_listbox.get(0)).split('Output Filename =')[1].strip()[1:-1])
+                if check_output_file.is_file():
+                    replace_name = check_output_file.stem + '[old_file]' + check_output_file.suffix
+                    try:
+                        pathlib.Path(check_output_file).rename(pathlib.Path(check_output_file.parent, replace_name))
+                    except FileExistsError:
+                        replace_name = check_output_file.stem + f'[old_file({str(randint(0, 99))})]' + \
+                                       check_output_file.suffix
+                        pathlib.Path(check_output_file).rename(pathlib.Path(check_output_file.parent, replace_name))
+                    jobs_window_progress.config(state=NORMAL)
+                    jobs_window_progress.insert(END, '## RENAME OLD FILE ##\n')
+                    jobs_window_progress.insert(END, 'Output already exists!!\n')
+                    jobs_window_progress.insert(
+                        END, f'Renaming older file "{check_output_file.name}" to "{replace_name}"\n')
+                    jobs_window_progress.insert(END, '## RENAME OLD FILE ##\n\n')
+                    jobs_window_progress.config(state=DISABLED)
+
+            check_for_existing_output()
+
             command = str(selected_job[0]).split('Command:')[1].split('>>>>  Duration =')[0].strip()  # Command
             job_jw = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
                                       stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
@@ -6064,6 +6086,27 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
 
                 if not jobs_window_progress_frame.winfo_viewable() and not jobs_window_button_frame.winfo_viewable():
                     open_jobs_progress_drawer()  # If the drawer is already opened, do not attempt to re-open it
+
+                def check_for_existing_output():
+                    check_output_file = pathlib.Path(str(
+                        job_listbox.get(0)).split('Output Filename =')[1].strip()[1:-1])
+                    if check_output_file.is_file():
+                        replace_name = check_output_file.stem + '[old_file]' + check_output_file.suffix
+                        try:
+                            pathlib.Path(check_output_file).rename(pathlib.Path(check_output_file.parent, replace_name))
+                        except FileExistsError:
+                            replace_name = check_output_file.stem + f'[old_file({str(randint(0, 99))})]' + \
+                                           check_output_file.suffix
+                            pathlib.Path(check_output_file).rename(pathlib.Path(check_output_file.parent, replace_name))
+                        jobs_window_progress.config(state=NORMAL)
+                        jobs_window_progress.insert(END, '## RENAME OLD FILE ##\n')
+                        jobs_window_progress.insert(END, 'Output already exists!!\n')
+                        jobs_window_progress.insert(
+                            END, f'Renaming older file "{check_output_file.name}" to "{replace_name}"\n')
+                        jobs_window_progress.insert(END, '## RENAME OLD FILE ##\n\n')
+                        jobs_window_progress.config(state=DISABLED)
+
+                check_for_existing_output()
 
                 command = str(job_listbox.get(0)).split('Command:')[1].split('>>>>  Duration =')[0].strip()
                 job_jw = subprocess.Popen('cmd /c ' + command + '"', universal_newlines=True, stdout=subprocess.PIPE,
