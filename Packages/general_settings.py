@@ -1,6 +1,7 @@
 import pathlib
 from configparser import ConfigParser
-from tkinter import Toplevel, LabelFrame, N, S, E, W, font, Button, Frame, Entry, DISABLED, NORMAL, filedialog, END, ttk
+from tkinter import Toplevel, LabelFrame, N, S, E, W, font, Button, Frame, Entry, DISABLED, NORMAL, filedialog, END, \
+    ttk, messagebox
 
 
 # noinspection PyGlobalUndefined
@@ -36,14 +37,14 @@ def open_general_settings():  # General Settings Window
     # Config Parser
 
     general_settings_window = Toplevel()  # Define toplevel()
-    general_settings_window.title('Window Location Settings')
+    general_settings_window.title('General Settings')
     detect_font = font.nametofont("TkDefaultFont")  # Get default font value into Font object
     set_font = detect_font.actual().get("family")
     color1 = "#434547"
     general_settings_window.configure(background=color1)
     if config_parser['save_window_locations']['general settings position'] == '' or \
             config_parser['save_window_locations']['general settings'] == 'no':
-        window_height = 420
+        window_height = 480
         window_width = 600
         screen_width = general_settings_window.winfo_screenwidth()
         screen_height = general_settings_window.winfo_screenheight()
@@ -97,6 +98,7 @@ def open_general_settings():  # General Settings Window
     for p_f in range(4):
         path_frame.grid_columnconfigure(p_f, weight=1)
 
+    # FFMPEG Path -----------------------------------------------------------------------------------------------------
     ffmpeg_frame = LabelFrame(path_frame, text=' FFMPEG ', labelanchor="nw")
     ffmpeg_frame.grid(column=0, row=0, columnspan=4, padx=5, pady=(5, 3), sticky=E + W)
     ffmpeg_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 9, "italic"))
@@ -131,6 +133,7 @@ def open_general_settings():  # General Settings Window
     ffmpeg_entry_box.insert(0, str(saved_ffmpeg_path))
     ffmpeg_entry_box.config(state=DISABLED)
 
+    # MPV Path --------------------------------------------------------------------------------------------------------
     mpv_frame = LabelFrame(path_frame, text=' MPV ', labelanchor="nw")
     mpv_frame.grid(column=0, row=1, columnspan=4, padx=5, pady=(5, 3), sticky=E + W)
     mpv_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 9, "italic"))
@@ -165,6 +168,7 @@ def open_general_settings():  # General Settings Window
     mpv_entry_box.insert(0, str(saved_mpv_path))
     mpv_entry_box.config(state=DISABLED)
 
+    # Media Info Gui Path ---------------------------------------------------------------------------------------------
     mediainfogui_frame = LabelFrame(path_frame, text=' MediaInfo GUI ', labelanchor="nw")
     mediainfogui_frame.grid(column=0, row=2, columnspan=4, padx=5, pady=(5, 3), sticky=E + W)
     mediainfogui_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 9, "italic"))
@@ -204,9 +208,11 @@ def open_general_settings():  # General Settings Window
     save_path_frame.grid(column=0, row=1, columnspan=4, padx=5, pady=(10, 3), sticky=N + S + E + W)
     save_path_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 10, "bold"))
     save_path_frame.grid_rowconfigure(0, weight=1)
+    save_path_frame.grid_rowconfigure(1, weight=1)
     for s_p in range(4):
         save_path_frame.grid_columnconfigure(s_p, weight=1)
 
+    # Manual Auto Path ------------------------------------------------------------------------------------------------
     manual_auto_frame = LabelFrame(save_path_frame, text=' Manual/Auto Encode Path ', labelanchor="nw")
     manual_auto_frame.grid(column=0, row=0, columnspan=4, padx=5, pady=(5, 3), sticky=E + W)
     manual_auto_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 9, "italic"))
@@ -245,7 +251,6 @@ def open_general_settings():  # General Settings Window
     manual_auto_entry_box.config(state=DISABLED)
 
     def reset_manual_auto_path():
-        from tkinter import messagebox
         msg = messagebox.askyesno(title='Prompt', message='Reset path to directory of input file?',
                                   parent=general_settings_window)
         if msg:
@@ -259,7 +264,64 @@ def open_general_settings():  # General Settings Window
             manual_auto_entry_box.insert(0, str(func_parser['output_path']['path']).title())
             manual_auto_entry_box.config(state=DISABLED)
 
-    set_manual_auto_path = HoverButton(manual_auto_frame, text="X", command=reset_manual_auto_path,
-                                       foreground="white", background="#23272A", borderwidth="3",
-                                       activebackground='grey')
-    set_manual_auto_path.grid(row=0, column=3, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
+    reset_manual_auto_path = HoverButton(manual_auto_frame, text="X", command=reset_manual_auto_path,
+                                         foreground="white", background="#23272A", borderwidth="3",
+                                         activebackground='grey')
+    reset_manual_auto_path.grid(row=0, column=3, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
+
+    # Job Manager Path ------------------------------------------------------------------------------------------------
+    job_window_frame = LabelFrame(save_path_frame, text=' Job Manager Path ', labelanchor="nw")
+    job_window_frame.grid(column=0, row=1, columnspan=4, padx=5, pady=(5, 3), sticky=E + W)
+    job_window_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 9, "italic"))
+    job_window_frame.grid_rowconfigure(0, weight=1)
+    job_window_frame.grid_columnconfigure(0, weight=2)
+    job_window_frame.grid_columnconfigure(1, weight=20)
+    job_window_frame.grid_columnconfigure(3, weight=1)
+
+    def set_job_manager_path():
+        path = filedialog.askdirectory(title='Job Manager Path', parent=general_settings_window)
+        if path:
+            func_parser = ConfigParser()
+            func_parser.read(config_file)
+            path = str(pathlib.Path(path))
+            func_parser.set('job_manager_output_path', 'path', path)
+            with open(config_file, 'w') as configfile:
+                func_parser.write(configfile)
+            job_manager_entry_box.config(state=NORMAL)
+            job_manager_entry_box.delete(0, END)
+            job_manager_entry_box.insert(0, str(pathlib.Path(str(func_parser['job_manager_output_path']['path']))))
+            job_manager_entry_box.config(state=DISABLED)
+
+    set_job_window_path = HoverButton(job_window_frame, text="Set Path", command=set_job_manager_path,
+                                      foreground="white", background="#23272A", borderwidth="3",
+                                      activebackground='grey')
+    set_job_window_path.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
+
+    saved_job_manager_path = ''
+    if config_parser['job_manager_output_path']['path'] == 'file input directory':
+        saved_job_manager_path = str(config_parser['job_manager_output_path']['path']).title()
+    elif config_parser['job_manager_output_path']['path'] != 'file input directory':
+        saved_job_manager_path = str(pathlib.Path(config_parser['job_manager_output_path']['path']).resolve())
+    job_manager_entry_box = Entry(job_window_frame, borderwidth=4, background="#CACACA")
+    job_manager_entry_box.grid(row=0, column=1, columnspan=2, padx=5, pady=5, sticky=N + S + E + W)
+    job_manager_entry_box.insert(0, saved_job_manager_path)
+    job_manager_entry_box.config(state=DISABLED)
+
+    def reset_job_window_path():
+        msg = messagebox.askyesno(title='Prompt', message='Reset path to directory of input file?',
+                                  parent=general_settings_window)
+        if msg:
+            func_parser = ConfigParser()
+            func_parser.read(config_file)
+            func_parser.set('job_manager_output_path', 'path', 'file input directory')
+            with open(config_file, 'w') as configfile:
+                func_parser.write(configfile)
+            job_manager_entry_box.config(state=NORMAL)
+            job_manager_entry_box.delete(0, END)
+            job_manager_entry_box.insert(0, str(func_parser['job_manager_output_path']['path']).title())
+            job_manager_entry_box.config(state=DISABLED)
+
+    reset_job_manager_path = HoverButton(job_window_frame, text="X", command=reset_job_window_path,
+                                         foreground="white", background="#23272A", borderwidth="3",
+                                         activebackground='grey')
+    reset_job_manager_path.grid(row=0, column=3, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
