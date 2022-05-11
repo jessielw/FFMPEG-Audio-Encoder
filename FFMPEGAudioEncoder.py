@@ -600,7 +600,7 @@ def openaudiowindow():
     try:  # Checks if existing "Audio Settings" window is already opened if exists don't open a new one
         if audio_window.winfo_exists():
             # Open a message: Let the user know they need to close already opened window before opening another
-            messagebox.showinfo(title=f'{audio_window.wm_title()} already opened',  # Get's title of opened window
+            messagebox.showinfo(title=f'{audio_window.wm_title()} already opened',  # Get title of opened window
                                 message=f'Close "{audio_window.wm_title()}" window before attempting to open '
                                         f'settings for "{str(encoder.get())}" encoder')
             return  # Code to return 'None', to break from function
@@ -6330,8 +6330,17 @@ add_job_button.grid(row=0, column=1, columnspan=2, padx=5, pady=5, sticky=N + S 
 # Start Audio Job: Manual -----------------------------------------------------------------------
 def start_audio_job_manual():
     global encoding_job_type
-    encoding_job_type = 'manual'
-    threading.Thread(target=startaudiojob).start()
+    if pathlib.Path(file_output).is_file():  # Checks if 'output' variable/file already exists
+        overwrite_output = messagebox.askyesno(title='Overwrite?',  # If exists would you like to over-write?
+                                               message=f'Would you like to overwrite {str(file_output)}?')
+        if overwrite_output:  # If "yes"
+            encoding_job_type = 'manual'
+            threading.Thread(target=startaudiojob).start()
+        if not overwrite_output:  # If "no"
+            file_save()  # Open Output button function to set a new output file location
+    else:  # If output doesn't exist go on and run the start job code
+        encoding_job_type = 'manual'
+        threading.Thread(target=startaudiojob).start()
 
 
 start_audio_button = HoverButton(start_buttons_frame, text="Start Job", command=start_audio_job_manual, state=DISABLED,
@@ -6343,7 +6352,8 @@ start_audio_button.grid(row=0, column=3, columnspan=1, padx=5, pady=5, sticky=N 
 
 # Start Audio Job: Auto -----------------------------------------------------------------------------
 def encode_last_used_setting():
-    global encoding_job_type, audio_window, acodec_stream_track_counter, gotosavefile, track_counter, acodec_stream
+    global encoding_job_type, audio_window, acodec_stream_track_counter, gotosavefile, track_counter, acodec_stream, \
+        file_output
     encoding_job_type = 'auto'
     track_counter()
     encoder.set(config_profile['Auto Encode']['codec'])
@@ -6352,7 +6362,29 @@ def encode_last_used_setting():
     command_line_button.config(state=DISABLED)
     output_button.config(state=DISABLED)
     if acodec_stream.get() != 'None':
-        threading.Thread(target=startaudiojob).start()
+        if pathlib.Path(file_output).is_file():  # Checks if 'output' variable/file already exists
+            overwrite_output = messagebox.askyesno(title='Overwrite?',  # If exists would you like to over-write?
+                                                   message=f'Would you like to overwrite {str(file_output)}?')
+            if overwrite_output:  # If "yes"
+                threading.Thread(target=startaudiojob).start()
+            if not overwrite_output:  # If "no"
+                file_input_extension = str(pathlib.Path(file_output).suffix)  # Get output extension
+                # Open save dialog box to define new path
+                change_name = filedialog.asksaveasfilename(defaultextension=file_input_extension,
+                                                           initialdir=pathlib.Path(file_output).parent,
+                                                           title="Select New Save Location",
+                                                           initialfile=pathlib.Path(file_output).name,
+                                                           filetypes=[(file_input_extension, file_input_extension)])
+                if change_name:  # If path is defined (user presses save)
+                    file_output = change_name
+                    threading.Thread(target=startaudiojob).start()
+                if not change_name:  # If path is not defined (user presses cancel or X)
+                    root.deiconify()  # Re-Open root
+                    open_all_toplevels()  # Re-Open any toplevels that might have been closed
+                    set_fresh_launch()  # Reset the GUI to fresh launch
+                    return  # Return None and exit
+        else:  # If output doesn't exist go on and run the start job code
+            threading.Thread(target=startaudiojob).start()
 
 
 auto_encode_last_options = HoverButton(start_buttons_frame, text="Auto Encode:\nLast Used Options",
