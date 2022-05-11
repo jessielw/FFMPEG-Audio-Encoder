@@ -13,7 +13,11 @@ def create_config_params():
         config.add_section('output_path')
     if not config.has_option('output_path', 'path'):
         config.set('output_path', 'path', 'file input directory')
-    if not config.has_section('ffmpeg_path'):  # Create config parameters
+    if not config.has_section('job_manager_output_path'):
+        config.add_section('job_manager_output_path')
+    if not config.has_option('job_manager_output_path', 'path'):
+        config.set('job_manager_output_path', 'path', 'file input directory')
+    if not config.has_section('ffmpeg_path'):
         config.add_section('ffmpeg_path')
     if not config.has_option('ffmpeg_path', 'path'):
         config.set('ffmpeg_path', 'path', '')
