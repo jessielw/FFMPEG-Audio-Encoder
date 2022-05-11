@@ -83,8 +83,9 @@ config_profile.read(config_profile_ini)
 # Config Parser -------------------------------------------------------------------------------------------------------
 
 # Clean log files -----------------------------------------------------------------------------------------------------
-def clean_logs():
-    log_path = "Runtime/logs/"
+def clean_manual_auto():  # Code to clean auto/manual job log files on start
+    log_path = "Runtime/logs/manual_auto/"
+    pathlib.Path(log_path).resolve().mkdir(parents=True, exist_ok=True)
     max_log_files = 50
 
     def sorted_log_list(path):
@@ -97,7 +98,39 @@ def clean_logs():
         pathlib.Path(pathlib.Path(log_path).resolve() / x).unlink(missing_ok=True)
 
 
-clean_logs()
+def clean_job_window_single():  # Code to clean job manager window single encodes log files on start
+    log_path = "Runtime/logs/job_manager_single/"
+    pathlib.Path(log_path).resolve().mkdir(parents=True, exist_ok=True)
+    max_log_files = 100
+
+    def sorted_log_list(path):
+        get_time = lambda f: os.stat(os.path.join(path, f)).st_mtime
+        return list(sorted(os.listdir(path), key=get_time))
+
+    del_list = sorted_log_list(log_path)[0:(len(sorted_log_list(log_path)) - max_log_files)]
+
+    for x in del_list:
+        pathlib.Path(pathlib.Path(log_path).resolve() / x).unlink(missing_ok=True)
+
+
+def clean_job_window_multi():  # Code to clean job manager window multi encodes log files on start
+    log_path = "Runtime/logs/job_manager_multi/"
+    pathlib.Path(log_path).resolve().mkdir(parents=True, exist_ok=True)
+    max_log_files = 100
+
+    def sorted_log_list(path):
+        get_time = lambda f: os.stat(os.path.join(path, f)).st_mtime
+        return list(sorted(os.listdir(path), key=get_time))
+
+    del_list = sorted_log_list(log_path)[0:(len(sorted_log_list(log_path)) - max_log_files)]
+
+    for x in del_list:
+        pathlib.Path(pathlib.Path(log_path).resolve() / x).unlink(missing_ok=True)
+
+
+clean_manual_auto()
+clean_job_window_single()
+clean_job_window_multi()
 # ----------------------------------------------------------------------------------------------------- Clean log files
 
 root = TkinterDnD.Tk()
@@ -333,6 +366,23 @@ def reset_config():
 
 
 options_menu.add_command(label='Reset Configuration File', command=reset_config)
+
+
+def clean_all_logs():
+    msg = messagebox.askyesno(title='Warning', message='Are you sure you want to delete all log files?')
+    if msg:
+        log_folder_manual = pathlib.Path('Runtime/logs/manual_auto/').resolve()
+        log_folder_job_manager_single = pathlib.Path('Runtime/logs/job_manager_single').resolve()
+        log_folder_job_manager_multi = pathlib.Path('Runtime/logs/job_manager_multi').resolve()
+        [f.unlink() for f in pathlib.Path(log_folder_manual).glob("*") if f.is_file()]
+        [f.unlink() for f in pathlib.Path(log_folder_job_manager_single).glob("*") if f.is_file()]
+        [f.unlink() for f in pathlib.Path(log_folder_job_manager_multi).glob("*") if f.is_file()]
+        if len(os.listdir(log_folder_manual)) == 0 and len(os.listdir(log_folder_job_manager_single)) == 0 and \
+                len(os.listdir(log_folder_job_manager_multi)) == 0:
+            messagebox.showinfo(title='Info', message='All log directories have been cleaned')
+
+
+options_menu.add_command(label='Clean Log Files', command=clean_all_logs)
 
 tools_submenu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
 my_menu_bar.add_cascade(label='Tools', menu=tools_submenu)
@@ -5463,7 +5513,7 @@ def startaudiojob():
         encode_window_progress.configure(state=DISABLED)  # Disable progress window editing
 
         # Log Files ---------------------------------------------------------------------------------------------------
-        log_folder = pathlib.Path('Runtime/logs').resolve()
+        log_folder = pathlib.Path('Runtime/logs/manual_auto/').resolve()
         pathlib.Path(log_folder).mkdir(parents=False, exist_ok=True)
         if len(str(pathlib.Path(file_input).name).strip()) > 50:
             file_name = str(pathlib.Path(file_input).name)[:50].strip()
@@ -5815,7 +5865,9 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
         for x_close in reversed(range(10)):
             jobs_window_progress.config(height=x_close - 1)
             sleep(.0167)  # Close drawer at 60fps
-        jobs_window_progress.delete(0, END)
+        jobs_window_progress.config(state=NORMAL)
+        jobs_window_progress.delete(1.0, END)
+        jobs_window_progress.config(state=DISABLED)
         jobs_window_progress_frame.grid_remove()
         jobs_window_button_frame.grid_remove()
         start_selected_button.config(state=NORMAL)
@@ -5953,7 +6005,6 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
                         pickle.dump(job_listbox.get(0, END), pickle_file, pickle.HIGHEST_PROTOCOL)
                     job_listbox.xview_moveto(0)
                     job_listbox.yview_moveto(0)
-                    # job_listbox.config(state=DISABLED)
 
             if pathlib.Path(output_file).is_file() and progress_error == 'no':
                 # This block of code will show FILE OUTPUT ETC
@@ -5962,6 +6013,17 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
                 jobs_window_progress.insert(END, '\n' + '- ' * 18 + 'Encode Completed' + ' -' * 18 + '\n\n')
                 jobs_window_progress.see(END)
                 jobs_window_progress.configure(state=DISABLED)
+
+            # Log Files -----------------------------------------------------------------------------------
+            log_folder = pathlib.Path('Runtime/logs/job_manager_single/').resolve()
+            pathlib.Path(log_folder).mkdir(parents=False, exist_ok=True)
+            log_txt = pathlib.Path(
+                f"{str(log_folder)}/{datetime.now().strftime('%m-%d-%y - %I.%M.%S')}-log.txt")
+            logfile = open(log_txt, 'w')
+            logfile.write(jobs_window_progress.get(1.0, END))
+            logfile.flush()
+            logfile.close()
+            # ----------------------------------------------------------------------------------- Log Files
 
             start_all_jobs_button.config(state=NORMAL)
             start_selected_button.config(state=NORMAL)
@@ -6135,6 +6197,16 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
                     if job_listbox.size() > 0:  # If listbox has more than 0 items in it
                         threading.Thread(target=start_multi_file_processing).start()  # Start job again
                     elif job_listbox.size() == 0:  # If listbox has 0 items
+                        # Log Files -----------------------------------------------------------------------------------
+                        log_folder = pathlib.Path('Runtime/logs/job_manager_multi').resolve()
+                        pathlib.Path(log_folder).mkdir(parents=False, exist_ok=True)
+                        log_txt = pathlib.Path(
+                            f"{str(log_folder)}/{datetime.now().strftime('%m-%d-%y - %I.%M.%S')}-log.txt")
+                        logfile = open(log_txt, 'w')
+                        logfile.write(jobs_window_progress.get(1.0, END))
+                        logfile.flush()
+                        logfile.close()
+                        # ----------------------------------------------------------------------------------- Log Files
                         close_jobs_progress_drawer()  # Close processing drawer
 
                 if not continue_multiprocess_job:
