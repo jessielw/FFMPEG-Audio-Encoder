@@ -5527,7 +5527,7 @@ def startaudiojob():
         logfile.close()
         # --------------------------------------------------------------------------------------------------- Log Files
 
-        if config['auto_close_progress_window']['option'] == 'on':
+        if config['auto_close_progress_window']['option'] == 'on' and progress_error == 'no':
             close_window()  # If program is set to auto close encoding window when complete, close
 
         root.deiconify()  # Re-Open Root
