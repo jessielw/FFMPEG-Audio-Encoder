@@ -7,6 +7,7 @@ import subprocess
 import threading
 import tkinter.scrolledtext as scrolledtextwidget
 import webbrowser
+from datetime import datetime
 from configparser import ConfigParser
 from ctypes import windll
 from idlelib.tooltip import Hovertip
@@ -21,7 +22,6 @@ from TkinterDnD2 import *
 from pymediainfo import MediaInfo
 
 from Packages.About import openaboutwindow
-from Packages.DirectoryCheck import directory_check
 from Packages.FFMPEGAudioEncoderBatch import batch_processing
 from Packages.SimpleYoutubeDLGui import youtube_dl_launcher_for_ffmpegaudioencoder
 from Packages.config_params import create_config_params
@@ -78,7 +78,28 @@ config.read(config_file)
 config_profile_ini = 'Runtime/profiles.ini'  # Creates (if doesn't exist) and defines location of profile.ini
 config_profile = ConfigParser()
 config_profile.read(config_profile_ini)
+
+
 # Config Parser -------------------------------------------------------------------------------------------------------
+
+# Clean log files -----------------------------------------------------------------------------------------------------
+def clean_logs():
+    log_path = "Runtime/logs/"
+    max_log_files = 50
+
+    def sorted_log_list(path):
+        get_time = lambda f: os.stat(os.path.join(path, f)).st_mtime
+        return list(sorted(os.listdir(path), key=get_time))
+
+    del_list = sorted_log_list(log_path)[0:(len(sorted_log_list(log_path)) - max_log_files)]
+
+    for x in del_list:
+        pathlib.Path(pathlib.Path(log_path).resolve() / x).unlink(missing_ok=True)
+
+
+clean_logs()
+# ----------------------------------------------------------------------------------------------------- Clean log files
+
 root = TkinterDnD.Tk()
 root.title("FFMPEG Audio Encoder v3.39")
 root.iconphoto(True, PhotoImage(data=gui_icon))
@@ -5440,6 +5461,22 @@ def startaudiojob():
         encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
         encode_window_progress.see(END)  # Scroll to bottom of text window
         encode_window_progress.configure(state=DISABLED)  # Disable progress window editing
+
+        # Log Files ---------------------------------------------------------------------------------------------------
+        log_folder = pathlib.Path('Runtime/logs').resolve()
+        pathlib.Path(log_folder).mkdir(parents=False, exist_ok=True)
+        if len(str(pathlib.Path(file_input).name).strip()) > 50:
+            file_name = str(pathlib.Path(file_input).name)[:50].strip()
+        else:
+            file_name = str(pathlib.Path(file_input).name).strip()
+        log_txt = pathlib.Path(
+            f"{str(log_folder)}/{datetime.now().strftime('%m-%d-%y - %I.%M.%S')}-[{file_name}]-log.txt")
+        logfile = open(log_txt, 'w')
+        logfile.write(encode_window_progress.get(1.0, END))
+        logfile.flush()
+        logfile.close()
+        # --------------------------------------------------------------------------------------------------- Log Files
+
         if config['auto_close_progress_window']['option'] == 'on':
             close_window()  # If program is set to auto close encoding window when complete, close
 
@@ -6292,7 +6329,12 @@ status_label.grid(column=0, row=4, columnspan=4, sticky=W + E)
 # ----------------------------------------------------------------- Status Label at bottom of main GUI
 
 # Checks for App Folder and Sub-Directories - Creates Folders if they are missing -------------------------------------
-directory_check()
+pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'FFMPEG').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'MediaInfo').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'MediaInfoCLI').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'fdkaac').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'qaac').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'mpv').mkdir(parents=True, exist_ok=True)
 
 
 # -------------------------------------------------------------------------------------------------------- Folder Check
