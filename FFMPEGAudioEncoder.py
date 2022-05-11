@@ -4957,22 +4957,22 @@ def collect_final_job_commands():
                                         dts_bitrate_spinbox.get() + "k " +
                                         acodec_channel_choices[acodec_channel.get()] +
                                         acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                        dts_custom_cmd_input + "-sn -vn -map_chapters -1 " + file_output_quoted +
-                                        " -v error -hide_banner -stats").split())
+                                        dts_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
+                                        file_output_quoted + " -v error -hide_banner -stats").split())
             last_used_command = ' '.join(str(dts_settings_choices[dts_settings.get()] + "-b:a " +
                                              dts_bitrate_spinbox.get() + "k " +
                                              acodec_channel_choices[acodec_channel.get()] +
                                              acodec_samplerate_choices[acodec_samplerate.get()] +
                                              audio_filter_setting + dts_custom_cmd_input +
-                                             "-sn -vn -map_chapters -1 ").split())
+                                             "-sn -vn -map_chapters -1 -map_metadata -1 ").split())
         elif dts_settings.get() != 'DTS Encoder':
             finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
                                         file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
                                         dts_settings_choices[dts_settings.get()] + dts_custom_cmd_input +
-                                        "-sn -vn -map_chapters -1 " + file_output_quoted +
+                                        "-sn -vn -map_chapters -1 -map_metadata -1 " + file_output_quoted +
                                         " -v error -hide_banner -stats").split())
             last_used_command = ' '.join(str(dts_settings_choices[dts_settings.get()] + dts_custom_cmd_input +
-                                             "-sn -vn -map_chapters -1 ").split())
+                                             "-sn -vn -map_chapters -1 -map_metadata -1 ").split())
     # ------------------------------------------------------------------------------------------------------------- DTS
     # Opus Start Job --------------------------------------------------------------------------------------------------
     elif encoder.get() == "Opus":
