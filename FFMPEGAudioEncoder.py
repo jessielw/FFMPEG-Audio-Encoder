@@ -7,11 +7,11 @@ import subprocess
 import threading
 import tkinter.scrolledtext as scrolledtextwidget
 import webbrowser
-from random import randint
-from datetime import datetime
 from configparser import ConfigParser
 from ctypes import windll
+from datetime import datetime
 from idlelib.tooltip import Hovertip
+from random import randint
 from time import sleep
 from tkinter import filedialog, StringVar, ttk, messagebox, PhotoImage, Menu, NORMAL, DISABLED, N, S, W, E, Toplevel, \
     LabelFrame, END, INSERT, Label, Checkbutton, Spinbox, CENTER, GROOVE, OptionMenu, Entry, HORIZONTAL, SUNKEN, \
@@ -20,16 +20,17 @@ from tkinter import filedialog, StringVar, ttk, messagebox, PhotoImage, Menu, NO
 import psutil
 import pyperclip
 from TkinterDnD2 import *
+from pyautogui import hotkey as pya_hotkey
 from pymediainfo import MediaInfo
 
 from Packages.About import openaboutwindow
 from Packages.FFMPEGAudioEncoderBatch import batch_processing
 from Packages.SimpleYoutubeDLGui import youtube_dl_launcher_for_ffmpegaudioencoder
 from Packages.config_params import create_config_params
+from Packages.general_settings import open_general_settings
 from Packages.icon import gui_icon
 from Packages.show_streams import show_streams_mediainfo_function, exit_stream_window
 from Packages.window_geometry_settings import set_window_geometry_settings
-from Packages.general_settings import open_general_settings
 
 
 # Main Gui & Windows --------------------------------------------------------
@@ -852,12 +853,12 @@ def openaudiowindow():
 
     # ---------------------------------------------------------------------------------------------------- combines -af
 
-    # Set encoding_job_type to 'manual' when clicked by codecs in audio settings window ----------------------------------
+    # Set encoding_job_type to 'manual' when clicked by codecs in audio settings window -------------------------------
     def set_encode_manual():
         global encoding_job_type
         encoding_job_type = 'manual'
 
-    # ---------------------------------- Set encoding_job_type to 'manual' when clicked by codecs in audio settings window
+    # ------------------------------- Set encoding_job_type to 'manual' when clicked by codecs in audio settings window
 
     # Save audio codec window size/positions --------------------------------------------------------------------------
     def save_codec_window_positions():
@@ -4752,9 +4753,16 @@ def openaudiowindow():
     def right_click_menu_func(x_y_pos):  # Function for mouse button 3 (right click) to pop up menu
         right_click_menu.tk_popup(x_y_pos.x_root, x_y_pos.y_root)  # This gets the position of cursor
 
+    def copy_selected_text():  # Function to copy only selected text
+        pya_hotkey('ctrl', 'c')
+        sleep(.01)  # Slow program incase ctrl+c is slower
+
     right_click_menu = Menu(mini_cmd_window, tearoff=False)  # This is the right click menu
-    right_click_menu.add_command(label='Copy', command=lambda: pyperclip.copy(mini_cmd_window.get(1.0, END).strip()))
+    right_click_menu.add_command(label='Copy Selected Text', command=copy_selected_text)
+    right_click_menu.add_command(label='Copy All Text', command=lambda: pyperclip.copy(
+        mini_cmd_window.get(1.0, END).strip()))
     mini_cmd_window.bind('<Button-3>', right_click_menu_func)  # Uses mouse button 3 (right click) to pop up menu
+    Hovertip(mini_cmd_window, 'Right click to copy', hover_delay=1200)  # Hover tip tool-tip
 
     # Local configparser for below code
     audio_func_parser = ConfigParser()
@@ -4885,27 +4893,36 @@ def print_command_line():
     show_cmd_scrolled_main.see(END)
     show_cmd_scrolled_main.configure(state=DISABLED)
 
-    def copy_to_clipboard():  # Function to allow copying full command to clipboard via pyperclip module
-        pyperclip.copy(show_cmd_scrolled_main.get(1.0, END))
-
-    copy_text = HoverButton(cmd_line_window, text='Copy to clipboard', command=copy_to_clipboard,
-                            foreground='white', background='#23272A', borderwidth='3', activebackground='grey')
-    copy_text.grid(row=1, column=0, columnspan=1, padx=(20, 20), pady=(4, 5), sticky=E)
-
     def print_command_line_updater():
         try:
-            audio_filter_function()
-            collect_final_job_commands()
-            show_cmd_scrolled_main.configure(state=NORMAL)
-            show_cmd_scrolled_main.delete(1.0, END)
-            show_cmd_scrolled_main.insert(END, finalcommand)
-            show_cmd_scrolled_main.see(END)
-            show_cmd_scrolled_main.configure(state=DISABLED)
+            if show_cmd_scrolled_main.winfo_viewable():
+                if show_cmd_scrolled_main.get(1.0, END).strip() != finalcommand.strip():
+                    audio_filter_function()
+                    collect_final_job_commands()
+                    show_cmd_scrolled_main.configure(state=NORMAL)
+                    show_cmd_scrolled_main.delete(1.0, END)
+                    show_cmd_scrolled_main.insert(END, finalcommand)
+                    show_cmd_scrolled_main.see(END)
+                    show_cmd_scrolled_main.configure(state=DISABLED)
             root.after(50, print_command_line_updater)
         except (NameError, AttributeError, TclError):
             return
 
     print_command_line_updater()
+
+    def right_click_menu_func(x_y_pos):  # Function for mouse button 3 (right click) to pop up menu
+        right_click_menu.tk_popup(x_y_pos.x_root, x_y_pos.y_root)  # This gets the position of cursor
+
+    def copy_selected_text():  # Function to copy only selected text
+        pya_hotkey('ctrl', 'c')
+        sleep(.01)  # Slow program incase ctrl+c is slower
+
+    right_click_menu = Menu(cmd_line_window, tearoff=False)  # This is the right click menu
+    right_click_menu.add_command(label='Copy Selected Text', command=copy_selected_text)
+    right_click_menu.add_command(label='Copy All Text', command=lambda: pyperclip.copy(
+        show_cmd_scrolled_main.get(1.0, END).strip()))
+    cmd_line_window.bind('<Button-3>', right_click_menu_func)  # Uses mouse button 3 (right click) to pop up menu
+    Hovertip(cmd_line_window, 'Right click to copy', hover_delay=1200)  # Hover tip tool-tip
 
 
 # ---------------------------------------------------------------------------------------- Print Command Line from ROOT
