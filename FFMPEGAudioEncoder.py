@@ -4,12 +4,14 @@ import pathlib
 import pickle
 import shutil
 import subprocess
+import sys
 import threading
 import tkinter.scrolledtext as scrolledtextwidget
 import webbrowser
 from configparser import ConfigParser
 from ctypes import windll
 from datetime import datetime
+from glob import glob
 from idlelib.tooltip import Hovertip
 from random import randint
 from time import sleep
@@ -31,6 +33,9 @@ from Packages.general_settings import open_general_settings
 from Packages.icon import gui_icon
 from Packages.show_streams import show_streams_mediainfo_function, exit_stream_window
 from Packages.window_geometry_settings import set_window_geometry_settings
+
+# Set variable to True if you want errors to pop up in window + log to file + console, False for console only
+log_error_to_file = True  # Change this to false if you don't want to log errors to file + pop up window
 
 
 # Main Gui & Windows --------------------------------------------------------
@@ -61,12 +66,14 @@ def root_exit_function():
                 child.kill()  # Loop through all the children processes and kill them with psutil module
             save_root_pos()  # Save root position
             root.destroy()  # Root destroy
+            exit_and_clean_empty_logs()  # Exit and clean empty error log files
     if not open_tops:  # If no top levels are found, exit the program without prompt
         parent = psutil.Process(root_pid)  # Set psutil parent ID
         for child in parent.children(recursive=True):
             child.kill()  # Loop through all the children processes and kill them with psutil module
-        save_root_pos()  # Save root posotion
+        save_root_pos()  # Save root position
         root.destroy()  # Root destroy
+        exit_and_clean_empty_logs()  # Exit and clean empty error log files
 
 
 # ------------------------------------------------------------------------------------------------------- Config Parser
@@ -89,50 +96,55 @@ def clean_manual_auto():  # Code to clean auto/manual job log files on start
     log_path = "Runtime/logs/manual_auto/"
     pathlib.Path(log_path).resolve().mkdir(parents=True, exist_ok=True)
     max_log_files = 50
-
-    def sorted_log_list(path):
-        get_time = lambda f: os.stat(os.path.join(path, f)).st_mtime
-        return list(sorted(os.listdir(path), key=get_time))
-
-    del_list = sorted_log_list(log_path)[0:(len(sorted_log_list(log_path)) - max_log_files)]
-
-    for x in del_list:
-        pathlib.Path(pathlib.Path(log_path).resolve() / x).unlink(missing_ok=True)
+    files = glob(os.path.join(log_path, '*.txt'))  # Collect all files.
+    # Choose files to be deleted.
+    to_delete = sorted(files, key=lambda x: os.stat(x).st_mtime)[:len(files) - max_log_files]
+    for error_files in to_delete:  # Delete files
+        os.remove(error_files)
 
 
 def clean_job_window_single():  # Code to clean job manager window single encodes log files on start
     log_path = "Runtime/logs/job_manager_single/"
     pathlib.Path(log_path).resolve().mkdir(parents=True, exist_ok=True)
     max_log_files = 100
-
-    def sorted_log_list(path):
-        get_time = lambda f: os.stat(os.path.join(path, f)).st_mtime
-        return list(sorted(os.listdir(path), key=get_time))
-
-    del_list = sorted_log_list(log_path)[0:(len(sorted_log_list(log_path)) - max_log_files)]
-
-    for x in del_list:
-        pathlib.Path(pathlib.Path(log_path).resolve() / x).unlink(missing_ok=True)
+    files = glob(os.path.join(log_path, '*.txt'))  # Collect all files.
+    # Choose files to be deleted.
+    to_delete = sorted(files, key=lambda x: os.stat(x).st_mtime)[:len(files) - max_log_files]
+    for error_files in to_delete:  # Delete files
+        os.remove(error_files)
 
 
 def clean_job_window_multi():  # Code to clean job manager window multi encodes log files on start
     log_path = "Runtime/logs/job_manager_multi/"
     pathlib.Path(log_path).resolve().mkdir(parents=True, exist_ok=True)
     max_log_files = 100
+    files = glob(os.path.join(log_path, '*.txt'))  # Collect all files.
+    # Choose files to be deleted.
+    to_delete = sorted(files, key=lambda x: os.stat(x).st_mtime)[:len(files) - max_log_files]
+    for error_files in to_delete:  # Delete files
+        os.remove(error_files)
 
-    def sorted_log_list(path):
-        get_time = lambda f: os.stat(os.path.join(path, f)).st_mtime
-        return list(sorted(os.listdir(path), key=get_time))
 
-    del_list = sorted_log_list(log_path)[0:(len(sorted_log_list(log_path)) - max_log_files)]
+def clean_main_program_error_logs():  # Clean main gui error files
+    path = 'Runtime/logs/error_logs/'  # Set path to log files
+    empty_files = glob(os.path.join(path, '*.txt'))
+    to_delete = (f for f in empty_files if os.stat(f).st_size == 0)
+    for f in to_delete:  # Get rid of any empty log files on start, if there is any
+        os.remove(f)
 
-    for x in del_list:
-        pathlib.Path(pathlib.Path(log_path).resolve() / x).unlink(missing_ok=True)
+    pathlib.Path(path).resolve().mkdir(parents=True, exist_ok=True)  # Remove older error files over 10
+    max_error_files = 10  # Set maximum amount of error files in directory
+    files = glob(os.path.join(path, '*.txt'))  # Collect all files.
+    # Choose files to be deleted.
+    to_delete = sorted(files, key=lambda x: os.stat(x).st_mtime)[:len(files) - max_error_files]
+    for error_files in to_delete:  # Delete files
+        os.remove(error_files)
 
 
 clean_manual_auto()
 clean_job_window_single()
 clean_job_window_multi()
+clean_main_program_error_logs()
 # ----------------------------------------------------------------------------------------------------- Clean log files
 
 root = TkinterDnD.Tk()
@@ -231,6 +243,91 @@ class HoverButton(Button):
 
 # --------------------------------------- Hover over button theme
 # -------------------------------------------------------------------------------------------------------------- Themes
+
+# Open GitHub tracker for program -------------------------------------------------------------------------------------
+def open_github_error_tracker():
+    webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
+
+
+# ------------------------------------------------------------------------------------- Open github tracker for program
+
+# Logger class, handles all traceback/stdout errors for program, writes to file and to window -------------------------
+if log_error_to_file:
+    class Logger(object):  # Logger class, this class puts stderr errors into a window and file at the same time
+        def __init__(self):
+            self.terminal = sys.stderr  # Redirects sys.stderr
+            error_folder = pathlib.Path('Runtime/logs/error_logs/').resolve()  # Define error folder
+            pathlib.Path(error_folder).mkdir(parents=False, exist_ok=True)  # Create the folder if it doesn't exist
+            error_log_txt = pathlib.Path(f"{str(error_folder)}/{datetime.now().strftime('%m-%d-%y - %I.%M.%S')}"
+                                         f"-errorlog.txt")
+            self.error_log_file = open(error_log_txt, "w")  # Set log file name + open/write
+
+        def write(self, message):
+            global info_scrolled
+            self.terminal.write(message)
+            self.error_log_file.write(message)
+            try:
+                info_scrolled.config(state=NORMAL)
+                if str(message).rstrip():
+                    info_scrolled.insert(END, str(message).strip())
+                if not str(message).rstrip():
+                    info_scrolled.insert(END, f'{str(message)}\n')
+                info_scrolled.see(END)
+                info_scrolled.config(state=DISABLED)
+            except (NameError, TclError):
+                error_window = Toplevel()
+                error_window.title('Traceback Error(s)')
+                error_window.configure(background="#434547")
+                for e_w in range(4):
+                    error_window.grid_columnconfigure(e_w, weight=1)
+                error_window.grid_rowconfigure(0, weight=1)
+                error_window.grid_rowconfigure(1, weight=1)
+                info_scrolled = scrolledtextwidget.ScrolledText(error_window, width=90, height=10, tabs=10, spacing2=3,
+                                                                spacing1=2, spacing3=3)
+                info_scrolled.grid(row=0, column=0, columnspan=4, pady=5, padx=5, sticky=E + W + N + S)
+                info_scrolled.configure(bg='black', fg='#CFD2D1', bd=8)
+                info_scrolled.insert(END, message)
+                info_scrolled.see(END)
+                info_scrolled.config(state=DISABLED)
+
+                copy_text = HoverButton(error_window, text='Report Error', command=open_github_error_tracker,
+                                        foreground='white', background='#23272A', borderwidth='3',
+                                        activebackground='grey')
+                copy_text.grid(row=1, column=3, columnspan=1, padx=10, pady=(5, 4), sticky=S + E + N)
+
+                def right_click_menu_func(x_y_pos):  # Function for mouse button 3 (right click) to pop up menu
+                    right_click_menu.tk_popup(x_y_pos.x_root, x_y_pos.y_root)  # This gets the position of cursor
+
+                right_click_menu = Menu(info_scrolled, tearoff=False)  # This is the right click menu
+                right_click_menu.add_command(label='Copy to clipboard', command=lambda: pyperclip.copy(
+                    info_scrolled.get(1.0, END).strip()))
+                info_scrolled.bind('<Button-3>', right_click_menu_func)  # Uses mouse button 3 to open the menu
+                Hovertip(info_scrolled, 'Right click to copy', hover_delay=1200)  # Hover tip tool-tip
+
+        def flush(self):
+            pass
+
+        def __exit__(self):  # Class exit function
+            sys.stderr = sys.__stderr__  # Redirect stderr back to original stderr
+            self.error_log_file.close()  # Close file
+
+
+if log_error_to_file:  # If True
+    sys.stderr = Logger()  # Start the Logger() class to write to console and file
+
+
+def exit_and_clean_empty_logs():  # Function to exit logger() and delete logfile if it's empty
+    if log_error_to_file:  # If True
+        Logger().__exit__()  # Run Logger()__exit__() function
+        empty_files = glob(os.path.join('Runtime/logs/error_logs/', '*.txt'))
+        to_delete = (f for f in empty_files if os.stat(f).st_size == 0)
+        for f in to_delete:  # Check and delete empty files, if there is any
+            os.remove(f)
+    elif not log_error_to_file:  # If error logging is set to false, do nothing inside this function
+        return
+
+
+# ------------------------- Logger class, handles all traceback/stdout errors for program, writes to file and to window
 
 # Bundled Apps --------------------------------------------------------------------------------------------------------
 ffmpeg = config['ffmpeg_path']['path']
@@ -370,18 +467,23 @@ def reset_config():
 options_menu.add_command(label='Reset Configuration File', command=reset_config)
 
 
-def clean_all_logs():
+def clean_all_logs():  # Function to clean all log files if hit
     msg = messagebox.askyesno(title='Warning', message='Are you sure you want to delete all log files?')
     if msg:
         log_folder_manual = pathlib.Path('Runtime/logs/manual_auto/').resolve()
-        log_folder_job_manager_single = pathlib.Path('Runtime/logs/job_manager_single').resolve()
-        log_folder_job_manager_multi = pathlib.Path('Runtime/logs/job_manager_multi').resolve()
+        log_folder_job_manager_single = pathlib.Path('Runtime/logs/job_manager_single/').resolve()
+        log_folder_job_manager_multi = pathlib.Path('Runtime/logs/job_manager_multi/').resolve()
+        error_log_folder = pathlib.Path('Runtime/logs/error_logs/').resolve()
         [f.unlink() for f in pathlib.Path(log_folder_manual).glob("*") if f.is_file()]
         [f.unlink() for f in pathlib.Path(log_folder_job_manager_single).glob("*") if f.is_file()]
         [f.unlink() for f in pathlib.Path(log_folder_job_manager_multi).glob("*") if f.is_file()]
+        try:
+            [f.unlink() for f in pathlib.Path(error_log_folder).glob("*") if f.is_file()]
+        except PermissionError:  # If file is in use (1 always will be, ignore the error)
+            pass
         if len(os.listdir(log_folder_manual)) == 0 and len(os.listdir(log_folder_job_manager_single)) == 0 and \
-                len(os.listdir(log_folder_job_manager_multi)) == 0:
-            messagebox.showinfo(title='Info', message='All log directories have been cleaned')
+                len(os.listdir(log_folder_job_manager_multi)) and len(os.listdir(error_log_folder)) <= 1:
+            messagebox.showinfo(title='Info', message='All log directories have been cleaned, other then file in use')
 
 
 options_menu.add_command(label='Clean Log Files', command=clean_all_logs)
