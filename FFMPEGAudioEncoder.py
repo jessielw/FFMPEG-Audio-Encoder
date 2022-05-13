@@ -312,8 +312,12 @@ if log_error_to_file:
             self.error_log_file.close()  # Close file
 
 
-if log_error_to_file:  # If True
-    sys.stderr = Logger()  # Start the Logger() class to write to console and file
+def start_logger():
+    if log_error_to_file:  # If True
+        sys.stderr = Logger()  # Start the Logger() class to write to console and file
+
+
+threading.Thread(target=start_logger).start()
 
 
 def exit_and_clean_empty_logs():  # Function to exit logger() and delete logfile if it's empty
@@ -5576,11 +5580,14 @@ def startaudiojob():
         progress_error = ''  # Set an empty variable to be changed in the job code
 
         for line in job.stdout:  # Using subprocess.Popen, read stdout lines
-            encode_window_progress.configure(state=NORMAL)
-            # Code removes any/all double or white space from string to keep it looking nice (ffmpeg is messy)
-            encode_window_progress.insert(END, str('\n'.join(' '.join(x.split()) for x in line.split('\n'))))
-            encode_window_progress.see(END)  # Scrolls the textbox to bottom every single pass
-            encode_window_progress.configure(state=DISABLED)
+            try:
+                encode_window_progress.configure(state=NORMAL)
+                # Code removes any/all double or white space from string to keep it looking nice (ffmpeg is messy)
+                encode_window_progress.insert(END, str('\n'.join(' '.join(x.split()) for x in line.split('\n'))))
+                encode_window_progress.see(END)  # Scrolls the textbox to bottom every single pass
+                encode_window_progress.configure(state=DISABLED)
+            except TclError:
+                return
 
             if total_duration is None:  # Set's the percent to 100% if input has no duration
                 percent = 100  # this way the job code can complete without error
