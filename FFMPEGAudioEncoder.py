@@ -278,22 +278,33 @@ if log_error_to_file:
                 error_window = Toplevel()
                 error_window.title('Traceback Error(s)')
                 error_window.configure(background="#434547")
+                window_height = 400
+                window_width = 600
+                screen_width = error_window.winfo_screenwidth()
+                screen_height = error_window.winfo_screenheight()
+                x_coordinate = int((screen_width / 2) - (window_width / 2))
+                y_coordinate = int((screen_height / 2) - (window_height / 2))
+                error_window.geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
                 for e_w in range(4):
                     error_window.grid_columnconfigure(e_w, weight=1)
                 error_window.grid_rowconfigure(0, weight=1)
-                error_window.grid_rowconfigure(1, weight=1)
-                info_scrolled = scrolledtextwidget.ScrolledText(error_window, width=90, height=10, tabs=10, spacing2=3,
-                                                                spacing1=2, spacing3=3)
+                info_scrolled = scrolledtextwidget.ScrolledText(error_window, tabs=10, spacing2=3, spacing1=2,
+                                                                spacing3=3)
                 info_scrolled.grid(row=0, column=0, columnspan=4, pady=5, padx=5, sticky=E + W + N + S)
                 info_scrolled.configure(bg='black', fg='#CFD2D1', bd=8)
                 info_scrolled.insert(END, message)
                 info_scrolled.see(END)
                 info_scrolled.config(state=DISABLED)
 
-                copy_text = HoverButton(error_window, text='Report Error', command=open_github_error_tracker,
-                                        foreground='white', background='#23272A', borderwidth='3',
-                                        activebackground='grey')
-                copy_text.grid(row=1, column=3, columnspan=1, padx=10, pady=(5, 4), sticky=S + E + N)
+                report_error = HoverButton(error_window, text='Report Error', command=open_github_error_tracker,
+                                           foreground='white', background='#23272A', borderwidth='3',
+                                           activebackground='grey')
+                report_error.grid(row=1, column=3, columnspan=1, padx=10, pady=(5, 4), sticky=S + E + N)
+
+                force_close_root = HoverButton(error_window, text='Force Close Program', command=root.destroy,
+                                               foreground='white', background='#23272A', borderwidth='3',
+                                               activebackground='grey')
+                force_close_root.grid(row=1, column=0, columnspan=1, padx=10, pady=(5, 4), sticky=S + W + N)
 
                 def right_click_menu_func(x_y_pos):  # Function for mouse button 3 (right click) to pop up menu
                     right_click_menu.tk_popup(x_y_pos.x_root, x_y_pos.y_root)  # This gets the position of cursor
