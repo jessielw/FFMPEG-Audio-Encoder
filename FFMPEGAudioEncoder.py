@@ -31,7 +31,7 @@ from Packages.SimpleYoutubeDLGui import youtube_dl_launcher_for_ffmpegaudioencod
 from Packages.config_params import create_config_params
 from Packages.general_settings import open_general_settings
 from Packages.icon import gui_icon
-from Packages.show_streams import show_streams_mediainfo_function, exit_stream_window
+from Packages.show_streams import show_streams_mediainfo_function, exit_stream_window, stream_menu
 from Packages.window_geometry_settings import set_window_geometry_settings
 
 # Set variable to True if you want errors to pop up in window + log to file + console, False for console only
@@ -285,6 +285,7 @@ if log_error_to_file:
                 x_coordinate = int((screen_width / 2) - (window_width / 2))
                 y_coordinate = int((screen_height / 2) - (window_height / 2))
                 error_window.geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
+                error_window.grab_set()  # Brings attention to this window until it's closed
                 for e_w in range(4):
                     error_window.grid_columnconfigure(e_w, weight=1)
                 error_window.grid_rowconfigure(0, weight=1)
@@ -346,7 +347,6 @@ def exit_and_clean_empty_logs():  # Function to exit logger() and delete logfile
 
 # Bundled Apps --------------------------------------------------------------------------------------------------------
 ffmpeg = config['ffmpeg_path']['path']
-mediainfocli = config['mediainfocli_path']['path']
 mediainfo = config['mediainfogui_path']['path']
 fdkaac = '"Apps/fdkaac/fdkaac.exe"'
 qaac = '"Apps/qaac/qaac64.exe"'
@@ -639,17 +639,11 @@ def show_streams_mediainfo():  # All audio codecs can call this function in thei
 # Uses MediaInfo CLI to get total audio track count and gives us a total track count ----------------------------------
 def track_counter(*args):  # Thanks for helping me shorten this 'gmes78'
     global acodec_stream_track_counter, t_info, track_count
-    mediainfocli_cmd_info = '"' + mediainfocli + " " + '--Output="Audio;' \
-                            + " |  %Format%  |  %Channel(s)% Channels  |  %BitRate/String% ," \
-                            + '"' + " " + file_input_quoted + '"'
-    mediainfo_count = subprocess.Popen('cmd /c ' + mediainfocli_cmd_info, creationflags=subprocess.CREATE_NO_WINDOW,
-                                       universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                       stdin=subprocess.PIPE, encoding="utf-8")
-    stdout, stderr = mediainfo_count.communicate()
-    t_info = stdout.split(',')[:-1]
+    formatting_string = stream_menu(file_input)
+    t_info = formatting_string
     acodec_stream_track_counter = {}
     for i in range(int(track_count)):
-        acodec_stream_track_counter[f'Track #{i + 1} {t_info[i]}'] = f' -map 0:a:{i} '
+        acodec_stream_track_counter[f'Track #{i + 1}  |  {t_info[i]}'] = f' -map 0:a:{i} '
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -1137,7 +1131,11 @@ def openaudiowindow():
                         set_fresh_launch_for_auto_encode()  # Reset Main Gui
 
                         def track_window():  # Function to select which audio track user would like to encode with
-                            global auto_track_input, acodec_stream, acodec_stream_choices
+                            global auto_track_input, mini_acodec_stream, acodec_stream_choices
+
+                            def mini_track_window_exit():
+                                close_audio_cancel()
+
                             audio_track_win = Toplevel()  # Toplevel window
                             audio_track_win.configure(background='#191a1a')  # Set color of audio_track_win background
                             window_height = 340  # win height
@@ -1146,8 +1144,8 @@ def openaudiowindow():
                             audio_track_win.geometry(f'{window_width}x{window_height}+'
                                                      f'{root.geometry().split("+")[1]}+{root.geometry().split("+")[2]}')
                             audio_track_win.resizable(0, 0)  # makes window not resizable
-                            audio_track_win.overrideredirect(1)  # will remove the top badge of window
                             audio_track_win.grab_set()  # forces audio_track_win to stay on top of root
+                            audio_track_win.protocol('WM_DELETE_WINDOW', mini_track_window_exit)
 
                             # Track Frame -----------------------------------------------------------------------------
                             # Define track frame
@@ -1162,7 +1160,10 @@ def openaudiowindow():
 
                             # Menu to show track(s) information -------------------------------------------------------
                             def update_track_window_text(*args):
-                                mapping_number = int(str(acodec_stream.get()).split()[1][1]) - 1
+                                try:
+                                    mapping_number = int(str(mini_acodec_stream.get()).split()[1][1]) - 1
+                                except IndexError:
+                                    return
                                 show_cmd_scrolled.configure(state=NORMAL, bg='black', fg='#CFD2D1', bd=8)
                                 show_cmd_scrolled.delete(1.0, END)
                                 show_cmd_scrolled.insert(END, f"-map 0:a:{str(mapping_number)} "
@@ -1179,16 +1180,17 @@ def openaudiowindow():
                             show_cmd_scrolled.see(END)
                             show_cmd_scrolled.configure(state=DISABLED)
 
-                            acodec_stream = StringVar()
+                            mini_acodec_stream = StringVar()
                             acodec_stream_choices = acodec_stream_track_counter
-                            acodec_stream.set(next(iter(acodec_stream_track_counter)))  # set the default option
-                            acodec_stream_menu = OptionMenu(track_frame, acodec_stream, *acodec_stream_choices.keys())
+                            mini_acodec_stream.set(next(iter(acodec_stream_track_counter)))  # set the default option
+                            acodec_stream_menu = OptionMenu(track_frame, mini_acodec_stream,
+                                                            *acodec_stream_choices.keys())
                             acodec_stream_menu.config(background="#23272A", foreground="white", highlightthickness=1,
                                                       width=48, anchor='w')
                             acodec_stream_menu.grid(row=0, column=0, columnspan=3, padx=10, pady=6,
                                                     sticky=N + S + W + E)
                             acodec_stream_menu["menu"].configure(activebackground="dim grey")
-                            acodec_stream.trace('w', update_track_window_text)
+                            mini_acodec_stream.trace('w', update_track_window_text)
 
                             # ------------------------------------------------------- Menu to show track(s) information
 
@@ -1202,12 +1204,12 @@ def openaudiowindow():
                                 auto_track_input = int(str(acodec_stream.get()).split()[1][1]) - 1
 
                             def close_audio_cancel():  # Function is used when 'Cancel' is clicked
-                                global acodec_stream
+                                global mini_acodec_stream
                                 open_all_toplevels()  # Open all top levels if they existed
                                 root.deiconify()  # Re-Open root window
                                 audio_track_win.grab_release()
                                 audio_track_win.destroy()  # Closes audio window
-                                acodec_stream.set('None')  # Set acodec_stream to None, so job does not start
+                                mini_acodec_stream.set('None')  # Set acodec_stream to None, so job does not start
                                 output_entry.configure(state=NORMAL)  # Enable output_entry
                                 output_entry.delete(0, END)  # Clear contents of output entry
                                 output_entry.configure(state=DISABLED)  # Disable output entry
@@ -1225,7 +1227,6 @@ def openaudiowindow():
                                                         activebackground='grey')
                             cancel_select.grid(row=2, column=0, columnspan=1, padx=5, pady=(40, 5), sticky=W)
                             # ----------------------------------------------------------------------------- Button Code
-
                             audio_track_win.wait_window()  # Halts program until audio_track_win is closed
 
                         track_window()  # Opens audio_track_win to select tracks
@@ -6532,8 +6533,8 @@ start_audio_button.grid(row=0, column=3, columnspan=1, padx=5, pady=5, sticky=N 
 
 # Start Audio Job: Auto -----------------------------------------------------------------------------
 def encode_last_used_setting():
-    global encoding_job_type, audio_window, acodec_stream_track_counter, gotosavefile, track_counter, acodec_stream, \
-        file_output
+    global encoding_job_type, audio_window, acodec_stream_track_counter, gotosavefile, track_counter, \
+        mini_acodec_stream, file_output
     encoding_job_type = 'auto'
     track_counter()
     encoder.set(config_profile['Auto Encode']['codec'])
@@ -6541,7 +6542,7 @@ def encode_last_used_setting():
     gotosavefile()
     command_line_button.config(state=DISABLED)
     output_button.config(state=DISABLED)
-    if acodec_stream.get() != 'None':
+    if mini_acodec_stream.get() != 'None':
         if pathlib.Path(file_output).is_file():  # Checks if 'output' variable/file already exists
             overwrite_output = messagebox.askyesno(title='Overwrite?',  # If exists would you like to over-write?
                                                    message=f'Would you like to overwrite {str(file_output)}?')
@@ -6615,7 +6616,7 @@ status_label.grid(column=0, row=4, columnspan=4, sticky=W + E)
 # Checks for App Folder and Sub-Directories - Creates Folders if they are missing -------------------------------------
 pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'FFMPEG').mkdir(parents=True, exist_ok=True)
 pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'MediaInfo').mkdir(parents=True, exist_ok=True)
-pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'MediaInfoCLI').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'MediaInfo').mkdir(parents=True, exist_ok=True)
 pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'fdkaac').mkdir(parents=True, exist_ok=True)
 pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'qaac').mkdir(parents=True, exist_ok=True)
 pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'mpv').mkdir(parents=True, exist_ok=True)
@@ -6657,20 +6658,6 @@ def check_ffmpeg():
     # FFMPEG ------------------------------------------------------------------
 
 
-def check_mediainfocli():
-    global mediainfocli
-    # mediainfocli -------------------------------------------------------------
-    if mediainfocli == '' or not pathlib.Path(mediainfocli.replace('"', '')).exists():
-        mediainfocli = '"' + str(pathlib.Path('Apps/MediaInfoCLI/MediaInfo.exe')) + '"'
-        try:
-            config.set('mediainfocli_path', 'path', mediainfocli)
-            with open(config_file, 'w') as configfile:
-                config.write(configfile)
-        except (Exception,):
-            pass
-    # mediainfocli ----------------------------------------------------------
-
-
 def check_mpv_player():
     global mpv_player
     # mpv_player -------------------------------------------------------------
@@ -6701,8 +6688,6 @@ def check_mediainfogui():
 
 if not pathlib.Path(config['ffmpeg_path']['path'].replace('"', '')).is_file():
     check_ffmpeg()
-if not pathlib.Path(config['mediainfocli_path']['path'].replace('"', '')).is_file():
-    check_mediainfocli()
 if not pathlib.Path(config['mpv_player_path']['path'].replace('"', '')).is_file():
     check_mpv_player()
 if not pathlib.Path(config['mediainfogui_path']['path'].replace('"', '')).is_file():

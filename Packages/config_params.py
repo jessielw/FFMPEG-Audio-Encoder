@@ -25,10 +25,6 @@ def create_config_params():
         config.add_section('mediainfogui_path')
     if not config.has_option('mediainfogui_path', 'path'):
         config.set('mediainfogui_path', 'path', '')
-    if not config.has_section('mediainfocli_path'):
-        config.add_section('mediainfocli_path')
-    if not config.has_option('mediainfocli_path', 'path'):
-        config.set('mediainfocli_path', 'path', '')
     if not config.has_section('debug_option'):
         config.add_section('debug_option')
     if not config.has_option('debug_option', 'option'):
