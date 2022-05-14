@@ -1,16 +1,17 @@
 # Show Streams Inside Audio Settings Window -----------------------------------------------------------------------
+import pathlib
+from configparser import ConfigParser
+from idlelib.tooltip import Hovertip
+from time import sleep as time_sleep
 from tkinter import NORMAL, END, TclError, Toplevel, scrolledtext, INSERT, DISABLED, Menu, LabelFrame, font, N, E, W, S
-from pathlib import Path
+
+from pyautogui import hotkey as pya_hotkey
 from pymediainfo import MediaInfo
 from pyperclip import copy as pyperclip_copy
-from idlelib.tooltip import Hovertip
-from pyautogui import hotkey as pya_hotkey
-from time import sleep as time_sleep
-from configparser import ConfigParser
 
 
 def exit_stream_window():  # Global function to exit stream window (so it can be accessed via main script)
-    config_file = 'Runtime/config.ini'  # Creates (if doesn't exist) and defines location of config.ini
+    config_file = 'Runtime/config.ini'  # Creates (if it doesn't exist) and defines location of config.ini
     func_parser = ConfigParser()
     func_parser.read(config_file)
     if func_parser['save_window_locations']['audio window - view streams'] == 'yes':  # If auto save position on
@@ -28,10 +29,10 @@ def exit_stream_window():  # Global function to exit stream window (so it can be
 
 def show_streams_mediainfo_function(x):  # Stream Viewer
     global stream_win_text_area, exit_stream_window, stream_window
-    video_input = Path(x)  # "x" is passed through from main GUI
+    video_input = pathlib.Path(x)  # "x" is passed through from main GUI
 
     # Defines the path to config.ini and opens it for reading/writing
-    config_file = 'Runtime/config.ini'  # Creates (if doesn't exist) and defines location of config.ini
+    config_file = 'Runtime/config.ini'  # Creates (if it doesn't exist) and defines location of config.ini
     config = ConfigParser()
     config.read(config_file)
 
@@ -136,8 +137,8 @@ def show_streams_mediainfo_function(x):  # Stream Viewer
                 else:
                     audio_delay_space = 'Delay' + ' ' * int(f'{character_space - len("Delay")}')
                     audio_del_to_vid_space = 'Delay to Video' + ' ' * int(f'{character_space - len("Delay to Video")}')
-                    audio_delay = audio_delay_space + f': {str(track.delay)}ms\n' + \
-                                  audio_del_to_vid_space + f': {str(track.delay_relative_to_video)}ms\n'
+                    audio_delay = audio_delay_space + f': {str(track.delay)}ms\n' \
+                                  + audio_del_to_vid_space + f': {str(track.delay_relative_to_video)}ms\n '
             else:
                 audio_delay = ''
             if str(track.other_stream_size) != 'None':  # Get tracks stream size
@@ -145,7 +146,7 @@ def show_streams_mediainfo_function(x):  # Stream Viewer
                 audio_track_stream_size = audio_track_size_space + f": {str(track.other_stream_size[4])}\n"
             else:
                 audio_track_stream_size = ''
-            if str(track.other_bit_depth) != 'None':  # Get tracks bit depth
+            if str(track.other_bit_depth) != 'None':  # Get tracks bit-depth
                 audio_track_b_depth_space = 'Bit Depth' + ' ' * int(f'{character_space - len("Bit Depth")}')
                 audio_track_bit_depth = audio_track_b_depth_space + f": {(track.other_bit_depth[0])}\n"
             else:
@@ -189,4 +190,79 @@ def show_streams_mediainfo_function(x):  # Stream Viewer
     right_click_menu.add_command(label='Copy All Text', command=pyperclip_copy(stream_win_text_area.get(1.0, END)))
     stream_window.bind('<Button-3>', right_click_menu_func)  # Uses mouse button 3 (right click) to pop up menu
     Hovertip(stream_win_text_area, 'Right click to copy', hover_delay=1200)  # Hover tip tool-tip
+
+
+def stream_menu(x):
+    build_list = []
+    media_info = MediaInfo.parse(pathlib.Path(x))  # Uses pymediainfo to get information for track selection
+    for track in media_info.tracks:  # For loop to loop through mediainfo tracks
+        # Formatting --------------------------------------------------------------------------------------------------
+        if track.track_type == 'Audio':  # Only grab audio track information
+            if str(track.format) != 'None':  # Gets format string of tracks (aac, ac3 etc...)
+                audio_format = f"{str(track.commercial_name)} - ({str(track.format).lower()})  |  "
+            else:
+                audio_format = ''
+            if str(track.channel_s) != 'None':  # Gets audio channels of input tracks
+                if str(track.channel_s) == '8':
+                    show_channels = '7.1'
+                elif str(track.channel_s) == '6':
+                    show_channels = '5.1'
+                elif str(track.channel_s) == '3':
+                    show_channels = '2.1'
+                else:
+                    show_channels = str(track.channel_s)
+                audio_channels = f"Chnl: {show_channels}  |  "
+            else:
+                audio_channels = ''
+            if str(track.bit_rate_mode) != 'None':  # Gets audio bit rate mode
+                if str(track.other_bit_rate_mode) != 'None':  # Get secondary string of audio bit rate mode
+                    audio_bitrate_mode = f"{str(track.bit_rate_mode)}  |  "
+            else:
+                audio_bitrate_mode = ''
+            if str(track.other_bit_rate) != 'None':  # Gets audio bit rate of input tracks
+                audio_bitrate = f"{str(track.other_bit_rate[0])}  |  "
+            else:
+                audio_bitrate = ''
+            if str(track.other_language) != 'None':  # Gets audio language of input tracks
+                audio_language = f"{str(track.other_language[0])}  |  "
+            else:
+                audio_language = ''
+            if str(track.title) != 'None':  # Gets audio title of input tracks
+                if len(str(track.title)) > 40:  # Counts title character length
+                    audio_title = f"{str(track.title)[:20]}...  |  "  # If title > 40 characters
+                else:
+                    audio_title = f"{str(track.title)}  |  "  # If title is < 40 characters
+            else:
+                audio_title = ''
+            if str(track.other_sampling_rate) != 'None':  # Gets audio sampling rate of input tracks
+                audio_sampling_rate = f"{str(track.other_sampling_rate[0])}  |  "
+            else:
+                audio_sampling_rate = ''
+            if str(track.other_duration) != 'None':  # Gets audio duration of input tracks
+                audio_duration = f"{str(track.other_duration[0])}  |  "
+            else:
+                audio_duration = ''
+            if str(track.delay) != 'None':  # Gets audio delay of input tracks
+                if str(track.delay) == '0':
+                    audio_delay = ''
+                else:
+                    audio_delay = f'{str(track.delay)}ms  |  '
+            else:
+                audio_delay = ''
+            if str(track.other_stream_size) != 'None':  # Get tracks stream size
+                audio_track_stream_size = f"{str(track.other_stream_size[4])}  |  "
+            else:
+                audio_track_stream_size = ''
+            if str(track.other_bit_depth) != 'None':  # Get tracks bit-depth
+                audio_track_bit_depth = f"{(track.other_bit_depth[0])}-bit  |  "
+            else:
+                audio_track_bit_depth = ''
+            # ---------------------------------------------------------------------------------------------- Formatting
+            audio_track_info = str(audio_format + audio_channels + audio_bitrate_mode +
+                                   audio_bitrate + audio_sampling_rate + audio_delay + audio_duration +
+                                   audio_language + audio_title + audio_track_stream_size +
+                                   audio_track_bit_depth).strip()
+            # Formatting
+            build_list.append(audio_track_info)
+    return build_list
 # ---------------------------------------------------------------------------------------------------- Show Streams
