@@ -3341,7 +3341,7 @@ def openaudiowindow():
         audio_window.configure(background="#434547")
         if audio_win_parser['save_window_locations']['audio window - fdk-aac - position'] == '' or \
                 audio_win_parser['save_window_locations']['audio window - fdk-aac'] == 'no':
-            window_height = 660
+            window_height = 750
             window_width = 780
             screen_width = audio_window.winfo_screenwidth()
             screen_height = audio_window.winfo_screenheight()
@@ -3367,7 +3367,7 @@ def openaudiowindow():
 
         for fdk_n in range(3):
             audio_window.grid_columnconfigure(fdk_n, weight=1)
-        for fdk_n in range(15):
+        for fdk_n in range(17):
             audio_window.grid_rowconfigure(fdk_n, weight=1)
 
         def acodec_lowdelay_menu_hover(e):
@@ -3408,11 +3408,7 @@ def openaudiowindow():
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
                                    command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
-        apply_button.grid(row=15, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-
-        # help_button = HoverButton(audio_window, text="Help + Information", foreground="white", background="#23272A",
-        #                           command=gotofdkaachelp, activebackground='grey')
-        # help_button.grid(row=15, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
+        apply_button.grid(row=17, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         # ----------------------------------------------------------------------------------------------------- Buttons
 
         advanced_label = Label(audio_window,
@@ -3542,8 +3538,8 @@ def openaudiowindow():
                 fdkaac_custom_cmd_input = cstmcmd + " "
 
         fdkaac_custom_cmd = StringVar()
-        fdkaac_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547",
-                                          foreground="white")
+        fdkaac_cmd_entrybox_label = Label(audio_window, text="FDK-AAC Custom Command Line :", anchor=W,
+                                          background="#434547", foreground="white")
         fdkaac_cmd_entrybox_label.grid(row=11, column=0, columnspan=2, padx=10, pady=(0, 0), sticky=N + S + W + E)
         fdkaac_cmd_entrybox = Entry(audio_window, textvariable=fdkaac_custom_cmd, borderwidth=4, background="#CACACA")
         fdkaac_cmd_entrybox.grid(row=12, column=0, columnspan=3, padx=10, pady=(0, 0), sticky=W + E)
@@ -3551,6 +3547,26 @@ def openaudiowindow():
         fdkaac_custom_cmd.set("")
 
         # ----------------------------------------------------------------------------------------- Custom Command Line
+
+        # Entry Box for FFMPEG Command Line ---------------------------------------------------------------------------
+        def ffmpeg_cmd_function(*args):
+            global ffmpeg_custom_cmd_input
+            if ffmpeg_custom_cmd.get().strip() == "":
+                ffmpeg_custom_cmd_input = ""
+            else:
+                cstmcmd = ffmpeg_custom_cmd.get().strip()
+                ffmpeg_custom_cmd_input = cstmcmd + " "
+
+        ffmpeg_custom_cmd = StringVar()
+        ffmpeg_cmd_entrybox_label = Label(audio_window, text="FFMPEG Custom Command Line :", anchor=W,
+                                          background="#434547", foreground="white")
+        ffmpeg_cmd_entrybox_label.grid(row=13, column=0, columnspan=2, padx=10, pady=(0, 0), sticky=N + S + W + E)
+        ffmpeg_cmd_entrybox = Entry(audio_window, textvariable=ffmpeg_custom_cmd, borderwidth=4, background="#CACACA")
+        ffmpeg_cmd_entrybox.grid(row=14, column=0, columnspan=3, padx=10, pady=(0, 0), sticky=W + E)
+        ffmpeg_custom_cmd.trace('w', ffmpeg_cmd_function)
+        ffmpeg_custom_cmd.set("")
+
+        # ----------------------------------------------------------------------------------------- FFMPEG Command Line
 
         # Entry Box for Track Title -----------------------------------------------------------------------------------
         def fdkaac_title_check(*args):
@@ -3562,11 +3578,11 @@ def openaudiowindow():
                 fdkaac_title_input = "--title " + '"' + title_cmd + '"' + " "
 
         fdkaac_title = StringVar()
-        fdkaac_title_entrybox_label = Label(audio_window, text="Track Name :", anchor=W, background="#434547",
+        fdkaac_title_entrybox_label = Label(audio_window, text="Title :", anchor=W, background="#434547",
                                             foreground="white")
-        fdkaac_title_entrybox_label.grid(row=13, column=0, columnspan=2, padx=10, pady=(5, 0), sticky=N + S + W + E)
+        fdkaac_title_entrybox_label.grid(row=15, column=0, columnspan=2, padx=10, pady=(0, 0), sticky=N + S + W + E)
         fdkaac_title_entrybox = Entry(audio_window, textvariable=fdkaac_title, borderwidth=4, background="#CACACA")
-        fdkaac_title_entrybox.grid(row=14, column=0, columnspan=3, padx=10, pady=(0, 10), sticky=W + E)
+        fdkaac_title_entrybox.grid(row=16, column=0, columnspan=3, padx=10, pady=(0, 10), sticky=W + E)
         fdkaac_title.trace('w', fdkaac_title_check)
         fdkaac_title.set("")
         # ------------------------------------------------------------------------------------------------- Track Title
@@ -4015,7 +4031,7 @@ def openaudiowindow():
         ffmpeg_volume = StringVar()
         ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
         ffmpeg_volume_label.grid(row=4, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-20, to=20, increment=0.1, justify=CENTER,  wrap=True,
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-20, to=20, increment=0.1, justify=CENTER, wrap=True,
                                         textvariable=ffmpeg_volume, state='readonly')
         ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
                                         buttonbackground="black", width=15, readonlybackground="#23272A")
@@ -4820,9 +4836,9 @@ def openaudiowindow():
             mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
                                            acodec_channel_choices[acodec_channel.get()] +
                                            acodec_samplerate_choices[acodec_samplerate.get()] +
-                                           audio_filter_setting + "-f caf - | " + "fdkaac.exe" + " " +
-                                           acodec_profile_choices[acodec_profile.get()] + afterburnervar.get() +
-                                           fdkaac_title_input + fdkaac_custom_cmd_input +
+                                           audio_filter_setting + ffmpeg_custom_cmd_input + "-f caf - | " +
+                                           "fdkaac.exe" + " " + acodec_profile_choices[acodec_profile.get()] +
+                                           afterburnervar.get() + fdkaac_title_input + fdkaac_custom_cmd_input +
                                            acodec_gapless_mode_choices[acodec_gapless_mode.get()] +
                                            crccheck.get() + moovbox.get() + sbrdelay.get() + headerperiod.get() +
                                            acodec_lowdelay_choices[acodec_lowdelay.get()] +
@@ -5224,7 +5240,7 @@ def collect_final_job_commands():
                                     acodec_stream_choices[acodec_stream.get()] +
                                     acodec_channel_choices[acodec_channel.get()] +
                                     acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                    "-sn -vn -map_chapters -1 -map_metadata -1 " +
+                                    ffmpeg_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
                                     "-f caf - -v error -hide_banner -stats | " +
                                     fdkaac + " " + acodec_profile_choices[acodec_profile.get()] +
                                     fdkaac_title_input + fdkaac_custom_cmd_input +
@@ -5237,7 +5253,7 @@ def collect_final_job_commands():
                                     file_output_quoted).split())
         last_used_command = ' '.join(str(acodec_channel_choices[acodec_channel.get()] +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                         "-sn -vn -map_chapters -1 -map_metadata -1 " +
+                                         ffmpeg_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
                                          "-f caf - -v error -hide_banner -stats | " + fdkaac + " " +
                                          acodec_profile_choices[acodec_profile.get()] + fdkaac_title_input +
                                          fdkaac_custom_cmd_input +
