@@ -5821,24 +5821,14 @@ def file_input_check(file_input):
 
 # Drag and drop code for file input -----------------------------------------------------------------------------------
 def drop_input(event):
-    input_dnd.set(event.data)
-
-
-def update_file_input(*args):
     global file_input
+    input_list = []  # Creates an empty list
+    for filenames in root.splitlist(event.data):
+        input_list.append(filenames)  # Appends all data to the list
+    file_input = str(input_list[0])  # For main gui, it takes in the item at index 0 as input (only 1 item)
     input_entry.configure(state=NORMAL)
     input_entry.delete(0, END)
-    remove_brackets = str(input_dnd.get())
-
-    if remove_brackets.startswith('{') and remove_brackets.endswith('}'):
-        file_input = str(input_dnd.get())[1:-1]
-    else:
-        file_input = str(input_dnd.get())
-    file_input_check(file_input)
-
-
-input_dnd = StringVar()
-input_dnd.trace('w', update_file_input)
+    file_input_check(file_input)  # Run file_input_check() with file_input
 
 
 # ----------------------------------------------------------------------------------- Drag and drop code for file input
