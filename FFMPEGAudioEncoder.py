@@ -216,8 +216,8 @@ class HoverButton(Button):
 
     def on_enter(self, e):
         self['background'] = self['activebackground']
-        if self.cget('text') == 'Open File':
-            status_label.configure(text='Open file or drag and drop file...')
+        if self.cget('text') == 'Input':
+            status_label.configure(text='Open input menu or drag and drop a file...')
         if self.cget('text') == 'Display\nCommand':
             status_label.configure(text='Display command-line...')
         if self.cget('text') == 'Save File':
@@ -5874,9 +5874,19 @@ def input_button_commands():
 
 
 # Input Button/Entry Box ----------------------------------------------------------------------
-input_button = HoverButton(input_frame, text="Open File", command=input_button_commands, foreground="white",
+def input_popup_menu(*args):  # Menu for input button
+    input_menu = Menu(input_frame, tearoff=False, font=(set_font, set_font_size + 2), background="#23272A",
+                      foreground="white", activebackground="grey")  # Menu
+    input_menu.add_command(label='Open File', command=input_button_commands)
+    input_menu.add_separator()
+    input_menu.add_command(label='Batch Process (WIP)', command=None)
+    input_menu.tk_popup(input_button.winfo_rootx(), input_button.winfo_rooty() + 5)
+
+
+input_button = HoverButton(input_frame, text="Input", command=input_popup_menu, foreground="white",
                            background="#23272A", borderwidth="3", activebackground='grey')
 input_button.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
+input_button.bind('<Button-3>', input_popup_menu)  # Right click to pop up menu in frame
 
 input_entry = Entry(input_frame, borderwidth=4, background="#CACACA", state=DISABLED)
 input_entry.grid(row=0, column=1, columnspan=3, padx=5, pady=5, sticky=S + E + W)
