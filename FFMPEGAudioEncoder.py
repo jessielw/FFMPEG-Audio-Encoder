@@ -576,7 +576,6 @@ def encoder_changed(*args):
 
 # --------------------------------------------------------------------------------------------- File Auto Save Function
 
-
 # # Help Button for FDK -----------------------------------------------------------------------------------------
 # def gotofdkaachelp():
 #     helpfile_window = Toplevel()
@@ -5474,6 +5473,7 @@ def startaudiojob():
         progress_button_frame.grid(column=0, row=1, columnspan=1, padx=5, pady=(0, 3), sticky=N + S + E + W)
         progress_button_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 10, "bold"))
         progress_button_frame.grid_rowconfigure(0, weight=1)
+        progress_button_frame.grid_rowconfigure(1, weight=1)
         for pbf_n in range(5):
             progress_button_frame.grid_columnconfigure(pbf_n, weight=1)
 
@@ -5581,7 +5581,7 @@ def startaudiojob():
                         output_entry.configure(state=DISABLED)  # Disable output entry
                     open_all_toplevels()  # Re-open top levels if there was any
 
-        # Cancel buttons
+        # Cancel button
         cancel_encode_job = HoverButton(progress_button_frame, text="Cancel", command=cancel_job,
                                         foreground="white", background="#23272A", borderwidth="3",
                                         activebackground='grey')
@@ -5610,6 +5610,15 @@ def startaudiojob():
                                         foreground="white", background="#23272A", borderwidth="3",
                                         activebackground='grey', state=DISABLED)
         resume_encode_job.grid(row=0, column=3, columnspan=1, padx=10, pady=(5, 4), sticky=S + E + W + N)
+
+        # Open Save Directory
+        def open_save_directory():
+            webbrowser.open(pathlib.Path(file_output).parent)
+
+        open_output_dir = HoverButton(progress_button_frame, text="Open Output Directory", command=open_save_directory,
+                                      foreground="white", background="#23272A", borderwidth="3",
+                                      activebackground='grey')
+        open_output_dir.grid(row=1, column=0, columnspan=1, padx=10, pady=(5, 4), sticky=S + E + W + N)
 
         if encoder.get() == 'QAAC' or encoder.get() == 'FDK-AAC':  # String to output for fdk/qaac encoder
             insert_info_string = f'Encoding {str(file_input_quoted)} via "FFMPEG" by piping to external encoder: ' \
