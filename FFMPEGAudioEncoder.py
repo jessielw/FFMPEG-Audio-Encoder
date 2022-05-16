@@ -5768,6 +5768,8 @@ audiosettings_button.grid(row=0, column=2, columnspan=1, padx=5, pady=(5, 4), st
 
 
 # --------------------------------------------------------------------------- # Audio Settings Button
+
+# File input check ----------------------------------------------------------------------------------------------------
 def file_input_check(file_input):
     global track_count, file_input_quoted, autosavefilename
     exit_cmd_window()  # Close cmd window upon opening a new file
@@ -5818,6 +5820,8 @@ def file_input_check(file_input):
         messagebox.showinfo(title="No Audio Streams", message=f"{file_input_quoted}:\n\nDoes not "
                                                               f"contain any audio streams!")  # Display error msg
 
+
+# ---------------------------------------------------------------------------------------------------- File input check
 
 # Drag and drop code for file input -----------------------------------------------------------------------------------
 def drop_input(event):
