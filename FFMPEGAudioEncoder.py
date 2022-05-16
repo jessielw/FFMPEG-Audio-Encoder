@@ -5572,14 +5572,14 @@ def startaudiojob():
                             file_del.unlink(missing_ok=True)
                     except psutil.NoSuchProcess:
                         pass
-            save_close_position()  # Save position
-            progress_window.destroy()  # Destroy progress window
-            root.deiconify()  # Re-Open root
-            if encoder.get() == 'Set Codec':
-                output_entry.configure(state=NORMAL)  # Enable output_entry
-                output_entry.delete(0, END)  # Clear contents of output entry
-                output_entry.configure(state=DISABLED)  # Disable output entry
-            open_all_toplevels()  # Re-open top levels if there was any
+                    save_close_position()  # Save position
+                    progress_window.destroy()  # Destroy progress window
+                    root.deiconify()  # Re-Open root
+                    if encoder.get() == 'Set Codec':
+                        output_entry.configure(state=NORMAL)  # Enable output_entry
+                        output_entry.delete(0, END)  # Clear contents of output entry
+                        output_entry.configure(state=DISABLED)  # Disable output entry
+                    open_all_toplevels()  # Re-open top levels if there was any
 
         # Cancel buttons
         cancel_encode_job = HoverButton(progress_button_frame, text="Cancel", command=cancel_job,
