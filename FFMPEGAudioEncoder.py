@@ -524,13 +524,14 @@ tools_submenu.add_command(label='Batch Processing', command=batch_processing_com
 
 help_menu = Menu(my_menu_bar, tearoff=0, activebackground="dim grey")
 my_menu_bar.add_cascade(label="Help", menu=help_menu)
-help_menu.add_command(label="Documentation    [F1]",  # Open GitHub wiki
+help_menu.add_command(label="Documentation                 [F1]",  # Open GitHub wiki
                       command=lambda: webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/wiki'))
 root.bind("<F1>", lambda event: webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/wiki'))  # Hotkey
 help_menu.add_command(label="Project Page",  # Open GitHub project page
                       command=lambda: webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder'))
-help_menu.add_command(label="Report Error",  # Open GitHub tracker link
-                      command=lambda: webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues'))
+help_menu.add_command(label="Report Error / Feature Request",  # Open GitHub tracker link
+                      command=lambda: webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/'
+                                                      'issues/new/choose'))
 help_menu.add_separator()
 help_menu.add_command(label="Info", command=lambda: openaboutwindow(main_root_title))  # Opens about window
 
