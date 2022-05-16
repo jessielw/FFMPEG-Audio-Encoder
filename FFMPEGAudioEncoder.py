@@ -5875,7 +5875,7 @@ def input_button_commands():
 
 # Input Button/Entry Box ----------------------------------------------------------------------
 def input_popup_menu(*args):  # Menu for input button
-    input_menu = Menu(input_frame, tearoff=False, font=(set_font, set_font_size + 2), background="#23272A",
+    input_menu = Menu(input_frame, tearoff=False, font=(set_font, set_font_size + 1), background="#23272A",
                       foreground="white", activebackground="grey")  # Menu
     input_menu.add_command(label='Open File', command=input_button_commands)
     input_menu.add_separator()
