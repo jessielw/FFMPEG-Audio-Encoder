@@ -329,6 +329,8 @@ def create_config_params():
         config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_quality_amnt', '109')
     if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'q_acodec_bitrate'):
         config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_bitrate', '256')
+    if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'volume'):
+        config_profile.set('FFMPEG QAAC - SETTINGS', 'volume', '0.0')
     if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'q_acodec_gain'):
         config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_gain', '0')
     if not config_profile.has_option('FFMPEG QAAC - SETTINGS', 'qaac_normalize'):
