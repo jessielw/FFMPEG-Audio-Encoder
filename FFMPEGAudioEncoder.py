@@ -3761,7 +3761,7 @@ def openaudiowindow():
         audio_window.configure(background="#434547")
         if audio_win_parser['save_window_locations']['audio window - qaac - position'] == '' or \
                 audio_win_parser['save_window_locations']['audio window - qaac'] == 'no':
-            window_height = 670
+            window_height = 760
             window_width = 750
             screen_width = audio_window.winfo_screenwidth()
             screen_height = audio_window.winfo_screenheight()
@@ -3788,7 +3788,7 @@ def openaudiowindow():
 
         for qaac_n in range(3):
             audio_window.grid_columnconfigure(qaac_n, weight=1)
-        for qaac_n in range(16):
+        for qaac_n in range(19):
             audio_window.grid_rowconfigure(qaac_n, weight=1)
 
         # Gets gain information for QAAC ------------------------------------------------------------------------------
@@ -3804,7 +3804,7 @@ def openaudiowindow():
         # Buttons -----------------------------------------------------------------------------------------------------
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
                                    command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
-        apply_button.grid(row=16, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        apply_button.grid(row=19, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         # ----------------------------------------------------------------------------------------------------- Buttons
 
         advanced_label = Label(audio_window,
@@ -3850,7 +3850,7 @@ def openaudiowindow():
 
         # Dolby Pro Logic II ------------------------------------------------------------------------------------------
         dolby_pro_logic_ii = StringVar()
-        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro\nLogic II',
+        dolby_pro_logic_ii_checkbox = Checkbutton(audio_window, text=' Dolby Pro Logic II',
                                                   variable=dolby_pro_logic_ii, state=DISABLED,
                                                   onvalue='"aresample=matrix_encoding=dplii"', offvalue="")
         if acodec_channel.get() == '2 (Stereo)':
@@ -3889,7 +3889,7 @@ def openaudiowindow():
                 qaac_custom_cmd_input = cstmcmd + " "
 
         qaac_custom_cmd = StringVar()
-        qaac_cmd_entrybox_label = Label(audio_window, text="Custom Command Line :", anchor=W, background="#434547",
+        qaac_cmd_entrybox_label = Label(audio_window, text="QAAC Custom Command Line :", anchor=W, background="#434547",
                                         foreground="white")
         qaac_cmd_entrybox_label.grid(row=12, column=0, columnspan=2, padx=10, pady=(0, 0), sticky=N + S + W + E)
         qaac_cmd_entrybox = Entry(audio_window, textvariable=qaac_custom_cmd, borderwidth=4, background="#CACACA")
@@ -3898,6 +3898,26 @@ def openaudiowindow():
         qaac_custom_cmd.set("")
 
         # ----------------------------------------------------------------------------------------- Custom Command Line
+
+        # Entry Box for FFMPEG Command Line ---------------------------------------------------------------------------
+        def ffmpeg_cmd_function(*args):
+            global ffmpeg_custom_cmd_input
+            if ffmpeg_custom_cmd.get().strip() == "":
+                ffmpeg_custom_cmd_input = ""
+            else:
+                cstmcmd = ffmpeg_custom_cmd.get().strip()
+                ffmpeg_custom_cmd_input = cstmcmd + " "
+
+        ffmpeg_custom_cmd = StringVar()
+        ffmpeg_cmd_entrybox_label = Label(audio_window, text="FFMPEG Custom Command Line :", anchor=W,
+                                          background="#434547", foreground="white")
+        ffmpeg_cmd_entrybox_label.grid(row=14, column=0, columnspan=2, padx=10, pady=(0, 0), sticky=N + S + W + E)
+        ffmpeg_cmd_entrybox = Entry(audio_window, textvariable=ffmpeg_custom_cmd, borderwidth=4, background="#CACACA")
+        ffmpeg_cmd_entrybox.grid(row=15, column=0, columnspan=3, padx=10, pady=(0, 0), sticky=W + E)
+        ffmpeg_custom_cmd.trace('w', ffmpeg_cmd_function)
+        ffmpeg_custom_cmd.set("")
+
+        # ----------------------------------------------------------------------------------------- FFMPEG Command Line
 
         # Entry Box for Track Title -----------------------------------------------------------------------------------
         def qaac_title_check(*args):
@@ -3911,9 +3931,9 @@ def openaudiowindow():
         qaac_title = StringVar()
         qaac_title_entrybox_label = Label(audio_window, text="Track Name :", anchor=W, background="#434547",
                                           foreground="white")
-        qaac_title_entrybox_label.grid(row=14, column=0, columnspan=2, padx=10, pady=(5, 0), sticky=N + S + W + E)
+        qaac_title_entrybox_label.grid(row=16, column=0, columnspan=2, padx=10, pady=(0, 0), sticky=N + S + W + E)
         qaac_title_entrybox = Entry(audio_window, textvariable=qaac_title, borderwidth=4, background="#CACACA")
-        qaac_title_entrybox.grid(row=15, column=0, columnspan=3, padx=10, pady=(0, 10), sticky=W + E)
+        qaac_title_entrybox.grid(row=17, column=0, columnspan=3, padx=10, pady=(0, 10), sticky=W + E)
         qaac_title.trace('w', qaac_title_check)
         qaac_title.set("")
         # ------------------------------------------------------------------------------------------------- Track Title
@@ -4024,7 +4044,7 @@ def openaudiowindow():
         qaac_normalize.set(config_profile['FFMPEG QAAC - SETTINGS']['qaac_normalize'] + ' ')
         qaac_normalize_checkbox = Checkbutton(audio_window, text='Normalize', variable=qaac_normalize,
                                               onvalue="--normalize ", offvalue="")
-        qaac_normalize_checkbox.grid(row=10, column=1, columnspan=1, padx=10, pady=(10, 3), sticky=N + S + E + W)
+        qaac_normalize_checkbox.grid(row=11, column=0, columnspan=1, padx=10, pady=(10, 3), sticky=N + S + E + W)
         qaac_normalize_checkbox.configure(background="#434547", foreground="white", activebackground="#434547",
                                           activeforeground="white", selectcolor="#434547", font=("Helvetica", 12))
         # --------------------------------------------------------------------------------------------------- Normalize
@@ -4814,8 +4834,8 @@ def openaudiowindow():
                 mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
                                                acodec_channel_choices[acodec_channel.get()] +
                                                acodec_samplerate_choices[acodec_samplerate.get()] +
-                                               audio_filter_setting + "-f wav - | " + qaac + " --ignorelength " +
-                                               q_acodec_profile_choices[q_acodec_profile.get()] +
+                                               audio_filter_setting + ffmpeg_custom_cmd_input + "-f wav - | " + qaac +
+                                               " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
                                                q_acodec_quality_amnt.get() + " " + qaac_high_efficiency.get() +
                                                qaac_nodither.get() + set_qaac_gain +
                                                q_acodec_quality_choices[q_acodec_quality.get()] +
@@ -4827,8 +4847,8 @@ def openaudiowindow():
                 mini_cmd_output = ' '.join(str(acodec_stream_choices[acodec_stream.get()] +
                                                acodec_channel_choices[acodec_channel.get()] +
                                                acodec_samplerate_choices[acodec_samplerate.get()] +
-                                               audio_filter_setting + "-f wav - | " + qaac + " --ignorelength " +
-                                               q_acodec_profile_choices[q_acodec_profile.get()] +
+                                               audio_filter_setting + ffmpeg_custom_cmd_input + "-f wav - | " + qaac +
+                                               " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
                                                q_acodec_bitrate.get() + " " + qaac_high_efficiency.get() +
                                                qaac_nodither.get() + set_qaac_gain +
                                                q_acodec_quality_choices[q_acodec_quality.get()] +
@@ -5239,7 +5259,7 @@ def collect_final_job_commands():
             finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
                                         file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
                                         acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
-                                        acodec_samplerate_choices[acodec_samplerate.get()] +
+                                        acodec_samplerate_choices[acodec_samplerate.get()] + ffmpeg_custom_cmd_input +
                                         "-sn -vn -map_chapters -1 -map_metadata -1 " +
                                         "-f wav - -v error -hide_banner -stats | " + qaac +
                                         " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
@@ -5252,7 +5272,7 @@ def collect_final_job_commands():
                                         file_output_quoted).split())
             last_used_command = ' '.join(str(acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
                                              acodec_samplerate_choices[acodec_samplerate.get()] +
-                                             "-sn -vn -map_chapters -1 -map_metadata -1 " +
+                                             ffmpeg_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
                                              "-f wav - -v error -hide_banner -stats | " + qaac + " --ignorelength " +
                                              q_acodec_profile_choices[q_acodec_profile.get()] +
                                              q_acodec_quality_amnt.get() + ' ' + qaac_high_efficiency.get() +
@@ -5266,7 +5286,7 @@ def collect_final_job_commands():
             finalcommand = ' '.join(str('"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
                                         acodec_stream_choices[acodec_stream.get()] +
                                         acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
-                                        acodec_samplerate_choices[acodec_samplerate.get()] +
+                                        acodec_samplerate_choices[acodec_samplerate.get()] + ffmpeg_custom_cmd_input +
                                         "-sn -vn -map_chapters -1 -map_metadata -1 " +
                                         "-f wav - -v error -hide_banner -stats | " + qaac +
                                         " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
@@ -5279,7 +5299,7 @@ def collect_final_job_commands():
                                         file_output_quoted).split())
             last_used_command = ' '.join(str(acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
                                              acodec_samplerate_choices[acodec_samplerate.get()] +
-                                             "-sn -vn -map_chapters -1 -map_metadata -1 " +
+                                             ffmpeg_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
                                              "-f wav - -v error -hide_banner -stats | " + qaac +
                                              " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
                                              q_acodec_bitrate.get() + qaac_high_efficiency.get() +
@@ -5608,6 +5628,8 @@ def startaudiojob():
                 if line.split()[0] == 'size=' and progress_error != 'no':  # Find string 'size=',
                     # if found program is running correctly, also only check if progress error isn't == 'no'
                     progress_error = 'no'  # Once 'size=' is found update progress_error to 'no'
+                else:
+                    progress_error = 'yes'
 
             if total_duration is not None:  # If input file has duration metadata
                 if line.split()[0] == 'size=':  # Find string 'size=' to start work with progress bar
@@ -5632,8 +5654,11 @@ def startaudiojob():
                                                                                    f'error on the github tracker?')
                         if msg_error:  # If user wants to post bug on the github tracker
                             webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues')
+                else:
+                    progress_error = 'yes'
         encode_window_progress.configure(state=NORMAL)  # Enable progress window editing
         encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
+
         if progress_error == 'no' and int(percent) >= 99:  # If no error and percent reached 99%, job is complete
             if pathlib.Path(str(file_output_quoted).replace('"', '')).is_file():  # Check if file exists
                 encode_window_progress.insert(END, str('Job Completed!\n\n'))  # Insert into text window
@@ -5649,6 +5674,8 @@ def startaudiojob():
 
         elif progress_error != 'no' or int(percent) <= 98:  # If there is an error OR percent is less than 98%
             encode_window_progress.insert(END, '\nThere was an error, run the job in debug mode to troubleshoot\n')
+            complete_or_not = 'complete'
+
         encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
         encode_window_progress.see(END)  # Scroll to bottom of text window
         encode_window_progress.configure(state=DISABLED)  # Disable progress window editing
