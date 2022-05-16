@@ -637,7 +637,7 @@ def show_streams_mediainfo():  # All audio codecs can call this function in thei
 # ----------------- Calls to show_streams.py show_streams_mediainfo_function to display a window with track information
 
 
-# Uses MediaInfo CLI to get total audio track count and gives us a total track count ----------------------------------
+# Uses MediaInfo to get total audio track count and gives us a total track count --------------------------------------
 def track_counter(*args):  # Thanks for helping me shorten this 'gmes78'
     global acodec_stream_track_counter, t_info, track_count
     formatting_string = stream_menu(file_input)
@@ -6616,7 +6616,6 @@ status_label.grid(column=0, row=4, columnspan=4, sticky=W + E)
 
 # Checks for App Folder and Sub-Directories - Creates Folders if they are missing -------------------------------------
 pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'FFMPEG').mkdir(parents=True, exist_ok=True)
-pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'MediaInfo').mkdir(parents=True, exist_ok=True)
 pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'MediaInfo').mkdir(parents=True, exist_ok=True)
 pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'fdkaac').mkdir(parents=True, exist_ok=True)
 pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'qaac').mkdir(parents=True, exist_ok=True)
