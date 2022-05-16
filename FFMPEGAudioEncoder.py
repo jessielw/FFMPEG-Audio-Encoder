@@ -37,6 +37,9 @@ from Packages.window_geometry_settings import set_window_geometry_settings
 # Set variable to True if you want errors to pop up in window + log to file + console, False for console only
 log_error_to_file = True  # Change this to false if you don't want to log errors to file + pop up window
 
+# Set main window title variable
+main_root_title = "FFMPEG Audio Encoder v3.39"
+
 
 # Main Gui & Windows --------------------------------------------------------
 def root_exit_function():
@@ -148,7 +151,7 @@ clean_main_program_error_logs()
 # ----------------------------------------------------------------------------------------------------- Clean log files
 
 root = TkinterDnD.Tk()
-root.title("FFMPEG Audio Encoder v3.39")
+root.title(main_root_title)
 root.iconphoto(True, PhotoImage(data=gui_icon))
 root.configure(background="#434547")
 if config['save_window_locations']['ffmpeg audio encoder position'] == '' or \
@@ -521,7 +524,15 @@ tools_submenu.add_command(label='Batch Processing', command=batch_processing_com
 
 help_menu = Menu(my_menu_bar, tearoff=0, activebackground="dim grey")
 my_menu_bar.add_cascade(label="Help", menu=help_menu)
-help_menu.add_command(label="About", command=openaboutwindow)
+help_menu.add_command(label="Documentation    [F1]",  # Open GitHub wiki
+                      command=lambda: webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/wiki'))
+root.bind("<F1>", lambda event: webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/wiki'))  # Hotkey
+help_menu.add_command(label="Project Page",  # Open GitHub project page
+                      command=lambda: webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder'))
+help_menu.add_command(label="Report Error",  # Open GitHub tracker link
+                      command=lambda: webbrowser.open('https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues'))
+help_menu.add_separator()
+help_menu.add_command(label="Info", command=lambda: openaboutwindow(main_root_title))  # Opens about window
 
 
 # --------------------------------------------------------------------------------------------- Menu Items and Sub-Bars
