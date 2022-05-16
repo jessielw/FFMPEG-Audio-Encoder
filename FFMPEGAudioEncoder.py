@@ -266,6 +266,7 @@ if log_error_to_file:
             global info_scrolled
             self.terminal.write(message)
             self.error_log_file.write(message)
+            root.bell()  # Error bell sound
             try:
                 info_scrolled.config(state=NORMAL)
                 if str(message).rstrip():
