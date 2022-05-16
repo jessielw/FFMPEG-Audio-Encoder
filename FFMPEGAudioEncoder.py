@@ -910,17 +910,7 @@ def openaudiowindow():
     def audio_filter_function(*args):
         global audio_filter_setting
         audio_filter_setting = ''
-        if encoder.get() == "QAAC":
-            if dolby_pro_logic_ii.get() == '' and acodec_atempo_choices[acodec_atempo.get()] == '':
-                audio_filter_setting = ''
-            elif dolby_pro_logic_ii.get() != '' and acodec_atempo_choices[acodec_atempo.get()] == '':
-                audio_filter_setting = '-af ' + dolby_pro_logic_ii.get() + ' '
-            elif dolby_pro_logic_ii.get() != '' and acodec_atempo_choices[acodec_atempo.get()] != '':
-                audio_filter_setting = '-af ' + dolby_pro_logic_ii.get() + ',' + \
-                                       acodec_atempo_choices[acodec_atempo.get()] + ' '
-            elif dolby_pro_logic_ii.get() == '' and acodec_atempo_choices[acodec_atempo.get()] != '':
-                audio_filter_setting = '-af ' + acodec_atempo_choices[acodec_atempo.get()] + ' '
-        elif encoder.get() == 'E-AC3':
+        if encoder.get() == 'E-AC3':
             ffmpeg_volume_cmd = '"volume=' + ffmpeg_volume.get() + '"'
             if ffmpeg_volume.get() == '0.0' and acodec_atempo_choices[acodec_atempo.get()] == '':
                 audio_filter_setting = ''
@@ -1371,6 +1361,7 @@ def openaudiowindow():
             config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_quality_amnt', q_acodec_quality_amnt.get())
             config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_bitrate', q_acodec_bitrate.get())
             config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_gain', q_acodec_gain.get())
+            config_profile.set('FFMPEG QAAC - SETTINGS', 'volume', ffmpeg_volume.get())
             config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_normalize', qaac_normalize.get())
             config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_high_efficiency', qaac_high_efficiency.get())
             config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_nodither', qaac_nodither.get())
@@ -1502,6 +1493,7 @@ def openaudiowindow():
                 config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_quality_amnt', '109')
                 config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_bitrate', '256')
                 config_profile.set('FFMPEG QAAC - SETTINGS', 'q_acodec_gain', '0')
+                config_profile.set('FFMPEG QAAC - SETTINGS', 'volume', '0.0')
                 config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_normalize', '')
                 config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_high_efficiency', '')
                 config_profile.set('FFMPEG QAAC - SETTINGS', 'qaac_nodither', '')
@@ -3769,7 +3761,7 @@ def openaudiowindow():
         audio_window.configure(background="#434547")
         if audio_win_parser['save_window_locations']['audio window - qaac - position'] == '' or \
                 audio_win_parser['save_window_locations']['audio window - qaac'] == 'no':
-            window_height = 644
+            window_height = 670
             window_width = 750
             screen_width = audio_window.winfo_screenwidth()
             screen_height = audio_window.winfo_screenheight()
@@ -3813,10 +3805,6 @@ def openaudiowindow():
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
                                    command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
         apply_button.grid(row=16, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
-
-        # help_button = HoverButton(audio_window, text="Help + Information", foreground="white", background="#23272A",
-        #                           command=gotoqaachelp, activebackground='grey')
-        # help_button.grid(row=16, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         # ----------------------------------------------------------------------------------------------------- Buttons
 
         advanced_label = Label(audio_window,
@@ -4003,16 +3991,29 @@ def openaudiowindow():
 
         # ----------------------------------------------------------------------------------------------------- Bitrate
 
+        # Audio Volume Selection ----------------------------------------------------------------------------------
+        ffmpeg_volume = StringVar()
+        ffmpeg_volume_label = Label(audio_window, text="Volume :", background="#434547", foreground="white")
+        ffmpeg_volume_label.grid(row=4, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_volume_spinbox = Spinbox(audio_window, from_=-20, to=20, increment=0.1, justify=CENTER,  wrap=True,
+                                        textvariable=ffmpeg_volume, state='readonly')
+        ffmpeg_volume_spinbox.configure(background="#23272A", foreground="white", highlightthickness=1,
+                                        buttonbackground="black", width=15, readonlybackground="#23272A")
+        ffmpeg_volume_spinbox.grid(row=5, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        ffmpeg_volume.set(config_profile['FFMPEG QAAC - SETTINGS']['volume'])
+        volume_right_click_options()  # Run function for right click options for volume spinbox
+        # -------------------------------------------------------------------------------------------------- Volume
+
         # QAAC Gain ---------------------------------------------------------------------------------------------------
         global q_acodec_gain
         q_acodec_gain = StringVar(audio_window)
         q_acodec_gain_label = Label(audio_window, text="Gain :", background="#434547", foreground="white")
-        q_acodec_gain_label.grid(row=4, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        q_acodec_gain_label.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         q_acodec_gain_spinbox = Spinbox(audio_window, from_=-100, to=100, justify=CENTER, wrap=True,
                                         textvariable=q_acodec_gain, width=13)
         q_acodec_gain_spinbox.config(background="#23272A", foreground="white", highlightthickness=1,
                                      buttonbackground="black", disabledbackground='grey')
-        q_acodec_gain_spinbox.grid(row=5, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
+        q_acodec_gain_spinbox.grid(row=11, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         q_acodec_gain.trace('w', qaac_gain_trace)
         q_acodec_gain.set(int(config_profile['FFMPEG QAAC - SETTINGS']['q_acodec_gain']))
         # -------------------------------------------------------------------------------------------------------- Gain
