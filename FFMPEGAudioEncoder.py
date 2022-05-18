@@ -1607,18 +1607,6 @@ def openaudiowindow():
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         root.withdraw()  # Hide root
 
-        my_menu_bar = Menu(audio_window, tearoff=0)
-        audio_window.config(menu=my_menu_bar)
-        file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
-        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
-                              command=mpv_gui_audio_window)
-        options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Options', menu=options_menu)
-        options_menu.add_command(label='Save Current Settings', command=save_profile)
-        options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
-
         for ac3_n in range(3):
             audio_window.grid_columnconfigure(ac3_n, weight=1)
         for ac3_n in range(8):
@@ -1818,19 +1806,6 @@ def openaudiowindow():
             audio_window.geometry(audio_win_parser['save_window_locations']['audio window - aac - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         root.withdraw()  # Hide root
-
-        my_menu_bar = Menu(audio_window, tearoff=0)
-        audio_window.config(menu=my_menu_bar)
-
-        file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
-        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
-                              command=mpv_gui_audio_window)
-        options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Options', menu=options_menu)
-        options_menu.add_command(label='Save Current Settings', command=save_profile)
-        options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
 
         for aac_n in range(3):
             audio_window.grid_columnconfigure(aac_n, weight=1)
@@ -2086,19 +2061,6 @@ def openaudiowindow():
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         root.withdraw()  # Hide root
 
-        my_menu_bar = Menu(audio_window, tearoff=0)
-        audio_window.config(menu=my_menu_bar)
-
-        file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
-        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
-                              command=mpv_gui_audio_window)
-        options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Options', menu=options_menu)
-        options_menu.add_command(label='Save Current Settings', command=save_profile)
-        options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
-
         for dts_n in range(3):
             audio_window.grid_columnconfigure(dts_n, weight=1)
         for dts_n in range(9):
@@ -2318,19 +2280,6 @@ def openaudiowindow():
             audio_window.geometry(audio_win_parser['save_window_locations']['audio window - opus - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         root.withdraw()  # Hide root
-
-        my_menu_bar = Menu(audio_window, tearoff=0)
-        audio_window.config(menu=my_menu_bar)
-
-        file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
-        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
-                              command=mpv_gui_audio_window)
-        options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Options', menu=options_menu)
-        options_menu.add_command(label='Save Current Settings', command=save_profile)
-        options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
 
         advanced_label = Label(audio_window,
                                text="- - - - - - - - - - - - - - - - - - - - Advanced Settings - - - - - - - - - - - "
@@ -2624,19 +2573,6 @@ def openaudiowindow():
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         root.withdraw()  # Hide root
 
-        my_menu_bar = Menu(audio_window, tearoff=0)
-        audio_window.config(menu=my_menu_bar)
-
-        file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
-        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
-                              command=mpv_gui_audio_window)
-        options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Options', menu=options_menu)
-        options_menu.add_command(label='Save Current Settings', command=save_profile)
-        options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
-
         for mp3_n in range(3):
             audio_window.grid_columnconfigure(mp3_n, weight=1)
         for mp3_n in range(7):
@@ -2918,18 +2854,6 @@ def openaudiowindow():
             audio_window.geometry(audio_win_parser['save_window_locations']['audio window - e-ac3 - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         root.withdraw()  # Hide root
-
-        my_menu_bar = Menu(audio_window, tearoff=0)
-        audio_window.config(menu=my_menu_bar)
-        file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
-        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
-                              command=mpv_gui_audio_window)
-        options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Options', menu=options_menu)
-        options_menu.add_command(label='Save Current Settings', command=save_profile)
-        options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
 
         for eac3_n in range(3):
             audio_window.grid_columnconfigure(eac3_n, weight=1)
@@ -3404,17 +3328,6 @@ def openaudiowindow():
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         root.withdraw()  # Hide root
 
-        my_menu_bar = Menu(audio_window, tearoff=0)
-        audio_window.config(menu=my_menu_bar)
-        file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
-        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume', command=mpv_gui_audio_window)
-        options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Options', menu=options_menu)
-        options_menu.add_command(label='Save Current Settings', command=save_profile)
-        options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
-
         for fdk_n in range(3):
             audio_window.grid_columnconfigure(fdk_n, weight=1)
         for fdk_n in range(17):
@@ -3843,18 +3756,6 @@ def openaudiowindow():
             audio_window.geometry(audio_win_parser['save_window_locations']['audio window - qaac - position'])
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         root.withdraw()  # Hide root
-
-        my_menu_bar = Menu(audio_window, tearoff=0)
-        audio_window.config(menu=my_menu_bar)
-        file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
-        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
-                              command=mpv_gui_audio_window)
-        options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Options', menu=options_menu)
-        options_menu.add_command(label='Save Current Settings', command=save_profile)
-        options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
 
         for qaac_n in range(3):
             audio_window.grid_columnconfigure(qaac_n, weight=1)
@@ -4287,18 +4188,6 @@ def openaudiowindow():
         audio_window.protocol('WM_DELETE_WINDOW', audio_window_exit_function)
         root.withdraw()  # Hide root
 
-        my_menu_bar = Menu(audio_window, tearoff=0)
-        audio_window.config(menu=my_menu_bar)
-        file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
-        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
-                              command=mpv_gui_audio_window)
-        options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Options', menu=options_menu)
-        options_menu.add_command(label='Save Current Settings', command=save_profile)
-        options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
-
         for flac_n in range(3):
             audio_window.grid_columnconfigure(flac_n, weight=1)
         for flac_n in [0, 1, 2, 3, 4, 6, 7, 10]:
@@ -4588,18 +4477,6 @@ def openaudiowindow():
         for alac_n in [0, 1, 2, 3, 4, 5, 6, 10]:
             audio_window.grid_rowconfigure(alac_n, weight=1)
 
-        my_menu_bar = Menu(audio_window, tearoff=0)
-        audio_window.config(menu=my_menu_bar)
-        file_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Track Tools', menu=file_menu)
-        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
-        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
-                              command=mpv_gui_audio_window)
-        options_menu = Menu(my_menu_bar, tearoff=0, activebackground='dim grey')
-        my_menu_bar.add_cascade(label='Options', menu=options_menu)
-        options_menu.add_command(label='Save Current Settings', command=save_profile)
-        options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
-
         # Buttons ---------------------------------------------------------------------------------------------
         if batch_mode == 'yes':
             apply_command = gotosavefile_batch
@@ -4808,6 +4685,20 @@ def openaudiowindow():
         max_prediction_order_spinbox.grid(row=6, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         # ------------------------------------------------------------------------------------ Max-Prediction-Order
     # -------------------------------------------------------------------------------------------------------- ALAC
+
+    audio_settings_menu = Menu(audio_window, tearoff=0)
+    audio_window.config(menu=audio_settings_menu)
+    # if batch_mode is no, enable the codec menu options
+    if batch_mode == 'no':
+        file_menu = Menu(audio_settings_menu, tearoff=0, activebackground='dim grey')
+        audio_settings_menu.add_cascade(label='Track Tools', menu=file_menu)
+        file_menu.add_command(label='View Audio Tracks', command=show_streams_mediainfo)
+        file_menu.add_command(label='Play Selected Audio Track  |  9 and 0 for Volume',
+                              command=mpv_gui_audio_window)
+    options_menu = Menu(audio_settings_menu, tearoff=0, activebackground='dim grey')
+    audio_settings_menu.add_cascade(label='Options', menu=options_menu)
+    options_menu.add_command(label='Save Current Settings', command=save_profile)
+    options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
 
     cmd_frame = Frame(audio_window)
     cmd_frame.grid(column=0, columnspan=3, row=100, sticky=N + S + E + W)
