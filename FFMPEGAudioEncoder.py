@@ -8,6 +8,7 @@ import sys
 import threading
 import tkinter.scrolledtext as scrolledtextwidget
 import webbrowser
+from collections import Counter
 from configparser import ConfigParser
 from ctypes import windll
 from datetime import datetime
@@ -17,7 +18,7 @@ from random import randint
 from time import sleep
 from tkinter import filedialog, StringVar, ttk, messagebox, PhotoImage, Menu, NORMAL, DISABLED, N, S, W, E, Toplevel, \
     LabelFrame, END, INSERT, Label, Checkbutton, Spinbox, CENTER, GROOVE, OptionMenu, Entry, HORIZONTAL, SUNKEN, \
-    Button, TclError, font, Frame, Scrollbar, VERTICAL, Listbox
+    Button, TclError, font, Frame, Scrollbar, VERTICAL, Listbox, EXTENDED
 
 import psutil
 import pyperclip
@@ -35,11 +36,13 @@ from Packages.show_streams import show_streams_mediainfo_function, exit_stream_w
 from Packages.window_geometry_settings import set_window_geometry_settings
 
 # Set variable to True if you want errors to pop up in window + log to file + console, False for console only
-log_error_to_file = True  # Change this to false if you don't want to log errors to file + pop up window
+log_error_to_file = False  # Change this to false if you don't want to log errors to file + pop up window
 
 # Set main window title variable
-main_root_title = "FFMPEG Audio Encoder v3.39"
+main_root_title = "FFMPEG Audio Encoder v4.0 Beta"
 
+# default an empty variable to be updated based off user input
+batch_mode = None
 
 # Main Gui & Windows --------------------------------------------------------
 def root_exit_function():
@@ -538,56 +541,6 @@ help_menu.add_command(label="Info", command=lambda: openaboutwindow(main_root_ti
 
 # --------------------------------------------------------------------------------------------- Menu Items and Sub-Bars
 
-# File Auto Save Function ---------------------------------------------------------------------------------------------
-def set_auto_save_suffix():
-    global file_out, autofilesave_dir_path
-
-    func_parser = ConfigParser()
-    func_parser.read(config_file)
-    autofilesave_file_path = pathlib.Path(file_input)  # Command to get file input location
-    saved_dir = func_parser['output_path']['path']
-    if saved_dir != 'file input directory' and pathlib.Path(saved_dir).is_dir():
-        autofilesave_dir_path = saved_dir
-    elif saved_dir == 'file input directory':
-        autofilesave_dir_path = autofilesave_file_path.parents[0]  # Final command to get only the directory
-
-    if encoder.get() != "Set Codec":
-        convert_filename = f'{str(autofilesave_dir_path)}/{str(pathlib.Path(file_input).name)}'
-        if encoder.get() == 'AAC':
-            file_out = pathlib.Path(convert_filename).with_suffix("._new_.mp4")
-        elif encoder.get() == 'AC3' or encoder.get() == 'E-AC3':
-            file_out = pathlib.Path(convert_filename).with_suffix('._new_.ac3')
-        elif encoder.get() == "DTS":
-            file_out = pathlib.Path(convert_filename).with_suffix('._new_.dts')
-        elif encoder.get() == "Opus":
-            file_out = pathlib.Path(convert_filename).with_suffix('._new_.opus')
-        elif encoder.get() == 'MP3':
-            file_out = pathlib.Path(convert_filename).with_suffix('._new_.mp3')
-        elif encoder.get() == "FDK-AAC" or encoder.get() == "QAAC" or encoder.get() == "ALAC":
-            file_out = pathlib.Path(convert_filename).with_suffix('._new_.m4a')
-        elif encoder.get() == "FLAC":
-            file_out = pathlib.Path(convert_filename).with_suffix('._new_.flac')
-
-
-def encoder_changed(*args):
-    global file_output, autosavefilename, file_out
-    exit_cmd_window()  # Close cmd window if it's opened
-    if encoder.get() != "Set Codec":
-        set_auto_save_suffix()
-        file_output = str(file_out)
-        output_entry.configure(state=NORMAL)
-        output_entry.delete(0, END)
-        output_entry.insert(0, file_out)
-        output_entry.configure(state=DISABLED)
-        audiosettings_button.configure(state=NORMAL)
-        command_line_button.config(state=DISABLED)
-        start_audio_button.config(state=DISABLED)
-        auto_encode_last_options.configure(state=DISABLED)
-        autosavefilename = file_out.name
-
-
-# --------------------------------------------------------------------------------------------- File Auto Save Function
-
 # # Help Button for FDK -----------------------------------------------------------------------------------------
 # def gotofdkaachelp():
 #     helpfile_window = Toplevel()
@@ -647,18 +600,6 @@ def show_streams_mediainfo():  # All audio codecs can call this function in thei
 
 # ----------------- Calls to show_streams.py show_streams_mediainfo_function to display a window with track information
 
-
-# Uses MediaInfo to get total audio track count and gives us a total track count --------------------------------------
-def track_counter(*args):  # Thanks for helping me shorten this 'gmes78'
-    global acodec_stream_track_counter, t_info, track_count
-    formatting_string = stream_menu(file_input)
-    t_info = formatting_string
-    acodec_stream_track_counter = {}
-    for i in range(int(track_count)):
-        acodec_stream_track_counter[f'Track #{i + 1}  |  {t_info[i]}'] = f' -map 0:a:{i} '
-
-
-# ---------------------------------------------------------------------------------------------------------------------
 # Root Frames ---------------------------------------------------------------------------------------------------------
 input_frame = LabelFrame(root, text='Input', labelanchor="nw")
 input_frame.grid(column=0, row=0, columnspan=4, padx=5, pady=(0, 3), sticky=N + S + E + W)
@@ -689,7 +630,72 @@ output_frame.grid_rowconfigure(0, weight=1)
 for o_f in range(4):
     output_frame.grid_columnconfigure(o_f, weight=1)
 
+
 # --------------------------------------------------------------------------------------------------------- Root Frames
+
+# File Auto Save Function ---------------------------------------------------------------------------------------------
+def set_auto_save_suffix():
+    global file_out, autofilesave_dir_path
+
+    func_parser = ConfigParser()
+    func_parser.read(config_file)
+    autofilesave_file_path = pathlib.Path(file_input)  # Command to get file input location
+    saved_dir = func_parser['output_path']['path']
+    if saved_dir != 'file input directory' and pathlib.Path(saved_dir).is_dir():
+        autofilesave_dir_path = saved_dir
+    elif saved_dir == 'file input directory':
+        autofilesave_dir_path = autofilesave_file_path.parents[0]  # Final command to get only the directory
+
+    if encoder.get() != "Set Codec":
+        convert_filename = f'{str(autofilesave_dir_path)}/{str(pathlib.Path(file_input).name)}'
+        if encoder.get() == 'AAC':
+            file_out = pathlib.Path(convert_filename).with_suffix("._new_.mp4")
+        elif encoder.get() == 'AC3' or encoder.get() == 'E-AC3':
+            file_out = pathlib.Path(convert_filename).with_suffix('._new_.ac3')
+        elif encoder.get() == "DTS":
+            file_out = pathlib.Path(convert_filename).with_suffix('._new_.dts')
+        elif encoder.get() == "Opus":
+            file_out = pathlib.Path(convert_filename).with_suffix('._new_.opus')
+        elif encoder.get() == 'MP3':
+            file_out = pathlib.Path(convert_filename).with_suffix('._new_.mp3')
+        elif encoder.get() == "FDK-AAC" or encoder.get() == "QAAC" or encoder.get() == "ALAC":
+            file_out = pathlib.Path(convert_filename).with_suffix('._new_.m4a')
+        elif encoder.get() == "FLAC":
+            file_out = pathlib.Path(convert_filename).with_suffix('._new_.flac')
+
+
+def encoder_changed(*args):
+    global file_output, autosavefilename, file_out, batch_mode
+    batch_mode = 'no'
+    track_counter()
+    exit_cmd_window()  # Close cmd window if it's opened
+    if encoder.get() != "Set Codec":
+        set_auto_save_suffix()
+        file_output = str(file_out)
+        output_entry.configure(state=NORMAL)
+        output_entry.delete(0, END)
+        output_entry.insert(0, file_out)
+        output_entry.configure(state=DISABLED)
+        audiosettings_button.configure(state=NORMAL)
+        command_line_button.config(state=DISABLED)
+        start_audio_button.config(state=DISABLED)
+        auto_encode_last_options.configure(state=DISABLED)
+        autosavefilename = file_out.name
+
+
+# --------------------------------------------------------------------------------------------- File Auto Save Function
+
+# Uses MediaInfo to get total audio track count and gives us a total track count --------------------------------------
+def track_counter(*args):  # Thanks for helping me shorten this 'gmes78'
+    global acodec_stream_track_counter, t_info, track_count
+    formatting_string = stream_menu(file_input)
+    t_info = formatting_string
+    acodec_stream_track_counter = {}
+    for i in range(int(track_count)):
+        acodec_stream_track_counter[f'Track #{i + 1}  |  {t_info[i]}'] = f' -map 0:a:{i} '
+
+
+# ---------------------------------------------------------------------------------------------------------------------
 
 # Encoder Codec Drop Down ---------------------------------------------------------------------------------------------
 encoder_dropdownmenu_choices = {
@@ -705,8 +711,7 @@ encoder_dropdownmenu_choices = {
     "ALAC": '-c:a alac '}
 encoder = StringVar(root)
 encoder.set("Set Codec")
-encoder.trace('w', encoder_changed)
-encoder_menu = OptionMenu(audio_setting_frame, encoder, *encoder_dropdownmenu_choices.keys(), command=track_counter)
+encoder_menu = OptionMenu(audio_setting_frame, encoder, *encoder_dropdownmenu_choices.keys(), command=encoder_changed)
 encoder_menu.grid(row=0, column=0, columnspan=2, padx=(10, 5), pady=5, sticky=N + S + W + E)
 encoder_menu.config(state=DISABLED, background="#23272A", foreground="white", highlightthickness=1, width=7)
 encoder_menu["menu"].configure(activebackground="dim grey")
@@ -1140,6 +1145,7 @@ def openaudiowindow():
 
                             audio_track_win = Toplevel()  # Toplevel window
                             audio_track_win.configure(background='#191a1a')  # Set color of audio_track_win background
+                            audio_track_win.title('Audio Track Selection')
                             window_height = 340  # win height
                             window_width = 478  # win width
                             # Open on top left of root window
@@ -1151,9 +1157,9 @@ def openaudiowindow():
 
                             # Track Frame -----------------------------------------------------------------------------
                             # Define track frame
-                            track_frame = LabelFrame(audio_track_win, text=' Track Selection ')
+                            track_frame = LabelFrame(audio_track_win, text=' Track Selection ', fg="#3498db",
+                                                     bg="#434547", bd=3, font=(set_font, 10, "bold"))
                             track_frame.grid(row=0, column=0, columnspan=5, sticky=E + W, padx=10, pady=(8, 0))
-                            track_frame.configure(fg="white", bg="#636669", bd=3)
 
                             track_frame.rowconfigure(0, weight=1)
                             track_frame.grid_columnconfigure(0, weight=1)
@@ -1261,12 +1267,21 @@ def openaudiowindow():
         update_video_output()
         # ------------------------------------------------------------ Check delay and add delay string to variable
 
+    def gotosavefile_batch():
+        save_codec_window_positions()  # Call functions to save window size/positions
+        audio_window.destroy()  # Close audio window
+        collect_final_job_commands()
+        open_all_toplevels()
+
     # ----------------------------------------------------------------------------------------- 'Apply' button function
 
     # Modify what the 'X' does at the top right of the audio window ---------------------------------------------------
     def audio_window_exit_function():  # When the 'X' is clicked, it does the same thing as the "Apply" button
-        set_encode_manual()  # Calls set_encode_manual() function
-        gotosavefile()  # Calls gotosavefile() function
+        if batch_mode == 'no':
+            set_encode_manual()  # Calls set_encode_manual() function
+            gotosavefile()  # Calls gotosavefile() function
+        elif batch_mode == 'yes':
+            gotosavefile_batch()
 
     # --------------------------------------------------- Modify what the 'X' does at the top right of the audio window
 
@@ -1610,8 +1625,12 @@ def openaudiowindow():
             audio_window.grid_rowconfigure(ac3_n, weight=1)
 
         # Buttons -------------------------------------------------------------------------------------------------
+        if batch_mode == 'yes':
+            apply_command = gotosavefile_batch
+        if batch_mode == 'no':
+            apply_command = lambda: [set_encode_manual(), gotosavefile()]
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                   command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
+                                   command=apply_command, activebackground='grey')
         apply_button.grid(row=8, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
 
         # ------------------------------------------------------------------------------------------------- Buttons
@@ -1819,8 +1838,12 @@ def openaudiowindow():
             audio_window.grid_rowconfigure(aac_n, weight=1)
 
         # Buttons -----------------------------------------------------------------------------------------------------
+        if batch_mode == 'yes':
+            apply_command = gotosavefile_batch
+        if batch_mode == 'no':
+            apply_command = lambda: [set_encode_manual(), gotosavefile()]
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                   command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
+                                   command=apply_command, activebackground='grey')
         apply_button.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
 
         # ----------------------------------------------------------------------------------------------------- Buttons
@@ -2102,8 +2125,12 @@ def openaudiowindow():
                 acodec_atempo_menu.config(state=DISABLED)
 
         # Buttons -----------------------------------------------------------------------------------------------------
+        if batch_mode == 'yes':
+            apply_command = gotosavefile_batch
+        if batch_mode == 'no':
+            apply_command = lambda: [set_encode_manual(), gotosavefile()]
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                   command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
+                                   command=apply_command, activebackground='grey')
         apply_button.grid(row=9, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
 
         # ----------------------------------------------------------------------------------------------------- Buttons
@@ -2323,8 +2350,12 @@ def openaudiowindow():
             audio_window.grid_rowconfigure(opus_n, weight=1)
 
         # Buttons -----------------------------------------------------------------------------------------------------
+        if batch_mode == 'yes':
+            apply_command = gotosavefile_batch
+        if batch_mode == 'no':
+            apply_command = lambda: [set_encode_manual(), gotosavefile()]
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                   command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
+                                   command=apply_command, activebackground='grey')
         apply_button.grid(row=13, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         # ----------------------------------------------------------------------------------------------------- Buttons
 
@@ -2692,8 +2723,12 @@ def openaudiowindow():
             # ------------------------------------------------------------------------------------------ VBR or CBR/ABR
 
         # Buttons -----------------------------------------------------------------------------------------------------
+        if batch_mode == 'yes':
+            apply_command = gotosavefile_batch
+        if batch_mode == 'no':
+            apply_command = lambda: [set_encode_manual(), gotosavefile()]
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                   command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
+                                   command=apply_command, activebackground='grey')
         apply_button.grid(row=7, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         # ----------------------------------------------------------------------------------------------------- Buttons
 
@@ -2909,8 +2944,12 @@ def openaudiowindow():
         advanced_label.grid(row=4, column=0, columnspan=3, padx=10, pady=10, sticky=W + E)
 
         # Buttons -----------------------------------------------------------------------------------------------------
+        if batch_mode == 'yes':
+            apply_command = gotosavefile_batch
+        if batch_mode == 'no':
+            apply_command = lambda: [set_encode_manual(), gotosavefile()]
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                   command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
+                                   command=apply_command, activebackground='grey')
         apply_button.grid(row=22, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
 
         # ----------------------------------------------------------------------------------------------------- Buttons
@@ -3417,8 +3456,12 @@ def openaudiowindow():
             acodec_profile_menu["bg"] = "#23272A"
 
         # Buttons -----------------------------------------------------------------------------------------------------
+        if batch_mode == 'yes':
+            apply_command = gotosavefile_batch
+        if batch_mode == 'no':
+            apply_command = lambda: [set_encode_manual(), gotosavefile()]
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                   command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
+                                   command=apply_command, activebackground='grey')
         apply_button.grid(row=17, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         # ----------------------------------------------------------------------------------------------------- Buttons
 
@@ -3829,8 +3872,12 @@ def openaudiowindow():
         # ----------------------------------------------------------------------------------------------- QAAC Get Gain
 
         # Buttons -----------------------------------------------------------------------------------------------------
+        if batch_mode == 'yes':
+            apply_command = gotosavefile_batch
+        if batch_mode == 'no':
+            apply_command = lambda: [set_encode_manual(), gotosavefile()]
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                   command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
+                                   command=apply_command, activebackground='grey')
         apply_button.grid(row=19, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W)
         # ----------------------------------------------------------------------------------------------------- Buttons
 
@@ -4258,8 +4305,12 @@ def openaudiowindow():
             audio_window.grid_rowconfigure(flac_n, weight=1)
 
         # Buttons -------------------------------------------------------------------------------------------------
+        if batch_mode == 'yes':
+            apply_command = gotosavefile_batch
+        if batch_mode == 'no':
+            apply_command = lambda: [set_encode_manual(), gotosavefile()]
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                   command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
+                                   command=apply_command, activebackground='grey')
         apply_button.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         # ------------------------------------------------------------------------------------------------- Buttons
 
@@ -4550,8 +4601,12 @@ def openaudiowindow():
         options_menu.add_command(label='Reset Settings To Default', command=reset_profile)
 
         # Buttons ---------------------------------------------------------------------------------------------
+        if batch_mode == 'yes':
+            apply_command = gotosavefile_batch
+        if batch_mode == 'no':
+            apply_command = lambda: [set_encode_manual(), gotosavefile()]
         apply_button = HoverButton(audio_window, text="Apply", foreground="white", background="#23272A",
-                                   command=lambda: [set_encode_manual(), gotosavefile()], activebackground='grey')
+                                   command=apply_command, activebackground='grey')
         apply_button.grid(row=10, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E)
         # --------------------------------------------------------------------------------------------- Buttons
 
@@ -5095,23 +5150,34 @@ def print_command_line():
 # ---------------------------------------------------------------------------------------- Print Command Line from ROOT
 
 def collect_final_job_commands():
-    global finalcommand, last_used_command
-    file_output_quoted = '"' + file_output + '"'
+    global finalcommand, last_used_command, batch_command, batch_mode
+    if batch_mode == 'no':
+        file_output_quoted = '"' + str(pathlib.Path(file_output)) + '"'
     # AC3 Start Job ---------------------------------------------------------------------------------------------------
     if encoder.get() == "AC3":
-        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
-                                    acodec_stream_choices[acodec_stream.get()] +
-                                    encoder_dropdownmenu_choices[encoder.get()] +
-                                    acodec_bitrate_choices[acodec_bitrate.get()] +
-                                    acodec_channel_choices[acodec_channel.get()] +
-                                    acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                    "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input +
-                                    file_output_quoted + " -v error -hide_banner -stats").split())
-        last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
+        if batch_mode == 'no':
+            finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
+                                        file_input_quoted +
+                                        acodec_stream_choices[acodec_stream.get()] +
+                                        encoder_dropdownmenu_choices[encoder.get()] +
+                                        acodec_bitrate_choices[acodec_bitrate.get()] +
+                                        acodec_channel_choices[acodec_channel.get()] +
+                                        acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
+                                        "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input +
+                                        file_output_quoted + " -v error -hide_banner -stats").split())
+            last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
+                                             acodec_bitrate_choices[acodec_bitrate.get()] +
+                                             acodec_channel_choices[acodec_channel.get()] +
+                                             acodec_samplerate_choices[acodec_samplerate.get()] +
+                                             audio_filter_setting + "-sn -vn -map_chapters -1 -map_metadata -1 " +
+                                             ac3_custom_cmd_input).split())
+        elif batch_mode == 'yes':
+            batch_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
                                          acodec_bitrate_choices[acodec_bitrate.get()] +
                                          acodec_channel_choices[acodec_channel.get()] +
-                                         acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                         "-sn -vn -map_chapters -1 -map_metadata -1 " + ac3_custom_cmd_input).split())
+                                         acodec_samplerate_choices[acodec_samplerate.get()] +
+                                         audio_filter_setting + "-sn -vn -map_chapters -1 -map_metadata -1 " +
+                                         ac3_custom_cmd_input).split())
 
     # --------------------------------------------------------------------------------------------------------- AC3 Job
     # AAC Start Job ---------------------------------------------------------------------------------------------------
@@ -5120,14 +5186,21 @@ def collect_final_job_commands():
             bitrate_or_quality = f"-b:a {aac_bitrate_spinbox.get()}k "
         elif aac_vbr_toggle.get() == "-q:a ":
             bitrate_or_quality = f"-q:a {aac_quality_spinbox.get()} "
-        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
-                                    acodec_stream_choices[acodec_stream.get()] +
-                                    encoder_dropdownmenu_choices[encoder.get()] + bitrate_or_quality +
-                                    acodec_channel_choices[acodec_channel.get()] +
-                                    acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                    "-sn -vn -map_chapters -1 -map_metadata -1 " + aac_custom_cmd_input +
-                                    aac_title_input + file_output_quoted + " -v error -hide_banner -stats").split())
-        last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] + bitrate_or_quality +
+        if batch_mode == 'no':
+            finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
+                                        file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
+                                        encoder_dropdownmenu_choices[encoder.get()] + bitrate_or_quality +
+                                        acodec_channel_choices[acodec_channel.get()] +
+                                        acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
+                                        "-sn -vn -map_chapters -1 -map_metadata -1 " + aac_custom_cmd_input +
+                                        aac_title_input + file_output_quoted + " -v error -hide_banner -stats").split())
+            last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] + bitrate_or_quality +
+                                             acodec_channel_choices[acodec_channel.get()] +
+                                             acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
+                                             "-sn -vn -map_chapters -1 -map_metadata -1 " + aac_custom_cmd_input +
+                                             aac_title_input).split())
+        elif batch_mode == 'yes':
+            batch_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] + bitrate_or_quality +
                                          acodec_channel_choices[acodec_channel.get()] +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                          "-sn -vn -map_chapters -1 -map_metadata -1 " + aac_custom_cmd_input +
@@ -5136,44 +5209,67 @@ def collect_final_job_commands():
     # DTS Start Job ---------------------------------------------------------------------------------------------------
     elif encoder.get() == 'DTS':
         if dts_settings.get() == 'DTS Encoder':
-            finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                        file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
-                                        dts_settings_choices[dts_settings.get()] + "-b:a " +
-                                        dts_bitrate_spinbox.get() + "k " +
-                                        acodec_channel_choices[acodec_channel.get()] +
-                                        acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                        dts_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
-                                        file_output_quoted + " -v error -hide_banner -stats").split())
-            last_used_command = ' '.join(str(dts_settings_choices[dts_settings.get()] + "-b:a " +
+            if batch_mode == 'no':
+                finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
+                                            file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
+                                            dts_settings_choices[dts_settings.get()] + "-b:a " +
+                                            dts_bitrate_spinbox.get() + "k " +
+                                            acodec_channel_choices[acodec_channel.get()] +
+                                            acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
+                                            dts_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
+                                            file_output_quoted + " -v error -hide_banner -stats").split())
+                last_used_command = ' '.join(str(dts_settings_choices[dts_settings.get()] + "-b:a " +
+                                                 dts_bitrate_spinbox.get() + "k " +
+                                                 acodec_channel_choices[acodec_channel.get()] +
+                                                 acodec_samplerate_choices[acodec_samplerate.get()] +
+                                                 audio_filter_setting + dts_custom_cmd_input +
+                                                 "-sn -vn -map_chapters -1 -map_metadata -1 ").split())
+            elif batch_mode == 'yes':
+                batch_command = ' '.join(str(dts_settings_choices[dts_settings.get()] + "-b:a " +
                                              dts_bitrate_spinbox.get() + "k " +
                                              acodec_channel_choices[acodec_channel.get()] +
                                              acodec_samplerate_choices[acodec_samplerate.get()] +
                                              audio_filter_setting + dts_custom_cmd_input +
                                              "-sn -vn -map_chapters -1 -map_metadata -1 ").split())
         elif dts_settings.get() != 'DTS Encoder':
-            finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                        file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
-                                        dts_settings_choices[dts_settings.get()] + dts_custom_cmd_input +
-                                        "-sn -vn -map_chapters -1 -map_metadata -1 " + file_output_quoted +
-                                        " -v error -hide_banner -stats").split())
-            last_used_command = ' '.join(str(dts_settings_choices[dts_settings.get()] + dts_custom_cmd_input +
+            if batch_mode == 'no':
+                finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
+                                            file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
+                                            dts_settings_choices[dts_settings.get()] + dts_custom_cmd_input +
+                                            "-sn -vn -map_chapters -1 -map_metadata -1 " + file_output_quoted +
+                                            " -v error -hide_banner -stats").split())
+                last_used_command = ' '.join(str(dts_settings_choices[dts_settings.get()] + dts_custom_cmd_input +
+                                                 "-sn -vn -map_chapters -1 -map_metadata -1 ").split())
+            elif batch_mode == 'yes':
+                batch_command = ' '.join(str(dts_settings_choices[dts_settings.get()] + dts_custom_cmd_input +
                                              "-sn -vn -map_chapters -1 -map_metadata -1 ").split())
     # ------------------------------------------------------------------------------------------------------------- DTS
     # Opus Start Job --------------------------------------------------------------------------------------------------
     elif encoder.get() == "Opus":
-        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
-                                    acodec_stream_choices[acodec_stream.get()] +
-                                    encoder_dropdownmenu_choices[encoder.get()] +
-                                    acodec_vbr_choices[acodec_vbr.get()] +
-                                    acodec_bitrate_choices[acodec_bitrate.get()] +
-                                    acodec_channel_choices[acodec_channel.get()] +
-                                    acodec_application_choices[acodec_application.get()] +
-                                    opus_mapping_family_choices[opus_mapping_family.get()] + "-packet_loss " +
-                                    packet_loss.get() + " -frame_duration " + frame_duration.get() + " " +
-                                    acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                    "-sn -vn -map_chapters -1 -map_metadata -1 " + opus_custom_cmd_input +
-                                    file_output_quoted + " -v error -hide_banner -stats").split())
-        last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
+        if batch_mode == 'no':
+            finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
+                                        file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
+                                        encoder_dropdownmenu_choices[encoder.get()] +
+                                        acodec_vbr_choices[acodec_vbr.get()] +
+                                        acodec_bitrate_choices[acodec_bitrate.get()] +
+                                        acodec_channel_choices[acodec_channel.get()] +
+                                        acodec_application_choices[acodec_application.get()] +
+                                        opus_mapping_family_choices[opus_mapping_family.get()] + "-packet_loss " +
+                                        packet_loss.get() + " -frame_duration " + frame_duration.get() + " " +
+                                        acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
+                                        "-sn -vn -map_chapters -1 -map_metadata -1 " + opus_custom_cmd_input +
+                                        file_output_quoted + " -v error -hide_banner -stats").split())
+            last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
+                                             acodec_vbr_choices[acodec_vbr.get()] +
+                                             acodec_bitrate_choices[acodec_bitrate.get()] +
+                                             acodec_channel_choices[acodec_channel.get()] +
+                                             acodec_application_choices[acodec_application.get()] +
+                                             opus_mapping_family_choices[opus_mapping_family.get()] + "-packet_loss " +
+                                             packet_loss.get() + " -frame_duration " + frame_duration.get() + " " +
+                                             acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
+                                             "-sn -vn -map_chapters -1 -map_metadata -1 ").split())
+        elif batch_mode == 'yes':
+            batch_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
                                          acodec_vbr_choices[acodec_vbr.get()] +
                                          acodec_bitrate_choices[acodec_bitrate.get()] +
                                          acodec_channel_choices[acodec_channel.get()] +
@@ -5185,61 +5281,96 @@ def collect_final_job_commands():
     # ------------------------------------------------------------------------------------------------------------ Opus
     # MP3 Start Job ---------------------------------------------------------------------------------------------------
     elif encoder.get() == "MP3":
-        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
-                                    acodec_stream_choices[acodec_stream.get()] +
-                                    encoder_dropdownmenu_choices[encoder.get()] +
-                                    acodec_bitrate_choices[acodec_bitrate.get()] +
-                                    acodec_channel_choices[acodec_channel.get()] + mp3_abr.get() +
-                                    acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                    "-sn -vn -map_chapters -1 -map_metadata -1 " + mp3_custom_cmd_input +
-                                    file_output_quoted + " -v error -hide_banner -stats").split())
-        last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
+        if batch_mode == 'no':
+            finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
+                                        file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
+                                        encoder_dropdownmenu_choices[encoder.get()] +
+                                        acodec_bitrate_choices[acodec_bitrate.get()] +
+                                        acodec_channel_choices[acodec_channel.get()] + mp3_abr.get() +
+                                        acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
+                                        "-sn -vn -map_chapters -1 -map_metadata -1 " + mp3_custom_cmd_input +
+                                        file_output_quoted + " -v error -hide_banner -stats").split())
+            last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
+                                             acodec_bitrate_choices[acodec_bitrate.get()] +
+                                             acodec_channel_choices[acodec_channel.get()] + mp3_abr.get() +
+                                             acodec_samplerate_choices[acodec_samplerate.get()] +
+                                             audio_filter_setting + "-sn -vn -map_chapters -1 -map_metadata -1 " +
+                                             mp3_custom_cmd_input).split())
+        elif batch_mode == 'yes':
+            batch_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
                                          acodec_bitrate_choices[acodec_bitrate.get()] +
                                          acodec_channel_choices[acodec_channel.get()] + mp3_abr.get() +
-                                         acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                         "-sn -vn -map_chapters -1 -map_metadata -1 " + mp3_custom_cmd_input).split())
+                                         acodec_samplerate_choices[acodec_samplerate.get()] +
+                                         audio_filter_setting + "-sn -vn -map_chapters -1 -map_metadata -1 " +
+                                         mp3_custom_cmd_input).split())
     # ------------------------------------------------------------------------------------------------------------- MP3
     # E-AC3 Start Job -------------------------------------------------------------------------------------------------
     elif encoder.get() == "E-AC3":
-        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
-                                    acodec_stream_choices[acodec_stream.get()] +
-                                    encoder_dropdownmenu_choices[encoder.get()] + "-b:a " + eac3_spinbox.get() +
-                                    acodec_channel_choices[acodec_channel.get()] +
-                                    acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                    eac3_custom_cmd_input + per_frame_metadata_choices[per_frame_metadata.get()] +
-                                    "-mixing_level " + eac3_mixing_level.get() + " " +
-                                    room_type_choices[room_type.get()] + "-copyright " + copyright_bit.get() + " " +
-                                    "-dialnorm " + dialogue_level.get() + " " +
-                                    dolby_surround_mode_choices[dolby_surround_mode.get()] + "-original " +
-                                    original_bit_stream.get() + " " + downmix_mode_choices[downmix_mode.get()] +
-                                    "-ltrt_cmixlev " + lt_rt_center_mix.get() + " " + "-ltrt_surmixlev " +
-                                    lt_rt_surround_mix.get() + " " + "-loro_cmixlev " + lo_ro_center_mix.get() + " " +
-                                    "-loro_surmixlev " + lo_ro_surround_mix.get() + " " +
-                                    dolby_surround_ex_mode_choices[dolby_surround_ex_mode.get()] +
-                                    dolby_headphone_mode_choices[dolby_headphone_mode.get()] +
-                                    a_d_converter_type_choices[a_d_converter_type.get()] +
-                                    stereo_rematrixing_choices[stereo_rematrixing.get()] + "-channel_coupling " +
-                                    channel_coupling.get() + " " + "-cpl_start_band " + cpl_start_band.get() + " " +
-                                    "-sn -vn -map_chapters -1 -map_metadata -1 " + file_output_quoted +
-                                    " -v error -hide_banner -stats").split())
-        last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] + "-b:a " + eac3_spinbox.get() +
-                                         acodec_channel_choices[acodec_channel.get()] +
-                                         acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                         eac3_custom_cmd_input + per_frame_metadata_choices[per_frame_metadata.get()] +
+        if batch_mode == 'no':
+            finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
+                                        file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
+                                        encoder_dropdownmenu_choices[encoder.get()] + "-b:a " + eac3_spinbox.get() +
+                                        acodec_channel_choices[acodec_channel.get()] +
+                                        acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
+                                        eac3_custom_cmd_input + per_frame_metadata_choices[per_frame_metadata.get()] +
+                                        "-mixing_level " + eac3_mixing_level.get() + " " +
+                                        room_type_choices[room_type.get()] + "-copyright " + copyright_bit.get() +
+                                        " " + "-dialnorm " + dialogue_level.get() + " " +
+                                        dolby_surround_mode_choices[dolby_surround_mode.get()] + "-original " +
+                                        original_bit_stream.get() + " " + downmix_mode_choices[downmix_mode.get()] +
+                                        "-ltrt_cmixlev " + lt_rt_center_mix.get() + " " + "-ltrt_surmixlev " +
+                                        lt_rt_surround_mix.get() + " " + "-loro_cmixlev " + lo_ro_center_mix.get() +
+                                        " " + "-loro_surmixlev " + lo_ro_surround_mix.get() + " " +
+                                        dolby_surround_ex_mode_choices[dolby_surround_ex_mode.get()] +
+                                        dolby_headphone_mode_choices[dolby_headphone_mode.get()] +
+                                        a_d_converter_type_choices[a_d_converter_type.get()] +
+                                        stereo_rematrixing_choices[stereo_rematrixing.get()] + "-channel_coupling " +
+                                        channel_coupling.get() + " " + "-cpl_start_band " + cpl_start_band.get() +
+                                        " " + "-sn -vn -map_chapters -1 -map_metadata -1 " + file_output_quoted +
+                                        " -v error -hide_banner -stats").split())
+            last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] + "-b:a " +
+                                             eac3_spinbox.get() + acodec_channel_choices[acodec_channel.get()] +
+                                             acodec_samplerate_choices[acodec_samplerate.get()] +
+                                             audio_filter_setting + eac3_custom_cmd_input +
+                                             per_frame_metadata_choices[per_frame_metadata.get()] +
+                                             "-mixing_level " + eac3_mixing_level.get() + " " +
+                                             room_type_choices[room_type.get()] + "-copyright " + copyright_bit.get() +
+                                             " " + "-dialnorm " + dialogue_level.get() + " " +
+                                             dolby_surround_mode_choices[dolby_surround_mode.get()] + "-original " +
+                                             original_bit_stream.get() + " " +
+                                             downmix_mode_choices[downmix_mode.get()] + "-ltrt_cmixlev " +
+                                             lt_rt_center_mix.get() + " " + "-ltrt_surmixlev " +
+                                             lt_rt_surround_mix.get() + " " + "-loro_cmixlev " +
+                                             lo_ro_center_mix.get() + " " + "-loro_surmixlev " +
+                                             lo_ro_surround_mix.get() + " " +
+                                             dolby_surround_ex_mode_choices[dolby_surround_ex_mode.get()] +
+                                             dolby_headphone_mode_choices[dolby_headphone_mode.get()] +
+                                             a_d_converter_type_choices[a_d_converter_type.get()] +
+                                             stereo_rematrixing_choices[stereo_rematrixing.get()] +
+                                             "-channel_coupling " + channel_coupling.get() + " " + "-cpl_start_band "
+                                             + cpl_start_band.get() + " " + "-sn -vn -map_chapters -1 ").split())
+        elif batch_mode == 'yes':
+            batch_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] + "-b:a " +
+                                         eac3_spinbox.get() + acodec_channel_choices[acodec_channel.get()] +
+                                         acodec_samplerate_choices[acodec_samplerate.get()] +
+                                         audio_filter_setting + eac3_custom_cmd_input +
+                                         per_frame_metadata_choices[per_frame_metadata.get()] +
                                          "-mixing_level " + eac3_mixing_level.get() + " " +
                                          room_type_choices[room_type.get()] + "-copyright " + copyright_bit.get() +
                                          " " + "-dialnorm " + dialogue_level.get() + " " +
                                          dolby_surround_mode_choices[dolby_surround_mode.get()] + "-original " +
-                                         original_bit_stream.get() + " " + downmix_mode_choices[downmix_mode.get()] +
-                                         "-ltrt_cmixlev " + lt_rt_center_mix.get() + " " + "-ltrt_surmixlev " +
-                                         lt_rt_surround_mix.get() + " " + "-loro_cmixlev " + lo_ro_center_mix.get() +
-                                         " " + "-loro_surmixlev " + lo_ro_surround_mix.get() + " " +
+                                         original_bit_stream.get() + " " +
+                                         downmix_mode_choices[downmix_mode.get()] + "-ltrt_cmixlev " +
+                                         lt_rt_center_mix.get() + " " + "-ltrt_surmixlev " +
+                                         lt_rt_surround_mix.get() + " " + "-loro_cmixlev " +
+                                         lo_ro_center_mix.get() + " " + "-loro_surmixlev " +
+                                         lo_ro_surround_mix.get() + " " +
                                          dolby_surround_ex_mode_choices[dolby_surround_ex_mode.get()] +
                                          dolby_headphone_mode_choices[dolby_headphone_mode.get()] +
                                          a_d_converter_type_choices[a_d_converter_type.get()] +
-                                         stereo_rematrixing_choices[stereo_rematrixing.get()] + "-channel_coupling " +
-                                         channel_coupling.get() + " " + "-cpl_start_band " + cpl_start_band.get() +
-                                         " " + "-sn -vn -map_chapters -1 ").split())
+                                         stereo_rematrixing_choices[stereo_rematrixing.get()] +
+                                         "-channel_coupling " + channel_coupling.get() + " " + "-cpl_start_band "
+                                         + cpl_start_band.get() + " " + "-sn -vn -map_chapters -1 ").split())
     # ----------------------------------------------------------------------------------------------------------- E-AC3
     # FDK_AAC Start Job -----------------------------------------------------------------------------------------------
     elif encoder.get() == "FDK-AAC":
@@ -5247,22 +5378,37 @@ def collect_final_job_commands():
             silent = '--silent '
         else:
             silent = ' '
-        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
-                                    acodec_stream_choices[acodec_stream.get()] +
-                                    acodec_channel_choices[acodec_channel.get()] +
-                                    acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                    ffmpeg_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
-                                    "-f caf - -v error -hide_banner -stats | " +
-                                    fdkaac + " " + acodec_profile_choices[acodec_profile.get()] +
-                                    fdkaac_title_input + fdkaac_custom_cmd_input +
-                                    acodec_gapless_mode_choices[acodec_gapless_mode.get()] + afterburnervar.get() +
-                                    crccheck.get() + moovbox.get() + sbrdelay.get() + headerperiod.get() +
-                                    acodec_lowdelay_choices[acodec_lowdelay.get()] +
-                                    acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] +
-                                    acodec_transport_format_choices[acodec_transport_format.get()] +
-                                    acodec_bitrate_choices[acodec_bitrate.get()] + silent + "- -o " +
-                                    file_output_quoted).split())
-        last_used_command = ' '.join(str(acodec_channel_choices[acodec_channel.get()] +
+        if batch_mode == 'no':
+            finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
+                                        file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
+                                        acodec_channel_choices[acodec_channel.get()] +
+                                        acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
+                                        ffmpeg_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
+                                        "-f caf - -v error -hide_banner -stats | " +
+                                        fdkaac + " " + acodec_profile_choices[acodec_profile.get()] +
+                                        fdkaac_title_input + fdkaac_custom_cmd_input +
+                                        acodec_gapless_mode_choices[acodec_gapless_mode.get()] + afterburnervar.get() +
+                                        crccheck.get() + moovbox.get() + sbrdelay.get() + headerperiod.get() +
+                                        acodec_lowdelay_choices[acodec_lowdelay.get()] +
+                                        acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] +
+                                        acodec_transport_format_choices[acodec_transport_format.get()] +
+                                        acodec_bitrate_choices[acodec_bitrate.get()] + silent + "- -o " +
+                                        file_output_quoted).split())
+            last_used_command = ' '.join(str(acodec_channel_choices[acodec_channel.get()] +
+                                             acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
+                                             ffmpeg_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
+                                             "-f caf - -v error -hide_banner -stats | " + fdkaac + " " +
+                                             acodec_profile_choices[acodec_profile.get()] + fdkaac_title_input +
+                                             fdkaac_custom_cmd_input +
+                                             acodec_gapless_mode_choices[acodec_gapless_mode.get()] +
+                                             afterburnervar.get() + crccheck.get() + moovbox.get() + sbrdelay.get() +
+                                             headerperiod.get() + acodec_lowdelay_choices[acodec_lowdelay.get()] +
+                                             acodec_sbr_ratio_choices[acodec_sbr_ratio.get()] +
+                                             acodec_transport_format_choices[acodec_transport_format.get()] +
+                                             acodec_bitrate_choices[acodec_bitrate.get()] +
+                                             silent + "- -o ").split())
+        elif batch_mode == 'yes':
+            batch_command = ' '.join(str(acodec_channel_choices[acodec_channel.get()] +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                          ffmpeg_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
                                          "-f caf - -v error -hide_banner -stats | " + fdkaac + " " +
@@ -5283,25 +5429,42 @@ def collect_final_job_commands():
         else:
             silent = ' '
         if q_acodec_profile.get() == "True VBR":
-            finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
-                                        file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
-                                        acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
-                                        acodec_samplerate_choices[acodec_samplerate.get()] + ffmpeg_custom_cmd_input +
-                                        "-sn -vn -map_chapters -1 -map_metadata -1 " +
-                                        "-f wav - -v error -hide_banner -stats | " + qaac +
-                                        " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
-                                        q_acodec_quality_amnt.get() + ' ' + qaac_high_efficiency.get() +
-                                        qaac_normalize.get() + qaac_nodither.get() + "--gain " +
-                                        q_acodec_gain.get() + ' ' + q_acodec_quality_choices[q_acodec_quality.get()] +
-                                        qaac_nodelay.get() + q_gapless_mode_choices[q_gapless_mode.get()] +
-                                        qaac_nooptimize.get() + qaac_threading.get() + qaac_limiter.get() +
-                                        qaac_title_input + qaac_custom_cmd_input + silent + "- -o " +
-                                        file_output_quoted).split())
-            last_used_command = ' '.join(str(acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
+            if batch_mode == 'no':
+                finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
+                                            file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
+                                            acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
+                                            acodec_samplerate_choices[acodec_samplerate.get()] +
+                                            ffmpeg_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
+                                            "-f wav - -v error -hide_banner -stats | " + qaac +
+                                            " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
+                                            q_acodec_quality_amnt.get() + ' ' + qaac_high_efficiency.get() +
+                                            qaac_normalize.get() + qaac_nodither.get() + "--gain " +
+                                            q_acodec_gain.get() + ' ' +
+                                            q_acodec_quality_choices[q_acodec_quality.get()] +
+                                            qaac_nodelay.get() + q_gapless_mode_choices[q_gapless_mode.get()] +
+                                            qaac_nooptimize.get() + qaac_threading.get() + qaac_limiter.get() +
+                                            qaac_title_input + qaac_custom_cmd_input + silent + "- -o " +
+                                            file_output_quoted).split())
+                last_used_command = ' '.join(str(acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
+                                                 acodec_samplerate_choices[acodec_samplerate.get()] +
+                                                 ffmpeg_custom_cmd_input +
+                                                 "-sn -vn -map_chapters -1 -map_metadata -1 " +
+                                                 "-f wav - -v error -hide_banner -stats | " + qaac +
+                                                 " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
+                                                 q_acodec_quality_amnt.get() + ' ' + qaac_high_efficiency.get() +
+                                                 qaac_normalize.get() + qaac_nodither.get() + "--gain " +
+                                                 q_acodec_gain.get() + ' ' +
+                                                 q_acodec_quality_choices[q_acodec_quality.get()] + qaac_nodelay.get() +
+                                                 q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() +
+                                                 qaac_threading.get() + qaac_limiter.get() + qaac_title_input +
+                                                 qaac_custom_cmd_input + silent + "- -o ").split())
+            elif batch_mode == 'yes':
+                batch_command = ' '.join(str(acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
                                              acodec_samplerate_choices[acodec_samplerate.get()] +
-                                             ffmpeg_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
-                                             "-f wav - -v error -hide_banner -stats | " + qaac + " --ignorelength " +
-                                             q_acodec_profile_choices[q_acodec_profile.get()] +
+                                             ffmpeg_custom_cmd_input +
+                                             "-sn -vn -map_chapters -1 -map_metadata -1 " +
+                                             "-f wav - -v error -hide_banner -stats | " + qaac +
+                                             " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
                                              q_acodec_quality_amnt.get() + ' ' + qaac_high_efficiency.get() +
                                              qaac_normalize.get() + qaac_nodither.get() + "--gain " +
                                              q_acodec_gain.get() + ' ' +
@@ -5310,21 +5473,36 @@ def collect_final_job_commands():
                                              qaac_threading.get() + qaac_limiter.get() + qaac_title_input +
                                              qaac_custom_cmd_input + silent + "- -o ").split())
         else:
-            finalcommand = ' '.join(str('"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
-                                        acodec_stream_choices[acodec_stream.get()] +
-                                        acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
-                                        acodec_samplerate_choices[acodec_samplerate.get()] + ffmpeg_custom_cmd_input +
-                                        "-sn -vn -map_chapters -1 -map_metadata -1 " +
-                                        "-f wav - -v error -hide_banner -stats | " + qaac +
-                                        " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
-                                        q_acodec_bitrate.get() + qaac_high_efficiency.get() + qaac_normalize.get() +
-                                        qaac_nodither.get() + "--gain " + q_acodec_gain.get() + ' ' +
-                                        q_acodec_quality_choices[q_acodec_quality.get()] + qaac_nodelay.get() +
-                                        q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() +
-                                        qaac_threading.get() + qaac_limiter.get() + qaac_title_input +
-                                        qaac_custom_cmd_input + silent + "- -o " +
-                                        file_output_quoted).split())
-            last_used_command = ' '.join(str(acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
+            if batch_mode == 'no':
+                finalcommand = ' '.join(
+                    str('"' + ffmpeg + " -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
+                        acodec_stream_choices[acodec_stream.get()] +
+                        acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
+                        acodec_samplerate_choices[acodec_samplerate.get()] + ffmpeg_custom_cmd_input +
+                        "-sn -vn -map_chapters -1 -map_metadata -1 " +
+                        "-f wav - -v error -hide_banner -stats | " + qaac +
+                        " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
+                        q_acodec_bitrate.get() + qaac_high_efficiency.get() + qaac_normalize.get() +
+                        qaac_nodither.get() + "--gain " + q_acodec_gain.get() + ' ' +
+                        q_acodec_quality_choices[q_acodec_quality.get()] + qaac_nodelay.get() +
+                        q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() +
+                        qaac_threading.get() + qaac_limiter.get() + qaac_title_input +
+                        qaac_custom_cmd_input + silent + "- -o " +
+                        file_output_quoted).split())
+                last_used_command = ' '.join(str(acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
+                                                 acodec_samplerate_choices[acodec_samplerate.get()] +
+                                                 ffmpeg_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
+                                                 "-f wav - -v error -hide_banner -stats | " + qaac +
+                                                 " --ignorelength " + q_acodec_profile_choices[q_acodec_profile.get()] +
+                                                 q_acodec_bitrate.get() + qaac_high_efficiency.get() +
+                                                 qaac_normalize.get() + qaac_nodither.get() + "--gain " +
+                                                 q_acodec_gain.get() + ' ' +
+                                                 q_acodec_quality_choices[q_acodec_quality.get()] + qaac_nodelay.get() +
+                                                 q_gapless_mode_choices[q_gapless_mode.get()] + qaac_nooptimize.get() +
+                                                 qaac_threading.get() + qaac_limiter.get() + qaac_title_input +
+                                                 qaac_custom_cmd_input + silent + "- -o ").split())
+            elif batch_mode == 'yes':
+                batch_command = ' '.join(str(acodec_channel_choices[acodec_channel.get()] + audio_filter_setting +
                                              acodec_samplerate_choices[acodec_samplerate.get()] +
                                              ffmpeg_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
                                              "-f wav - -v error -hide_banner -stats | " + qaac +
@@ -5339,37 +5517,56 @@ def collect_final_job_commands():
     # ------------------------------------------------------------------------------------------------------------ QAAC
     # FLAC Start Job --------------------------------------------------------------------------------------------------
     elif encoder.get() == "FLAC":
-        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
-                                    acodec_stream_choices[acodec_stream.get()] +
-                                    encoder_dropdownmenu_choices[encoder.get()] +
-                                    acodec_bitrate_choices[acodec_bitrate.get()] +
-                                    acodec_channel_choices[acodec_channel.get()] +
-                                    acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                    set_flac_acodec_coefficient +
-                                    acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] +
-                                    acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] +
-                                    flac_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
-                                    file_output_quoted + " -v error -hide_banner -stats" + '"').split())
-        last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
+        if batch_mode == 'no':
+            finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
+                                        file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
+                                        encoder_dropdownmenu_choices[encoder.get()] +
+                                        acodec_bitrate_choices[acodec_bitrate.get()] +
+                                        acodec_channel_choices[acodec_channel.get()] +
+                                        acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
+                                        set_flac_acodec_coefficient +
+                                        acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] +
+                                        acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] +
+                                        flac_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 " +
+                                        file_output_quoted + " -v error -hide_banner -stats" + '"').split())
+            last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
+                                             acodec_bitrate_choices[acodec_bitrate.get()] +
+                                             acodec_channel_choices[acodec_channel.get()] +
+                                             acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
+                                             set_flac_acodec_coefficient +
+                                             acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] +
+                                             acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] +
+                                             flac_custom_cmd_input +
+                                             "-sn -vn -map_chapters -1 -map_metadata -1 ").split())
+        elif batch_mode == 'yes':
+            batch_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
                                          acodec_bitrate_choices[acodec_bitrate.get()] +
                                          acodec_channel_choices[acodec_channel.get()] +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                          set_flac_acodec_coefficient +
                                          acodec_flac_lpc_type_choices[acodec_flac_lpc_type.get()] +
                                          acodec_flac_lpc_passes_choices[acodec_flac_lpc_passes.get()] +
-                                         flac_custom_cmd_input + "-sn -vn -map_chapters -1 -map_metadata -1 ").split())
+                                         flac_custom_cmd_input +
+                                         "-sn -vn -map_chapters -1 -map_metadata -1 ").split())
     # ------------------------------------------------------------------------------------------------------------ FLAC
     # ALAC Start Job --------------------------------------------------------------------------------------------------
     elif encoder.get() == "ALAC":
-        finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " + file_input_quoted +
-                                    acodec_stream_choices[acodec_stream.get()] +
-                                    encoder_dropdownmenu_choices[encoder.get()] +
-                                    acodec_channel_choices[acodec_channel.get()] +
-                                    acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
-                                    min_pre_order + max_pre_order + flac_custom_cmd_input + " " +
-                                    "-sn -vn -map_chapters -1 -map_metadata -1 " +
-                                    file_output_quoted + " -v error -hide_banner -stats" + '"').split())
-        last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
+        if batch_mode == 'no':
+            finalcommand = ' '.join(str('"' + ffmpeg + " -y -analyzeduration 100M -probesize 50M -i " +
+                                        file_input_quoted + acodec_stream_choices[acodec_stream.get()] +
+                                        encoder_dropdownmenu_choices[encoder.get()] +
+                                        acodec_channel_choices[acodec_channel.get()] +
+                                        acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
+                                        min_pre_order + max_pre_order + flac_custom_cmd_input + " " +
+                                        "-sn -vn -map_chapters -1 -map_metadata -1 " +
+                                        file_output_quoted + " -v error -hide_banner -stats" + '"').split())
+            last_used_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
+                                             acodec_channel_choices[acodec_channel.get()] +
+                                             acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
+                                             min_pre_order + max_pre_order + flac_custom_cmd_input +
+                                             "-sn -vn -map_chapters -1 -map_metadata -1 ").split())
+        elif batch_mode == 'yes':
+            batch_command = ' '.join(str(encoder_dropdownmenu_choices[encoder.get()] +
                                          acodec_channel_choices[acodec_channel.get()] +
                                          acodec_samplerate_choices[acodec_samplerate.get()] + audio_filter_setting +
                                          min_pre_order + max_pre_order + flac_custom_cmd_input +
@@ -5872,6 +6069,295 @@ def input_button_commands():
 
 # --------------------------------------------------------------------------------------------- Select "Open File" code
 
+# Batch Processing ----------------------------------------------------------------------------------------------------
+def batch_processing_input():
+    global batch_listbox, encoder
+    batch_input_window = Toplevel()
+    batch_input_window.configure(background="#434547")  # Set's the background color
+    batch_input_window.title('Batch File Input')  # Toplevel Title
+    window_height = 400
+    window_width = 1000
+    screen_width = batch_input_window.winfo_screenwidth()
+    screen_height = batch_input_window.winfo_screenheight()
+    x_coordinate = int((screen_width / 2) - (window_width / 2))
+    y_coordinate = int((screen_height / 2) - (window_height / 2))
+    batch_input_window.geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
+
+    # Row/Grid configures
+    batch_input_window.grid_columnconfigure(0, weight=20)
+    batch_input_window.grid_columnconfigure(1, weight=1)
+    batch_input_window.grid_rowconfigure(0, weight=1)
+    # Row/Grid configures
+
+    listbox_frame = Frame(batch_input_window)  # Set dynamic listbox frame
+    listbox_frame.grid(column=0, row=0, padx=5, pady=5, sticky=N + S + E + W)
+    listbox_frame.grid_rowconfigure(0, weight=200)
+    listbox_frame.grid_rowconfigure(1, weight=0)
+    listbox_frame.grid_columnconfigure(0, weight=200)
+    listbox_frame.grid_columnconfigure(1, weight=0)
+
+    right_scrollbar = Scrollbar(listbox_frame, orient=VERTICAL)  # Scrollbars
+    bottom_scrollbar = Scrollbar(listbox_frame, orient=HORIZONTAL)
+
+    # Create listbox
+    batch_listbox = Listbox(listbox_frame, xscrollcommand=bottom_scrollbar.set, activestyle="none",
+                            yscrollcommand=right_scrollbar.set, bd=2, bg="black", fg="#3498db",
+                            selectbackground='#272727', selectforeground='light green', selectmode=EXTENDED,
+                            font=(set_font, set_font_size + 2))
+    batch_listbox.grid(row=0, column=0, sticky=N + E + S + W)
+
+    # Add scrollbars to the listbox
+    right_scrollbar.config(command=batch_listbox.yview)
+    right_scrollbar.grid(row=0, column=1, sticky=N + W + S)
+    bottom_scrollbar.config(command=batch_listbox.xview)
+    bottom_scrollbar.grid(row=1, column=0, sticky=W + E + N)
+
+    # Button frame
+    button_frame = Frame(batch_input_window)
+    button_frame.grid(column=1, row=0, sticky=N + S + E + W)
+    button_frame.config(bg="#434547")
+    button_frame.grid_columnconfigure(0, weight=1)
+    button_frame.grid_rowconfigure(0, weight=1)
+    button_frame.grid_rowconfigure(1, weight=1)
+    button_frame.grid_rowconfigure(2, weight=1)
+    button_frame.grid_rowconfigure(3, weight=300)
+    button_frame.grid_rowconfigure(4, weight=300)
+    button_frame.grid_rowconfigure(5, weight=1)
+    button_frame.grid_rowconfigure(6, weight=1)
+
+
+    def create_track_count():  # function to update track counter, for track list
+        global acodec_stream_track_counter
+        max_common_audio_track = []  # create empty list
+
+        # loop through listbox to check all audio streams
+        for batch_file in enumerate(batch_listbox.get(0, END)):
+            media_info = MediaInfo.parse(pathlib.Path(batch_file[1]))
+            audio_track_count = media_info.general_tracks[0].count_of_audio_streams
+            max_common_audio_track.append(audio_track_count)
+
+        max_common_audio_track.sort()  # sort from least to greatest
+        max_total_tracks = Counter(max_common_audio_track)  # use counter module to check most used lowest track
+
+        # update track counter for audio settings window based off of max_total_tracks
+        acodec_stream_track_counter = {}
+        for i in range(int(max_total_tracks.most_common(1)[0][0])):
+            acodec_stream_track_counter[f'Track #{i + 1}'] = f' -map 0:a:{i} '
+
+    def process_batch_file_input_information(*args):
+        files_without_audio = []  # define an empty list for files without audio
+        files_with_audio = []  # define an empty list for files with audio
+        for f in list(*args):  # loop through file selection tuple by converting it to list
+            media_info = MediaInfo.parse(pathlib.Path(f))  # use media info on each file
+            general_info = media_info.general_tracks[0]  #
+            if general_info.count_of_audio_streams is not None:  # if file has audio streams
+                if f not in list(batch_listbox.get(0, END)):  # if file not already in list
+                    files_with_audio.append(f)  # add file to list with audio
+                    batch_listbox.insert(END, f)  # insert file into the batch_listbox
+            elif general_info.count_of_audio_streams is None:  # if file does not have any audio streams
+                files_without_audio.append(f)  # add files to list without audio
+        if len(files_without_audio) >= 1:  # if files without audio is 1 or more
+            no_audio = str(len(files_without_audio))  # count amount of files without audio
+            if int(no_audio) == 1:  # set string to file or files depending on amount
+                files_string = 'file'
+            elif int(no_audio) >= 2:
+                files_string = 'files'
+            # show message showing how many files wasn't added without audio
+            messagebox.showinfo(parent=batch_input_window, title=f'No Audio Tracks [{no_audio}]',
+                                message=f'{no_audio} {files_string} not added to batch list\n\nReason:\n{no_audio} '
+                                        f'{files_string} did not contain any audio tracks')
+        if len(files_with_audio) >= 1:  # if files with audio is 1 or more
+            batch_encoder_menu.config(state=NORMAL)  # enable the encoder menu
+            encoder.set("Set Codec")  # set menu to 'Set Codec'
+            audio_settings.config(state=DISABLED)  # disable audio settings button
+            apply_and_send.config(state=DISABLED)  # disable the apply_and_send button
+            create_track_count()  # run create track count function
+
+    # function for add files button
+    def select_files_batch():
+        file_selection = filedialog.askopenfilenames(parent=batch_input_window, title='Select File(s)', initialdir='/',
+                                                     filetypes=[("Media Files", "*.*")])
+        if file_selection:  # if user opens file(s)
+            process_batch_file_input_information(file_selection)  # call function with file_selection
+
+
+    select_files = HoverButton(button_frame, text="Add Files", command=select_files_batch, foreground="white",
+                               background="#23272A", borderwidth="3", activebackground='grey')
+    select_files.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N + E + W)
+
+    # drag and drop code for batch file window
+    def batch_drop_input(event):
+        input_list_batch = []  # creates an empty list
+        for filenames in root.splitlist(event.data):
+            input_list_batch.append(filenames)  # appends all drop data to the list
+        process_batch_file_input_information(input_list_batch)  # call function with input_list_batch
+
+
+    batch_input_window.drop_target_register(DND_FILES)
+    batch_input_window.dnd_bind('<<Drop>>', batch_drop_input)
+
+
+    def delete():  # define delete for selected items
+        msg = messagebox.askyesno(parent=batch_input_window, title='Prompt!', message='Delete selected item(s)?')
+        if msg:
+            for selected_items in reversed(batch_listbox.curselection()):
+                batch_listbox.delete(selected_items)
+            create_track_count()  # run track count code to update track selection based off of list box
+
+    delete_job_button = HoverButton(button_frame, text="Delete Selected\nItem(s)", command=delete, foreground="white",
+                                    background="#23272A", borderwidth="3", activebackground='grey')
+    delete_job_button.grid(row=1, column=0, columnspan=1, padx=5, pady=5, sticky=N + E + W)
+
+    def delete_all():  # Define delete for all items code
+        msg = messagebox.askyesno(parent=batch_input_window, title='Prompt!', message='Delete all items?')
+        if msg:
+            batch_listbox.delete(0, END)
+
+    delete_all_button = HoverButton(button_frame, text="Delete All", command=delete_all, foreground="white",
+                                    background="#23272A", borderwidth="3", activebackground='grey')
+    delete_all_button.grid(row=2, column=0, columnspan=1, padx=5, pady=(5, 5), sticky=N + E + W)
+
+    def batch_encoder_changed(*args):  # batch encoder menu function
+        global batch_mode  # set global variable batch_mode
+        audio_settings.config(state=NORMAL)  # audio_settings enable button
+        batch_mode = 'yes'  # set variable batch_mode to 'yes'
+
+    encoder.set("Set Codec")  # set encoder string var to 'Set Codec'
+    batch_encoder_menu = OptionMenu(button_frame, encoder, *encoder_dropdownmenu_choices.keys(),
+                                    command=batch_encoder_changed)
+    batch_encoder_menu.grid(row=4, column=0, columnspan=1, padx=5, pady=5, sticky=S + W + E)
+    batch_encoder_menu.config(state=DISABLED, background="#23272A", foreground="white", highlightthickness=1, width=7)
+    batch_encoder_menu["menu"].configure(activebackground="dim grey")
+
+    def set_audio_settings():  # audio_settings button function
+        openaudiowindow()  # open audio settings window
+        audio_window.wait_window()  # wait for audio settings window to close
+        apply_and_send.config(state=NORMAL)  # enable apply_and_send button
+
+    audio_settings = HoverButton(button_frame, text="Codec Settings", command=set_audio_settings, state=DISABLED,
+                                 foreground="white", background="#23272A", borderwidth="3", activebackground='grey')
+    audio_settings.grid(row=5, column=0, columnspan=1, padx=5, pady=(5, 5), sticky=N + W + E + S)
+
+    def add_to_job_manager():  # function to add all files in listbox to job manager with the commands
+        func_parser = ConfigParser()  # define local ConfigParser()
+        func_parser.read(config_file)  # open config_file
+        open_jobs_manager()  # open jobs manager window
+        for batch_file in enumerate(batch_listbox.get(0, END)):  # loop through listbox for all files
+            autofilesave_file_path = pathlib.Path(batch_file[1])  # command to get file input location
+
+            # check for saved directory
+            saved_dir = func_parser['output_path']['path']
+            if saved_dir != 'file input directory' and pathlib.Path(saved_dir).is_dir():
+                autofilesave_dir_path = saved_dir
+            elif saved_dir == 'file input directory':
+                autofilesave_dir_path = autofilesave_file_path.parents[0]  # final command to get only the directory
+
+            convert_filename = f'{str(autofilesave_dir_path)}/{str(pathlib.Path(batch_file[1]).name)}'
+            if encoder.get() == 'AAC':
+                batch_file_out = pathlib.Path(convert_filename).with_suffix("._new_.mp4")
+            elif encoder.get() == 'AC3' or encoder.get() == 'E-AC3':
+                batch_file_out = pathlib.Path(convert_filename).with_suffix('._new_.ac3')
+            elif encoder.get() == "DTS":
+                batch_file_out = pathlib.Path(convert_filename).with_suffix('._new_.dts')
+            elif encoder.get() == "Opus":
+                batch_file_out = pathlib.Path(convert_filename).with_suffix('._new_.opus')
+            elif encoder.get() == 'MP3':
+                batch_file_out = pathlib.Path(convert_filename).with_suffix('._new_.mp3')
+            elif encoder.get() == "FDK-AAC" or encoder.get() == "QAAC" or encoder.get() == "ALAC":
+                batch_file_out = pathlib.Path(convert_filename).with_suffix('._new_.m4a')
+            elif encoder.get() == "FLAC":
+                batch_file_out = pathlib.Path(convert_filename).with_suffix('._new_.flac')
+
+            file_output = str(batch_file_out)  # define file output
+
+            language_string = None  # Place holder variable
+            delay_string = None  # Place holder variable
+
+            media_info = MediaInfo.parse(batch_file[1])  # Parse file_input
+            general_track = media_info.general_tracks[0]
+            total_streams = 0  # Empty variable to add up all the tracks
+            if general_track.count_of_video_streams is not None:
+                total_streams += int(general_track.count_of_video_streams)  # check for video track(s)
+            if general_track.count_of_audio_streams is not None:
+                total_streams += int(general_track.count_of_audio_streams)  # check for audio track(s)
+            if general_track.count_of_subtitle_streams is not None:
+                total_streams += int(general_track.count_of_subtitle_streams)  # check for subtitle track(s)
+            if general_track.count_of_menu_streams is not None:
+                total_streams += int(general_track.count_of_menu_streams)  # check for menu track(s)
+
+            try:  # set delay string for file output name
+                if track_selection_mediainfo.delay_relative_to_video is not None:
+                    delay_string = f'[delay {str(track_selection_mediainfo.delay_relative_to_video)}ms]'
+                else:
+                    delay_string = str('[delay 0ms]')
+            except UnboundLocalError:
+                pass
+
+            try:  # set language string for file output name
+                # Obtain language string from file_input's parsed track
+                if track_selection_mediainfo.other_language is not None:  # If language is not None
+                    l_lengths = [len(i) for i in track_selection_mediainfo.other_language]  # List of language codes
+                    if 3 in l_lengths:  # Find strings in l_lengths that only are equal to 3 characters
+                        l_index = l_lengths.index(3)  # Save the index of the 3 character string to variable
+                    language_string = f'[{str(track_selection_mediainfo.other_language[l_index])}]'
+                else:
+                    language_string = '[und]'
+            except UnboundLocalError:
+                pass
+
+            audio_track_number_string = f'[Audio#{acodec_stream.get().split()[1][-1]}]'
+            if total_streams == 1:  # If total_streams equals 1
+                file_output = str(file_output).replace('_new_', audio_track_number_string)  # Replace _new_ with Audio #
+            elif total_streams >= 2:  # If total_streams is 2 or greater
+                file_output = str(file_output).replace('_new_', audio_track_number_string + language_string
+                                                       + delay_string)  # Replace '_new_'
+
+            # add total duration as argument to pass
+            media_info = MediaInfo.parse(pathlib.Path(batch_file[1]))  # Parse input file
+            track_selection_mediainfo = media_info.audio_tracks[
+                int(acodec_stream_choices[acodec_stream.get()].strip()[-1])]
+            # track_selection_mediainfo uses the -map 0:a:x code to get the track input
+            if track_selection_mediainfo.duration is not None:  # if track input HAS a duration
+                track_duration = float(track_selection_mediainfo.duration)
+            elif track_selection_mediainfo.duration is None:  # if track input DOES NOT have a duration
+                track_duration = 'None'
+
+            # if encoder is fdk-aac or qaac set banner and verbose string
+            if encoder.get() == 'FDK-AAC' or encoder.get() == 'QAAC':
+                hide_banner_and_verbose = ''
+            elif encoder.get() != 'FDK-AAC' or encoder.get() != 'QAAC':
+                hide_banner_and_verbose = ' -v error -hide_banner -stats'
+
+            # batch final command to add to job manager dictionary
+            batch_final_command = ' '.join(str(f'"{ffmpeg} -y -analyzeduration 100M -probesize 50M -i '
+                                               f'"{autofilesave_file_path}" {batch_command} '
+                                               f'"{file_output}"{hide_banner_and_verbose}').split())
+
+            # create dictionary based off of all the above information to send to job manager window
+            temp_dictionary = {
+                f'Codec: {encoder.get()}  >>>>  "{pathlib.Path(autofilesave_file_path).name}"': batch_final_command,
+                'Duration = ': str(track_duration),
+                'Output Filename = ': f'[{file_output}]'}
+            jobs_window.deiconify()  # bring jobs window to the front of other windows
+            job_listbox.insert(END, str(f'{list(temp_dictionary.keys())[0]}  >>>>  '
+                                        f'Command: {list(temp_dictionary.values())[0]}  >>>>  '
+                                        f'{list(temp_dictionary.keys())[1]}{list(temp_dictionary.values())[1]}  >>>>  '
+                                        f'{list(temp_dictionary.keys())[2]}{list(temp_dictionary.values())[2]}'))
+
+            with open('Runtime/jobs.dat', "wb") as pickle_file:
+                pickle.dump(job_listbox.get(0, END), pickle_file, pickle.HIGHEST_PROTOCOL)
+        batch_listbox.delete(0, END)  # delete batch window listbox
+        batch_input_window.destroy()  # THIS NEEDS TO CALL EXIT FUNCTION POTENTIALLY!
+        root.deiconify()  # re-open hidden root window
+
+    apply_and_send = HoverButton(button_frame, text="Add Jobs to\nJob Manager", command=add_to_job_manager,
+                                 state=DISABLED, foreground="white", background="#23272A", borderwidth="3",
+                                 activebackground='grey')
+    apply_and_send.grid(row=6, column=0, columnspan=1, padx=5, pady=(5, 5), sticky=N + W + E + S)
+
+
+# ---------------------------------------------------------------------------------------------------- Batch Processing
+
 
 # Input Button/Entry Box ----------------------------------------------------------------------
 def input_popup_menu(*args):  # Menu for input button
@@ -5879,7 +6365,7 @@ def input_popup_menu(*args):  # Menu for input button
                       foreground="white", activebackground="grey")  # Menu
     input_menu.add_command(label='Open File', command=input_button_commands)
     input_menu.add_separator()
-    input_menu.add_command(label='Batch Process (WIP)', command=None)
+    input_menu.add_command(label='Batch Process', command=batch_processing_input)
     input_menu.tk_popup(input_button.winfo_rootx(), input_button.winfo_rooty() + 5)
 
 
@@ -5988,8 +6474,9 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
 
     # Create listbox
     job_listbox = Listbox(listbox_frame, width=100, height=10, xscrollcommand=bottom_scrollbar.set,
-                          activestyle="underline", yscrollcommand=right_scrollbar.set, bd=2, bg="black", fg="#3498db",
-                          selectbackground='black', selectforeground='light green', font=(set_font, set_font_size + 2))
+                          activestyle="none", yscrollcommand=right_scrollbar.set, bd=2, bg="black", fg="#3498db",
+                          selectbackground='#272727', selectforeground='light green',
+                          font=(set_font, set_font_size + 2))
     job_listbox.grid(row=0, column=0)
 
     # Add scrollbars to the listbox
@@ -6183,12 +6670,11 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
                                             activebackground='grey', state=DISABLED)
             resume_encode_job.grid(row=0, column=1, columnspan=1, padx=5, pady=(5, 4), sticky=E + W + N)
 
-            job_input = pathlib.Path(str(selected_job[0]).split('-i')[1].split('-map')[0]
-                                     .strip().replace('"', '')).name  # file input
+            job_input = str(selected_job[0]).split('>>>>')[1].strip()  # file input
             job_codec = str(selected_job[0]).split('Codec: ')[1].split('  >>>>')[0].strip().upper()  # codec
             jobs_window_progress.configure(state=NORMAL)
             jobs_window_progress.insert(END, '- ' * 18 + 'Encode Started' + ' -' * 18 + '\n\n')
-            jobs_window_progress.insert(END, f'Encoding: "{job_input}" with codec [{job_codec}]\n\n')
+            jobs_window_progress.insert(END, f'Encoding: {job_input} with codec [{job_codec}]\n\n')
             jobs_window_progress.see(END)
             jobs_window_progress.configure(state=DISABLED)
 
@@ -6379,12 +6865,11 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
                                                 activebackground='grey', state=DISABLED)
                 resume_encode_job.grid(row=0, column=1, columnspan=1, padx=5, pady=(5, 4), sticky=E + W + N)
 
-                job_input = pathlib.Path(str(job_listbox.get(0)).split('-i')[1].split('-map')[0]
-                                         .strip().replace('"', '')).name  # file input
+                job_input = str(job_listbox.get(0)).split('>>>>')[1].strip()  # file input
                 job_codec = str(job_listbox.get(0)).split('Codec: ')[1].split('  >>>>')[0].strip().upper()  # codec
                 jobs_window_progress.configure(state=NORMAL)
                 jobs_window_progress.insert(END, '- ' * 18 + 'Encode Started' + ' -' * 18 + '\n\n')
-                jobs_window_progress.insert(END, f'Encoding: "{job_input}" with codec [{job_codec}]\n\n')
+                jobs_window_progress.insert(END, f'Encoding: {job_input} with codec [{job_codec}]\n\n')
                 jobs_window_progress.see(END)
                 jobs_window_progress.configure(state=DISABLED)
 
@@ -6505,6 +6990,8 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
 
 file_menu.add_command(label='Open File         [CTRL + O]', command=input_button_commands)
 root.bind("<Control-o>", lambda event: input_button_commands())
+file_menu.add_command(label='File Batch         [CTRL + B]', command=batch_processing_input)
+root.bind("<Control-b>", lambda event: batch_processing_input())
 file_menu.add_command(label='Job Manager    [CTRL + J]', command=open_jobs_manager)
 root.bind("<Control-j>", lambda event: open_jobs_manager())
 file_menu.add_separator()
