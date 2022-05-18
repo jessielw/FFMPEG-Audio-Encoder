@@ -9,7 +9,11 @@ def create_config_params():
     config = ConfigParser()
     config.read(config_file)
 
-    if not config.has_section('output_path'):  # Create config parameters
+    if not config.has_section('batch_path'):  # Create config parameters
+        config.add_section('batch_path')
+    if not config.has_option('batch_path', 'path'):
+        config.set('batch_path', 'path', 'file input directory')
+    if not config.has_section('output_path'):
         config.add_section('output_path')
     if not config.has_option('output_path', 'path'):
         config.set('output_path', 'path', 'file input directory')
