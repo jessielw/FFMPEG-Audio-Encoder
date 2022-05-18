@@ -208,6 +208,7 @@ def open_general_settings():  # General Settings Window
     save_path_frame.grid(column=0, row=1, columnspan=4, padx=5, pady=(10, 3), sticky=N + S + E + W)
     save_path_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 10, "bold"))
     save_path_frame.grid_rowconfigure(0, weight=1)
+    save_path_frame.grid_rowconfigure(1, weight=1)
     for s_p in range(4):
         save_path_frame.grid_columnconfigure(s_p, weight=1)
 
@@ -239,7 +240,7 @@ def open_general_settings():  # General Settings Window
                                        activebackground='grey')
     set_manual_auto_path.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
 
-    saved_manual_auto_path = ''
+    saved_manual_auto_path = None
     if config_parser['output_path']['path'] == 'file input directory':
         saved_manual_auto_path = str(config_parser['output_path']['path']).title()
     elif config_parser['output_path']['path'] != 'file input directory':
@@ -267,3 +268,60 @@ def open_general_settings():  # General Settings Window
                                          foreground="white", background="#23272A", borderwidth="3",
                                          activebackground='grey')
     reset_manual_auto_path.grid(row=0, column=3, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
+
+    # Batch Path ------------------------------------------------------------------------------------------------------
+    batch_frame = LabelFrame(save_path_frame, text=' Batch Processing Path ', labelanchor="nw")
+    batch_frame.grid(column=0, row=1, columnspan=4, padx=5, pady=(5, 3), sticky=E + W)
+    batch_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 9, "italic"))
+    batch_frame.grid_rowconfigure(0, weight=1)
+    batch_frame.grid_columnconfigure(0, weight=2)
+    batch_frame.grid_columnconfigure(1, weight=20)
+    batch_frame.grid_columnconfigure(3, weight=1)
+
+    def set_batch_path():
+        path = filedialog.askdirectory(title='Output Path Manual/Auto', parent=general_settings_window)
+        if path:
+            func_parser = ConfigParser()
+            func_parser.read(config_file)
+            path = str(pathlib.Path(path))
+            func_parser.set('batch_path', 'path', path)
+            with open(config_file, 'w') as configfile:
+                func_parser.write(configfile)
+            batch_entry_box.config(state=NORMAL)
+            batch_entry_box.delete(0, END)
+            batch_entry_box.insert(0, str(pathlib.Path(str(func_parser['batch_path']['path']))))
+            batch_entry_box.config(state=DISABLED)
+
+    set_batch_path_button = HoverButton(batch_frame, text="Set Path", command=set_batch_path,
+                                        foreground="white", background="#23272A", borderwidth="3",
+                                        activebackground='grey')
+    set_batch_path_button.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
+
+    saved_batch_path = None
+    if config_parser['batch_path']['path'] == 'file input directory':
+        saved_batch_path = str(config_parser['batch_path']['path']).title()
+    elif config_parser['batch_path']['path'] != 'file input directory':
+        saved_batch_path = str(pathlib.Path(config_parser['batch_path']['path']).resolve())
+    batch_entry_box = Entry(batch_frame, borderwidth=4, background="#CACACA")
+    batch_entry_box.grid(row=0, column=1, columnspan=2, padx=5, pady=5, sticky=N + S + E + W)
+    batch_entry_box.insert(0, saved_batch_path)
+    batch_entry_box.config(state=DISABLED)
+
+    def reset_batch_path():
+        msg = messagebox.askyesno(title='Prompt', message='Reset path to directory of input file?',
+                                  parent=general_settings_window)
+        if msg:
+            func_parser = ConfigParser()
+            func_parser.read(config_file)
+            func_parser.set('batch_path', 'path', 'file input directory')
+            with open(config_file, 'w') as configfile:
+                func_parser.write(configfile)
+            batch_entry_box.config(state=NORMAL)
+            batch_entry_box.delete(0, END)
+            batch_entry_box.insert(0, str(func_parser['batch_path']['path']).title())
+            batch_entry_box.config(state=DISABLED)
+
+    reset_batch_path_button = HoverButton(batch_frame, text="X", command=reset_batch_path,
+                                          foreground="white", background="#23272A", borderwidth="3",
+                                          activebackground='grey')
+    reset_batch_path_button.grid(row=0, column=3, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
