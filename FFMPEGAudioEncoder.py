@@ -44,6 +44,7 @@ main_root_title = "FFMPEG Audio Encoder v4.0 Beta"
 # default an empty variable to be updated based off user input
 batch_mode = None
 
+
 # Main Gui & Windows --------------------------------------------------------
 def root_exit_function():
     def save_root_pos():  # Function to write to config.ini
@@ -5963,6 +5964,13 @@ def input_button_commands():
 # Batch Processing ----------------------------------------------------------------------------------------------------
 def batch_processing_input():
     global batch_listbox, encoder
+
+    # Config Parser
+    config_file = 'Runtime/config.ini'
+    batch_func_parser = ConfigParser()
+    batch_func_parser.read(config_file)
+    # Config Parser
+
     batch_input_window = Toplevel()
     batch_input_window.configure(background="#434547")  # Set's the background color
     batch_input_window.title('Batch File Input')  # Toplevel Title
@@ -5997,16 +6005,15 @@ def batch_processing_input():
                             font=(set_font, set_font_size + 2))
     batch_listbox.grid(row=0, column=0, sticky=N + E + S + W)
 
-    # Add scrollbars to the listbox
+    # add scrollbars to the listbox
     right_scrollbar.config(command=batch_listbox.yview)
     right_scrollbar.grid(row=0, column=1, sticky=N + W + S)
     bottom_scrollbar.config(command=batch_listbox.xview)
     bottom_scrollbar.grid(row=1, column=0, sticky=W + E + N)
 
-    # Button frame
-    button_frame = Frame(batch_input_window)
-    button_frame.grid(column=1, row=0, sticky=N + S + E + W)
-    button_frame.config(bg="#434547")
+    # button frame
+    button_frame = LabelFrame(batch_input_window, bd=3, bg="#434547", fg="#3498db")
+    button_frame.grid(column=1, row=0, rowspan=2, pady=2, padx=2, sticky=N + S + E + W)
     button_frame.grid_columnconfigure(0, weight=1)
     button_frame.grid_rowconfigure(0, weight=1)
     button_frame.grid_rowconfigure(1, weight=1)
@@ -6016,8 +6023,65 @@ def batch_processing_input():
     button_frame.grid_rowconfigure(5, weight=1)
     button_frame.grid_rowconfigure(6, weight=1)
 
+    # batch output selection code
+    batch_frame = LabelFrame(batch_input_window, text=' Batch Processing Path ', labelanchor="nw")
+    batch_frame.grid(column=0, row=1, columnspan=1, padx=2, pady=2, sticky=E + W)
+    batch_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 9, "italic"))
+    batch_frame.grid_rowconfigure(0, weight=1)
+    batch_frame.grid_columnconfigure(0, weight=2)
+    batch_frame.grid_columnconfigure(1, weight=20)
+    batch_frame.grid_columnconfigure(3, weight=1)
 
-    def create_track_count():  # function to update track counter, for track list
+    def set_batch_path():  # set batch files output path, default uses file input as output
+        path = filedialog.askdirectory(title='Output Path Manual/Auto', parent=batch_input_window)
+        if path:
+            func_parser = ConfigParser()
+            func_parser.read(config_file)
+            path = str(pathlib.Path(path))
+            func_parser.set('batch_path', 'path', path)
+            with open(config_file, 'w') as configfile:
+                func_parser.write(configfile)
+            batch_entry_box.config(state=NORMAL)
+            batch_entry_box.delete(0, END)
+            batch_entry_box.insert(0, str(pathlib.Path(str(func_parser['batch_path']['path']))))
+            batch_entry_box.config(state=DISABLED)
+
+    set_batch_path_button = HoverButton(batch_frame, text="Set Path", command=set_batch_path,
+                                        foreground="white", background="#23272A", borderwidth="3",
+                                        activebackground='grey')
+    set_batch_path_button.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
+
+    saved_batch_path = None  # define an empty variable
+    if batch_func_parser['batch_path']['path'] == 'file input directory':
+        saved_batch_path = str(batch_func_parser['batch_path']['path']).title()
+    elif batch_func_parser['batch_path']['path'] != 'file input directory':
+        saved_batch_path = str(pathlib.Path(batch_func_parser['batch_path']['path']).resolve())
+    batch_entry_box = Entry(batch_frame, borderwidth=4, background="#CACACA")
+    batch_entry_box.grid(row=0, column=1, columnspan=2, padx=5, pady=5, sticky=N + S + E + W)
+    batch_entry_box.insert(0, saved_batch_path)
+    batch_entry_box.config(state=DISABLED)
+
+    def reset_batch_path():  # reset batch path to default
+        msg = messagebox.askyesno(title='Prompt', message='Reset path to directory of input file?',
+                                  parent=batch_input_window)
+        if msg:
+            func_parser = ConfigParser()
+            func_parser.read(config_file)
+            func_parser.set('batch_path', 'path', 'file input directory')
+            with open(config_file, 'w') as configfile:
+                func_parser.write(configfile)
+            batch_entry_box.config(state=NORMAL)
+            batch_entry_box.delete(0, END)
+            batch_entry_box.insert(0, str(func_parser['batch_path']['path']).title())
+            batch_entry_box.config(state=DISABLED)
+
+    reset_batch_path_button = HoverButton(batch_frame, text="X", command=reset_batch_path,
+                                          foreground="white", background="#23272A", borderwidth="3",
+                                          activebackground='grey')
+    reset_batch_path_button.grid(row=0, column=3, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
+
+    # function to update track counter, for track list
+    def create_track_count():
         global acodec_stream_track_counter
         max_common_audio_track = []  # create empty list
 
@@ -6071,7 +6135,6 @@ def batch_processing_input():
         if file_selection:  # if user opens file(s)
             process_batch_file_input_information(file_selection)  # call function with file_selection
 
-
     select_files = HoverButton(button_frame, text="Add Files", command=select_files_batch, foreground="white",
                                background="#23272A", borderwidth="3", activebackground='grey')
     select_files.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N + E + W)
@@ -6083,10 +6146,8 @@ def batch_processing_input():
             input_list_batch.append(filenames)  # appends all drop data to the list
         process_batch_file_input_information(input_list_batch)  # call function with input_list_batch
 
-
     batch_input_window.drop_target_register(DND_FILES)
     batch_input_window.dnd_bind('<<Drop>>', batch_drop_input)
-
 
     def delete():  # define delete for selected items
         msg = messagebox.askyesno(parent=batch_input_window, title='Prompt!', message='Delete selected item(s)?')
@@ -6137,7 +6198,7 @@ def batch_processing_input():
             autofilesave_file_path = pathlib.Path(batch_file[1])  # command to get file input location
 
             # check for saved directory
-            saved_dir = func_parser['output_path']['path']
+            saved_dir = func_parser['batch_path']['path']
             if saved_dir != 'file input directory' and pathlib.Path(saved_dir).is_dir():
                 autofilesave_dir_path = saved_dir
             elif saved_dir == 'file input directory':
