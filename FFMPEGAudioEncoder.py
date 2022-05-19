@@ -7066,8 +7066,9 @@ start_audio_button.grid(row=0, column=3, columnspan=1, padx=5, pady=5, sticky=N 
 
 # Start Audio Job: Auto -----------------------------------------------------------------------------
 def encode_last_used_setting():
-    global encoding_job_type, audio_window, acodec_stream_track_counter, gotosavefile, track_counter, \
-        mini_acodec_stream, file_output
+    global encoding_job_type, audio_window, acodec_stream_track_counter, gotosavefile, track_counter, file_output, \
+        batch_mode
+    batch_mode = 'no'
     encoding_job_type = 'auto'
     track_counter()
     encoder.set(config_profile['Auto Encode']['codec'])
@@ -7075,7 +7076,7 @@ def encode_last_used_setting():
     gotosavefile()
     command_line_button.config(state=DISABLED)
     output_button.config(state=DISABLED)
-    if mini_acodec_stream.get() != 'None':
+    if encoder.get() != 'None':
         if pathlib.Path(file_output).is_file():  # Checks if 'output' variable/file already exists
             overwrite_output = messagebox.askyesno(title='Overwrite?',  # If exists would you like to over-write?
                                                    message=f'Would you like to overwrite {str(file_output)}?')
