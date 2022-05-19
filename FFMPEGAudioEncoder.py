@@ -229,7 +229,7 @@ class HoverButton(Button):
             global rightclick_on_off
             status_label.configure(text='Right click for more options...')
             rightclick_on_off = 1
-        if self.cget('text') == 'Audio Settings':
+        if self.cget('text') == 'Codec Settings':
             status_label.configure(text='Configure selected audio codec..')
         if self.cget('text') == 'Start Job':
             status_label.configure(text='Start job..')
@@ -720,14 +720,14 @@ def openaudiowindow():
         acodec_application, acodec_application_choices, acodec_profile, acodec_profile_choices, acodec_atempo, \
         acodec_atempo_choices, opus_mapping_family_choices, opus_mapping_family, gotosavefile, set_encode_manual
 
-    try:  # Checks if existing "Audio Settings" window is already opened if exists don't open a new one
+    try:  # Checks if existing "codec settings" window is already opened if exists don't open a new one
         if audio_window.winfo_exists():
             # Open a message: Let the user know they need to close already opened window before opening another
             messagebox.showinfo(title=f'{audio_window.wm_title()} already opened',  # Get title of opened window
                                 message=f'Close "{audio_window.wm_title()}" window before attempting to open '
                                         f'settings for "{str(encoder.get())}" encoder')
             return  # Code to return 'None', to break from function
-    except NameError:  # If no "Audio Settings" window exists, open a new one
+    except NameError:  # If no "codec settings" window exists, open a new one
         pass  # Continue
 
     hide_all_toplevels()  # Hide all top levels
@@ -964,12 +964,12 @@ def openaudiowindow():
 
     # ---------------------------------------------------------------------------------------------------- combines -af
 
-    # Set encoding_job_type to 'manual' when clicked by codecs in audio settings window -------------------------------
+    # Set encoding_job_type to 'manual' when clicked by codecs in codec settings window -------------------------------
     def set_encode_manual():
         global encoding_job_type
         encoding_job_type = 'manual'
 
-    # ------------------------------- Set encoding_job_type to 'manual' when clicked by codecs in audio settings window
+    # ------------------------------- Set encoding_job_type to 'manual' when clicked by codecs in codec settings window
 
     # Save audio codec window size/positions --------------------------------------------------------------------------
     def save_codec_window_positions():
@@ -5841,14 +5841,14 @@ encoder_menu.bind("<Enter>", encoder_menu_on_enter)
 encoder_menu.bind("<Leave>", encoder_menu_on_leave)
 # ---------------------------------------------------------------- # Encoder Menu Enter/Leave Binds
 
-# Audio Settings Button --------------------------------------------------------------------------
-audiosettings_button = HoverButton(audio_setting_frame, text="Audio Settings", command=openaudiowindow,
+# codec settings Button --------------------------------------------------------------------------
+audiosettings_button = HoverButton(audio_setting_frame, text="Codec Settings", command=openaudiowindow,
                                    foreground="white", background="#23272A", state=DISABLED, borderwidth="3",
                                    activebackground='grey')
 audiosettings_button.grid(row=0, column=2, columnspan=1, padx=5, pady=(5, 4), sticky=N + S + E + W)
 
 
-# --------------------------------------------------------------------------- # Audio Settings Button
+# --------------------------------------------------------------------------- # codec settings Button
 
 # File input check ----------------------------------------------------------------------------------------------------
 def file_input_check(file_input):
@@ -6118,7 +6118,7 @@ def batch_processing_input():
         max_common_audio_track.sort()  # sort from least to greatest
         max_total_tracks = Counter(max_common_audio_track)  # use counter module to check most used lowest track
 
-        # update track counter for audio settings window based off of max_total_tracks
+        # update track counter for codec settings window based off of max_total_tracks
         acodec_stream_track_counter = {}
         for i in range(int(max_total_tracks.most_common(1)[0][0])):
             acodec_stream_track_counter[f'Track #{i + 1}'] = f' -map 0:a:{i} '
@@ -6148,7 +6148,7 @@ def batch_processing_input():
         if len(files_with_audio) >= 1:  # if files with audio is 1 or more
             batch_encoder_menu.config(state=NORMAL)  # enable the encoder menu
             encoder.set("Set Codec")  # set menu to 'Set Codec'
-            audio_settings.config(state=DISABLED)  # disable audio settings button
+            audio_settings.config(state=DISABLED)  # disable codec settings button
             apply_and_send.config(state=DISABLED)  # disable the apply_and_send button
             create_track_count()  # run create track count function
 
@@ -6206,8 +6206,8 @@ def batch_processing_input():
     batch_encoder_menu["menu"].configure(activebackground="dim grey")
 
     def set_audio_settings():  # audio_settings button function
-        openaudiowindow()  # open audio settings window
-        audio_window.wait_window()  # wait for audio settings window to close
+        openaudiowindow()  # open codec settings window
+        audio_window.wait_window()  # wait for codec settings window to close
         apply_and_send.config(state=NORMAL)  # enable apply_and_send button
 
     audio_settings = HoverButton(button_frame, text="Codec Settings", command=set_audio_settings, state=DISABLED,
