@@ -71,6 +71,10 @@ def create_config_params():
         config.set('save_window_locations', 'general settings', 'yes')
     if not config.has_option('save_window_locations', 'general settings position'):
         config.set('save_window_locations', 'general settings position', '')
+    if not config.has_option('save_window_locations', 'batch window'):
+        config.set('save_window_locations', 'batch window', 'yes')
+    if not config.has_option('save_window_locations', 'batch window position'):
+        config.set('save_window_locations', 'batch window position', '')
     if not config.has_option('save_window_locations', 'audio window - aac'):
         config.set('save_window_locations', 'audio window - aac', 'yes')
     if not config.has_option('save_window_locations', 'audio window - aac - position'):
