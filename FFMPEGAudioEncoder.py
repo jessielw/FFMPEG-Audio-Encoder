@@ -5963,7 +5963,13 @@ def input_button_commands():
 
 # Batch Processing ----------------------------------------------------------------------------------------------------
 def batch_processing_input():
-    global batch_listbox, encoder
+    global batch_listbox, encoder, batch_input_window
+
+    try:  # If the job manager window is already open do nothing when the button is hit
+        if batch_input_window.winfo_exists():
+            return
+    except NameError:
+        pass
 
     # Config Parser
     config_file = 'Runtime/config.ini'
@@ -5971,16 +5977,41 @@ def batch_processing_input():
     batch_func_parser.read(config_file)
     # Config Parser
 
+    def batch_window_exit_function():
+        def save_batch_position():
+            func_parser = ConfigParser()
+            func_parser.read(config_file)
+            if func_parser['save_window_locations']['batch window'] == 'yes':
+                if func_parser['save_window_locations']['batch window position'] != batch_input_window.geometry():
+                    func_parser.set('save_window_locations', 'batch window position', batch_input_window.geometry())
+                    with open(config_file, 'w') as configfile:
+                        func_parser.write(configfile)
+            batch_input_window.destroy()
+
+        if batch_listbox.size() >= 1:
+            msg = messagebox.askyesno(message='Are you sure you want to close the window?\nThis will clear all '
+                                              'inputs.', title='Prompt', parent=batch_input_window)
+            if msg:
+                save_batch_position()
+        else:
+            save_batch_position()
+
     batch_input_window = Toplevel()
     batch_input_window.configure(background="#434547")  # Set's the background color
     batch_input_window.title('Batch File Input')  # Toplevel Title
-    window_height = 400
-    window_width = 1000
-    screen_width = batch_input_window.winfo_screenwidth()
-    screen_height = batch_input_window.winfo_screenheight()
-    x_coordinate = int((screen_width / 2) - (window_width / 2))
-    y_coordinate = int((screen_height / 2) - (window_height / 2))
-    batch_input_window.geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
+    if batch_func_parser['save_window_locations']['batch window position'] == '' or \
+            batch_func_parser['save_window_locations']['batch window'] == 'no':
+        window_height = 400
+        window_width = 1000
+        screen_width = batch_input_window.winfo_screenwidth()
+        screen_height = batch_input_window.winfo_screenheight()
+        x_coordinate = int((screen_width / 2) - (window_width / 2))
+        y_coordinate = int((screen_height / 2) - (window_height / 2))
+        batch_input_window.geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
+    elif batch_func_parser['save_window_locations']['batch window position'] != '' and \
+            batch_func_parser['save_window_locations']['batch window'] == 'yes':
+        batch_input_window.geometry(batch_func_parser['save_window_locations']['batch window position'])
+    batch_input_window.protocol('WM_DELETE_WINDOW', batch_window_exit_function)
 
     # Row/Grid configures
     batch_input_window.grid_columnconfigure(0, weight=20)
