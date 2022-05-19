@@ -27,7 +27,6 @@ from pyautogui import hotkey as pya_hotkey
 from pymediainfo import MediaInfo
 
 from Packages.About import openaboutwindow
-from Packages.FFMPEGAudioEncoderBatch import batch_processing
 from Packages.SimpleYoutubeDLGui import youtube_dl_launcher_for_ffmpegaudioencoder
 from Packages.config_params import create_config_params
 from Packages.general_settings import open_general_settings
@@ -516,15 +515,6 @@ my_menu_bar.add_cascade(label='Tools', menu=tools_submenu)
 tools_submenu.add_command(label="MediaInfo", command=mediainfogui)
 tools_submenu.add_command(label="MPV (Media Player)", command=mpv_gui_main_gui)
 tools_submenu.add_command(label="Simple-Youtube-DL-Gui", command=youtube_dl_launcher_for_ffmpegaudioencoder)
-tools_submenu.add_separator()
-
-
-def batch_processing_command():
-    batch_processing()
-    root.wm_state("iconic")  # Minimizes main window while it opens batch_processing window
-
-
-tools_submenu.add_command(label='Batch Processing', command=batch_processing_command)
 
 help_menu = Menu(my_menu_bar, tearoff=0, activebackground="dim grey")
 my_menu_bar.add_cascade(label="Help", menu=help_menu)
@@ -677,10 +667,12 @@ def encoder_changed(*args):
         output_entry.delete(0, END)
         output_entry.insert(0, file_out)
         output_entry.configure(state=DISABLED)
+        output_button.config(state=DISABLED)
         audiosettings_button.configure(state=NORMAL)
         command_line_button.config(state=DISABLED)
         start_audio_button.config(state=DISABLED)
         auto_encode_last_options.configure(state=DISABLED)
+        add_job_button.config(state=DISABLED)
         autosavefilename = file_out.name
 
 
@@ -5975,6 +5967,7 @@ def batch_processing_input():
     config_file = 'Runtime/config.ini'
     batch_func_parser = ConfigParser()
     batch_func_parser.read(config_file)
+
     # Config Parser
 
     def batch_window_exit_function():  # function that is called when the user closes the window
