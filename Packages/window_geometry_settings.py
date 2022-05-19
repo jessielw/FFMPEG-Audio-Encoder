@@ -1,5 +1,5 @@
-from tkinter import Toplevel, LabelFrame, N, S, E, W, Label, StringVar, Checkbutton, font, Menu, messagebox
 from configparser import ConfigParser
+from tkinter import Toplevel, LabelFrame, N, S, E, W, Label, StringVar, Checkbutton, font, Menu, messagebox
 
 
 # Window geometry settings --------------------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ def set_window_geometry_settings():
         geometry_settings_window.destroy()  # Close window
 
     # Defines the path to config.ini and opens it for reading/writing
-    config_file = 'Runtime/config.ini'  # Creates (if doesn't exist) and defines location of config.ini
+    config_file = 'Runtime/config.ini'  # Creates (if it doesn't exist) and defines location of config.ini
     config = ConfigParser()
     config.read(config_file)
 
@@ -233,6 +233,24 @@ def set_window_geometry_settings():
                                             activeforeground=color5, selectcolor=color3,
                                             font=(set_font, set_font_size + 2))
 
+    def batch_pos_toggle():
+        try:  # Write to config
+            config.set('save_window_locations', 'batch window', batch_window_pos.get())
+            if batch_window_pos.get() == 'no':
+                config.set('save_window_locations', 'batch window position', '')
+            with open(config_file, 'w') as configfile:
+                config.write(configfile)
+        except (Exception,):
+            pass
+
+    batch_window_pos = StringVar()  # variable
+    batch_window_pos.set(config['save_window_locations']['batch window'])  # Set box from config.ini
+    batch_window_checkbox = Checkbutton(option_frame, text='Batch Window', variable=batch_window_pos,
+                                        onvalue='yes', offvalue='no', command=batch_pos_toggle)
+    batch_window_checkbox.grid(row=3, column=1, rowspan=1, columnspan=1, padx=10, pady=(0, 0), sticky=N + E)
+    batch_window_checkbox.configure(background=color3, foreground=color5, activebackground=color3,
+                                    activeforeground=color5, selectcolor=color3, font=(set_font, set_font_size + 2))
+
     # Right click menu for "Window Options" frame ---------------------------------------------------------------------
     def option_popup_menu(e):  # Function for mouse button 3 (right click) to pop up menu
         def select_all():
@@ -259,6 +277,9 @@ def set_window_geometry_settings():
 
             general_settings_pos.set('yes')
             func_parser.set('save_window_locations', 'general settings', 'yes')
+
+            general_settings_pos.set('yes')
+            func_parser.set('save_window_locations', 'batch window', 'yes')
             with open(config_file, 'w') as configfile:
                 func_parser.write(configfile)
 
@@ -296,6 +317,10 @@ def set_window_geometry_settings():
                 general_settings_pos.set('no')
                 func_parser.set('save_window_locations', 'general settings', 'no')
                 func_parser.set('save_window_locations', 'general settings position', '')
+
+                batch_window_pos.set('no')
+                func_parser.set('save_window_locations', 'batch window', 'no')
+                func_parser.set('save_window_locations', 'batch window position', '')
                 with open(config_file, 'w') as configfile:
                     func_parser.write(configfile)
 
@@ -314,6 +339,8 @@ def set_window_geometry_settings():
             display_command_pos.set('no'), display_command_pos_toggle()])
         option_menu.add_command(label='Reset: "General Settings"', command=lambda: [
             general_settings_pos.set('no'), general_settings_pos_toggle()])
+        option_menu.add_command(label='Reset: "Batch Window"', command=lambda: [
+            batch_window_pos.set('no'), batch_pos_toggle()])
         option_menu.add_separator()
         option_menu.add_command(label='Reset: All "Window Options"', command=reset)
         option_menu.add_separator()
@@ -328,6 +355,7 @@ def set_window_geometry_settings():
     job_manager_win_toggle_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
     display_command_pos_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
     general_settings_pos_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
+    batch_window_checkbox.bind('<Button-3>', option_popup_menu)  # Right click to pop up menu in frame
 
     # --------------------------------------------------------------------- Right click menu for "Window Options" frame
 
