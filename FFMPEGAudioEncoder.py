@@ -5977,8 +5977,8 @@ def batch_processing_input():
     batch_func_parser.read(config_file)
     # Config Parser
 
-    def batch_window_exit_function():
-        def save_batch_position():
+    def batch_window_exit_function():  # function that is called when the user closes the window
+        def save_batch_position():  # save batch window position
             func_parser = ConfigParser()
             func_parser.read(config_file)
             if func_parser['save_window_locations']['batch window'] == 'yes':
@@ -6330,7 +6330,7 @@ def batch_processing_input():
             with open('Runtime/jobs.dat', "wb") as pickle_file:
                 pickle.dump(job_listbox.get(0, END), pickle_file, pickle.HIGHEST_PROTOCOL)
         batch_listbox.delete(0, END)  # delete batch window listbox
-        batch_input_window.destroy()  # THIS NEEDS TO CALL EXIT FUNCTION POTENTIALLY!
+        batch_window_exit_function()  # call the batch window exit function
         root.deiconify()  # re-open hidden root window
 
     apply_and_send = HoverButton(button_frame, text="Add Jobs to\nJob Manager", command=add_to_job_manager,
