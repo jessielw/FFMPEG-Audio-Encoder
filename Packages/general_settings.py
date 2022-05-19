@@ -15,16 +15,16 @@ def open_general_settings():  # General Settings Window
         pass
 
     def general_settings_exit_function():  # Exit function when hitting the 'X' button
-        func_parser = ConfigParser()
-        func_parser.read(config_file)
-        if func_parser['save_window_locations']['general settings'] == 'yes':  # If auto save position on
+        general_parser = ConfigParser()
+        general_parser.read(config_file)
+        if general_parser['save_window_locations']['general settings'] == 'yes':  # If auto save position on
             try:
-                if func_parser['save_window_locations']['general settings position'] != \
+                if general_parser['save_window_locations']['general settings position'] != \
                         general_settings_window.geometry():
-                    func_parser.set('save_window_locations', 'general settings position',
-                                    general_settings_window.geometry())
-                    with open(config_file, 'w') as configfile:
-                        func_parser.write(configfile)
+                    general_parser.set('save_window_locations', 'general settings position',
+                                       general_settings_window.geometry())
+                    with open(config_file, 'w') as generalfile:
+                        general_parser.write(generalfile)
             except (Exception,):
                 pass
         general_settings_window.grab_release()  # Release grab on window
@@ -44,7 +44,7 @@ def open_general_settings():  # General Settings Window
     general_settings_window.configure(background=color1)
     if config_parser['save_window_locations']['general settings position'] == '' or \
             config_parser['save_window_locations']['general settings'] == 'no':
-        window_height = 480
+        window_height = 520
         window_width = 600
         screen_width = general_settings_window.winfo_screenwidth()
         screen_height = general_settings_window.winfo_screenheight()
@@ -93,7 +93,7 @@ def open_general_settings():  # General Settings Window
     path_frame = LabelFrame(settings_tab, text=' Tool Paths ', labelanchor="n")
     path_frame.grid(column=0, row=0, columnspan=4, padx=5, pady=(10, 3), sticky=N + S + E + W)
     path_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 10, "bold"))
-    for p_f in range(3):
+    for p_f in range(5):
         path_frame.grid_rowconfigure(p_f, weight=1)
     for p_f in range(4):
         path_frame.grid_columnconfigure(p_f, weight=1)
@@ -111,16 +111,16 @@ def open_general_settings():  # General Settings Window
                                           initialdir=pathlib.Path(ffmpeg_entry_box.get()).parent,
                                           filetypes=[('ffmpeg', 'ffmpeg.exe')], parent=general_settings_window)
         if path:
-            func_parser = ConfigParser()
-            func_parser.read(config_file)
+            ffmpeg_parser = ConfigParser()
+            ffmpeg_parser.read(config_file)
             ffmpeg = f'"{str(pathlib.Path(path))}"'
-            func_parser.set('ffmpeg_path', 'path', ffmpeg)
-            with open(config_file, 'w') as configfile:
-                func_parser.write(configfile)
+            ffmpeg_parser.set('ffmpeg_path', 'path', ffmpeg)
+            with open(config_file, 'w') as ffmpeg_configfile:
+                ffmpeg_parser.write(ffmpeg_configfile)
             ffmpeg_entry_box.config(state=NORMAL)
             ffmpeg_entry_box.delete(0, END)
             ffmpeg_entry_box.insert(0, str(pathlib.Path(str(
-                func_parser['ffmpeg_path']['path']).replace('"', '')).resolve()))
+                ffmpeg_parser['ffmpeg_path']['path']).replace('"', '')).resolve()))
             ffmpeg_entry_box.config(state=DISABLED)
 
     set_ffmpeg_path = HoverButton(ffmpeg_frame, text="Set Path", command=set_ffmpeg_path, foreground="white",
@@ -146,16 +146,16 @@ def open_general_settings():  # General Settings Window
                                           initialdir=pathlib.Path(mpv_entry_box.get()).parent,
                                           filetypes=[('mpv', 'mpv.exe')], parent=general_settings_window)
         if path:
-            func_parser = ConfigParser()
-            func_parser.read(config_file)
+            mpv_cfg_parser = ConfigParser()
+            mpv_cfg_parser.read(config_file)
             mpv = f'"{str(pathlib.Path(path))}"'
-            func_parser.set('mpv_player_path', 'path', mpv)
-            with open(config_file, 'w') as configfile:
-                func_parser.write(configfile)
+            mpv_cfg_parser.set('mpv_player_path', 'path', mpv)
+            with open(config_file, 'w') as mpv_cfg:
+                mpv_cfg_parser.write(mpv_cfg)
             mpv_entry_box.config(state=NORMAL)
             mpv_entry_box.delete(0, END)
             mpv_entry_box.insert(0, str(pathlib.Path(str(
-                func_parser['mpv_player_path']['path']).replace('"', '')).resolve()))
+                mpv_cfg_parser['mpv_player_path']['path']).replace('"', '')).resolve()))
             mpv_entry_box.config(state=DISABLED)
 
     set_mpv_path = HoverButton(mpv_frame, text="Set Path", command=set_mpv_path, foreground="white",
@@ -181,16 +181,16 @@ def open_general_settings():  # General Settings Window
                                           initialdir=pathlib.Path(mediainfogui_entry_box.get()).parent,
                                           filetypes=[('mediainfo', 'mediainfo.exe')], parent=general_settings_window)
         if path:
-            func_parser = ConfigParser()
-            func_parser.read(config_file)
+            mediainfo_cfg_parser = ConfigParser()
+            mediainfo_cfg_parser.read(config_file)
             mediainfogui = f'"{str(pathlib.Path(path))}"'
-            func_parser.set('mediainfogui_path', 'path', mediainfogui)
-            with open(config_file, 'w') as configfile:
-                func_parser.write(configfile)
+            mediainfo_cfg_parser.set('mediainfogui_path', 'path', mediainfogui)
+            with open(config_file, 'w') as mediainfo_cfg:
+                mediainfo_cfg_parser.write(mediainfo_cfg)
             mediainfogui_entry_box.config(state=NORMAL)
             mediainfogui_entry_box.delete(0, END)
             mediainfogui_entry_box.insert(0, str(pathlib.Path(str(
-                func_parser['mediainfogui_path']['path']).replace('"', '')).resolve()))
+                mediainfo_cfg_parser['mediainfogui_path']['path']).replace('"', '')).resolve()))
             mediainfogui_entry_box.config(state=DISABLED)
 
     set_mediainfogui_path = HoverButton(mediainfogui_frame, text="Set Path", command=set_mediainfogui_path,
@@ -204,6 +204,56 @@ def open_general_settings():  # General Settings Window
     mediainfogui_entry_box.insert(0, str(saved_mediainfogui_path))
     mediainfogui_entry_box.config(state=DISABLED)
 
+    # FDK-AAC Path ----------------------------------------------------------------------------------------------------
+    fdk_qaac_frame = LabelFrame(path_frame, text=' FDK-AAC ', labelanchor="nw")
+    fdk_qaac_frame.grid(column=0, row=3, columnspan=4, padx=5, pady=(5, 3), sticky=E + W)
+    fdk_qaac_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 9, "italic"))
+    fdk_qaac_frame.grid_rowconfigure(0, weight=1)
+    fdk_qaac_frame.grid_columnconfigure(0, weight=1)
+    fdk_qaac_frame.grid_columnconfigure(1, weight=20)
+    saved_fdkaac_path = None
+
+    def set_fdk_aac_path():
+        path = filedialog.askopenfilename(title='Select Location to "fdkaac.exe"',
+                                          initialdir=pathlib.Path(mediainfogui_entry_box.get()).parent,
+                                          filetypes=[('FDK-AAC', 'fdkaac.exe')], parent=general_settings_window)
+        if path:
+            fdk_parser = ConfigParser()
+            fdk_parser.read(config_file)
+            fdkaac = f'"{str(pathlib.Path(path))}"'
+            fdk_parser.set('fdkaac_path', 'path', fdkaac)
+            with open(config_file, 'w') as fdk_cfg:
+                fdk_parser.write(fdk_cfg)
+            fdkaac_entry_box.config(state=NORMAL)
+            fdkaac_entry_box.delete(0, END)
+            fdkaac_entry_box.insert(0, str(pathlib.Path(str(
+                fdk_parser['fdkaac_path']['path']).replace('"', '')).resolve()))
+            fdkaac_entry_box.config(state=DISABLED)
+
+    set_fdkaac_path = HoverButton(fdk_qaac_frame, text="Set Path", command=set_fdk_aac_path,
+                                  foreground="white", background="#23272A", borderwidth="3", activebackground='grey')
+    set_fdkaac_path.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
+
+    if config_parser['fdkaac_path']['path'] == '':
+        saved_fdkaac_path = 'not installed'.title()
+    elif config_parser['fdkaac_path']['path'] != '':
+        if pathlib.Path(str(config_parser['fdkaac_path']['path']).replace('"', '')).exists():
+            saved_fdkaac_path = '"' + str(pathlib.Path(str(config_parser['fdkaac_path']['path']).replace(
+                '"', '')).resolve()) + '"'
+        else:
+            saved_fdkaac_path = 'not installed'.title()
+            func_parser = ConfigParser()
+            func_parser.read(config_file)
+            func_parser.set('fdkaac_path', 'path', '')
+            with open(config_file, 'w') as configfile:
+                func_parser.write(configfile)
+
+    fdkaac_entry_box = Entry(fdk_qaac_frame, borderwidth=4, background="#CACACA")
+    fdkaac_entry_box.grid(row=0, column=1, columnspan=3, padx=5, pady=5, sticky=N + S + E + W)
+    fdkaac_entry_box.insert(0, str(saved_fdkaac_path))
+    fdkaac_entry_box.config(state=DISABLED)
+
+    # save path frame -------------------------------------------------------------------------------------------------
     save_path_frame = LabelFrame(settings_tab, text=' Save Paths ', labelanchor="n")
     save_path_frame.grid(column=0, row=1, columnspan=4, padx=5, pady=(10, 3), sticky=N + S + E + W)
     save_path_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 10, "bold"))
@@ -224,15 +274,15 @@ def open_general_settings():  # General Settings Window
     def set_manual_auto_path():
         path = filedialog.askdirectory(title='Output Path Manual/Auto', parent=general_settings_window)
         if path:
-            func_parser = ConfigParser()
-            func_parser.read(config_file)
+            manual_path_parser = ConfigParser()
+            manual_path_parser.read(config_file)
             path = str(pathlib.Path(path))
-            func_parser.set('output_path', 'path', path)
-            with open(config_file, 'w') as configfile:
-                func_parser.write(configfile)
+            manual_path_parser.set('output_path', 'path', path)
+            with open(config_file, 'w') as manual_path_configfile:
+                manual_path_parser.write(manual_path_configfile)
             manual_auto_entry_box.config(state=NORMAL)
             manual_auto_entry_box.delete(0, END)
-            manual_auto_entry_box.insert(0, str(pathlib.Path(str(func_parser['output_path']['path']))))
+            manual_auto_entry_box.insert(0, str(pathlib.Path(str(manual_path_parser['output_path']['path']))))
             manual_auto_entry_box.config(state=DISABLED)
 
     set_manual_auto_path = HoverButton(manual_auto_frame, text="Set Path", command=set_manual_auto_path,
@@ -254,14 +304,14 @@ def open_general_settings():  # General Settings Window
         msg = messagebox.askyesno(title='Prompt', message='Reset path to directory of input file?',
                                   parent=general_settings_window)
         if msg:
-            func_parser = ConfigParser()
-            func_parser.read(config_file)
-            func_parser.set('output_path', 'path', 'file input directory')
-            with open(config_file, 'w') as configfile:
-                func_parser.write(configfile)
+            reset_manual_path_parser = ConfigParser()
+            reset_manual_path_parser.read(config_file)
+            reset_manual_path_parser.set('output_path', 'path', 'file input directory')
+            with open(config_file, 'w') as r_mp_cfg:
+                reset_manual_path_parser.write(r_mp_cfg)
             manual_auto_entry_box.config(state=NORMAL)
             manual_auto_entry_box.delete(0, END)
-            manual_auto_entry_box.insert(0, str(func_parser['output_path']['path']).title())
+            manual_auto_entry_box.insert(0, str(reset_manual_path_parser['output_path']['path']).title())
             manual_auto_entry_box.config(state=DISABLED)
 
     reset_manual_auto_path = HoverButton(manual_auto_frame, text="X", command=reset_manual_auto_path,
@@ -281,15 +331,15 @@ def open_general_settings():  # General Settings Window
     def set_batch_path():
         path = filedialog.askdirectory(title='Output Path Manual/Auto', parent=general_settings_window)
         if path:
-            func_parser = ConfigParser()
-            func_parser.read(config_file)
+            bath_path_parser = ConfigParser()
+            bath_path_parser.read(config_file)
             path = str(pathlib.Path(path))
-            func_parser.set('batch_path', 'path', path)
-            with open(config_file, 'w') as configfile:
-                func_parser.write(configfile)
+            bath_path_parser.set('batch_path', 'path', path)
+            with open(config_file, 'w') as batch_cfg:
+                bath_path_parser.write(batch_cfg)
             batch_entry_box.config(state=NORMAL)
             batch_entry_box.delete(0, END)
-            batch_entry_box.insert(0, str(pathlib.Path(str(func_parser['batch_path']['path']))))
+            batch_entry_box.insert(0, str(pathlib.Path(str(bath_path_parser['batch_path']['path']))))
             batch_entry_box.config(state=DISABLED)
 
     set_batch_path_button = HoverButton(batch_frame, text="Set Path", command=set_batch_path,
@@ -311,14 +361,14 @@ def open_general_settings():  # General Settings Window
         msg = messagebox.askyesno(title='Prompt', message='Reset path to directory of input file?',
                                   parent=general_settings_window)
         if msg:
-            func_parser = ConfigParser()
-            func_parser.read(config_file)
-            func_parser.set('batch_path', 'path', 'file input directory')
-            with open(config_file, 'w') as configfile:
-                func_parser.write(configfile)
+            reset_batch_path_parser = ConfigParser()
+            reset_batch_path_parser.read(config_file)
+            reset_batch_path_parser.set('batch_path', 'path', 'file input directory')
+            with open(config_file, 'w') as reset_bp_cfg:
+                reset_batch_path_parser.write(reset_bp_cfg)
             batch_entry_box.config(state=NORMAL)
             batch_entry_box.delete(0, END)
-            batch_entry_box.insert(0, str(func_parser['batch_path']['path']).title())
+            batch_entry_box.insert(0, str(reset_batch_path_parser['batch_path']['path']).title())
             batch_entry_box.config(state=DISABLED)
 
     reset_batch_path_button = HoverButton(batch_frame, text="X", command=reset_batch_path,
