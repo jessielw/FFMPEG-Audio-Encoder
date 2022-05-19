@@ -353,11 +353,134 @@ def exit_and_clean_empty_logs():  # Function to exit logger() and delete logfile
 # ------------------------- Logger class, handles all traceback/stdout errors for program, writes to file and to window
 
 # Bundled Apps --------------------------------------------------------------------------------------------------------
+# Checks for App Folder and Sub-Directories - Creates Folders if they are missing ---------
+pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'FFMPEG').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'MediaInfo').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'fdkaac').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'qaac').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'mpv').mkdir(parents=True, exist_ok=True)
+
+# ----------------------------------------------------------------------------- Folder Check
+
+# define tool paths ------------------------------------------------------------------------
+# define ffmpeg
 ffmpeg = config['ffmpeg_path']['path']
+
+# define mediainfo
 mediainfo = config['mediainfogui_path']['path']
-fdkaac = '"Apps/fdkaac/fdkaac.exe"'
+
+# define ffmpeg at program launch
+if pathlib.Path('Apps/fdkaac/fdkaac.exe').is_file():  # if fdkaac.exe is in the fdkaac folder
+    fdkaac = '"Apps/fdkaac/fdkaac.exe"'  # set the fdkaac variable
+    config.set('fdkaac_path', 'path', f'"{str(pathlib.Path("Apps/fdkaac/fdkaac.exe"))}"')
+    with open(config_file, 'w') as fdk_cfg:
+        config.write(fdk_cfg)  # write path to fdkaac to the config.ini file
+if not pathlib.Path('Apps/fdkaac/fdkaac.exe').is_file():  # if fdkaac.exe is not in the fdkaac folder
+    config.set('fdkaac_path', 'path', '')
+    with open(config_file, 'w') as fdk_cfg:
+        config.write(fdk_cfg)  # write '' (empty string) to config.ini file
+    fdkaac = config['fdkaac_path']['path']  # define ffmpeg path of ''
+
+# define qaac
 qaac = '"Apps/qaac/qaac64.exe"'
+
+# define mpv player
 mpv_player = config['mpv_player_path']['path']
+
+
+# ------------------------------------------------------------------------ define tool paths
+
+
+# ffmpeg check function on path
+def check_ffmpeg():
+    global ffmpeg
+    if shutil.which('ffmpeg') != None:
+        ffmpeg = '"' + str(pathlib.Path(shutil.which('ffmpeg'))).lower() + '"'
+        messagebox.showinfo(title='Prompt!', message='ffmpeg.exe found on system PATH, '
+                                                     'automatically setting path to location.\n\n'
+                                                     'Note: This can be changed in the config.ini file'
+                                                     ' or in the Options menu')
+        if pathlib.Path("Apps/ffmpeg/ffmpeg.exe").exists():
+            rem_ffmpeg = messagebox.askyesno(title='Delete Included ffmpeg?',
+                                             message='Would you like to delete the included FFMPEG?')
+            if rem_ffmpeg == True:
+                try:
+                    shutil.rmtree(str(pathlib.Path("Apps/ffmpeg")))
+                except (Exception,):
+                    pass
+        config.set('ffmpeg_path', 'path', ffmpeg)
+        with open(config_file, 'w') as configfile:
+            config.write(configfile)
+    elif ffmpeg == '' and shutil.which('ffmpeg') == None:
+        messagebox.showinfo(title='Info', message='Program will use the included '
+                                                  '"ffmpeg.exe" located in the "Apps" folder')
+        ffmpeg = '"' + str(pathlib.Path("Apps/ffmpeg/ffmpeg.exe")) + '"'
+        try:
+            config.set('ffmpeg_path', 'path', ffmpeg)
+            with open(config_file, 'w') as configfile:
+                config.write(configfile)
+        except (Exception,):
+            pass
+
+
+def check_mpv_player():
+    global mpv_player
+    # mpv_player -------------------------------------------------------------
+    if mpv_player == '' or not pathlib.Path(mpv_player.replace('"', '')).exists():
+        mpv_player = '"' + str(pathlib.Path('Apps/mpv/mpv.exe')) + '"'
+        try:
+            config.set('mpv_player_path', 'path', mpv_player)
+            with open(config_file, 'w') as configfile:
+                config.write(configfile)
+        except (Exception,):
+            pass
+    # mpv_player ----------------------------------------------------------
+
+
+def check_mediainfogui():
+    global mediainfo
+    # check_mediainfogui -------------------------------------------------------------
+    if mediainfo == '' or not pathlib.Path(mediainfo.replace('"', '')).exists():
+        mediainfo = '"' + str(pathlib.Path('Apps/MediaInfo/MediaInfo.exe')) + '"'
+        try:
+            config.set('mediainfogui_path', 'path', mediainfo)
+            with open(config_file, 'w') as configfile:
+                config.write(configfile)
+        except (Exception,):
+            pass
+    # check_mediainfogui ----------------------------------------------------------
+
+
+def check_dependencies():
+    global batch_encoder_menu
+    if not pathlib.Path(config['ffmpeg_path']['path'].replace('"', '')).is_file():
+        check_ffmpeg()
+    if not pathlib.Path(config['mpv_player_path']['path'].replace('"', '')).is_file():
+        check_mpv_player()
+    if not pathlib.Path(config['mediainfogui_path']['path'].replace('"', '')).is_file():
+        check_mediainfogui()
+    if not pathlib.Path(str(config['fdkaac_path']['path']).replace('"', '')).is_file():
+        encoder_menu['menu'].entryconfigure('FDK-AAC', state=DISABLED)  # disables fdk-aac in codec menu
+        try:  # update batch encoder menu
+            batch_encoder_menu['menu'].entryconfigure('FDK-AAC', state=DISABLED)  # disables fdk-aac in batch menu
+        except NameError:  # if batch_encoder menu doesn't exist
+            pass
+    elif pathlib.Path(str(config['fdkaac_path']['path']).replace('"', '')).is_file():
+        encoder_menu['menu'].entryconfigure('FDK-AAC', state=NORMAL)  # enables fdk-aac in codec menu
+        try:  # update batch encoder menu
+            batch_encoder_menu['menu'].entryconfigure('FDK-AAC', state=NORMAL)  # enables fdk-aac in batch menu
+        except NameError:  # if batch_encoder menu doesn't exist
+            pass
+    if not pathlib.Path(qaac.replace('"', '')).is_file():
+        messagebox.showerror(title='Error', message='Program is missing QAAC, please redownload or replace '
+                                                    'qaac.exe in the "Apps" folder')
+
+
+check_dependencies()
+
+
+# Checks for bundled app paths path -----------------------------------
+
 
 
 # -------------------------------------------------------------------------------------------------------- Bundled Apps
@@ -692,16 +815,16 @@ def track_counter(*args):  # Thanks for helping me shorten this 'gmes78'
 
 # Encoder Codec Drop Down ---------------------------------------------------------------------------------------------
 encoder_dropdownmenu_choices = {
-    "AAC": "-c:a aac ",
     "AC3": "-c:a ac3 ",
+    "AAC": "-c:a aac ",
     "E-AC3": "-c:a eac3 ",
     "DTS": "-c:a dts ",
     "Opus": "-c:a libopus ",
     "MP3": "-c:a libmp3lame ",
-    "FDK-AAC": fdkaac,
-    "QAAC": qaac,
     "FLAC": '-c:a flac ',
-    "ALAC": '-c:a alac '}
+    "ALAC": '-c:a alac ',
+    "FDK-AAC": fdkaac,
+    "QAAC": qaac}
 encoder = StringVar(root)
 encoder.set("Set Codec")
 encoder_menu = OptionMenu(audio_setting_frame, encoder, *encoder_dropdownmenu_choices.keys(), command=encoder_changed)
@@ -5853,6 +5976,7 @@ audiosettings_button.grid(row=0, column=2, columnspan=1, padx=5, pady=(5, 4), st
 # File input check ----------------------------------------------------------------------------------------------------
 def file_input_check(file_input):
     global track_count, file_input_quoted, autosavefilename
+    check_dependencies()  # check for app dependencies
     exit_cmd_window()  # Close cmd window upon opening a new file
     file_input_quoted = f'"{file_input}"'  # Quote VideInput for use in the code
     media_info = MediaInfo.parse(pathlib.Path(file_input))  # Parse with media_info module
@@ -5955,7 +6079,7 @@ def input_button_commands():
 
 # Batch Processing ----------------------------------------------------------------------------------------------------
 def batch_processing_input():
-    global batch_listbox, encoder, batch_input_window
+    global batch_listbox, encoder, batch_input_window, batch_encoder_menu
 
     try:  # If the job manager window is already open do nothing when the button is hit
         if batch_input_window.winfo_exists():
@@ -6124,6 +6248,7 @@ def batch_processing_input():
             acodec_stream_track_counter[f'Track #{i + 1}'] = f' -map 0:a:{i} '
 
     def process_batch_file_input_information(*args):
+        check_dependencies()  # check for dependencies
         files_without_audio = []  # define an empty list for files without audio
         files_with_audio = []  # define an empty list for files with audio
         for f in list(*args):  # loop through file selection tuple by converting it to list
@@ -6174,11 +6299,14 @@ def batch_processing_input():
     batch_input_window.dnd_bind('<<Drop>>', batch_drop_input)
 
     def delete():  # define delete for selected items
-        msg = messagebox.askyesno(parent=batch_input_window, title='Prompt!', message='Delete selected item(s)?')
-        if msg:
-            for selected_items in reversed(batch_listbox.curselection()):
-                batch_listbox.delete(selected_items)
-            create_track_count()  # run track count code to update track selection based off of list box
+        if batch_listbox.curselection():
+            msg = messagebox.askyesno(parent=batch_input_window, title='Prompt!', message='Delete selected item(s)?')
+            if msg:
+                for selected_items in reversed(batch_listbox.curselection()):
+                    batch_listbox.delete(selected_items)
+                if batch_listbox.size() == 0:
+                    return
+                create_track_count()  # run track count code to update track selection based off of list box
 
     delete_job_button = HoverButton(button_frame, text="Delete Selected\nItem(s)", command=delete, foreground="white",
                                     background="#23272A", borderwidth="3", activebackground='grey')
@@ -6985,6 +7113,7 @@ def set_fresh_launch_for_auto_encode():
 
 def set_fresh_launch():
     set_fresh_launch_for_auto_encode()
+    check_dependencies()
     encoder_menu.config(state=DISABLED)
     input_entry.config(state=NORMAL)
     input_entry.delete(0, END)
@@ -7147,91 +7276,6 @@ status_label = Label(root, text='', bd=4, relief=SUNKEN, anchor=E, background='#
 status_label.grid(column=0, row=4, columnspan=4, sticky=W + E)
 # ----------------------------------------------------------------- Status Label at bottom of main GUI
 
-# Checks for App Folder and Sub-Directories - Creates Folders if they are missing -------------------------------------
-pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'FFMPEG').mkdir(parents=True, exist_ok=True)
-pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'MediaInfo').mkdir(parents=True, exist_ok=True)
-pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'fdkaac').mkdir(parents=True, exist_ok=True)
-pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'qaac').mkdir(parents=True, exist_ok=True)
-pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'mpv').mkdir(parents=True, exist_ok=True)
-
-
-# -------------------------------------------------------------------------------------------------------- Folder Check
-
-# Checks config for bundled app paths path ---------------
-def check_ffmpeg():
-    global ffmpeg
-    # FFMPEG --------------------------------------------------------------
-    if shutil.which('ffmpeg') != None:
-        ffmpeg = '"' + str(pathlib.Path(shutil.which('ffmpeg'))).lower() + '"'
-        messagebox.showinfo(title='Prompt!', message='ffmpeg.exe found on system PATH, '
-                                                     'automatically setting path to location.\n\n'
-                                                     'Note: This can be changed in the config.ini file'
-                                                     ' or in the Options menu')
-        if pathlib.Path("Apps/ffmpeg/ffmpeg.exe").exists():
-            rem_ffmpeg = messagebox.askyesno(title='Delete Included ffmpeg?',
-                                             message='Would you like to delete the included FFMPEG?')
-            if rem_ffmpeg == True:
-                try:
-                    shutil.rmtree(str(pathlib.Path("Apps/ffmpeg")))
-                except (Exception,):
-                    pass
-        config.set('ffmpeg_path', 'path', ffmpeg)
-        with open(config_file, 'w') as configfile:
-            config.write(configfile)
-    elif ffmpeg == '' and shutil.which('ffmpeg') == None:
-        messagebox.showinfo(title='Info', message='Program will use the included '
-                                                  '"ffmpeg.exe" located in the "Apps" folder')
-        ffmpeg = '"' + str(pathlib.Path("Apps/ffmpeg/ffmpeg.exe")) + '"'
-        try:
-            config.set('ffmpeg_path', 'path', ffmpeg)
-            with open(config_file, 'w') as configfile:
-                config.write(configfile)
-        except (Exception,):
-            pass
-    # FFMPEG ------------------------------------------------------------------
-
-
-def check_mpv_player():
-    global mpv_player
-    # mpv_player -------------------------------------------------------------
-    if mpv_player == '' or not pathlib.Path(mpv_player.replace('"', '')).exists():
-        mpv_player = '"' + str(pathlib.Path('Apps/mpv/mpv.exe')) + '"'
-        try:
-            config.set('mpv_player_path', 'path', mpv_player)
-            with open(config_file, 'w') as configfile:
-                config.write(configfile)
-        except (Exception,):
-            pass
-    # mpv_player ----------------------------------------------------------
-
-
-def check_mediainfogui():
-    global mediainfo
-    # check_mediainfogui -------------------------------------------------------------
-    if mediainfo == '' or not pathlib.Path(mediainfo.replace('"', '')).exists():
-        mediainfo = '"' + str(pathlib.Path('Apps/MediaInfo/MediaInfo.exe')) + '"'
-        try:
-            config.set('mediainfogui_path', 'path', mediainfo)
-            with open(config_file, 'w') as configfile:
-                config.write(configfile)
-        except (Exception,):
-            pass
-    # check_mediainfogui ----------------------------------------------------------
-
-
-if not pathlib.Path(config['ffmpeg_path']['path'].replace('"', '')).is_file():
-    check_ffmpeg()
-if not pathlib.Path(config['mpv_player_path']['path'].replace('"', '')).is_file():
-    check_mpv_player()
-if not pathlib.Path(config['mediainfogui_path']['path'].replace('"', '')).is_file():
-    check_mediainfogui()
-if not pathlib.Path(fdkaac.replace('"', '')).is_file():
-    messagebox.showerror(title='Error', message='Program is missing FDKAAC, please redownload or replace '
-                                                'fdkaac.exe in the "Apps" folder')
-if not pathlib.Path(qaac.replace('"', '')).is_file():
-    messagebox.showerror(title='Error', message='Program is missing QAAC, please redownload or replace '
-                                                'qaac.exe in the "Apps" folder')
-# Checks for bundled app paths path -----------------------------------
 
 # # Arguments -----------------------------------------------------------------------------------------------------------
 # try:  # User can drop a file directly on the .exe without starting the program to begin processing (or .py script)
