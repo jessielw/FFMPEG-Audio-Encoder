@@ -278,7 +278,7 @@ def set_window_geometry_settings():
             general_settings_pos.set('yes')
             func_parser.set('save_window_locations', 'general settings', 'yes')
 
-            general_settings_pos.set('yes')
+            batch_window_pos.set('yes')
             func_parser.set('save_window_locations', 'batch window', 'yes')
             with open(config_file, 'w') as configfile:
                 func_parser.write(configfile)
