@@ -5987,7 +5987,7 @@ def input_button_commands():
 def batch_processing_input():
     global batch_listbox, encoder, batch_input_window, batch_encoder_menu
 
-    try:  # If the job manager window is already open do nothing when the button is hit
+    try:  # If the window is already open do nothing when the button is hit
         if batch_input_window.winfo_exists():
             return
     except NameError:
@@ -6535,12 +6535,13 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
     temp_label.grid_remove()
 
     def delete():  # Define delete for single items code and button
-        msg = messagebox.askyesno(parent=jobs_window, title='Prompt!', message='Delete selected item?')
-        if msg:
-            for selected_items in reversed(job_listbox.curselection()):
-                job_listbox.delete(selected_items)
-            with open('Runtime/jobs.dat', "wb") as pickle_file:
-                pickle.dump(job_listbox.get(0, END), pickle_file, pickle.HIGHEST_PROTOCOL)
+        if job_listbox.curselection():
+            msg = messagebox.askyesno(parent=jobs_window, title='Prompt!', message='Delete selected item?')
+            if msg:
+                for selected_items in reversed(job_listbox.curselection()):
+                    job_listbox.delete(selected_items)
+                with open('Runtime/jobs.dat', "wb") as pickle_file:
+                    pickle.dump(job_listbox.get(0, END), pickle_file, pickle.HIGHEST_PROTOCOL)
 
     delete_job_button = HoverButton(button_frame, text="Delete Selected", command=delete, foreground="white",
                                     background="#23272A", borderwidth="3", activebackground='grey')
