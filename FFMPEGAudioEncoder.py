@@ -6701,7 +6701,6 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
                             for job_ids in job_id.children(recursive=True):
                                 job_ids.kill()
                                 job_ids.wait()
-                            close_jobs_progress_drawer()  # Close progress drawer
                             if pathlib.Path(output_file).is_file():
                                 pathlib.Path(output_file).unlink(missing_ok=True)
                         except psutil.NoSuchProcess:
