@@ -671,6 +671,8 @@ def advanced_root_deiconify():
     elif not root.winfo_viewable():
         root.iconify()
         root.deiconify()
+
+
 # ------------------------------------------------------ function to check state of root, then deiconify it accordingly
 
 # Calls to show_streams.py show_streams_mediainfo_function to display a window with track information -----------------
@@ -5802,12 +5804,17 @@ def startaudiojob():
                                       activebackground='grey')
         open_output_dir.grid(row=1, column=0, columnspan=1, padx=10, pady=(5, 4), sticky=S + E + W + N)
 
+        if encoding_job_type == 'auto':
+            codec_selection = config_profile['Auto Encode']['codec']
+        else:
+            codec_selection = str(encoder.get())
+
         if encoder.get() == 'QAAC' or encoder.get() == 'FDK-AAC':  # String to output for fdk/qaac encoder
             insert_info_string = f'Encoding {str(file_input_quoted)} via "FFMPEG" by piping to external encoder: ' \
-                                 f'"{str(encoder.get())}"'
+                                 f'"{codec_selection}"'
         elif encoder.get() != 'QAAC' or encoder.get() != 'FDK-AAC':  # String to output for all internal encoders
             insert_info_string = f'Encoding {str(file_input_quoted)} via "FFMPEG" with internal encoder: ' \
-                                 f'"{str(encoder.get())}"'
+                                 f'"{codec_selection}"'
 
         if encoding_job_type == 'auto':  # If encoding_job_type is set to 'auto', once the user encodes it resets
             # main gui back to default settings
@@ -5865,30 +5872,30 @@ def startaudiojob():
                     progress_error = 'yes'
         try:
             encode_window_progress.configure(state=NORMAL)  # Enable progress window editing
-        except TclError:  # if user presses cancel exit function
+            encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
+
+            if progress_error == 'no' and int(percent) >= 99:  # If no error and percent reached 99%, job is complete
+                if pathlib.Path(str(file_output_quoted).replace('"', '')).is_file():  # Check if file exists
+                    encode_window_progress.insert(END, str('Job Completed!\n\n'))  # Insert into text window
+                    encode_window_progress.insert(END, f'Output file is: \n{str(file_output_quoted)}')
+                    complete_or_not = str('complete')  # Set variable to complete, for closing window without prompt
+                else:  # If job does not complete, string to show the user there was an error
+                    messagebox.showerror(title='Error!', message='There was an error in job:\n\n' + '"Codec : '
+                                                                 + encoder.get() + '  |  '
+                                                                 + str(pathlib.Path(file_input).stem)
+                                                                 + '"\n\n Please run job with program in debug mode')
+                    progress_window.destroy()  # Close window and kill job.pid/children
+                    subprocess.Popen(f"TASKKILL /F /PID {job.pid} /T", creationflags=subprocess.CREATE_NO_WINDOW)
+
+            elif progress_error != 'no' or int(percent) <= 98:  # If there is an error OR percent is less than 98%
+                encode_window_progress.insert(END, '\nThere was an error, run the job in debug mode to troubleshoot\n')
+                complete_or_not = 'complete'
+
+            encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
+            encode_window_progress.see(END)  # Scroll to bottom of text window
+            encode_window_progress.configure(state=DISABLED)  # Disable progress window editing
+        except TclError:
             return
-        encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
-
-        if progress_error == 'no' and int(percent) >= 99:  # If no error and percent reached 99%, job is complete
-            if pathlib.Path(str(file_output_quoted).replace('"', '')).is_file():  # Check if file exists
-                encode_window_progress.insert(END, str('Job Completed!\n\n'))  # Insert into text window
-                encode_window_progress.insert(END, f'Output file is: \n{str(file_output_quoted)}')
-                complete_or_not = str('complete')  # Set variable to complete, for closing window without prompt
-            else:  # If job does not complete, string to show the user there was an error
-                messagebox.showerror(title='Error!', message='There was an error in job:\n\n' + '"Codec : '
-                                                             + encoder.get() + '  |  '
-                                                             + str(pathlib.Path(file_input).stem)
-                                                             + '"\n\n Please run job with program in debug mode')
-                progress_window.destroy()  # Close window and kill job.pid/children
-                subprocess.Popen(f"TASKKILL /F /PID {job.pid} /T", creationflags=subprocess.CREATE_NO_WINDOW)
-
-        elif progress_error != 'no' or int(percent) <= 98:  # If there is an error OR percent is less than 98%
-            encode_window_progress.insert(END, '\nThere was an error, run the job in debug mode to troubleshoot\n')
-            complete_or_not = 'complete'
-
-        encode_window_progress.insert(END, str('\n' + '-' * 62 + '\n'))
-        encode_window_progress.see(END)  # Scroll to bottom of text window
-        encode_window_progress.configure(state=DISABLED)  # Disable progress window editing
 
         # Log Files ---------------------------------------------------------------------------------------------------
         log_folder = pathlib.Path('Runtime/logs/manual_auto/').resolve()
@@ -7182,6 +7189,7 @@ def encode_last_used_setting():
     encoding_job_type = 'auto'
     track_counter()
     encoder.set(config_profile['Auto Encode']['codec'])
+    encoder_changed()
     openaudiowindow()
     gotosavefile()
     command_line_button.config(state=DISABLED)
