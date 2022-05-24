@@ -35,7 +35,7 @@ from Packages.show_streams import show_streams_mediainfo_function, exit_stream_w
 from Packages.window_geometry_settings import set_window_geometry_settings
 
 # Set variable to True if you want errors to pop up in window + log to file + console, False for console only
-log_error_to_file = False  # Change this to false if you don't want to log errors to file + pop up window
+log_error_to_file = True  # Change this to false if you don't want to log errors to file + pop up window
 
 # Set main window title variable
 main_root_title = "FFMPEG Audio Encoder v4.0 Beta"
@@ -370,39 +370,63 @@ ffmpeg = config['ffmpeg_path']['path']
 # define mediainfo
 mediainfo = config['mediainfogui_path']['path']
 
+
 # define fdk-aac at program launch
-if config['fdkaac_path']['path'] != '':  # if fdk is not ''
-    fdkaac = config['fdkaac_path']['path']
-elif pathlib.Path('Apps/fdkaac/fdkaac.exe').is_file() and config['fdkaac_path']['path'] == '':
-    fdkaac = '"Apps/fdkaac/fdkaac.exe"'  # set the fdkaac variable
-    config.set('fdkaac_path', 'path', f'"{str(pathlib.Path("Apps/fdkaac/fdkaac.exe"))}"')
+# config_writer for fdk-aac
+def write_fdk_config(fdk_var):
+    config.set('fdkaac_path', 'path', fdk_var)
     with open(config_file, 'w') as fdk_cfg:
         config.write(fdk_cfg)  # write path to fdkaac to the config.ini file
-elif not pathlib.Path('Apps/fdkaac/fdkaac.exe').is_file() and config['fdkaac_path']['path'] != '':
-    config.set('fdkaac_path', 'path', '')
-    with open(config_file, 'w') as fdk_cfg:
-        config.write(fdk_cfg)  # write '' (empty string) to config.ini file
-    fdkaac = config['fdkaac_path']['path']  # define ffmpeg path of ''
 
-# define qaac at program launch
-if config['qaac_path']['path'] != '':  # if qaac is not ''
-    qaac = config['qaac_path']['path']
+
+if config['fdkaac_path']['path'] != '':  # if fdk path is defined
+    if not pathlib.Path(str(config['fdkaac_path']['path']).replace('"', '')).is_file():  # if fdk is not present
+        if pathlib.Path('Apps/fdkaac/fdkaac.exe').is_file():
+            write_fdk_config(f'"{str(pathlib.Path("Apps/fdkaac/fdkaac.exe"))}"')
+        elif not pathlib.Path('Apps/fdkaac/fdkaac.exe').is_file():
+            write_fdk_config('')  # clear fdk_path in config.ini
+elif pathlib.Path('Apps/fdkaac/fdkaac.exe').is_file() and config['fdkaac_path']['path'] == '':
+    write_fdk_config(f'"{str(pathlib.Path("Apps/fdkaac/fdkaac.exe"))}"')  # add path to fdk in apps folder to config.ini
+elif not pathlib.Path('Apps/fdkaac/fdkaac.exe').is_file() and config['fdkaac_path']['path'] == '':
+    write_fdk_config('')  # clear fdk_path in config.ini
+
+fdkaac = config['fdkaac_path']['path']  # define path to fdkaac via config.ini
+
+
+# # define qaac at program launch
+# # config_writer for qaac
+def write_qaac_config(qaac_var):
+    config.set('qaac_path', 'path', qaac_var)
+    with open(config_file, 'w') as qaac_writer_cfg:
+        config.write(qaac_writer_cfg)  # write path to fdkaac to the config.ini file
+
+
+if config['qaac_path']['path'] != '':  # if qaac is defined
+    if not pathlib.Path(str(config['qaac_path']['path']).replace('"', '')).is_file():  # if qaac is not present
+        if pathlib.Path('Apps/qaac/qaac64.exe').is_file():
+            write_qaac_config(f'"{str(pathlib.Path("Apps/qaac/qaac64.exe"))}"')
+            config.set('qaac_path', 'qt_path', f'"{str(pathlib.Path("Apps/qaac/QTfiles64"))}"')
+            with open(config_file, 'w') as qaac_cfg:
+                config.write(qaac_cfg)  # write path to qaac to the config.ini file
+        elif not pathlib.Path('Apps/qaac/qaac64.exe').is_file():
+            write_qaac_config('')  # clear fdk_path in config.ini
+            config.set('qaac_path', 'qt_path', '')
+            with open(config_file, 'w') as qaac_cfg:
+                config.write(qaac_cfg)  # write path to qaac to the config.ini file
+
 elif pathlib.Path('Apps/qaac/qaac64.exe').is_file() and config['qaac_path']['path'] == '':
-    qaac = '"Apps/qaac/qaac64.exe"'  # set the qaac variable
-    config.set('qaac_path', 'path', f'"{str(pathlib.Path("Apps/qaac/qaac64.exe"))}"')
-    with open(config_file, 'w') as qaac_cfg:
-        config.write(qaac_cfg)  # write path to qaac to the config.ini file
+    write_qaac_config(f'"{str(pathlib.Path("Apps/qaac/qaac64.exe"))}"')
     config.set('qaac_path', 'qt_path', f'"{str(pathlib.Path("Apps/qaac/QTfiles64"))}"')
     with open(config_file, 'w') as qaac_cfg:
         config.write(qaac_cfg)  # write path to qaac to the config.ini file
-elif not pathlib.Path('Apps/qaac/qaac64.exe').is_file() and config['qaac_path']['path'] != '':
-    config.set('qaac_path', 'path', '')
-    with open(config_file, 'w') as qaac_cfg:
-        config.write(qaac_cfg)  # write '' (empty string) to config.ini file
+
+elif not pathlib.Path('Apps/qaac/qaac64.exe').is_file() and config['qaac_path']['path'] == '':
+    write_qaac_config('')  # clear fdk_path in config.ini
     config.set('qaac_path', 'qt_path', '')
     with open(config_file, 'w') as qaac_cfg:
         config.write(qaac_cfg)  # write path to qaac to the config.ini file
-    qaac = config['qaac_path']['path']  # define ffmpeg path of ''
+
+qaac = config['qaac_path']['path']
 
 # define mpv player
 mpv_player = config['mpv_player_path']['path']
