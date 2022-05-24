@@ -33,6 +33,12 @@ def create_config_params():
         config.add_section('fdkaac_path')
     if not config.has_option('fdkaac_path', 'path'):
         config.set('fdkaac_path', 'path', '')
+    if not config.has_section('qaac_path'):
+        config.add_section('qaac_path')
+    if not config.has_option('qaac_path', 'path'):
+        config.set('qaac_path', 'path', '')
+    if not config.has_option('qaac_path', 'qt_path'):
+        config.set('qaac_path', 'qt_path', '')
     if not config.has_section('debug_option'):
         config.add_section('debug_option')
     if not config.has_option('debug_option', 'option'):
