@@ -316,8 +316,12 @@ def open_general_settings():  # General Settings Window
         update_parser = ConfigParser()
         update_parser.read(config_file)
 
-        qt_folder = pathlib.Path(pathlib.Path(
-            str(update_parser['qaac_path']['path']).replace('"', '')).resolve().parent / 'QTfiles64')
+        if update_parser['qaac_path']['path'] == '':  # if path to qaac is empty
+            qt_folder = pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'qaac' / 'QTfiles64')
+        elif update_parser['qaac_path']['path'] != '':  # if path to qaac is not empty
+            qt_folder = pathlib.Path(pathlib.Path(
+                str(update_parser['qaac_path']['path']).replace('"', '')).resolve().parent / 'QTfiles64')
+
         pathlib.Path(qt_folder).mkdir(parents=True, exist_ok=True)
 
         list_of_qaac_files = [pathlib.Path(qt_folder / 'ASL.dll'),
