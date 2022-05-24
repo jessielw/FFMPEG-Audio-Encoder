@@ -6880,19 +6880,25 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
                                                        message="Are you sure you want to stop the encode(s)?")
                     if confirm_exit:
                         if args[0] == 'exit':
-                            job_id = psutil.Process(job_jw.pid)
-                            for job_ids in job_id.children(recursive=True):
-                                job_ids.kill()
-                                job_ids.wait()
-                            if pathlib.Path(output_file).is_file():
-                                pathlib.Path(output_file).unlink(missing_ok=True)
+                            try:
+                                job_id = psutil.Process(job_jw.pid)
+                                for job_ids in job_id.children(recursive=True):
+                                    job_ids.kill()
+                                    job_ids.wait()
+                                if pathlib.Path(output_file).is_file():
+                                    pathlib.Path(output_file).unlink(missing_ok=True)
+                            except psutil.NoSuchProcess:
+                                pass
                         elif args[0] == 'exit all':  # If exit function is ran by cancel all jobs button
-                            job_id = psutil.Process(job_jw.pid)
-                            for job_ids in job_id.children(recursive=True):
-                                job_ids.kill()
-                                job_ids.wait()
-                            if pathlib.Path(output_file).is_file():
-                                pathlib.Path(output_file).unlink(missing_ok=True)
+                            try:
+                                job_id = psutil.Process(job_jw.pid)
+                                for job_ids in job_id.children(recursive=True):
+                                    job_ids.kill()
+                                    job_ids.wait()
+                                if pathlib.Path(output_file).is_file():
+                                    pathlib.Path(output_file).unlink(missing_ok=True)
+                            except psutil.NoSuchProcess:
+                                pass
                             continue_multiprocess_job = False
 
                 cancel_encode_job = HoverButton(jobs_window_button_frame, text="Cancel",
