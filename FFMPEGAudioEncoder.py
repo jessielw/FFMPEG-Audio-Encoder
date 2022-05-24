@@ -664,6 +664,15 @@ def open_all_toplevels():
 
 # ----------------------------------------------------------------------------- Hide/Open all top level window function
 
+# function to check state of root, then deiconify it accordingly ------------------------------------------------------
+def advanced_root_deiconify():
+    if root.winfo_viewable():
+        root.deiconify()
+    elif not root.winfo_viewable():
+        root.iconify()
+        root.deiconify()
+# ------------------------------------------------------ function to check state of root, then deiconify it accordingly
+
 # Calls to show_streams.py show_streams_mediainfo_function to display a window with track information -----------------
 def show_streams_mediainfo():  # All audio codecs can call this function in their menu's
     show_streams_mediainfo_function(file_input)
@@ -1156,7 +1165,7 @@ def openaudiowindow():
                 try:
                     if encoding_job_type == 'manual':  # If normal encoding is used with the start job button
                         audio_window.destroy()  # Close audio window
-                        root.deiconify()
+                        advanced_root_deiconify()
                         track_selection_mediainfo = media_info.audio_tracks[
                             int(acodec_stream_choices[acodec_stream.get()].strip()[-1])]
                 except NameError:  # If encoding_job_type does not exist yet
@@ -1191,14 +1200,14 @@ def openaudiowindow():
                 except NameError:
                     audio_window.destroy()
                     hide_all_toplevels()  # Hide all TopLevels
-                    root.deiconify()
+                    advanced_root_deiconify()
 
             if total_streams >= 2:  # If total streams are greater than 1 (video input, remux, bluray, dvd, etc...)
                 # Check delay and add delay string to variable --------------------------------------------------------
                 try:
                     if encoding_job_type == 'manual':  # If normal encoding is used with the start job button
                         audio_window.destroy()  # Close audio window
-                        root.deiconify()
+                        advanced_root_deiconify()
                         track_selection_mediainfo = media_info.audio_tracks[
                             int(acodec_stream_choices[acodec_stream.get()].strip()[-1])]
                 except NameError:  # If encoding_job_type does not exist yet
@@ -1278,7 +1287,7 @@ def openaudiowindow():
                             def close_audio_start():  # Function is used when 'Confirm Track and Start' is clicked
                                 global auto_track_input
                                 open_all_toplevels()  # Open all top levels if they existed
-                                root.deiconify()  # Re-Open root window
+                                advanced_root_deiconify()  # Re-Open root window
                                 audio_track_win.grab_release()
                                 audio_track_win.destroy()  # Closes audio window
                                 # Get track number  and subtract 1 for ffmpeg (Track 1 = -map 0:a:0)
@@ -1287,7 +1296,7 @@ def openaudiowindow():
                             def close_audio_cancel():  # Function is used when 'Cancel' is clicked
                                 global mini_acodec_stream
                                 open_all_toplevels()  # Open all top levels if they existed
-                                root.deiconify()  # Re-Open root window
+                                advanced_root_deiconify()  # Re-Open root window
                                 audio_track_win.grab_release()
                                 audio_track_win.destroy()  # Closes audio window
                                 mini_acodec_stream.set('None')  # Set acodec_stream to None, so job does not start
@@ -5588,7 +5597,7 @@ def startaudiojob():
             if complete_or_not == 'complete':
                 save_close_position()
                 progress_window.destroy()
-                root.deiconify()
+                advanced_root_deiconify()
                 open_all_toplevels()
                 if encoder.get() == 'Set Codec':
                     output_entry.configure(state=NORMAL)  # Enable output_entry
@@ -5611,7 +5620,7 @@ def startaudiojob():
                         pass
                     save_close_position()  # Save position
                     progress_window.destroy()  # Destroy progress window
-                    root.deiconify()  # Re-Open root
+                    advanced_root_deiconify()  # Re-Open root
                     open_all_toplevels()  # Re-open top levels if there was any
                     if encoder.get() == 'Set Codec':
                         output_entry.configure(state=NORMAL)  # Enable output_entry
@@ -5747,7 +5756,7 @@ def startaudiojob():
                         pass
                     save_close_position()  # Save position
                     progress_window.destroy()  # Destroy progress window
-                    root.deiconify()  # Re-Open root
+                    advanced_root_deiconify()  # Re-Open root
                     if encoder.get() == 'Set Codec':
                         output_entry.configure(state=NORMAL)  # Enable output_entry
                         output_entry.delete(0, END)  # Clear contents of output entry
@@ -5899,7 +5908,7 @@ def startaudiojob():
         if config['auto_close_progress_window']['option'] == 'on' and progress_error == 'no':
             close_window()  # If program is set to auto close encoding window when complete, close
 
-        root.deiconify()  # Re-Open Root
+        advanced_root_deiconify()  # Re-Open Root
         open_all_toplevels()  # Re-Open all toplevels if there was any open
 
     elif progress_output_view.get() == "Debug":  # Debug mode, only opens a cmd.exe terminal for raw output
@@ -6064,7 +6073,7 @@ def batch_processing_input():
                     with open(config_file, 'w') as configfile:
                         func_parser.write(configfile)
             batch_input_window.destroy()  # close batch window
-            root.deiconify()  # restore root
+            advanced_root_deiconify()  # restore root
 
         if batch_listbox.size() >= 1:
             msg = messagebox.askyesno(message='Are you sure you want to close the window?\nThis will clear all '
@@ -6502,7 +6511,7 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
                 with open(config_file, 'w') as configfile:
                     func_parser.write(configfile)
         open_all_toplevels()  # Re-open all hidden toplevels if they exist
-        root.deiconify()  # Re-open main gui
+        advanced_root_deiconify()  # Re-open main gui
         jobs_window.destroy()  # Destroy the jobs window
 
     hide_all_toplevels()  # Hide any/all top levels if they exist upon launching this
@@ -6636,7 +6645,7 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
         jobs_window_button_frame.grid_remove()
         start_selected_button.config(state=NORMAL)
         start_all_jobs_button.config(state=NORMAL)
-        root.deiconify()
+        advanced_root_deiconify()  # call advanced root deiconify to avoid white root window upon reloading
         jobs_window.deiconify()
 
     def start_job_window_encode_single():  # Code for single file selection encoding
@@ -7195,7 +7204,7 @@ def encode_last_used_setting():
                     file_output = change_name
                     threading.Thread(target=startaudiojob).start()
                 if not change_name:  # If path is not defined (user presses cancel or X)
-                    root.deiconify()  # Re-Open root
+                    advanced_root_deiconify()  # Re-Open root
                     open_all_toplevels()  # Re-Open any toplevels that might have been closed
                     set_fresh_launch()  # Reset the GUI to fresh launch
                     return  # Return None and exit
