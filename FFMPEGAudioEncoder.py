@@ -6284,6 +6284,7 @@ def batch_processing_input():
     def batch_encoder_changed(*args):  # batch encoder menu function
         global batch_mode  # set global variable batch_mode
         audio_settings.config(state=NORMAL)  # audio_settings enable button
+        apply_and_send.config(state=DISABLED)  # disable add to job manager button
         batch_mode = 'yes'  # set variable batch_mode to 'yes'
 
     encoder.set("Set Codec")  # set encoder string var to 'Set Codec'
@@ -6334,11 +6335,14 @@ def batch_processing_input():
 
             file_output = str(batch_file_out)  # define file output
 
-            language_string = None  # Place holder variable
-            delay_string = None  # Place holder variable
+            language_string = None  # place holder variable
+            delay_string = None  # place holder variable
 
             media_info = MediaInfo.parse(batch_file[1])  # Parse file_input
             general_track = media_info.general_tracks[0]
+            # track_selection_mediainfo uses the -map 0:a:x code to get the track input
+            track_selection_mediainfo = media_info.audio_tracks[
+                int(acodec_stream_choices[acodec_stream.get()].strip()[-1])]
             total_streams = 0  # Empty variable to add up all the tracks
             if general_track.count_of_video_streams is not None:
                 total_streams += int(general_track.count_of_video_streams)  # check for video track(s)
@@ -6377,10 +6381,6 @@ def batch_processing_input():
                                                        + delay_string)  # Replace '_new_'
 
             # add total duration as argument to pass
-            media_info = MediaInfo.parse(pathlib.Path(batch_file[1]))  # Parse input file
-            track_selection_mediainfo = media_info.audio_tracks[
-                int(acodec_stream_choices[acodec_stream.get()].strip()[-1])]
-            # track_selection_mediainfo uses the -map 0:a:x code to get the track input
             if track_selection_mediainfo.duration is not None:  # if track input HAS a duration
                 track_duration = float(track_selection_mediainfo.duration)
             elif track_selection_mediainfo.duration is None:  # if track input DOES NOT have a duration
@@ -6394,7 +6394,8 @@ def batch_processing_input():
 
             # batch final command to add to job manager dictionary
             batch_final_command = ' '.join(str(f'"{ffmpeg} -y -analyzeduration 100M -probesize 50M -i '
-                                               f'"{autofilesave_file_path}" {batch_command} '
+                                               f'"{autofilesave_file_path}" '
+                                               f'{acodec_stream_choices[acodec_stream.get()]} {batch_command} '
                                                f'"{file_output}"{hide_banner_and_verbose}').split())
 
             # create dictionary based off of all the above information to send to job manager window
@@ -7032,8 +7033,11 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
     job_listbox.bind('<Button-3>', popup_menu)  # Right click to pop up menu in frame
 
     def update_listbox_with_saved_jobs():
-        with open("Runtime/jobs.dat", "rb") as pickle_file:
-            saved_jobs = pickle.load(pickle_file)
+        try:
+            with open("Runtime/jobs.dat", "rb") as pickle_file:
+                saved_jobs = pickle.load(pickle_file)
+        except FileNotFoundError:
+            return
 
         for jobs in saved_jobs:  # Go through jobs.dat file to load all the jobs into the listbox window
             job_listbox.insert(END, jobs)
