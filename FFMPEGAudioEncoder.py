@@ -6063,7 +6063,8 @@ def batch_processing_input():
                     func_parser.set('save_window_locations', 'batch window position', batch_input_window.geometry())
                     with open(config_file, 'w') as configfile:
                         func_parser.write(configfile)
-            batch_input_window.destroy()
+            batch_input_window.destroy()  # close batch window
+            root.deiconify()  # restore root
 
         if batch_listbox.size() >= 1:
             msg = messagebox.askyesno(message='Are you sure you want to close the window?\nThis will clear all '
@@ -6413,7 +6414,6 @@ def batch_processing_input():
                 pickle.dump(job_listbox.get(0, END), pickle_file, pickle.HIGHEST_PROTOCOL)
         batch_listbox.delete(0, END)  # delete batch window listbox
         batch_window_exit_function()  # call the batch window exit function
-        root.deiconify()  # re-open hidden root window
 
     apply_and_send = HoverButton(button_frame, text="Add Jobs to\nJob Manager", command=add_to_job_manager,
                                  state=DISABLED, foreground="white", background="#23272A", borderwidth="3",
