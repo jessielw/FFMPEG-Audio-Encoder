@@ -43,6 +43,23 @@ main_root_title = "FFMPEG Audio Encoder v4.0 Beta"
 # default an empty variable to be updated based off user input
 batch_mode = None
 
+# Checks for App Folder and Sub-Directories - Creates Folders if they are missing ---------
+pathlib.Path(pathlib.Path.cwd() / 'Runtime').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Runtime' / 'logs').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Runtime' / 'logs' / 'error_logs').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Runtime' / 'logs' / 'job_manager_multi').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Runtime' / 'logs' / 'job_manager_single').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Runtime' / 'logs' / 'manual_auto').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'FFMPEG').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'MediaInfo').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'fdkaac').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'qaac').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'qaac' / 'QTfiles64').mkdir(parents=True, exist_ok=True)
+pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'mpv').mkdir(parents=True, exist_ok=True)
+
+
+# ----------------------------------------------------------------------------- Folder Check
+
 
 # Main Gui & Windows --------------------------------------------------------
 def root_exit_function():
@@ -353,16 +370,6 @@ def exit_and_clean_empty_logs():  # Function to exit logger() and delete logfile
 # ------------------------- Logger class, handles all traceback/stdout errors for program, writes to file and to window
 
 # Bundled Apps --------------------------------------------------------------------------------------------------------
-# Checks for App Folder and Sub-Directories - Creates Folders if they are missing ---------
-pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'FFMPEG').mkdir(parents=True, exist_ok=True)
-pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'MediaInfo').mkdir(parents=True, exist_ok=True)
-pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'fdkaac').mkdir(parents=True, exist_ok=True)
-pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'qaac').mkdir(parents=True, exist_ok=True)
-pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'qaac' / 'QTfiles64').mkdir(parents=True, exist_ok=True)
-pathlib.Path(pathlib.Path.cwd() / 'Apps' / 'mpv').mkdir(parents=True, exist_ok=True)
-
-# ----------------------------------------------------------------------------- Folder Check
-
 # define tool paths ------------------------------------------------------------------------
 # define ffmpeg
 ffmpeg = config['ffmpeg_path']['path']
