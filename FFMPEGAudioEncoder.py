@@ -5075,19 +5075,19 @@ def print_command_line():
                                                                  spacing2=3, spacing1=2, spacing3=3)
         show_cmd_scrolled_main.grid(row=0, column=0, pady=(5, 4), padx=5, sticky=E + W)
         show_cmd_scrolled_main.configure(bg='black', fg='#CFD2D1', bd=8)
-    show_cmd_scrolled_main.insert(END, finalcommand)
+    show_cmd_scrolled_main.insert(END, finalcommand.replace('""', '"'))
     show_cmd_scrolled_main.see(END)
     show_cmd_scrolled_main.configure(state=DISABLED)
 
     def print_command_line_updater():
         try:
             if show_cmd_scrolled_main.winfo_viewable():
-                if show_cmd_scrolled_main.get(1.0, END).strip() != finalcommand.strip():
+                if show_cmd_scrolled_main.get(1.0, END).strip() != finalcommand.replace('""', '"').strip():
                     audio_filter_function()
                     collect_final_job_commands()
                     show_cmd_scrolled_main.configure(state=NORMAL)
                     show_cmd_scrolled_main.delete(1.0, END)
-                    show_cmd_scrolled_main.insert(END, finalcommand)
+                    show_cmd_scrolled_main.insert(END, finalcommand.replace('""', '"'))
                     show_cmd_scrolled_main.see(END)
                     show_cmd_scrolled_main.configure(state=DISABLED)
             root.after(50, print_command_line_updater)
