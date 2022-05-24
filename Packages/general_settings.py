@@ -1,7 +1,8 @@
 import pathlib
+import webbrowser
 from configparser import ConfigParser
 from tkinter import Toplevel, LabelFrame, N, S, E, W, font, Button, Frame, Entry, DISABLED, NORMAL, filedialog, END, \
-    ttk, messagebox
+    ttk, messagebox, Label
 
 
 # noinspection PyGlobalUndefined
@@ -44,8 +45,8 @@ def open_general_settings():  # General Settings Window
     general_settings_window.configure(background=color1)
     if config_parser['save_window_locations']['general settings position'] == '' or \
             config_parser['save_window_locations']['general settings'] == 'no':
-        window_height = 520
-        window_width = 600
+        window_height = 670
+        window_width = 640
         screen_width = general_settings_window.winfo_screenwidth()
         screen_height = general_settings_window.winfo_screenheight()
         x_coordinate = int((screen_width / 2) - (window_width / 2))
@@ -80,7 +81,7 @@ def open_general_settings():  # General Settings Window
     tabs = ttk.Notebook(general_settings_window)
     tabs.grid(row=0, column=0, columnspan=4, sticky=E + W + N + S, padx=0, pady=0)
     settings_tab = Frame(tabs, background="#434547")
-    tabs.add(settings_tab, text=' Settings ')
+    tabs.add(settings_tab, text=' Paths ')
 
     for n in range(4):
         settings_tab.grid_columnconfigure(n, weight=1)
@@ -205,17 +206,17 @@ def open_general_settings():  # General Settings Window
     mediainfogui_entry_box.config(state=DISABLED)
 
     # FDK-AAC Path ----------------------------------------------------------------------------------------------------
-    fdk_qaac_frame = LabelFrame(path_frame, text=' FDK-AAC ', labelanchor="nw")
-    fdk_qaac_frame.grid(column=0, row=3, columnspan=4, padx=5, pady=(5, 3), sticky=E + W)
-    fdk_qaac_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 9, "italic"))
-    fdk_qaac_frame.grid_rowconfigure(0, weight=1)
-    fdk_qaac_frame.grid_columnconfigure(0, weight=1)
-    fdk_qaac_frame.grid_columnconfigure(1, weight=20)
+    fdkaac_frame = LabelFrame(path_frame, text=' FDK-AAC ', labelanchor="nw")
+    fdkaac_frame.grid(column=0, row=3, columnspan=4, padx=5, pady=(5, 3), sticky=E + W)
+    fdkaac_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 9, "italic"))
+    fdkaac_frame.grid_rowconfigure(0, weight=1)
+    fdkaac_frame.grid_columnconfigure(0, weight=1)
+    fdkaac_frame.grid_columnconfigure(1, weight=20)
     saved_fdkaac_path = None
 
     def set_fdk_aac_path():
         path = filedialog.askopenfilename(title='Select Location to "fdkaac.exe"',
-                                          initialdir=pathlib.Path(mediainfogui_entry_box.get()).parent,
+                                          initialdir=pathlib.Path(fdkaac_entry_box.get()).parent,
                                           filetypes=[('FDK-AAC', 'fdkaac.exe')], parent=general_settings_window)
         if path:
             fdk_parser = ConfigParser()
@@ -230,7 +231,7 @@ def open_general_settings():  # General Settings Window
                 fdk_parser['fdkaac_path']['path']).replace('"', '')).resolve()))
             fdkaac_entry_box.config(state=DISABLED)
 
-    set_fdkaac_path = HoverButton(fdk_qaac_frame, text="Set Path", command=set_fdk_aac_path,
+    set_fdkaac_path = HoverButton(fdkaac_frame, text="Set Path", command=set_fdk_aac_path,
                                   foreground="white", background="#23272A", borderwidth="3", activebackground='grey')
     set_fdkaac_path.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
 
@@ -248,10 +249,113 @@ def open_general_settings():  # General Settings Window
             with open(config_file, 'w') as configfile:
                 func_parser.write(configfile)
 
-    fdkaac_entry_box = Entry(fdk_qaac_frame, borderwidth=4, background="#CACACA")
+    fdkaac_entry_box = Entry(fdkaac_frame, borderwidth=4, background="#CACACA")
     fdkaac_entry_box.grid(row=0, column=1, columnspan=3, padx=5, pady=5, sticky=N + S + E + W)
-    fdkaac_entry_box.insert(0, str(saved_fdkaac_path))
+    fdkaac_entry_box.insert(0, str(saved_fdkaac_path).replace('"', ''))
     fdkaac_entry_box.config(state=DISABLED)
+
+    # QAAC Path -------------------------------------------------------------------------------------------------------
+    qaac_frame = LabelFrame(path_frame, text=' QAAC ', labelanchor="nw")
+    qaac_frame.grid(column=0, row=4, columnspan=4, padx=5, pady=(5, 3), sticky=E + W)
+    qaac_frame.configure(fg="#3498db", bg="#434547", bd=3, font=(set_font, 9, "italic"))
+    qaac_frame.grid_rowconfigure(0, weight=1)
+    qaac_frame.grid_rowconfigure(1, weight=1)
+    for q_f in range(4):
+        qaac_frame.grid_columnconfigure(q_f, weight=1)
+    saved_qaac_path = None
+
+    def set_qaac_path():
+        path = filedialog.askopenfilename(title='Select Location to "qaac64.exe"',
+                                          initialdir=pathlib.Path(qaac_entry_box.get()).parent,
+                                          filetypes=[('qaac64', 'qaac64.exe')], parent=general_settings_window)
+        if path:
+            qaac_parser = ConfigParser()
+            qaac_parser.read(config_file)
+            qaac = f'"{str(pathlib.Path(path))}"'
+            qaac_parser.set('qaac_path', 'path', qaac)
+            with open(config_file, 'w') as qaac_cfg:
+                qaac_parser.write(qaac_cfg)
+            qt_folder_path = pathlib.Path(pathlib.Path(
+                str(qaac_parser['qaac_path']['path']).replace('"', '')).resolve().parent / 'QTfiles64')
+            qaac_parser.set('qaac_path', 'qt_path', f'"{str(qt_folder_path)}"')
+            with open(config_file, 'w') as qaac_cfg:
+                qaac_parser.write(qaac_cfg)
+            qaac_entry_box.config(state=NORMAL)
+            qaac_entry_box.delete(0, END)
+            qaac_entry_box.insert(0, str(pathlib.Path(str(
+                qaac_parser['qaac_path']['path']).replace('"', '')).resolve()))
+            qaac_entry_box.config(state=DISABLED)
+
+            update_qaac_file_paths()
+
+    set_qaac_path = HoverButton(qaac_frame, text="Set Path", command=set_qaac_path,
+                                foreground="white", background="#23272A", borderwidth="3", activebackground='grey')
+    set_qaac_path.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N + S + E + W)
+
+    if config_parser['qaac_path']['path'] == '':
+        saved_qaac_path = 'not installed'.title()
+    elif config_parser['qaac_path']['path'] != '':
+        if pathlib.Path(str(config_parser['qaac_path']['path']).replace('"', '')).exists():
+            saved_qaac_path = '"' + str(pathlib.Path(str(config_parser['qaac_path']['path']).replace(
+                '"', '')).resolve()) + '"'
+        else:
+            saved_qaac_path = 'not installed'.title()
+            func_parser = ConfigParser()
+            func_parser.read(config_file)
+            func_parser.set('qaac_path', 'path', '')
+            with open(config_file, 'w') as configfile:
+                func_parser.write(configfile)
+
+    qaac_entry_box = Entry(qaac_frame, borderwidth=4, background="#CACACA")
+    qaac_entry_box.grid(row=0, column=1, columnspan=3, padx=5, pady=5, sticky=N + S + E + W)
+    qaac_entry_box.insert(0, str(saved_qaac_path).replace('"', ''))
+    qaac_entry_box.config(state=DISABLED)
+
+    def update_qaac_file_paths():
+        global qt_folder, list_of_qaac_files
+        update_parser = ConfigParser()
+        update_parser.read(config_file)
+
+        qt_folder = pathlib.Path(pathlib.Path(
+            str(update_parser['qaac_path']['path']).replace('"', '')).resolve().parent / 'QTfiles64')
+        pathlib.Path(qt_folder).mkdir(parents=True, exist_ok=True)
+
+        list_of_qaac_files = [pathlib.Path(qt_folder / 'ASL.dll'),
+                              pathlib.Path(qt_folder / 'CoreAudioToolbox.dll'),
+                              pathlib.Path(qt_folder / 'CoreFoundation.dll'),
+                              pathlib.Path(qt_folder / 'icudt62.dll'),
+                              pathlib.Path(qt_folder / 'libdispatch.dll'),
+                              pathlib.Path(qt_folder / 'libicuin.dll'),
+                              pathlib.Path(qt_folder / 'libicuuc.dll'),
+                              pathlib.Path(qt_folder / 'objc.dll')]
+
+    update_qaac_file_paths()
+
+    def check_for_qaac_files():
+        global list_of_qaac_files
+        checked_qaac_files = []
+        for files in list_of_qaac_files:
+            checked_qaac_files.append(pathlib.Path(files).is_file())
+
+        if all(checked_qaac_files):
+            qaac_status_label.config(text='Status: Ready')
+        else:
+            qaac_status_label.config(text='Status: Missing QTFiles')
+
+        general_settings_window.after(1000, check_for_qaac_files)
+
+    qaac_status_label = Label(qaac_frame, text="", background="#434547", foreground="white", width=10)
+    qaac_status_label.grid(row=1, column=0, columnspan=2, padx=(5, 5), pady=(2, 0), sticky=W + E)
+    check_for_qaac_files()
+
+    qt_files_download = HoverButton(qaac_frame, text="Download QTfiles64",
+                                    command=lambda: webbrowser.open('https://github.com/AnimMouse/QTFiles/releases'),
+                                    foreground="white", background="#23272A", borderwidth="3", activebackground='grey')
+    qt_files_download.grid(row=1, column=2, columnspan=1, padx=5, pady=(2, 0), sticky=N + S + E + W)
+
+    qt_files_dir = HoverButton(qaac_frame, text="Open QTfiles64 Directory", command=lambda: webbrowser.open(qt_folder),
+                               foreground="white", background="#23272A", borderwidth="3", activebackground='grey')
+    qt_files_dir.grid(row=1, column=3, columnspan=1, padx=5, pady=(2, 0), sticky=N + S + E + W)
 
     # save path frame -------------------------------------------------------------------------------------------------
     save_path_frame = LabelFrame(settings_tab, text=' Save Paths ', labelanchor="n")
