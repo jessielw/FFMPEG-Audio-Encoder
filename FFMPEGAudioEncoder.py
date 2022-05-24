@@ -6274,9 +6274,10 @@ def batch_processing_input():
     delete_job_button.grid(row=1, column=0, columnspan=1, padx=5, pady=5, sticky=N + E + W)
 
     def delete_all():  # Define delete for all items code
-        msg = messagebox.askyesno(parent=batch_input_window, title='Prompt!', message='Delete all items?')
-        if msg:
-            batch_listbox.delete(0, END)
+        if batch_listbox.size() > 0:
+            msg = messagebox.askyesno(parent=batch_input_window, title='Prompt!', message='Delete all items?')
+            if msg:
+                batch_listbox.delete(0, END)
 
     delete_all_button = HoverButton(button_frame, text="Delete All", command=delete_all, foreground="white",
                                     background="#23272A", borderwidth="3", activebackground='grey')
@@ -6603,11 +6604,12 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
     delete_job_button.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky=N + E + W)
 
     def delete_all():  # Define delete for all items code and button
-        msg = messagebox.askyesno(parent=jobs_window, title='Prompt!', message='Delete all items?')
-        if msg:
-            job_listbox.delete(0, END)
-            with open('Runtime/jobs.dat', "wb") as pickle_file:
-                pickle.dump(job_listbox.get(0, END), pickle_file, pickle.HIGHEST_PROTOCOL)
+        if job_listbox.size() > 0:
+            msg = messagebox.askyesno(parent=jobs_window, title='Prompt!', message='Delete all items?')
+            if msg:
+                job_listbox.delete(0, END)
+                with open('Runtime/jobs.dat', "wb") as pickle_file:
+                    pickle.dump(job_listbox.get(0, END), pickle_file, pickle.HIGHEST_PROTOCOL)
 
     delete_all_button = HoverButton(button_frame, text="Delete All", command=delete_all, foreground="white",
                                     background="#23272A", borderwidth="3", activebackground='grey')
