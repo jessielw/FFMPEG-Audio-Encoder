@@ -1296,12 +1296,12 @@ def openaudiowindow():
                                 auto_track_input = int(str(acodec_stream.get()).split()[1][1]) - 1
 
                             def close_audio_cancel():  # Function is used when 'Cancel' is clicked
-                                global mini_acodec_stream
+                                global encoder
                                 open_all_toplevels()  # Open all top levels if they existed
                                 advanced_root_deiconify()  # Re-Open root window
                                 audio_track_win.grab_release()
                                 audio_track_win.destroy()  # Closes audio window
-                                mini_acodec_stream.set('None')  # Set acodec_stream to None, so job does not start
+                                encoder.set('None')  # Set acodec_stream to None, so job does not start
                                 output_entry.configure(state=NORMAL)  # Enable output_entry
                                 output_entry.delete(0, END)  # Clear contents of output entry
                                 output_entry.configure(state=DISABLED)  # Disable output entry
