@@ -38,7 +38,7 @@ from Packages.window_geometry_settings import set_window_geometry_settings
 log_error_to_file = True  # Change this to false if you don't want to log errors to file + pop up window
 
 # Set main window title variable
-main_root_title = "FFMPEG Audio Encoder v4.01"
+main_root_title = "FFMPEG Audio Encoder v4.02"
 
 # default an empty variable to be updated based off user input
 batch_mode = None
@@ -1293,7 +1293,7 @@ def openaudiowindow():
                                 audio_track_win.grab_release()
                                 audio_track_win.destroy()  # Closes audio window
                                 # Get track number  and subtract 1 for ffmpeg (Track 1 = -map 0:a:0)
-                                auto_track_input = int(str(acodec_stream.get()).split()[1][1]) - 1
+                                auto_track_input = int(str(mini_acodec_stream.get()).split()[1][1]) - 1
 
                             def close_audio_cancel():  # Function is used when 'Cancel' is clicked
                                 global encoder
@@ -5722,10 +5722,12 @@ def startaudiojob():
     collect_final_job_commands()
 
     if progress_output_view.get() == "Default":  # If program is set to progress bars
-        if encoding_job_type == 'manual':  # If variable encoding_job_type is set to 'manual', the command = final command
+        # If variable encoding_job_type is set to 'manual', the command = final command
+        if encoding_job_type == 'manual':
             command = finalcommand
             update_last_codec_command()  # Calls a function that set's the auto encode information to ini file
-        elif encoding_job_type == 'auto':  # If variable encoding_job_type is set to 'auto' it uses the info in the
+        # If variable encoding_job_type is set to 'auto' it uses the info in the
+        elif encoding_job_type == 'auto':
             # ini file to encode with the command below
             if encoder.get() == 'QAAC' or encoder.get() == 'FDK-AAC':
                 hide_banner_verbose = ''
@@ -7213,7 +7215,7 @@ def encode_last_used_setting():
                     threading.Thread(target=startaudiojob).start()
                 if not change_name:  # If path is not defined (user presses cancel or X)
                     advanced_root_deiconify()  # Re-Open root
-                    open_all_toplevels()  # Re-Open any toplevels that might have been closed
+                    open_all_toplevels()  # Re-Open any top levels that might have been closed
                     set_fresh_launch()  # Reset the GUI to fresh launch
                     return  # Return None and exit
         else:  # If output doesn't exist go on and run the start job code
@@ -7285,7 +7287,7 @@ def check_dependencies():
                 remove_ffmpeg = messagebox.askyesno(title='Delete Included ffmpeg?',
                                                     message='Would you like to delete the included FFMPEG?')
                 if remove_ffmpeg:
-                    pathlib.Path("Apps/ffmpeg").unlink(missing_ok=True)
+                    pathlib.Path("Apps/ffmpeg.exe").unlink(missing_ok=True)
 
             # define the path to ffmpeg.exe in the config.ini
             config.set('ffmpeg_path', 'path', ffmpeg)
