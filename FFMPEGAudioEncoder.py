@@ -22,9 +22,9 @@ from tkinter import filedialog, StringVar, ttk, messagebox, PhotoImage, Menu, NO
 
 import psutil
 import pyperclip
-from TkinterDnD2 import *
 from pyautogui import hotkey as pya_hotkey
 from pymediainfo import MediaInfo
+from tkinterdnd2 import DND_FILES, TkinterDnD
 
 from Packages.About import openaboutwindow
 from Packages.SimpleYoutubeDLGui import youtube_dl_launcher_for_ffmpegaudioencoder
