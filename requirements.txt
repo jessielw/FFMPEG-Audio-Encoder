@@ -2,5 +2,5 @@ psutil==5.9.0
 PyAutoGUI==0.9.53
 pymediainfo==5.1.0
 pyperclip==1.8.2
-TkinterDnD2==0.3.0
+tkinterdnd2==0.3.0
 yt_dlp==2022.5.18
