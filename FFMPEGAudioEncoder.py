@@ -38,7 +38,7 @@ from Packages.window_geometry_settings import set_window_geometry_settings
 log_error_to_file = True  # Change this to false if you don't want to log errors to file + pop up window
 
 # Set main window title variable
-main_root_title = "FFMPEG Audio Encoder v4.02"
+main_root_title = "FFMPEG Audio Encoder v4.03"
 
 # default an empty variable to be updated based off user input
 batch_mode = None
@@ -283,7 +283,7 @@ if log_error_to_file:
             pathlib.Path(error_folder).mkdir(parents=False, exist_ok=True)  # Create the folder if it doesn't exist
             error_log_txt = pathlib.Path(f"{str(error_folder)}/{datetime.now().strftime('%m-%d-%y - %I.%M.%S')}"
                                          f"-errorlog.txt")
-            self.error_log_file = open(error_log_txt, "w")  # Set log file name + open/write
+            self.error_log_file = open(error_log_txt, "w", encoding="utf-8")  # Set log file name + open/write
 
         def write(self, message):
             global info_scrolled
@@ -5900,18 +5900,21 @@ def startaudiojob():
             return
 
         # Log Files ---------------------------------------------------------------------------------------------------
-        log_folder = pathlib.Path('Runtime/logs/manual_auto/').resolve()
-        pathlib.Path(log_folder).mkdir(parents=False, exist_ok=True)
-        if len(str(pathlib.Path(file_input).name).strip()) > 50:
-            file_name = str(pathlib.Path(file_input).name)[:50].strip()
-        else:
-            file_name = str(pathlib.Path(file_input).name).strip()
-        log_txt = pathlib.Path(
-            f"{str(log_folder)}/{datetime.now().strftime('%m-%d-%y - %I.%M.%S')}-[{file_name}]-log.txt")
-        logfile = open(log_txt, 'w')
-        logfile.write(encode_window_progress.get(1.0, END))
-        logfile.flush()
-        logfile.close()
+        try:
+            log_folder = pathlib.Path('Runtime/logs/manual_auto/').resolve()
+            pathlib.Path(log_folder).mkdir(parents=False, exist_ok=True)
+            if len(str(pathlib.Path(file_input).name).strip()) > 50:
+                file_name = str(pathlib.Path(file_input).name)[:50].strip()
+            else:
+                file_name = str(pathlib.Path(file_input).name).strip()
+            log_txt = pathlib.Path(
+                f"{str(log_folder)}/{datetime.now().strftime('%m-%d-%y - %I.%M.%S')}-[{file_name}]-log.txt")
+            logfile = open(log_txt, 'w', encoding="utf-8")
+            logfile.write(encode_window_progress.get(1.0, END))
+            logfile.flush()
+            logfile.close()
+        except TclError:
+            return
         # --------------------------------------------------------------------------------------------------- Log Files
 
         if config['auto_close_progress_window']['option'] == 'on' and progress_error == 'no':
@@ -6210,11 +6213,19 @@ def batch_processing_input():
     # function to update track counter, for track list
     def create_track_count():
         global acodec_stream_track_counter
-        max_common_audio_track = []  # create empty list
+        # create empty list
+        max_common_audio_track = []
+
+        # get total of files in the list box
+        total_tracks_to_parse = batch_listbox.size()
 
         # loop through listbox to check all audio streams
-        for batch_file in enumerate(batch_listbox.get(0, END)):
-            media_info = MediaInfo.parse(pathlib.Path(batch_file[1]))
+        for count, batch_file in enumerate(batch_listbox.get(0, END), start=1):
+            try:
+                batch_input_window.title(f'Generating track information - {str(count)} of {str(total_tracks_to_parse)}')
+            except TclError:
+                return  # exit the function
+            media_info = MediaInfo.parse(pathlib.Path(batch_file))
             audio_track_count = media_info.general_tracks[0].count_of_audio_streams
             max_common_audio_track.append(audio_track_count)
 
@@ -6226,19 +6237,53 @@ def batch_processing_input():
         for i in range(int(max_total_tracks.most_common(1)[0][0])):
             acodec_stream_track_counter[f'Track #{i + 1}'] = f' -map 0:a:{i} '
 
+    def enable_disable_batch_win_btns(mode):
+        """function to enable/disable buttons while batch window is loading the files"""
+        if mode == 'disable':
+            select_files.config(state=DISABLED)
+            delete_job_button.config(state=DISABLED)
+            delete_all_button.config(state=DISABLED)
+            set_batch_path_button.config(state=DISABLED)
+            reset_batch_path_button.config(state=DISABLED)
+            batch_listbox.config(state=DISABLED)
+            encoder.set('Set Codec')
+            batch_encoder_menu.config(state=DISABLED)
+        elif mode == 'enable':
+            select_files.config(state=NORMAL)
+            delete_job_button.config(state=NORMAL)
+            delete_all_button.config(state=NORMAL)
+            set_batch_path_button.config(state=NORMAL)
+            reset_batch_path_button.config(state=NORMAL)
+            batch_encoder_menu.config(state=NORMAL)  # enable the encoder menu
+
     def process_batch_file_input_information(*args):
         check_dependencies()  # check for dependencies
         files_without_audio = []  # define an empty list for files without audio
         files_with_audio = []  # define an empty list for files with audio
-        for f in list(*args):  # loop through file selection tuple by converting it to list
+        batch_listbox.delete(0, END)  # clear list box
+        batch_listbox.insert(END, 'Please wait, checking all files for audio...')  # insert simple string
+        total_number_of_input = len(args)
+        enable_disable_batch_win_btns('disable')  # disable all batch listbox buttons
+        batch_input_window.grab_set()  # force attention to batch list box window
+        for count, f in enumerate(list(args), start=1):  # loop through file selection tuple by converting it to list
+            batch_input_window.title(f'Checking file {str(count)} of {str(total_number_of_input)}')
             media_info = MediaInfo.parse(pathlib.Path(f))  # use media info on each file
             general_info = media_info.general_tracks[0]  #
             if general_info.count_of_audio_streams is not None:  # if file has audio streams
-                if f not in list(batch_listbox.get(0, END)):  # if file not already in list
-                    files_with_audio.append(f)  # add file to list with audio
-                    batch_listbox.insert(END, f)  # insert file into the batch_listbox
+                try:
+                    if f not in list(batch_listbox.get(0, END)):  # if file not already in list
+                        files_with_audio.append(f)  # add file to list with audio
+                except TclError:  # if user closes the window while it's loading files
+                    return  # exit this function
             elif general_info.count_of_audio_streams is None:  # if file does not have any audio streams
                 files_without_audio.append(f)  # add files to list without audio
+        # add files with audio to list box
+        batch_listbox.config(state=NORMAL)  # re-enable list box
+        batch_listbox.delete(0, END)  # clear list box
+        files_with_audio.sort()  # sort the list alphabetically
+        for file_w_aud in files_with_audio:  # loop through the list and add it to the list box
+            batch_listbox.insert(END, file_w_aud)  # insert file into the batch_listbox
+        batch_listbox.config(state=DISABLED)  # disable list box until audio parsing is complete
         if len(files_without_audio) >= 1:  # if files without audio is 1 or more
             no_audio = str(len(files_without_audio))  # count amount of files without audio
             if int(no_audio) == 1:  # set string to file or files depending on amount
@@ -6250,18 +6295,25 @@ def batch_processing_input():
                                 message=f'{no_audio} {files_string} not added to batch list\n\nReason:\n{no_audio} '
                                         f'{files_string} did not contain any audio tracks')
         if len(files_with_audio) >= 1:  # if files with audio is 1 or more
-            batch_encoder_menu.config(state=NORMAL)  # enable the encoder menu
             encoder.set("Set Codec")  # set menu to 'Set Codec'
             audio_settings.config(state=DISABLED)  # disable codec settings button
             apply_and_send.config(state=DISABLED)  # disable the apply_and_send button
             create_track_count()  # run create track count function
+            try:
+                batch_listbox.config(state=NORMAL)  # re-enable list box
+            except TclError:
+                return  # exit the function
+            enable_disable_batch_win_btns('enable')
+            batch_input_window.grab_release()  # release attention to batch list box window
+            batch_input_window.title('Batch File input')
 
     # function for add files button
     def select_files_batch():
         file_selection = filedialog.askopenfilenames(parent=batch_input_window, title='Select File(s)', initialdir='/',
                                                      filetypes=[("Media Files", "*.*")])
         if file_selection:  # if user opens file(s)
-            process_batch_file_input_information(file_selection)  # call function with file_selection
+            threading.Thread(target=process_batch_file_input_information, args=list(file_selection),
+                             daemon=True).start()
 
     select_files = HoverButton(button_frame, text="Add Files", command=select_files_batch, foreground="white",
                                background="#23272A", borderwidth="3", activebackground='grey')
@@ -6272,7 +6324,8 @@ def batch_processing_input():
         input_list_batch = []  # creates an empty list
         for filenames in root.splitlist(event.data):
             input_list_batch.append(filenames)  # appends all drop data to the list
-        process_batch_file_input_information(input_list_batch)  # call function with input_list_batch
+        # process_batch_file_input_information(input_list_batch)  # call function with input_list_batch
+        threading.Thread(target=process_batch_file_input_information, args=input_list_batch, daemon=True).start()
 
     batch_input_window.drop_target_register(DND_FILES)
     batch_input_window.dnd_bind('<<Drop>>', batch_drop_input)
@@ -6323,12 +6376,18 @@ def batch_processing_input():
                                  foreground="white", background="#23272A", borderwidth="3", activebackground='grey')
     audio_settings.grid(row=5, column=0, columnspan=1, padx=5, pady=(5, 5), sticky=N + W + E + S)
 
-    def add_to_job_manager():  # function to add all files in listbox to job manager with the commands
+    def thread_adding_to_manager():
+        """multi-thread files being loaded to the job manager window"""
         func_parser = ConfigParser()  # define local ConfigParser()
         func_parser.read(config_file)  # open config_file
-        open_jobs_manager()  # open jobs manager window
-        for batch_file in enumerate(batch_listbox.get(0, END)):  # loop through listbox for all files
-            autofilesave_file_path = pathlib.Path(batch_file[1])  # command to get file input location
+
+        # get total number of files
+        total_number_of_files = batch_listbox.size()
+
+        # loop through listbox for all files
+        for count, batch_file in enumerate(batch_listbox.get(0, END), start=1):
+            jobs_window.title(f'Parsing - {str(count)} of {str(total_number_of_files)}')
+            autofilesave_file_path = pathlib.Path(batch_file)  # command to get file input location
 
             # check for saved directory
             saved_dir = func_parser['batch_path']['path']
@@ -6337,7 +6396,7 @@ def batch_processing_input():
             elif saved_dir == 'file input directory':
                 autofilesave_dir_path = autofilesave_file_path.parents[0]  # final command to get only the directory
 
-            convert_filename = f'{str(autofilesave_dir_path)}/{str(pathlib.Path(batch_file[1]).name)}'
+            convert_filename = f'{str(autofilesave_dir_path)}/{str(pathlib.Path(batch_file).name)}'
             if encoder.get() == 'AAC':
                 batch_file_out = pathlib.Path(convert_filename).with_suffix("._new_.mp4")
             elif encoder.get() == 'AC3' or encoder.get() == 'E-AC3':
@@ -6358,7 +6417,7 @@ def batch_processing_input():
             language_string = None  # place holder variable
             delay_string = None  # place holder variable
 
-            media_info = MediaInfo.parse(batch_file[1])  # Parse file_input
+            media_info = MediaInfo.parse(batch_file)  # Parse file_input
             general_track = media_info.general_tracks[0]
             # track_selection_mediainfo uses the -map 0:a:x code to get the track input
             track_selection_mediainfo = media_info.audio_tracks[
@@ -6433,6 +6492,14 @@ def batch_processing_input():
                 pickle.dump(job_listbox.get(0, END), pickle_file, pickle.HIGHEST_PROTOCOL)
         batch_listbox.delete(0, END)  # delete batch window listbox
         batch_window_exit_function()  # call the batch window exit function
+        jobs_window.title('Job Manager')
+
+    def add_to_job_manager():
+        """function to add all files in listbox to job manager with the commands"""
+        open_jobs_manager()  # open jobs manager window
+        batch_input_window.grab_set()  # force attention of program to hidden batch input window that will be hidden
+        batch_input_window.wm_withdraw()  # hide this window
+        threading.Thread(target=thread_adding_to_manager, daemon=True).start()  # start job manager code in a thread
 
     apply_and_send = HoverButton(button_frame, text="Add Jobs to\nJob Manager", command=add_to_job_manager,
                                  state=DISABLED, foreground="white", background="#23272A", borderwidth="3",
@@ -6820,7 +6887,7 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
             pathlib.Path(log_folder).mkdir(parents=False, exist_ok=True)
             log_txt = pathlib.Path(
                 f"{str(log_folder)}/{datetime.now().strftime('%m-%d-%y - %I.%M.%S')}-log.txt")
-            logfile = open(log_txt, 'w')
+            logfile = open(log_txt, 'w', encoding="utf-8")
             logfile.write(jobs_window_progress.get(1.0, END))
             logfile.flush()
             logfile.close()
@@ -7029,7 +7096,7 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
                         pathlib.Path(log_folder).mkdir(parents=False, exist_ok=True)
                         log_txt = pathlib.Path(
                             f"{str(log_folder)}/{datetime.now().strftime('%m-%d-%y - %I.%M.%S')}-log.txt")
-                        logfile = open(log_txt, 'w')
+                        logfile = open(log_txt, 'w', encoding="utf-8")
                         logfile.write(jobs_window_progress.get(1.0, END))
                         logfile.flush()
                         logfile.close()
@@ -7068,18 +7135,29 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
             job_listbox.insert(END, jobs)
 
         def updater():  # Updater to update files between multiple processes
-            with open("Runtime/jobs.dat", "rb") as pickle_file:
-                saved_jobs = pickle.load(pickle_file)
-            job_tuple = job_listbox.get(0, END)  # Check listbox window
-            if saved_jobs != job_tuple:  # If saved jobs does not equal the same as listbox window
-                job_listbox.delete(0, END)  # Delete listbox window contents fully
-                for jobs in saved_jobs:  # Update listbox window with list of saved jobs in dat file
-                    job_listbox.insert(END, jobs)
+            try:
+                with open("Runtime/jobs.dat", "rb") as pickle_file:
+                    saved_jobs = pickle.load(pickle_file)
+                job_tuple = job_listbox.get(0, END)  # Check listbox window
+                if saved_jobs != job_tuple:  # If saved jobs does not equal the same as listbox window
+                    job_listbox.delete(0, END)  # Delete listbox window contents fully
+                    for jobs in saved_jobs:  # Update listbox window with list of saved jobs in dat file
+                        job_listbox.insert(END, jobs)
+            except EOFError:
+                pass
             job_listbox.after(100, updater)  # Check ever .1 of a second for updates on the dat file
 
         job_listbox.after(500, updater)
 
     update_listbox_with_saved_jobs()
+
+    def update_total_jobs():
+        """function to update job manager window with total jobs"""
+        if jobs_window.wm_title().split()[0].strip() != 'Parsing':
+            jobs_window.title(f'Job Manager - ({str(job_listbox.size())})')
+        jobs_window.after(100, update_total_jobs)
+
+    update_total_jobs()
 
 
 file_menu.add_command(label='Open File         [CTRL + O]', command=input_button_commands)
