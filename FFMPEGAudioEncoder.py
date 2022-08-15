@@ -76,7 +76,7 @@ log_error_to_file = (
 )
 
 # Set main window title variable
-main_root_title = "FFMPEG Audio Encoder v4.03"
+main_root_title = "FFMPEG Audio Encoder v4.04"
 
 # default an empty variable to be updated based off user input
 batch_mode = None
@@ -1858,7 +1858,9 @@ def openaudiowindow():
     # --------------------------------------------------- Modify what the 'X' does at the top right of the audio window
 
     # Profile Functions -----------------------------------------------------------------------------------------------
-    def save_profile():  # Function to save current settings in codec window
+    def save_profile():
+        """function to save current settings in codec window"""
+
         if encoder.get() == "AC3":
             config_profile.set(
                 "FFMPEG AC3 - SETTINGS", "ac3_bitrate", acodec_bitrate.get()
@@ -1876,7 +1878,9 @@ def openaudiowindow():
                 "FFMPEG AC3 - SETTINGS", "samplerate", acodec_samplerate.get()
             )
             config_profile.set("FFMPEG AC3 - SETTINGS", "tempo", acodec_atempo.get())
-        if encoder.get() == "AAC":
+            config_profile.set("FFMPEG AC3 - SETTINGS", "custom_command_line", ac3_cmd_entrybox.get().strip())
+
+        elif encoder.get() == "AAC":
             config_profile.set(
                 "FFMPEG AAC - SETTINGS", "dolbyprologicii", dolby_pro_logic_ii.get()
             )
@@ -1903,7 +1907,13 @@ def openaudiowindow():
                 "FFMPEG AAC - SETTINGS", "samplerate", acodec_samplerate.get()
             )
             config_profile.set("FFMPEG AAC - SETTINGS", "tempo", acodec_atempo.get())
-        if encoder.get() == "DTS" and dts_settings.get() == "DTS Encoder":
+            config_profile.set("FFMPEG AAC - SETTINGS", "custom_command_line", aac_cmd_entrybox.get().strip())
+
+        elif encoder.get() == "DTS" and dts_settings.get() != "DTS Encoder":
+            messagebox.showinfo(parent=audio_window, title="Information",
+                                message="You can only save 'DTS' settings if 'DTS Settings' is set to 'Encoder'")
+
+        elif encoder.get() == "DTS" and dts_settings.get() == "DTS Encoder":
             config_profile.set(
                 "FFMPEG DTS - SETTINGS", "dts_bitrate", dts_bitrate_spinbox.get()
             )
@@ -1920,7 +1930,9 @@ def openaudiowindow():
                 "FFMPEG DTS - SETTINGS", "samplerate", acodec_samplerate.get()
             )
             config_profile.set("FFMPEG DTS - SETTINGS", "tempo", acodec_atempo.get())
-        if encoder.get() == "E-AC3":
+            config_profile.set("FFMPEG DTS - SETTINGS", "custom_command_line", dts_cmd_entrybox.get().strip())
+
+        elif encoder.get() == "E-AC3":
             config_profile.set(
                 "FFMPEG E-AC3 - SETTINGS", "e-ac3_bitrate", eac3_spinbox.get()
             )
@@ -2012,7 +2024,9 @@ def openaudiowindow():
                 "FFMPEG E-AC3 - SETTINGS", "e-ac3_cpl_start_band", cpl_start_band.get()
             )
             config_profile.set("FFMPEG E-AC3 - SETTINGS", "tempo", acodec_atempo.get())
-        if encoder.get() == "Opus":
+            config_profile.set("FFMPEG E-AC3 - SETTINGS", "custom_command_line", eac3_cmd_entrybox.get().strip())
+
+        elif encoder.get() == "Opus":
             config_profile.set(
                 "FFMPEG Opus - SETTINGS", "opus_bitrate", acodec_bitrate.get()
             )
@@ -2042,7 +2056,11 @@ def openaudiowindow():
             config_profile.set(
                 "FFMPEG Opus - SETTINGS", "mapping_family", opus_mapping_family.get()
             )
-        if encoder.get() == "FDK-AAC":
+            config_profile.set(
+                "FFMPEG Opus - SETTINGS", "custom_command_line", opus_cmd_entrybox.get().strip()
+            )
+
+        elif encoder.get() == "FDK-AAC":
             config_profile.set(
                 "FDK-AAC - SETTINGS", "fdk_aac_bitrate", acodec_bitrate.get()
             )
@@ -2087,7 +2105,15 @@ def openaudiowindow():
             config_profile.set(
                 "FDK-AAC - SETTINGS", "fdk_aac_tempo", acodec_atempo.get()
             )
-        if encoder.get() == "MP3":
+
+            config_profile.set(
+                "FDK-AAC - SETTINGS", "custom_command_line", ffmpeg_cmd_entrybox.get().strip()
+            )
+            config_profile.set(
+                "FDK-AAC - SETTINGS", "fdk_custom_command_line", fdkaac_cmd_entrybox.get().strip()
+            )
+
+        elif encoder.get() == "MP3":
             config_profile.set(
                 "FFMPEG MP3 - SETTINGS", "acodec_bitrate", acodec_bitrate.get()
             )
@@ -2116,7 +2142,9 @@ def openaudiowindow():
                     "acodec_bitrate_cbr_abr",
                     acodec_bitrate.get(),
                 )
-        if encoder.get() == "QAAC":
+            config_profile.set("FFMPEG MP3 - SETTINGS", "custom_command_line", mp3_cmd_entrybox.get().strip())
+
+        elif encoder.get() == "QAAC":
             config_profile.set(
                 "FFMPEG QAAC - SETTINGS", "q_acodec_profile", q_acodec_profile.get()
             )
@@ -2171,7 +2199,10 @@ def openaudiowindow():
                 "FFMPEG QAAC - SETTINGS", "qaac_limiter", qaac_limiter.get()
             )
             config_profile.set("FFMPEG QAAC - SETTINGS", "tempo", acodec_atempo.get())
-        if encoder.get() == "FLAC":
+            config_profile.set("FFMPEG QAAC - SETTINGS", "qaac_custom_command_line", qaac_cmd_entrybox.get().strip())
+            config_profile.set("FFMPEG QAAC - SETTINGS", "custom_command_line", ffmpeg_cmd_entrybox.get().strip())
+
+        elif encoder.get() == "FLAC":
             config_profile.set(
                 "FFMPEG FLAC - SETTINGS", "acodec_bitrate", acodec_bitrate.get()
             )
@@ -2199,7 +2230,13 @@ def openaudiowindow():
                 "flac_lpc_passes",
                 acodec_flac_lpc_passes.get(),
             )
-        if encoder.get() == "ALAC":
+            config_profile.set(
+                "FFMPEG FLAC - SETTINGS",
+                "custom_command_line",
+                flac_cmd_entrybox.get().strip(),
+            )
+
+        elif encoder.get() == "ALAC":
             config_profile.set(
                 "FFMPEG ALAC - SETTINGS", "acodec_channel", acodec_channel.get()
             )
@@ -2221,6 +2258,11 @@ def openaudiowindow():
                 "alac_max_prediction_order",
                 max_prediction_order.get(),
             )
+            config_profile.set(
+                "FFMPEG ALAC - SETTINGS",
+                "custom_command_line",
+                alac_cmd_entrybox.get().strip(),
+            )
 
         with open(config_profile_ini, "w") as configfile_two:
             config_profile.write(configfile_two)
@@ -2239,7 +2281,9 @@ def openaudiowindow():
                 config_profile.set("FFMPEG AC3 - SETTINGS", "ac3_channel", "Original")
                 config_profile.set("FFMPEG AC3 - SETTINGS", "samplerate", "Original")
                 config_profile.set("FFMPEG AC3 - SETTINGS", "tempo", "Original")
-            if encoder.get() == "AAC":
+                config_profile.set("FFMPEG AC3 - SETTINGS", "custom_command_line", "")
+
+            elif encoder.get() == "AAC":
                 config_profile.set("FFMPEG AAC - SETTINGS", "dolbyprologicii", "")
                 config_profile.set("FFMPEG AAC - SETTINGS", "ffmpeg_volume", "0.0")
                 config_profile.set("FFMPEG AAC - SETTINGS", "aac_bitrate", "192")
@@ -2248,14 +2292,18 @@ def openaudiowindow():
                 config_profile.set("FFMPEG AAC - SETTINGS", "aac_channel", "Original")
                 config_profile.set("FFMPEG AAC - SETTINGS", "samplerate", "Original")
                 config_profile.set("FFMPEG AAC - SETTINGS", "tempo", "Original")
-            if encoder.get() == "DTS":
+                config_profile.set("FFMPEG AAC - SETTINGS", "custom_command_line", "")
+
+            elif encoder.get() == "DTS":
                 config_profile.set("FFMPEG DTS - SETTINGS", "dts_bitrate", "448")
                 config_profile.set("FFMPEG DTS - SETTINGS", "dolbyprologicii", "")
                 config_profile.set("FFMPEG DTS - SETTINGS", "ffmpeg_volume", "0.0")
                 config_profile.set("FFMPEG DTS - SETTINGS", "dts_channel", "2 (Stereo)")
                 config_profile.set("FFMPEG DTS - SETTINGS", "samplerate", "Original")
                 config_profile.set("FFMPEG DTS - SETTINGS", "tempo", "Original")
-            if encoder.get() == "E-AC3":
+                config_profile.set("FFMPEG DTS - SETTINGS", "custom_command_line", "")
+
+            elif encoder.get() == "E-AC3":
                 config_profile.set("FFMPEG E-AC3 - SETTINGS", "e-ac3_bitrate", "448k")
                 config_profile.set(
                     "FFMPEG E-AC3 - SETTINGS", "e-ac3_channel", "Original"
@@ -2319,7 +2367,9 @@ def openaudiowindow():
                     "FFMPEG E-AC3 - SETTINGS", "e-ac3_cpl_start_band", "-1"
                 )
                 config_profile.set("FFMPEG E-AC3 - SETTINGS", "tempo", "Original")
-            if encoder.get() == "Opus":
+                config_profile.set("FFMPEG E-AC3 - SETTINGS", "custom_command_line", "")
+
+            elif encoder.get() == "Opus":
                 config_profile.set("FFMPEG Opus - SETTINGS", "opus_bitrate", "160k")
                 config_profile.set("FFMPEG Opus - SETTINGS", "samplerate", "Original")
                 config_profile.set("FFMPEG Opus - SETTINGS", "acodec_vbr", "VBR: On")
@@ -2337,7 +2387,11 @@ def openaudiowindow():
                 config_profile.set(
                     "FFMPEG Opus - SETTINGS", "mapping_family", "Mapping -1: Auto"
                 )
-            if encoder.get() == "FDK-AAC":
+                config_profile.set(
+                    "FFMPEG Opus - SETTINGS", "custom_command_line", ""
+                )
+
+            elif encoder.get() == "FDK-AAC":
                 config_profile.set("FDK-AAC - SETTINGS", "fdk_aac_bitrate", "CBR: 192k")
                 config_profile.set("FDK-AAC - SETTINGS", "acodec_channel", "Original")
                 config_profile.set("FDK-AAC - SETTINGS", "dolbyprologicii", "")
@@ -2364,7 +2418,10 @@ def openaudiowindow():
                 config_profile.set("FDK-AAC - SETTINGS", "fdk_aac_sbrdelay", "")
                 config_profile.set("FDK-AAC - SETTINGS", "fdk_aac_moovbox", "")
                 config_profile.set("FDK-AAC - SETTINGS", "fdk_aac_tempo", "Original")
-            if encoder.get() == "MP3":
+                config_profile.set("FDK-AAC - SETTINGS", "custom_command_line", "")
+                config_profile.set("FDK-AAC - SETTINGS", "fdk_custom_command_line", "")
+
+            elif encoder.get() == "MP3":
                 config_profile.set(
                     "FFMPEG MP3 - SETTINGS", "acodec_bitrate", "VBR: -V 0"
                 )
@@ -2381,7 +2438,11 @@ def openaudiowindow():
                 config_profile.set(
                     "FFMPEG MP3 - SETTINGS", "acodec_bitrate_cbr_abr", ""
                 )
-            if encoder.get() == "QAAC":
+                config_profile.set(
+                    "FFMPEG MP3 - SETTINGS", "custom_command_line", ""
+                )
+
+            elif encoder.get() == "QAAC":
                 config_profile.set(
                     "FFMPEG QAAC - SETTINGS", "q_acodec_profile", "True VBR"
                 )
@@ -2410,7 +2471,10 @@ def openaudiowindow():
                 config_profile.set("FFMPEG QAAC - SETTINGS", "qaac_threading", "")
                 config_profile.set("FFMPEG QAAC - SETTINGS", "qaac_limiter", "")
                 config_profile.set("FFMPEG QAAC - SETTINGS", "tempo", "Original")
-            if encoder.get() == "FLAC":
+                config_profile.set("FFMPEG QAAC - SETTINGS", "qaac_custom_command_line", "")
+                config_profile.set("FFMPEG QAAC - SETTINGS", "custom_command_line", "")
+
+            elif encoder.get() == "FLAC":
                 config_profile.set(
                     "FFMPEG FLAC - SETTINGS",
                     "acodec_bitrate",
@@ -2428,7 +2492,11 @@ def openaudiowindow():
                 config_profile.set(
                     "FFMPEG FLAC - SETTINGS", "flac_lpc_passes", "Default"
                 )
-            if encoder.get() == "ALAC":
+                config_profile.set(
+                    "FFMPEG FLAC - SETTINGS", "custom_command_line", ""
+                )
+
+            elif encoder.get() == "ALAC":
                 config_profile.set(
                     "FFMPEG ALAC - SETTINGS", "acodec_channel", "Original"
                 )
@@ -2441,6 +2509,9 @@ def openaudiowindow():
                 )
                 config_profile.set(
                     "FFMPEG ALAC - SETTINGS", "alac_max_prediction_order", "6"
+                )
+                config_profile.set(
+                    "FFMPEG ALAC - SETTINGS", "custom_command_line", ""
                 )
 
             with open(config_profile_ini, "w") as configfile_two:
@@ -2805,7 +2876,7 @@ def openaudiowindow():
             row=6, column=0, columnspan=3, padx=10, pady=(0, 15), sticky=W + E
         )
         ac3_custom_cmd.trace("w", ac3_cmd)
-        ac3_custom_cmd.set("")
+        ac3_custom_cmd.set(config_profile["FFMPEG AC3 - SETTINGS"]["custom_command_line"])
         # ------------------------------------------------------------------------------------- Custom Command Line
 
         # Audio Atempo Selection ----------------------------------------------------------------------------------
@@ -2943,7 +3014,7 @@ def openaudiowindow():
             row=7, column=0, columnspan=3, padx=10, pady=(0, 0), sticky=W + E
         )
         aac_custom_cmd.trace("w", aac_cmd)
-        aac_custom_cmd.set("")
+        aac_custom_cmd.set(config_profile["FFMPEG AAC - SETTINGS"]["custom_command_line"])
 
         # ----------------------------------------------------------------------------------------- Custom Command Line
 
@@ -3455,7 +3526,7 @@ def openaudiowindow():
             row=8, column=0, columnspan=3, padx=10, pady=(0, 10), sticky=W + E
         )
         dts_custom_cmd.trace("w", dts_cmd)
-        dts_custom_cmd.set("")
+        dts_custom_cmd.set(config_profile["FFMPEG DTS - SETTINGS"]["custom_command_line"])
 
         # ----------------------------------------------------------------------------------------- Custom Command Line
 
@@ -3929,7 +4000,7 @@ def openaudiowindow():
             row=12, column=0, columnspan=3, padx=10, pady=(0, 15), sticky=W + E
         )
         opus_custom_cmd.trace("w", opus_cmd)
-        opus_custom_cmd.set("")
+        opus_custom_cmd.set(config_profile["FFMPEG Opus - SETTINGS"]["custom_command_line"])
 
         # ----------------------------------------------------------------------------------------- Custom Command Line
 
@@ -4579,7 +4650,7 @@ def openaudiowindow():
             row=6, column=0, columnspan=3, padx=10, pady=(0, 15), sticky=W + E
         )
         mp3_custom_cmd.trace("w", mp3_cmd)
-        mp3_custom_cmd.set("")
+        mp3_custom_cmd.set(config_profile["FFMPEG MP3 - SETTINGS"]["custom_command_line"])
         # ----------------------------------------------------------------------------------------- Custom Command Line
 
         # Audio Stream Selection --------------------------------------------------------------------------------------
@@ -4867,7 +4938,7 @@ def openaudiowindow():
             row=21, column=0, columnspan=3, padx=10, pady=(0, 10), sticky=W + E
         )
         eac3_custom_cmd.trace("w", eac3_cmd)
-        eac3_custom_cmd.set("")
+        eac3_custom_cmd.set(config_profile["FFMPEG E-AC3 - SETTINGS"]["custom_command_line"])
 
         # ----------------------------------------------------------------------------------------- Custom Command Line
 
@@ -6154,7 +6225,7 @@ def openaudiowindow():
             row=12, column=0, columnspan=3, padx=10, pady=(0, 0), sticky=W + E
         )
         fdkaac_custom_cmd.trace("w", fdkaac_cmd)
-        fdkaac_custom_cmd.set("")
+        fdkaac_custom_cmd.set(config_profile["FDK-AAC - SETTINGS"]["fdk_custom_command_line"])
 
         # ----------------------------------------------------------------------------------------- Custom Command Line
 
@@ -6188,7 +6259,7 @@ def openaudiowindow():
             row=14, column=0, columnspan=3, padx=10, pady=(0, 0), sticky=W + E
         )
         ffmpeg_custom_cmd.trace("w", ffmpeg_cmd_function)
-        ffmpeg_custom_cmd.set("")
+        ffmpeg_custom_cmd.set(config_profile["FDK-AAC - SETTINGS"]["custom_command_line"])
 
         # ----------------------------------------------------------------------------------------- FFMPEG Command Line
 
@@ -6796,7 +6867,7 @@ def openaudiowindow():
             row=13, column=0, columnspan=3, padx=10, pady=(0, 0), sticky=W + E
         )
         qaac_custom_cmd.trace("w", qaac_cmd)
-        qaac_custom_cmd.set("")
+        qaac_custom_cmd.set(config_profile["FFMPEG QAAC - SETTINGS"]["qaac_custom_command_line"])
 
         # ----------------------------------------------------------------------------------------- Custom Command Line
 
@@ -6830,7 +6901,7 @@ def openaudiowindow():
             row=15, column=0, columnspan=3, padx=10, pady=(0, 0), sticky=W + E
         )
         ffmpeg_custom_cmd.trace("w", ffmpeg_cmd_function)
-        ffmpeg_custom_cmd.set("")
+        ffmpeg_custom_cmd.set(config_profile["FFMPEG QAAC - SETTINGS"]["custom_command_line"])
 
         # ----------------------------------------------------------------------------------------- FFMPEG Command Line
 
@@ -7708,7 +7779,7 @@ def openaudiowindow():
             row=9, column=0, columnspan=3, padx=10, pady=(0, 15), sticky=W + E
         )
         flac_custom_cmd.trace("w", flac_cmd)
-        flac_custom_cmd.set("")
+        flac_custom_cmd.set(config_profile["FFMPEG FLAC - SETTINGS"]["custom_command_line"])
         # ------------------------------------------------------------------------------------- Custom Command Line
 
         # Audio Atempo Selection ----------------------------------------------------------------------------------
@@ -8124,35 +8195,35 @@ def openaudiowindow():
 
         # Entry Box for Custom Command Line -------------------------------------------------------------------
         def flac_cmd(*args):
-            global flac_custom_cmd_input
-            if flac_custom_cmd.get().strip() == "":
-                flac_custom_cmd_input = ""
+            global alac_custom_cmd_input
+            if alac_custom_cmd.get().strip() == "":
+                alac_custom_cmd_input = ""
             else:
-                cstmcmd = flac_custom_cmd.get().strip()
-                flac_custom_cmd_input = cstmcmd + " "
+                cstmcmd = alac_custom_cmd.get().strip()
+                alac_custom_cmd_input = cstmcmd + " "
 
-        flac_custom_cmd = StringVar()
-        flac_cmd_entrybox_label = Label(
+        alac_custom_cmd = StringVar()
+        alac_cmd_entrybox_label = Label(
             audio_window,
             text="Custom Command Line :",
             anchor=W,
             background="#434547",
             foreground="white",
         )
-        flac_cmd_entrybox_label.grid(
+        alac_cmd_entrybox_label.grid(
             row=8, column=0, columnspan=2, padx=10, pady=(15, 0), sticky=N + S + W + E
         )
-        flac_cmd_entrybox = Entry(
+        alac_cmd_entrybox = Entry(
             audio_window,
-            textvariable=flac_custom_cmd,
+            textvariable=alac_custom_cmd,
             borderwidth=4,
             background="#CACACA",
         )
-        flac_cmd_entrybox.grid(
+        alac_cmd_entrybox.grid(
             row=9, column=0, columnspan=3, padx=10, pady=(0, 15), sticky=W + E
         )
-        flac_custom_cmd.trace("w", flac_cmd)
-        flac_custom_cmd.set("")
+        alac_custom_cmd.trace("w", flac_cmd)
+        alac_custom_cmd.set(config_profile["FFMPEG ALAC - SETTINGS"]["custom_command_line"])
         # --------------------------------------------------------------------------------- Custom Command Line
 
         # Audio Atempo Selection ------------------------------------------------------------------------------
@@ -8582,7 +8653,7 @@ def openaudiowindow():
                     + audio_filter_setting
                     + min_pre_order
                     + max_pre_order
-                    + flac_custom_cmd_input
+                    + alac_custom_cmd_input
                 ).split()
             )
         return mini_cmd_output  # Returns the variable when function is called
@@ -9703,7 +9774,7 @@ def collect_final_job_commands():
                     + audio_filter_setting
                     + min_pre_order
                     + max_pre_order
-                    + flac_custom_cmd_input
+                    + alac_custom_cmd_input
                     + " "
                     + "-sn -vn -map_chapters -1 -map_metadata -1 "
                     + file_output_quoted
@@ -9719,7 +9790,7 @@ def collect_final_job_commands():
                     + audio_filter_setting
                     + min_pre_order
                     + max_pre_order
-                    + flac_custom_cmd_input
+                    + alac_custom_cmd_input
                     + "-sn -vn -map_chapters -1 -map_metadata -1 "
                 ).split()
             )
@@ -9732,7 +9803,7 @@ def collect_final_job_commands():
                     + audio_filter_setting
                     + min_pre_order
                     + max_pre_order
-                    + flac_custom_cmd_input
+                    + alac_custom_cmd_input
                     + "-sn -vn -map_chapters -1 -map_metadata -1 "
                 ).split()
             )
