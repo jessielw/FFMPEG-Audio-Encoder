@@ -10635,6 +10635,11 @@ def drop_input(event):
     file_input = str(
         input_list[0]
     )  # For main gui, it takes in the item at index 0 as input (only 1 item)
+
+    # if file input is a directory exit this function
+    if pathlib.Path(file_input).is_dir():
+        return
+
     input_entry.configure(state=NORMAL)
     input_entry.delete(0, END)
     file_input_check(file_input)  # Run file_input_check() with file_input
@@ -10941,6 +10946,10 @@ def batch_processing_input():
             batch_encoder_menu.config(state=NORMAL)  # enable the encoder menu
 
     def process_batch_file_input_information(*args):
+        # if input is a directory convert args into a list with a recurive search
+        if pathlib.Path(*args).is_dir():
+            args = [x for x in pathlib.Path(*args).rglob("*.*")]
+
         check_dependencies()  # check for dependencies
         files_without_audio = []  # define an empty list for files without audio
         files_with_audio = []  # define an empty list for files with audio
@@ -11999,7 +12008,7 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
     def start_job_window_encode_list():  # Start encoding entire list
         global job_listbox, continue_multiprocess_job
 
-        def update_job_list():  # Takes all of the items in the lisbox and converts them to a python list
+        def update_job_list():  # Takes the items in the lisbox and converts them to a python list
             for all_items in job_listbox.get(0, END):
                 job_list.append(all_items)
 
