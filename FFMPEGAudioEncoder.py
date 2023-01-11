@@ -11374,9 +11374,9 @@ def batch_processing_input():
                 pickle.dump(
                     job_listbox.get(0, END), pickle_file, pickle.HIGHEST_PROTOCOL
                 )
-        batch_listbox.delete(0, END)  # delete batch window listbox
-        batch_window_exit_function()  # call the batch window exit function
         jobs_window.title("Job Manager")
+        batch_input_window.grab_release()
+        open_all_toplevels()
 
     def add_to_job_manager():
         """function to add all files in listbox to job manager with the commands"""
