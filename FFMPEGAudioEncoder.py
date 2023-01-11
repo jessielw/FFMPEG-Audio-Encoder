@@ -1463,7 +1463,7 @@ def openaudiowindow():
 
     # 'Apply' button function -----------------------------------------------------------------------------------------
     def gotosavefile():
-        global file_input, delay_string, language_string, encoding_job_type
+        global file_input, language_string, delay_string, channel_string, encoding_job_type
         output_button.config(state=NORMAL)  # Enable buttons upon save file
         start_audio_button.config(state=NORMAL)
         command_line_button.config(state=NORMAL)
@@ -1486,18 +1486,23 @@ def openaudiowindow():
 
         language_string = ""  # Place holder variable
         delay_string = ""  # Place holder variable
+        channel_string = ""  # Place holder variable
 
         def update_video_output():  # Function to add language/delay strings to the output filename
-            global file_output, autosavefilename, total_streams
+            global file_output, autosavefilename, total_streams, language_string, delay_string, channel_string
             set_auto_save_suffix()  # Run function to apply default file_output before continuing code
             audio_track_number_string = f"[Audio#{acodec_stream.get().split()[1][-1]}]"
             if total_streams == 1:  # If total_streams equals 1
                 file_output = str(file_output).replace(
-                    "_new_", audio_track_number_string
+                    "_new_", audio_track_number_string + channel_string
                 )  # Replace _new_ with Audio#
             elif total_streams >= 2:  # If total_streams is 2 or greater
                 file_output = str(file_output).replace(
-                    "_new_", audio_track_number_string + language_string + delay_string
+                    "_new_",
+                    audio_track_number_string
+                    + language_string
+                    + delay_string
+                    + channel_string,
                 )  # Replace '_new_'
             autosavefilename = pathlib.Path(file_output).stem
             command_line_button.config(
@@ -1509,7 +1514,7 @@ def openaudiowindow():
             output_entry.config(state=DISABLED)  # Disable output_entry box
 
         def delay_and_lang_check():
-            global language_string, delay_string, encoding_job_type, auto_track_input, total_streams
+            global language_string, delay_string, channel_string, encoding_job_type, auto_track_input, total_streams
             # If input is only 1 track, parse input file name for language and delay string
             media_info = MediaInfo.parse(file_input)  # Parse file_input
             general_track = media_info.general_tracks[0]
@@ -1832,6 +1837,14 @@ def openaudiowindow():
                         language_string = f"[{str(track_selection_mediainfo.other_language[l_index])}]"
                     else:
                         language_string = "[und]"
+                except UnboundLocalError:
+                    pass
+
+                try:
+                    if track_selection_mediainfo.channel_s:
+                        channel_string = (
+                            f"[chnl {str(track_selection_mediainfo.channel_s)}]"
+                        )
                 except UnboundLocalError:
                     pass
 
@@ -11262,6 +11275,7 @@ def batch_processing_input():
 
             language_string = None  # place holder variable
             delay_string = None  # place holder variable
+            channel_string = None  # place holder variable
 
             media_info = MediaInfo.parse(batch_file)  # Parse file_input
             general_track = media_info.general_tracks[0]
@@ -11295,6 +11309,14 @@ def batch_processing_input():
             except UnboundLocalError:
                 pass
 
+            try:
+                if track_selection_mediainfo.channel_s:
+                    channel_string = (
+                        f"[chnl {str(track_selection_mediainfo.channel_s)}]"
+                    )
+            except UnboundLocalError:
+                pass
+
             try:  # set language string for file output name
                 # Obtain language string from file_input's parsed track
                 if (
@@ -11320,11 +11342,15 @@ def batch_processing_input():
             audio_track_number_string = f"[Audio#{acodec_stream.get().split()[1][-1]}]"
             if total_streams == 1:  # If total_streams equals 1
                 file_output = str(file_output).replace(
-                    "_new_", audio_track_number_string
+                    "_new_", audio_track_number_string + channel_string
                 )  # Replace _new_ with Audio #
             elif total_streams >= 2:  # If total_streams is 2 or greater
                 file_output = str(file_output).replace(
-                    "_new_", audio_track_number_string + language_string + delay_string
+                    "_new_",
+                    audio_track_number_string
+                    + language_string
+                    + delay_string
+                    + channel_string,
                 )  # Replace '_new_'
 
             # add total duration as argument to pass
