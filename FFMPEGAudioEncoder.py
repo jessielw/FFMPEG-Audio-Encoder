@@ -1813,10 +1813,16 @@ def openaudiowindow():
                     audio_window.destroy()
 
                 try:
-                    if track_selection_mediainfo.delay_relative_to_video is not None:
-                        delay_string = f"[delay {str(track_selection_mediainfo.delay_relative_to_video)}ms]"
+                    if "mp4" in str(pathlib.Path(file_input).suffix):
+                        if track_selection_mediainfo.source_delay:
+                            delay_string = f"[delay {str(track_selection_mediainfo.source_delay)}ms]"
+                        else:
+                            delay_string = str("[delay 0ms]")
                     else:
-                        delay_string = str("[delay 0ms]")
+                        if track_selection_mediainfo.delay_relative_to_video is not None:
+                            delay_string = f"[delay {str(track_selection_mediainfo.delay_relative_to_video)}ms]"
+                        else:
+                            delay_string = str("[delay 0ms]")
                 except UnboundLocalError:
                     pass
 
@@ -11301,11 +11307,17 @@ def batch_processing_input():
                     general_track.count_of_menu_streams
                 )  # check for menu track(s)
 
-            try:  # set delay string for file output name
-                if track_selection_mediainfo.delay_relative_to_video is not None:
-                    delay_string = f"[delay {str(track_selection_mediainfo.delay_relative_to_video)}ms]"
+            try:
+                if "mp4" in str(pathlib.Path(batch_file).suffix):
+                    if track_selection_mediainfo.source_delay:
+                        delay_string = f"[delay {str(track_selection_mediainfo.source_delay)}ms]"
+                    else:
+                        delay_string = str("[delay 0ms]")
                 else:
-                    delay_string = str("[delay 0ms]")
+                    if track_selection_mediainfo.delay_relative_to_video is not None:
+                        delay_string = f"[delay {str(track_selection_mediainfo.delay_relative_to_video)}ms]"
+                    else:
+                        delay_string = str("[delay 0ms]")
             except UnboundLocalError:
                 pass
 
