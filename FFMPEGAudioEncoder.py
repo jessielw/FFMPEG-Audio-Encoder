@@ -10674,8 +10674,6 @@ def batch_processing_input():
     batch_func_parser = ConfigParser()
     batch_func_parser.read(config_file)
 
-    # Config Parser
-
     def batch_window_exit_function():  # function that is called when the user closes the window
         def save_batch_position():  # save batch window position
             func_parser = ConfigParser()
@@ -10777,7 +10775,7 @@ def batch_processing_input():
     button_frame.grid_rowconfigure(0, weight=1)
     button_frame.grid_rowconfigure(1, weight=1)
     button_frame.grid_rowconfigure(2, weight=1)
-    button_frame.grid_rowconfigure(3, weight=300)
+    button_frame.grid_rowconfigure(3, weight=10000)
     button_frame.grid_rowconfigure(4, weight=300)
     button_frame.grid_rowconfigure(5, weight=1)
     button_frame.grid_rowconfigure(6, weight=1)
@@ -10794,6 +10792,10 @@ def batch_processing_input():
     batch_frame.grid_columnconfigure(0, weight=2)
     batch_frame.grid_columnconfigure(1, weight=20)
     batch_frame.grid_columnconfigure(3, weight=1)
+
+    # extension var
+    extension_var = StringVar()
+    non_filtered_list = []
 
     def set_batch_path():  # set batch files output path, default uses file input as output
         path = filedialog.askdirectory(
@@ -10921,22 +10923,31 @@ def batch_processing_input():
             batch_encoder_menu.config(state=NORMAL)  # enable the encoder menu
 
     def process_batch_file_input_information(*args):
-        # if input is a directory convert args into a list with a recurive search
-        if pathlib.Path(*args).is_dir():
-            args = [x for x in pathlib.Path(*args).rglob("*.*")]
+        nonlocal non_filtered_list
+        # if input is a directory convert args into a list with a recursive search
+        list_of_batch_files = []
+
+        # update empty lists
+        for directory in args:
+            if pathlib.Path(directory).is_dir():
+                for x in pathlib.Path(directory).rglob("*.*"):
+                    if x.is_file():
+                        list_of_batch_files.append(x)
+
+        # sort list
+        list_of_batch_files.sort()
 
         check_dependencies()  # check for dependencies
         files_without_audio = []  # define an empty list for files without audio
         files_with_audio = []  # define an empty list for files with audio
         batch_listbox.delete(0, END)  # clear list box
-        batch_listbox.insert(
-            END, "Please wait, checking all files for audio..."
-        )  # insert simple string
-        total_number_of_input = len(args)
+        # insert simple string
+        batch_listbox.insert(END, "Please wait, checking all files for audio...")
+        total_number_of_input = len(list_of_batch_files)
         enable_disable_batch_win_btns("disable")  # disable all batch listbox buttons
         batch_input_window.grab_set()  # force attention to batch list box window
         for count, f in enumerate(
-            list(args), start=1
+            list(list_of_batch_files), start=1
         ):  # loop through file selection tuple by converting it to list
             batch_input_window.title(
                 f"Checking file {str(count)} of {str(total_number_of_input)}"
@@ -10961,13 +10972,26 @@ def batch_processing_input():
         batch_listbox.config(state=NORMAL)  # re-enable list box
         batch_listbox.delete(0, END)  # clear list box
         files_with_audio.sort()  # sort the list alphabetically
+
+        # copy list for ext filtering
+        non_filtered_list = files_with_audio.copy()
+
+        # get all the loaded extensions
+        loaded_ext = []
         for (
             file_w_aud
         ) in files_with_audio:  # loop through the list and add it to the list box
             batch_listbox.insert(END, file_w_aud)  # insert file into the batch_listbox
-        batch_listbox.config(
-            state=DISABLED
-        )  # disable list box until audio parsing is complete
+            if pathlib.Path(file_w_aud).suffix not in loaded_ext:
+                loaded_ext.append(pathlib.Path(file_w_aud).suffix)
+
+        # disable list box until audio parsing is complete
+        batch_listbox.config(state=DISABLED)
+
+        # create new menu
+        # rebuild_ext_menu(loaded_ext)
+        update_ext_menu(loaded_ext)
+
         if len(files_without_audio) >= 1:  # if files without audio is 1 or more
             no_audio = str(
                 len(files_without_audio)
@@ -11027,6 +11051,7 @@ def batch_processing_input():
         input_list_batch = []  # creates an empty list
         for filenames in root.splitlist(event.data):
             input_list_batch.append(filenames)  # appends all drop data to the list
+
         # process_batch_file_input_information(input_list_batch)  # call function with input_list_batch
         threading.Thread(
             target=process_batch_file_input_information,
@@ -11084,6 +11109,50 @@ def batch_processing_input():
     delete_all_button.grid(
         row=2, column=0, columnspan=1, padx=5, pady=(5, 5), sticky=N + E + W
     )
+
+    def update_ext_menu(ext_list):
+        update_menu = extension_filter_menu.children["menu"]
+        update_menu.delete(0, END)
+        update_menu.add_command(
+            label="Filter: All",
+            command=lambda v="Filter: All": [extension_var.set(v), ext_changed(v)],
+        )
+        extension_filter_menu.config(state=NORMAL)
+        for value in ext_list:
+            update_menu.add_command(
+                label=value,
+                command=lambda v=value: [extension_var.set(v), ext_changed(v)],
+            )
+
+    def ext_changed(_):
+        batch_listbox.delete(0, END)
+        for x in non_filtered_list:
+            if extension_var.get() == "Filter: All":
+                batch_listbox.insert(END, x)
+            else:
+                if (
+                    str(pathlib.Path(x).suffix).lower()
+                    == str(extension_var.get()).lower()
+                ):
+                    batch_listbox.insert(END, x)
+
+    extension_var.set("Filter: All")
+    extension_filter_menu = OptionMenu(
+        button_frame,
+        extension_var,
+        extension_var.get(),
+    )
+    extension_filter_menu.grid(
+        row=3, column=0, columnspan=1, padx=5, pady=5, sticky=S + W + E
+    )
+    extension_filter_menu.config(
+        state=DISABLED,
+        background="#23272A",
+        foreground="white",
+        highlightthickness=1,
+        width=7,
+    )
+    extension_filter_menu["menu"].configure(activebackground="dim grey")
 
     def batch_encoder_changed(*args):  # batch encoder menu function
         global batch_mode  # set global variable batch_mode
