@@ -76,7 +76,7 @@ log_error_to_file = (
 )
 
 # Set main window title variable
-main_root_title = "FFMPEG Audio Encoder v4.05"
+main_root_title = "FFMPEG Audio Encoder v4.06"
 
 # default an empty variable to be updated based off user input
 batch_mode = None
@@ -1819,7 +1819,10 @@ def openaudiowindow():
                         else:
                             delay_string = str("[delay 0ms]")
                     else:
-                        if track_selection_mediainfo.delay_relative_to_video is not None:
+                        if (
+                            track_selection_mediainfo.delay_relative_to_video
+                            is not None
+                        ):
                             delay_string = f"[delay {str(track_selection_mediainfo.delay_relative_to_video)}ms]"
                         else:
                             delay_string = str("[delay 0ms]")
@@ -10896,6 +10899,10 @@ def batch_processing_input():
         global acodec_stream_track_counter
         # create empty list
         max_common_audio_track = []
+        audio_track_info = {}
+
+        # common var
+        all_common = True
 
         # get total of files in the list box
         total_tracks_to_parse = batch_listbox.size()
@@ -10912,6 +10919,30 @@ def batch_processing_input():
             audio_track_count = media_info.general_tracks[0].count_of_audio_streams
             max_common_audio_track.append(audio_track_count)
 
+            # let's try to update languages
+            # let's parse all tracks for each file
+            for num, x in enumerate(range(int(audio_track_count))):
+                # get data
+                same_language_string = media_info.audio_tracks[num].language
+                same_format_string = media_info.audio_tracks[num].format
+                same_channel_string = media_info.audio_tracks[num].channel_s
+                compiled_audio_track_info = [
+                    same_language_string,
+                    same_format_string,
+                    same_channel_string,
+                ]
+
+                # check for all common files
+                if not audio_track_info:
+                    audio_track_info.update({str(num): compiled_audio_track_info})
+                else:
+                    try:
+                        if audio_track_info[str(num)] != compiled_audio_track_info:
+                            all_common = False
+                        audio_track_info.update({str(num): compiled_audio_track_info})
+                    except KeyError:
+                        audio_track_info.update({str(num): compiled_audio_track_info})
+
         max_common_audio_track.sort()  # sort from least to greatest
         max_total_tracks = Counter(
             max_common_audio_track
@@ -10920,7 +10951,18 @@ def batch_processing_input():
         # update track counter for codec settings window based off of max_total_tracks
         acodec_stream_track_counter = {}
         for i in range(int(max_total_tracks.most_common(1)[0][0])):
-            acodec_stream_track_counter[f"Track #{i + 1}"] = f" -map 0:a:{i} "
+            if all_common:
+                additional_audio_info_string = (
+                    f"   ({str(audio_track_info[str(i)][0])}, "
+                    f"{str(audio_track_info[str(i)][1])}, "
+                    f"chnl {str(audio_track_info[str(i)][2])})"
+                )
+            elif not all_common:
+                additional_audio_info_string = ""
+
+            acodec_stream_track_counter[
+                f"Track #{i + 1}{additional_audio_info_string}"
+            ] = f" -map 0:a:{i} "
 
     def enable_disable_batch_win_btns(mode):
         """function to enable/disable buttons while batch window is loading the files"""
@@ -10947,11 +10989,13 @@ def batch_processing_input():
         list_of_batch_files = []
 
         # update empty lists
-        for directory in args:
-            if pathlib.Path(directory).is_dir():
-                for x in pathlib.Path(directory).rglob("*.*"):
+        for input_args in args:
+            if pathlib.Path(input_args).is_dir():
+                for x in pathlib.Path(input_args).rglob("*.*"):
                     if x.is_file():
                         list_of_batch_files.append(x)
+            elif pathlib.Path(input_args).is_file():
+                list_of_batch_files.append(input_args)
 
         # sort list
         list_of_batch_files.sort()
@@ -11310,7 +11354,9 @@ def batch_processing_input():
             try:
                 if "mp4" in str(pathlib.Path(batch_file).suffix):
                     if track_selection_mediainfo.source_delay:
-                        delay_string = f"[delay {str(track_selection_mediainfo.source_delay)}ms]"
+                        delay_string = (
+                            f"[delay {str(track_selection_mediainfo.source_delay)}ms]"
+                        )
                     else:
                         delay_string = str("[delay 0ms]")
                 else:
@@ -12568,7 +12614,7 @@ def add_to_jobs():
     audio_filter_function()
     collect_final_job_commands()
 
-    # add total duration ass argumeent to pass
+    # add total duration as argument to pass
     media_info = MediaInfo.parse(pathlib.Path(file_input))  # Parse input file
     track_selection_mediainfo = media_info.audio_tracks[
         int(acodec_stream_choices[acodec_stream.get()].strip()[-1])
