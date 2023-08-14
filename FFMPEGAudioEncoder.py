@@ -76,7 +76,7 @@ log_error_to_file = (
 )
 
 # Set main window title variable
-main_root_title = "FFMPEG Audio Encoder v4.06"
+main_root_title = "FFMPEG Audio Encoder v4.07"
 
 # default an empty variable to be updated based off user input
 batch_mode = None
@@ -172,6 +172,7 @@ config_profile.read(config_profile_ini)
 
 
 # Config Parser -------------------------------------------------------------------------------------------------------
+
 
 # Clean log files -----------------------------------------------------------------------------------------------------
 def clean_manual_auto():  # Code to clean auto/manual job log files on start
@@ -360,6 +361,7 @@ class HoverButton(Button):
 
 # --------------------------------------- Hover over button theme
 # -------------------------------------------------------------------------------------------------------------- Themes
+
 
 # Open GitHub tracker for program -------------------------------------------------------------------------------------
 def open_github_error_tracker():
@@ -625,6 +627,7 @@ def mediainfogui():
 
 # ----------------------------------------------------------------------------------------------------------- MediaInfo
 
+
 # Open InputFile with portable mpv ------------------------------------------------------------------------------------
 def mpv_gui_main_gui():
     try:
@@ -798,7 +801,9 @@ def clean_all_logs():  # Function to clean all log files if hit
                 for f in pathlib.Path(error_log_folder).glob("*")
                 if f.is_file()
             ]
-        except PermissionError:  # If file is in use (1 always will be, ignore the error)
+        except (
+            PermissionError
+        ):  # If file is in use (1 always will be, ignore the error)
             pass
         if (
             len(os.listdir(log_folder_manual)) == 0
@@ -891,6 +896,7 @@ help_menu.add_command(
 #
 # # -------------------------------------------------------------------------------------------------------- Help
 
+
 # Hide/Open all top level window function -----------------------------------------------------------------------------
 def hide_all_toplevels():
     for widget in root.winfo_children():
@@ -906,6 +912,7 @@ def open_all_toplevels():
 
 # ----------------------------------------------------------------------------- Hide/Open all top level window function
 
+
 # function to check state of root, then deiconify it accordingly ------------------------------------------------------
 def advanced_root_deiconify():
     if root.winfo_viewable():
@@ -916,6 +923,7 @@ def advanced_root_deiconify():
 
 
 # ------------------------------------------------------ function to check state of root, then deiconify it accordingly
+
 
 # Calls to show_streams.py show_streams_mediainfo_function to display a window with track information -----------------
 def show_streams_mediainfo():  # All audio codecs can call this function in their menu's
@@ -968,6 +976,7 @@ for o_f in range(4):
 
 
 # --------------------------------------------------------------------------------------------------------- Root Frames
+
 
 # File Auto Save Function ---------------------------------------------------------------------------------------------
 def set_auto_save_suffix():
@@ -1033,6 +1042,7 @@ def encoder_changed(*args):
 
 # --------------------------------------------------------------------------------------------- File Auto Save Function
 
+
 # Uses MediaInfo to get total audio track count and gives us a total track count --------------------------------------
 def track_counter(*args):  # Thanks for helping me shorten this 'gmes78'
     global acodec_stream_track_counter, t_info, track_count
@@ -1082,6 +1092,7 @@ encoder_menu["menu"].configure(activebackground="dim grey")
 
 
 # -------------------------------------------------------------------------------------------------------- Encoder Menu
+
 
 # Audio Codec Window --------------------------------------------------------------------------------------------------
 def openaudiowindow():
@@ -1227,13 +1238,6 @@ def openaudiowindow():
 
     def q_gapless_mode_menu_hover_leave(e):
         q_gapless_mode_menu["bg"] = "#23272A"
-
-    def acodec_atempo_menu_hover(e):
-        acodec_atempo_menu["bg"] = "grey"
-        acodec_atempo_menu["activebackground"] = "grey"
-
-    def acodec_atempo_menu_hover_leave(e):
-        acodec_atempo_menu["bg"] = "#23272A"
 
     def acodec_flac_lpc_type_menu_hover(e):
         acodec_flac_lpc_type_menu["bg"] = "grey"
@@ -2671,6 +2675,11 @@ def openaudiowindow():
     audio_win_parser.read(config_file)
     # --------------------------------------------------------------------------------------------------------- Parsers
 
+    def acodec_atempo_selected(event):
+        selection = acodec_atempo_combobox.get()
+        if selection in acodec_atempo_choices:
+            acodec_atempo = acodec_atempo_choices[selection]
+
     # AC3 Window ------------------------------------------------------------------------------------------------------
     if encoder.get() == "AC3":
         audio_window = Toplevel()
@@ -2972,15 +2981,39 @@ def openaudiowindow():
         # ------------------------------------------------------------------------------------- Custom Command Line
 
         # Audio Atempo Selection ----------------------------------------------------------------------------------
-        acodec_atempo = StringVar(audio_window)
+        acodec_atempo = StringVar()
         acodec_atempo_choices = {
             "Original": "",
-            "23.976 to 24": '"atempo=23.976/24"',
-            "23.976 to 25": '"atempo=23.976/25"',
-            "24 to 23.976": '"atempo=24/23.976"',
-            "24 to 25": '"atempo=24/25"',
-            "25 to 23.976": '"atempo=25/23.976"',
-            "25 to 24": '"atempo=25/24"',
+            "23.976 to 24": '"atempo=24/23.976"',
+            "23.976 to 25": '"atempo=25/23.976"',
+            "23.976 to 29.97": '"atempo=29.97/23.976"',
+            "23.976 to 50": '"atempo=50/23.976"',
+            "23.976 to 60": '"atempo=60/23.976"',
+            "24 to 23.976": '"atempo=23.976/24"',
+            "24 to 25": '"atempo=25/24"',
+            "24 to 29.97": '"atempo=29.97/24"',
+            "24 to 50": '"atempo=50/24"',
+            "24 to 60": '"atempo=60/24"',
+            "25 to 23.976": '"atempo=23.976/25"',
+            "25 to 24": '"atempo=24/25"',
+            "25 to 29.97": '"atempo=29.97/25"',
+            "25 to 50": '"atempo=50/25"',
+            "25 to 60": '"atempo=60/25"',
+            "29.97 to 23.976": '"atempo=23.976/29.97"',
+            "29.97 to 24": '"atempo=24/29.97"',
+            "29.97 to 25": '"atempo=25/29.97"',
+            "29.97 to 50": '"atempo=50/29.97"',
+            "29.97 to 60": '"atempo=60/29.97"',
+            "50 to 23.976": '"atempo=23.976/50"',
+            "50 to 24": '"atempo=24/50"',
+            "50 to 25": '"atempo=25/50"',
+            "50 to 29.97": '"atempo=29.97/50"',
+            "50 to 60": '"atempo=60/50"',
+            "60 to 23.976": '"atempo=23.976/60"',
+            "60 to 24": '"atempo=24/60"',
+            "60 to 25": '"atempo=25/60"',
+            "60 to 29.97": '"atempo=29.97/60"',
+            "60 to 50": '"atempo=50/60"',
             "1/4 Slow-down": '"atempo=0.5,atempo=0.5"',
             "1/2 Slow-down": '"atempo=0.5"',
             "3/4 Slow-down": '"atempo=0.75"',
@@ -2993,6 +3026,7 @@ def openaudiowindow():
             "3.5x Speed-up": '"atempo=3.5"',
             "4x Speed-up": '"atempo=4.0"',
         }
+
         acodec_atempo_menu_label = Label(
             audio_window,
             text="Time Modification :",
@@ -3002,19 +3036,17 @@ def openaudiowindow():
         acodec_atempo_menu_label.grid(
             row=2, column=2, columnspan=1, padx=10, pady=3, sticky=W + E
         )
-        acodec_atempo_menu = OptionMenu(
-            audio_window, acodec_atempo, *acodec_atempo_choices.keys()
+
+        acodec_atempo_combobox = ttk.Combobox(
+            audio_window, textvariable=acodec_atempo, state="readonly"
         )
-        acodec_atempo_menu.config(
-            background="#23272A", foreground="white", highlightthickness=1
-        )
-        acodec_atempo_menu.grid(
+        acodec_atempo_combobox["values"] = list(acodec_atempo_choices.keys())
+        acodec_atempo_combobox.grid(
             row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E
         )
-        acodec_atempo.set(config_profile["FFMPEG AC3 - SETTINGS"]["tempo"])
-        acodec_atempo_menu["menu"].configure(activebackground="dim grey")
-        acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
-        acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
+        acodec_atempo_combobox.bind("<<ComboboxSelected>>", acodec_atempo_selected)
+
+        acodec_atempo.set("Original")
         # ------------------------------------------------------------------------------------------------ Audio Atempo
     # ------------------------------------------------------------------------------------------------------------- AC3
 
@@ -3458,15 +3490,39 @@ def openaudiowindow():
         # --------------------------------------------------------------------------------- Audio Sample Rate Selection
 
         # Audio Atempo Selection -------------------------------------------------------------------------------------
-        acodec_atempo = StringVar(audio_window)
+        acodec_atempo = StringVar()
         acodec_atempo_choices = {
             "Original": "",
-            "23.976 to 24": '"atempo=23.976/24"',
-            "23.976 to 25": '"atempo=23.976/25"',
-            "24 to 23.976": '"atempo=24/23.976"',
-            "24 to 25": '"atempo=24/25"',
-            "25 to 23.976": '"atempo=25/23.976"',
-            "25 to 24": '"atempo=25/24"',
+            "23.976 to 24": '"atempo=24/23.976"',
+            "23.976 to 25": '"atempo=25/23.976"',
+            "23.976 to 29.97": '"atempo=29.97/23.976"',
+            "23.976 to 50": '"atempo=50/23.976"',
+            "23.976 to 60": '"atempo=60/23.976"',
+            "24 to 23.976": '"atempo=23.976/24"',
+            "24 to 25": '"atempo=25/24"',
+            "24 to 29.97": '"atempo=29.97/24"',
+            "24 to 50": '"atempo=50/24"',
+            "24 to 60": '"atempo=60/24"',
+            "25 to 23.976": '"atempo=23.976/25"',
+            "25 to 24": '"atempo=24/25"',
+            "25 to 29.97": '"atempo=29.97/25"',
+            "25 to 50": '"atempo=50/25"',
+            "25 to 60": '"atempo=60/25"',
+            "29.97 to 23.976": '"atempo=23.976/29.97"',
+            "29.97 to 24": '"atempo=24/29.97"',
+            "29.97 to 25": '"atempo=25/29.97"',
+            "29.97 to 50": '"atempo=50/29.97"',
+            "29.97 to 60": '"atempo=60/29.97"',
+            "50 to 23.976": '"atempo=23.976/50"',
+            "50 to 24": '"atempo=24/50"',
+            "50 to 25": '"atempo=25/50"',
+            "50 to 29.97": '"atempo=29.97/50"',
+            "50 to 60": '"atempo=60/50"',
+            "60 to 23.976": '"atempo=23.976/60"',
+            "60 to 24": '"atempo=24/60"',
+            "60 to 25": '"atempo=25/60"',
+            "60 to 29.97": '"atempo=29.97/60"',
+            "60 to 50": '"atempo=50/60"',
             "1/4 Slow-down": '"atempo=0.5,atempo=0.5"',
             "1/2 Slow-down": '"atempo=0.5"',
             "3/4 Slow-down": '"atempo=0.75"',
@@ -3479,6 +3535,7 @@ def openaudiowindow():
             "3.5x Speed-up": '"atempo=3.5"',
             "4x Speed-up": '"atempo=4.0"',
         }
+
         acodec_atempo_menu_label = Label(
             audio_window,
             text="Time Modification :",
@@ -3486,21 +3543,19 @@ def openaudiowindow():
             foreground="white",
         )
         acodec_atempo_menu_label.grid(
-            row=2, column=0, columnspan=1, padx=10, pady=3, sticky=W + E
+            row=2, column=2, columnspan=1, padx=10, pady=3, sticky=W + E
         )
-        acodec_atempo_menu = OptionMenu(
-            audio_window, acodec_atempo, *acodec_atempo_choices.keys()
+
+        acodec_atempo_combobox = ttk.Combobox(
+            audio_window, textvariable=acodec_atempo, state="readonly"
         )
-        acodec_atempo_menu.config(
-            background="#23272A", foreground="white", highlightthickness=1, width=10
+        acodec_atempo_combobox["values"] = list(acodec_atempo_choices.keys())
+        acodec_atempo_combobox.grid(
+            row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E
         )
-        acodec_atempo_menu.grid(
-            row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E
-        )
-        acodec_atempo.set(config_profile["FFMPEG AAC - SETTINGS"]["tempo"])
-        acodec_atempo_menu["menu"].configure(activebackground="dim grey")
-        acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
-        acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
+        acodec_atempo_combobox.bind("<<ComboboxSelected>>", acodec_atempo_selected)
+
+        acodec_atempo.set("Original")
         # ----------------------------------------------------------------------------------------------- Audio Atempto
     # ------------------------------------------------------------------------------------------------------ AAC Window
 
@@ -3561,7 +3616,6 @@ def openaudiowindow():
                 dts_bitrate_spinbox.set(
                     int(config_profile["FFMPEG DTS - SETTINGS"]["dts_bitrate"])
                 )
-                acodec_atempo_menu.config(state=NORMAL)
                 acodec_atempo.set(config_profile["FFMPEG DTS - SETTINGS"]["tempo"])
             else:
                 achannel_menu.config(state=DISABLED)
@@ -3569,7 +3623,6 @@ def openaudiowindow():
                 acodec_samplerate_menu.config(state=DISABLED)
                 dts_acodec_bitrate_spinbox.config(state=DISABLED)
                 dolby_pro_logic_ii_checkbox.config(state=DISABLED)
-                acodec_atempo_menu.config(state=DISABLED)
 
         # Buttons -----------------------------------------------------------------------------------------------------
         if batch_mode == "yes":
@@ -3858,15 +3911,39 @@ def openaudiowindow():
         # ------------------------------------------------------------------------------------------------ Audio Stream
 
         # Audio Atempo Selection ---------------------------------------------------------------------------------------
-        acodec_atempo = StringVar(audio_window)
+        acodec_atempo = StringVar()
         acodec_atempo_choices = {
             "Original": "",
-            "23.976 to 24": '"atempo=23.976/24"',
-            "23.976 to 25": '"atempo=23.976/25"',
-            "24 to 23.976": '"atempo=24/23.976"',
-            "24 to 25": '"atempo=24/25"',
-            "25 to 23.976": '"atempo=25/23.976"',
-            "25 to 24": '"atempo=25/24"',
+            "23.976 to 24": '"atempo=24/23.976"',
+            "23.976 to 25": '"atempo=25/23.976"',
+            "23.976 to 29.97": '"atempo=29.97/23.976"',
+            "23.976 to 50": '"atempo=50/23.976"',
+            "23.976 to 60": '"atempo=60/23.976"',
+            "24 to 23.976": '"atempo=23.976/24"',
+            "24 to 25": '"atempo=25/24"',
+            "24 to 29.97": '"atempo=29.97/24"',
+            "24 to 50": '"atempo=50/24"',
+            "24 to 60": '"atempo=60/24"',
+            "25 to 23.976": '"atempo=23.976/25"',
+            "25 to 24": '"atempo=24/25"',
+            "25 to 29.97": '"atempo=29.97/25"',
+            "25 to 50": '"atempo=50/25"',
+            "25 to 60": '"atempo=60/25"',
+            "29.97 to 23.976": '"atempo=23.976/29.97"',
+            "29.97 to 24": '"atempo=24/29.97"',
+            "29.97 to 25": '"atempo=25/29.97"',
+            "29.97 to 50": '"atempo=50/29.97"',
+            "29.97 to 60": '"atempo=60/29.97"',
+            "50 to 23.976": '"atempo=23.976/50"',
+            "50 to 24": '"atempo=24/50"',
+            "50 to 25": '"atempo=25/50"',
+            "50 to 29.97": '"atempo=29.97/50"',
+            "50 to 60": '"atempo=60/50"',
+            "60 to 23.976": '"atempo=23.976/60"',
+            "60 to 24": '"atempo=24/60"',
+            "60 to 25": '"atempo=25/60"',
+            "60 to 29.97": '"atempo=29.97/60"',
+            "60 to 50": '"atempo=50/60"',
             "1/4 Slow-down": '"atempo=0.5,atempo=0.5"',
             "1/2 Slow-down": '"atempo=0.5"',
             "3/4 Slow-down": '"atempo=0.75"',
@@ -3879,6 +3956,7 @@ def openaudiowindow():
             "3.5x Speed-up": '"atempo=3.5"',
             "4x Speed-up": '"atempo=4.0"',
         }
+
         acodec_atempo_menu_label = Label(
             audio_window,
             text="Time Modification :",
@@ -3886,24 +3964,19 @@ def openaudiowindow():
             foreground="white",
         )
         acodec_atempo_menu_label.grid(
-            row=4, column=2, columnspan=1, padx=10, pady=3, sticky=W + E
+            row=2, column=2, columnspan=1, padx=10, pady=3, sticky=W + E
         )
-        acodec_atempo_menu = OptionMenu(
-            audio_window, acodec_atempo, *acodec_atempo_choices.keys()
+
+        acodec_atempo_combobox = ttk.Combobox(
+            audio_window, textvariable=acodec_atempo, state="readonly"
         )
-        acodec_atempo_menu.config(
-            background="#23272A",
-            foreground="white",
-            highlightthickness=1,
-            state=DISABLED,
+        acodec_atempo_combobox["values"] = list(acodec_atempo_choices.keys())
+        acodec_atempo_combobox.grid(
+            row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E
         )
-        acodec_atempo_menu.grid(
-            row=5, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E
-        )
-        acodec_atempo.set(config_profile["FFMPEG DTS - SETTINGS"]["tempo"])
-        acodec_atempo_menu["menu"].configure(activebackground="dim grey")
-        acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
-        acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
+        acodec_atempo_combobox.bind("<<ComboboxSelected>>", acodec_atempo_selected)
+
+        acodec_atempo.set("Original")
         # ------------------------------------------------------------------------------------------------ Audio Atempo
     # ------------------------------------------------------------------------------------------------------------- DTS
 
@@ -4401,15 +4474,39 @@ def openaudiowindow():
         # ------------------------------------------------------------------------------------------------------ Volume
 
         # Audio Atempo Selection ---------------------------------------------------------------------------------------
-        acodec_atempo = StringVar(audio_window)
+        acodec_atempo = StringVar()
         acodec_atempo_choices = {
             "Original": "",
-            "23.976 to 24": '"atempo=23.976/24"',
-            "23.976 to 25": '"atempo=23.976/25"',
-            "24 to 23.976": '"atempo=24/23.976"',
-            "24 to 25": '"atempo=24/25"',
-            "25 to 23.976": '"atempo=25/23.976"',
-            "25 to 24": '"atempo=25/24"',
+            "23.976 to 24": '"atempo=24/23.976"',
+            "23.976 to 25": '"atempo=25/23.976"',
+            "23.976 to 29.97": '"atempo=29.97/23.976"',
+            "23.976 to 50": '"atempo=50/23.976"',
+            "23.976 to 60": '"atempo=60/23.976"',
+            "24 to 23.976": '"atempo=23.976/24"',
+            "24 to 25": '"atempo=25/24"',
+            "24 to 29.97": '"atempo=29.97/24"',
+            "24 to 50": '"atempo=50/24"',
+            "24 to 60": '"atempo=60/24"',
+            "25 to 23.976": '"atempo=23.976/25"',
+            "25 to 24": '"atempo=24/25"',
+            "25 to 29.97": '"atempo=29.97/25"',
+            "25 to 50": '"atempo=50/25"',
+            "25 to 60": '"atempo=60/25"',
+            "29.97 to 23.976": '"atempo=23.976/29.97"',
+            "29.97 to 24": '"atempo=24/29.97"',
+            "29.97 to 25": '"atempo=25/29.97"',
+            "29.97 to 50": '"atempo=50/29.97"',
+            "29.97 to 60": '"atempo=60/29.97"',
+            "50 to 23.976": '"atempo=23.976/50"',
+            "50 to 24": '"atempo=24/50"',
+            "50 to 25": '"atempo=25/50"',
+            "50 to 29.97": '"atempo=29.97/50"',
+            "50 to 60": '"atempo=60/50"',
+            "60 to 23.976": '"atempo=23.976/60"',
+            "60 to 24": '"atempo=24/60"',
+            "60 to 25": '"atempo=25/60"',
+            "60 to 29.97": '"atempo=29.97/60"',
+            "60 to 50": '"atempo=50/60"',
             "1/4 Slow-down": '"atempo=0.5,atempo=0.5"',
             "1/2 Slow-down": '"atempo=0.5"',
             "3/4 Slow-down": '"atempo=0.75"',
@@ -4422,6 +4519,7 @@ def openaudiowindow():
             "3.5x Speed-up": '"atempo=3.5"',
             "4x Speed-up": '"atempo=4.0"',
         }
+
         acodec_atempo_menu_label = Label(
             audio_window,
             text="Time Modification :",
@@ -4429,21 +4527,19 @@ def openaudiowindow():
             foreground="white",
         )
         acodec_atempo_menu_label.grid(
-            row=4, column=2, columnspan=1, padx=10, pady=3, sticky=W + E
+            row=2, column=2, columnspan=1, padx=10, pady=3, sticky=W + E
         )
-        acodec_atempo_menu = OptionMenu(
-            audio_window, acodec_atempo, *acodec_atempo_choices.keys()
+
+        acodec_atempo_combobox = ttk.Combobox(
+            audio_window, textvariable=acodec_atempo, state="readonly"
         )
-        acodec_atempo_menu.config(
-            background="#23272A", foreground="white", highlightthickness=1
+        acodec_atempo_combobox["values"] = list(acodec_atempo_choices.keys())
+        acodec_atempo_combobox.grid(
+            row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E
         )
-        acodec_atempo_menu.grid(
-            row=5, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E
-        )
-        acodec_atempo.set(config_profile["FFMPEG Opus - SETTINGS"]["tempo"])
-        acodec_atempo_menu["menu"].configure(activebackground="dim grey")
-        acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
-        acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
+        acodec_atempo_combobox.bind("<<ComboboxSelected>>", acodec_atempo_selected)
+
+        acodec_atempo.set("Original")
         # ------------------------------------------------------------------------------------------------ Audio Atempo
     # ----------------------------------------------------------------------------------------------------- Opus Window
 
@@ -4889,15 +4985,39 @@ def openaudiowindow():
         # ------------------------------------------------------------------------------------------------- Sample Rate
 
         # Audio Atempo Selection ---------------------------------------------------------------------------------------
-        acodec_atempo = StringVar(audio_window)
+        acodec_atempo = StringVar()
         acodec_atempo_choices = {
             "Original": "",
-            "23.976 to 24": '"atempo=23.976/24"',
-            "23.976 to 25": '"atempo=23.976/25"',
-            "24 to 23.976": '"atempo=24/23.976"',
-            "24 to 25": '"atempo=24/25"',
-            "25 to 23.976": '"atempo=25/23.976"',
-            "25 to 24": '"atempo=25/24"',
+            "23.976 to 24": '"atempo=24/23.976"',
+            "23.976 to 25": '"atempo=25/23.976"',
+            "23.976 to 29.97": '"atempo=29.97/23.976"',
+            "23.976 to 50": '"atempo=50/23.976"',
+            "23.976 to 60": '"atempo=60/23.976"',
+            "24 to 23.976": '"atempo=23.976/24"',
+            "24 to 25": '"atempo=25/24"',
+            "24 to 29.97": '"atempo=29.97/24"',
+            "24 to 50": '"atempo=50/24"',
+            "24 to 60": '"atempo=60/24"',
+            "25 to 23.976": '"atempo=23.976/25"',
+            "25 to 24": '"atempo=24/25"',
+            "25 to 29.97": '"atempo=29.97/25"',
+            "25 to 50": '"atempo=50/25"',
+            "25 to 60": '"atempo=60/25"',
+            "29.97 to 23.976": '"atempo=23.976/29.97"',
+            "29.97 to 24": '"atempo=24/29.97"',
+            "29.97 to 25": '"atempo=25/29.97"',
+            "29.97 to 50": '"atempo=50/29.97"',
+            "29.97 to 60": '"atempo=60/29.97"',
+            "50 to 23.976": '"atempo=23.976/50"',
+            "50 to 24": '"atempo=24/50"',
+            "50 to 25": '"atempo=25/50"',
+            "50 to 29.97": '"atempo=29.97/50"',
+            "50 to 60": '"atempo=60/50"',
+            "60 to 23.976": '"atempo=23.976/60"',
+            "60 to 24": '"atempo=24/60"',
+            "60 to 25": '"atempo=25/60"',
+            "60 to 29.97": '"atempo=29.97/60"',
+            "60 to 50": '"atempo=50/60"',
             "1/4 Slow-down": '"atempo=0.5,atempo=0.5"',
             "1/2 Slow-down": '"atempo=0.5"',
             "3/4 Slow-down": '"atempo=0.75"',
@@ -4910,6 +5030,7 @@ def openaudiowindow():
             "3.5x Speed-up": '"atempo=3.5"',
             "4x Speed-up": '"atempo=4.0"',
         }
+
         acodec_atempo_menu_label = Label(
             audio_window,
             text="Time Modification :",
@@ -4917,21 +5038,19 @@ def openaudiowindow():
             foreground="white",
         )
         acodec_atempo_menu_label.grid(
-            row=2, column=0, columnspan=1, padx=10, pady=3, sticky=W + E
+            row=2, column=2, columnspan=1, padx=10, pady=3, sticky=W + E
         )
-        acodec_atempo_menu = OptionMenu(
-            audio_window, acodec_atempo, *acodec_atempo_choices.keys()
+
+        acodec_atempo_combobox = ttk.Combobox(
+            audio_window, textvariable=acodec_atempo, state="readonly"
         )
-        acodec_atempo_menu.config(
-            background="#23272A", foreground="white", highlightthickness=1
+        acodec_atempo_combobox["values"] = list(acodec_atempo_choices.keys())
+        acodec_atempo_combobox.grid(
+            row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E
         )
-        acodec_atempo_menu.grid(
-            row=3, column=0, columnspan=1, padx=10, pady=3, sticky=N + S + W + E
-        )
-        acodec_atempo.set(config_profile["FFMPEG MP3 - SETTINGS"]["tempo"])
-        acodec_atempo_menu["menu"].configure(activebackground="dim grey")
-        acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
-        acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
+        acodec_atempo_combobox.bind("<<ComboboxSelected>>", acodec_atempo_selected)
+
+        acodec_atempo.set("Original")
         mp3_bitrate_type()
         # ------------------------------------------------------------------------------------------------ Audio Atempo
     # ------------------------------------------------------------------------------------------------------------- MP3
@@ -5934,15 +6053,39 @@ def openaudiowindow():
         # -------------------------------------------------------------------------------------------- Channel CPL Band
 
         # Audio Atempo Selection --------------------------------------------------------------------------------------
-        acodec_atempo = StringVar(audio_window)
+        acodec_atempo = StringVar()
         acodec_atempo_choices = {
             "Original": "",
-            "23.976 to 24": '"atempo=23.976/24"',
-            "23.976 to 25": '"atempo=23.976/25"',
-            "24 to 23.976": '"atempo=24/23.976"',
-            "24 to 25": '"atempo=24/25"',
-            "25 to 23.976": '"atempo=25/23.976"',
-            "25 to 24": '"atempo=25/24"',
+            "23.976 to 24": '"atempo=24/23.976"',
+            "23.976 to 25": '"atempo=25/23.976"',
+            "23.976 to 29.97": '"atempo=29.97/23.976"',
+            "23.976 to 50": '"atempo=50/23.976"',
+            "23.976 to 60": '"atempo=60/23.976"',
+            "24 to 23.976": '"atempo=23.976/24"',
+            "24 to 25": '"atempo=25/24"',
+            "24 to 29.97": '"atempo=29.97/24"',
+            "24 to 50": '"atempo=50/24"',
+            "24 to 60": '"atempo=60/24"',
+            "25 to 23.976": '"atempo=23.976/25"',
+            "25 to 24": '"atempo=24/25"',
+            "25 to 29.97": '"atempo=29.97/25"',
+            "25 to 50": '"atempo=50/25"',
+            "25 to 60": '"atempo=60/25"',
+            "29.97 to 23.976": '"atempo=23.976/29.97"',
+            "29.97 to 24": '"atempo=24/29.97"',
+            "29.97 to 25": '"atempo=25/29.97"',
+            "29.97 to 50": '"atempo=50/29.97"',
+            "29.97 to 60": '"atempo=60/29.97"',
+            "50 to 23.976": '"atempo=23.976/50"',
+            "50 to 24": '"atempo=24/50"',
+            "50 to 25": '"atempo=25/50"',
+            "50 to 29.97": '"atempo=29.97/50"',
+            "50 to 60": '"atempo=60/50"',
+            "60 to 23.976": '"atempo=23.976/60"',
+            "60 to 24": '"atempo=24/60"',
+            "60 to 25": '"atempo=25/60"',
+            "60 to 29.97": '"atempo=29.97/60"',
+            "60 to 50": '"atempo=50/60"',
             "1/4 Slow-down": '"atempo=0.5,atempo=0.5"',
             "1/2 Slow-down": '"atempo=0.5"',
             "3/4 Slow-down": '"atempo=0.75"',
@@ -5955,6 +6098,7 @@ def openaudiowindow():
             "3.5x Speed-up": '"atempo=3.5"',
             "4x Speed-up": '"atempo=4.0"',
         }
+
         acodec_atempo_menu_label = Label(
             audio_window,
             text="Time Modification :",
@@ -5964,19 +6108,17 @@ def openaudiowindow():
         acodec_atempo_menu_label.grid(
             row=2, column=2, columnspan=1, padx=10, pady=3, sticky=W + E
         )
-        acodec_atempo_menu = OptionMenu(
-            audio_window, acodec_atempo, *acodec_atempo_choices.keys()
+
+        acodec_atempo_combobox = ttk.Combobox(
+            audio_window, textvariable=acodec_atempo, state="readonly"
         )
-        acodec_atempo_menu.config(
-            background="#23272A", foreground="white", highlightthickness=1
-        )
-        acodec_atempo_menu.grid(
+        acodec_atempo_combobox["values"] = list(acodec_atempo_choices.keys())
+        acodec_atempo_combobox.grid(
             row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E
         )
-        acodec_atempo.set(config_profile["FFMPEG E-AC3 - SETTINGS"]["tempo"])
-        acodec_atempo_menu["menu"].configure(activebackground="dim grey")
-        acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
-        acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
+        acodec_atempo_combobox.bind("<<ComboboxSelected>>", acodec_atempo_selected)
+
+        acodec_atempo.set("Original")
         # ------------------------------------------------------------------------------------------------ Audio Atempo
     # ----------------------------------------------------------------------------------------------------------- E-AC3
 
@@ -6708,15 +6850,39 @@ def openaudiowindow():
         # ---------------------------------------------------------------------------------------------------- Moov Box
 
         # Audio Atempo Selection ---------------------------------------------------------------------------------------
-        acodec_atempo = StringVar(audio_window)
+        acodec_atempo = StringVar()
         acodec_atempo_choices = {
             "Original": "",
-            "23.976 to 24": '"atempo=23.976/24"',
-            "23.976 to 25": '"atempo=23.976/25"',
-            "24 to 23.976": '"atempo=24/23.976"',
-            "24 to 25": '"atempo=24/25"',
-            "25 to 23.976": '"atempo=25/23.976"',
-            "25 to 24": '"atempo=25/24"',
+            "23.976 to 24": '"atempo=24/23.976"',
+            "23.976 to 25": '"atempo=25/23.976"',
+            "23.976 to 29.97": '"atempo=29.97/23.976"',
+            "23.976 to 50": '"atempo=50/23.976"',
+            "23.976 to 60": '"atempo=60/23.976"',
+            "24 to 23.976": '"atempo=23.976/24"',
+            "24 to 25": '"atempo=25/24"',
+            "24 to 29.97": '"atempo=29.97/24"',
+            "24 to 50": '"atempo=50/24"',
+            "24 to 60": '"atempo=60/24"',
+            "25 to 23.976": '"atempo=23.976/25"',
+            "25 to 24": '"atempo=24/25"',
+            "25 to 29.97": '"atempo=29.97/25"',
+            "25 to 50": '"atempo=50/25"',
+            "25 to 60": '"atempo=60/25"',
+            "29.97 to 23.976": '"atempo=23.976/29.97"',
+            "29.97 to 24": '"atempo=24/29.97"',
+            "29.97 to 25": '"atempo=25/29.97"',
+            "29.97 to 50": '"atempo=50/29.97"',
+            "29.97 to 60": '"atempo=60/29.97"',
+            "50 to 23.976": '"atempo=23.976/50"',
+            "50 to 24": '"atempo=24/50"',
+            "50 to 25": '"atempo=25/50"',
+            "50 to 29.97": '"atempo=29.97/50"',
+            "50 to 60": '"atempo=60/50"',
+            "60 to 23.976": '"atempo=23.976/60"',
+            "60 to 24": '"atempo=24/60"',
+            "60 to 25": '"atempo=25/60"',
+            "60 to 29.97": '"atempo=29.97/60"',
+            "60 to 50": '"atempo=50/60"',
             "1/4 Slow-down": '"atempo=0.5,atempo=0.5"',
             "1/2 Slow-down": '"atempo=0.5"',
             "3/4 Slow-down": '"atempo=0.75"',
@@ -6729,6 +6895,7 @@ def openaudiowindow():
             "3.5x Speed-up": '"atempo=3.5"',
             "4x Speed-up": '"atempo=4.0"',
         }
+
         acodec_atempo_menu_label = Label(
             audio_window,
             text="Time Modification :",
@@ -6738,19 +6905,17 @@ def openaudiowindow():
         acodec_atempo_menu_label.grid(
             row=2, column=2, columnspan=1, padx=10, pady=3, sticky=W + E
         )
-        acodec_atempo_menu = OptionMenu(
-            audio_window, acodec_atempo, *acodec_atempo_choices.keys()
+
+        acodec_atempo_combobox = ttk.Combobox(
+            audio_window, textvariable=acodec_atempo, state="readonly"
         )
-        acodec_atempo_menu.config(
-            background="#23272A", foreground="white", highlightthickness=1
-        )
-        acodec_atempo_menu.grid(
+        acodec_atempo_combobox["values"] = list(acodec_atempo_choices.keys())
+        acodec_atempo_combobox.grid(
             row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E
         )
-        acodec_atempo.set(config_profile["FDK-AAC - SETTINGS"]["fdk_aac_tempo"])
-        acodec_atempo_menu["menu"].configure(activebackground="dim grey")
-        acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
-        acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
+        acodec_atempo_combobox.bind("<<ComboboxSelected>>", acodec_atempo_selected)
+
+        acodec_atempo.set("Original")
         # ------------------------------------------------------------------------------------------------ Audio Atempo
     # --------------------------------------------------------------------------------------------------------- FDK AAC
 
@@ -7542,15 +7707,39 @@ def openaudiowindow():
         # ----------------------------------------------------------------------------------------------------- Limiter
 
         # Audio Atempo Selection ---------------------------------------------------------------------------------------
-        acodec_atempo = StringVar(audio_window)
+        acodec_atempo = StringVar()
         acodec_atempo_choices = {
             "Original": "",
-            "23.976 to 24": '"atempo=23.976/24"',
-            "23.976 to 25": '"atempo=23.976/25"',
-            "24 to 23.976": '"atempo=24/23.976"',
-            "24 to 25": '"atempo=24/25"',
-            "25 to 23.976": '"atempo=25/23.976"',
-            "25 to 24": '"atempo=25/24"',
+            "23.976 to 24": '"atempo=24/23.976"',
+            "23.976 to 25": '"atempo=25/23.976"',
+            "23.976 to 29.97": '"atempo=29.97/23.976"',
+            "23.976 to 50": '"atempo=50/23.976"',
+            "23.976 to 60": '"atempo=60/23.976"',
+            "24 to 23.976": '"atempo=23.976/24"',
+            "24 to 25": '"atempo=25/24"',
+            "24 to 29.97": '"atempo=29.97/24"',
+            "24 to 50": '"atempo=50/24"',
+            "24 to 60": '"atempo=60/24"',
+            "25 to 23.976": '"atempo=23.976/25"',
+            "25 to 24": '"atempo=24/25"',
+            "25 to 29.97": '"atempo=29.97/25"',
+            "25 to 50": '"atempo=50/25"',
+            "25 to 60": '"atempo=60/25"',
+            "29.97 to 23.976": '"atempo=23.976/29.97"',
+            "29.97 to 24": '"atempo=24/29.97"',
+            "29.97 to 25": '"atempo=25/29.97"',
+            "29.97 to 50": '"atempo=50/29.97"',
+            "29.97 to 60": '"atempo=60/29.97"',
+            "50 to 23.976": '"atempo=23.976/50"',
+            "50 to 24": '"atempo=24/50"',
+            "50 to 25": '"atempo=25/50"',
+            "50 to 29.97": '"atempo=29.97/50"',
+            "50 to 60": '"atempo=60/50"',
+            "60 to 23.976": '"atempo=23.976/60"',
+            "60 to 24": '"atempo=24/60"',
+            "60 to 25": '"atempo=25/60"',
+            "60 to 29.97": '"atempo=29.97/60"',
+            "60 to 50": '"atempo=50/60"',
             "1/4 Slow-down": '"atempo=0.5,atempo=0.5"',
             "1/2 Slow-down": '"atempo=0.5"',
             "3/4 Slow-down": '"atempo=0.75"',
@@ -7563,6 +7752,7 @@ def openaudiowindow():
             "3.5x Speed-up": '"atempo=3.5"',
             "4x Speed-up": '"atempo=4.0"',
         }
+
         acodec_atempo_menu_label = Label(
             audio_window,
             text="Time Modification :",
@@ -7570,21 +7760,19 @@ def openaudiowindow():
             foreground="white",
         )
         acodec_atempo_menu_label.grid(
-            row=8, column=1, columnspan=1, padx=10, pady=3, sticky=W + E
+            row=2, column=2, columnspan=1, padx=10, pady=3, sticky=W + E
         )
-        acodec_atempo_menu = OptionMenu(
-            audio_window, acodec_atempo, *acodec_atempo_choices.keys()
+
+        acodec_atempo_combobox = ttk.Combobox(
+            audio_window, textvariable=acodec_atempo, state="readonly"
         )
-        acodec_atempo_menu.config(
-            background="#23272A", foreground="white", highlightthickness=1
+        acodec_atempo_combobox["values"] = list(acodec_atempo_choices.keys())
+        acodec_atempo_combobox.grid(
+            row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E
         )
-        acodec_atempo_menu.grid(
-            row=9, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + W + E
-        )
-        acodec_atempo.set(config_profile["FFMPEG QAAC - SETTINGS"]["tempo"])
-        acodec_atempo_menu["menu"].configure(activebackground="dim grey")
-        acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
-        acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
+        acodec_atempo_combobox.bind("<<ComboboxSelected>>", acodec_atempo_selected)
+
+        acodec_atempo.set("Original")
         # ------------------------------------------------------------------------------------------------ Audio Atempo
     # ----------------------------------------------------------------------------------------------------------- QAAC
 
@@ -7911,15 +8099,39 @@ def openaudiowindow():
         # ------------------------------------------------------------------------------------- Custom Command Line
 
         # Audio Atempo Selection ----------------------------------------------------------------------------------
-        acodec_atempo = StringVar(audio_window)
+        acodec_atempo = StringVar()
         acodec_atempo_choices = {
             "Original": "",
-            "23.976 to 24": '"atempo=23.976/24"',
-            "23.976 to 25": '"atempo=23.976/25"',
-            "24 to 23.976": '"atempo=24/23.976"',
-            "24 to 25": '"atempo=24/25"',
-            "25 to 23.976": '"atempo=25/23.976"',
-            "25 to 24": '"atempo=25/24"',
+            "23.976 to 24": '"atempo=24/23.976"',
+            "23.976 to 25": '"atempo=25/23.976"',
+            "23.976 to 29.97": '"atempo=29.97/23.976"',
+            "23.976 to 50": '"atempo=50/23.976"',
+            "23.976 to 60": '"atempo=60/23.976"',
+            "24 to 23.976": '"atempo=23.976/24"',
+            "24 to 25": '"atempo=25/24"',
+            "24 to 29.97": '"atempo=29.97/24"',
+            "24 to 50": '"atempo=50/24"',
+            "24 to 60": '"atempo=60/24"',
+            "25 to 23.976": '"atempo=23.976/25"',
+            "25 to 24": '"atempo=24/25"',
+            "25 to 29.97": '"atempo=29.97/25"',
+            "25 to 50": '"atempo=50/25"',
+            "25 to 60": '"atempo=60/25"',
+            "29.97 to 23.976": '"atempo=23.976/29.97"',
+            "29.97 to 24": '"atempo=24/29.97"',
+            "29.97 to 25": '"atempo=25/29.97"',
+            "29.97 to 50": '"atempo=50/29.97"',
+            "29.97 to 60": '"atempo=60/29.97"',
+            "50 to 23.976": '"atempo=23.976/50"',
+            "50 to 24": '"atempo=24/50"',
+            "50 to 25": '"atempo=25/50"',
+            "50 to 29.97": '"atempo=29.97/50"',
+            "50 to 60": '"atempo=60/50"',
+            "60 to 23.976": '"atempo=23.976/60"',
+            "60 to 24": '"atempo=24/60"',
+            "60 to 25": '"atempo=25/60"',
+            "60 to 29.97": '"atempo=29.97/60"',
+            "60 to 50": '"atempo=50/60"',
             "1/4 Slow-down": '"atempo=0.5,atempo=0.5"',
             "1/2 Slow-down": '"atempo=0.5"',
             "3/4 Slow-down": '"atempo=0.75"',
@@ -7932,6 +8144,7 @@ def openaudiowindow():
             "3.5x Speed-up": '"atempo=3.5"',
             "4x Speed-up": '"atempo=4.0"',
         }
+
         acodec_atempo_menu_label = Label(
             audio_window,
             text="Time Modification :",
@@ -7941,19 +8154,17 @@ def openaudiowindow():
         acodec_atempo_menu_label.grid(
             row=2, column=2, columnspan=1, padx=10, pady=3, sticky=W + E
         )
-        acodec_atempo_menu = OptionMenu(
-            audio_window, acodec_atempo, *acodec_atempo_choices.keys()
+
+        acodec_atempo_combobox = ttk.Combobox(
+            audio_window, textvariable=acodec_atempo, state="readonly"
         )
-        acodec_atempo_menu.config(
-            background="#23272A", foreground="white", highlightthickness=1, width=15
-        )
-        acodec_atempo_menu.grid(
+        acodec_atempo_combobox["values"] = list(acodec_atempo_choices.keys())
+        acodec_atempo_combobox.grid(
             row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E
         )
-        acodec_atempo.set(config_profile["FFMPEG FLAC - SETTINGS"]["tempo"])
-        acodec_atempo_menu["menu"].configure(activebackground="dim grey")
-        acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
-        acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
+        acodec_atempo_combobox.bind("<<ComboboxSelected>>", acodec_atempo_selected)
+
+        acodec_atempo.set("Original")
         # ------------------------------------------------------------------------------------------------ Audio Atempo
 
         # LPC Algorithm Selection ---------------------------------------------------------------------------------
@@ -8357,15 +8568,39 @@ def openaudiowindow():
         # --------------------------------------------------------------------------------- Custom Command Line
 
         # Audio Atempo Selection ------------------------------------------------------------------------------
-        acodec_atempo = StringVar(audio_window)
+        acodec_atempo = StringVar()
         acodec_atempo_choices = {
             "Original": "",
-            "23.976 to 24": '"atempo=23.976/24"',
-            "23.976 to 25": '"atempo=23.976/25"',
-            "24 to 23.976": '"atempo=24/23.976"',
-            "24 to 25": '"atempo=24/25"',
-            "25 to 23.976": '"atempo=25/23.976"',
-            "25 to 24": '"atempo=25/24"',
+            "23.976 to 24": '"atempo=24/23.976"',
+            "23.976 to 25": '"atempo=25/23.976"',
+            "23.976 to 29.97": '"atempo=29.97/23.976"',
+            "23.976 to 50": '"atempo=50/23.976"',
+            "23.976 to 60": '"atempo=60/23.976"',
+            "24 to 23.976": '"atempo=23.976/24"',
+            "24 to 25": '"atempo=25/24"',
+            "24 to 29.97": '"atempo=29.97/24"',
+            "24 to 50": '"atempo=50/24"',
+            "24 to 60": '"atempo=60/24"',
+            "25 to 23.976": '"atempo=23.976/25"',
+            "25 to 24": '"atempo=24/25"',
+            "25 to 29.97": '"atempo=29.97/25"',
+            "25 to 50": '"atempo=50/25"',
+            "25 to 60": '"atempo=60/25"',
+            "29.97 to 23.976": '"atempo=23.976/29.97"',
+            "29.97 to 24": '"atempo=24/29.97"',
+            "29.97 to 25": '"atempo=25/29.97"',
+            "29.97 to 50": '"atempo=50/29.97"',
+            "29.97 to 60": '"atempo=60/29.97"',
+            "50 to 23.976": '"atempo=23.976/50"',
+            "50 to 24": '"atempo=24/50"',
+            "50 to 25": '"atempo=25/50"',
+            "50 to 29.97": '"atempo=29.97/50"',
+            "50 to 60": '"atempo=60/50"',
+            "60 to 23.976": '"atempo=23.976/60"',
+            "60 to 24": '"atempo=24/60"',
+            "60 to 25": '"atempo=25/60"',
+            "60 to 29.97": '"atempo=29.97/60"',
+            "60 to 50": '"atempo=50/60"',
             "1/4 Slow-down": '"atempo=0.5,atempo=0.5"',
             "1/2 Slow-down": '"atempo=0.5"',
             "3/4 Slow-down": '"atempo=0.75"',
@@ -8378,6 +8613,7 @@ def openaudiowindow():
             "3.5x Speed-up": '"atempo=3.5"',
             "4x Speed-up": '"atempo=4.0"',
         }
+
         acodec_atempo_menu_label = Label(
             audio_window,
             text="Time Modification :",
@@ -8387,19 +8623,17 @@ def openaudiowindow():
         acodec_atempo_menu_label.grid(
             row=2, column=2, columnspan=1, padx=10, pady=3, sticky=W + E
         )
-        acodec_atempo_menu = OptionMenu(
-            audio_window, acodec_atempo, *acodec_atempo_choices.keys()
+
+        acodec_atempo_combobox = ttk.Combobox(
+            audio_window, textvariable=acodec_atempo, state="readonly"
         )
-        acodec_atempo_menu.config(
-            background="#23272A", foreground="white", highlightthickness=1, width=15
-        )
-        acodec_atempo_menu.grid(
+        acodec_atempo_combobox["values"] = list(acodec_atempo_choices.keys())
+        acodec_atempo_combobox.grid(
             row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + W + E
         )
-        acodec_atempo.set(config_profile["FFMPEG ALAC - SETTINGS"]["tempo"])
-        acodec_atempo_menu["menu"].configure(activebackground="dim grey")
-        acodec_atempo_menu.bind("<Enter>", acodec_atempo_menu_hover)
-        acodec_atempo_menu.bind("<Leave>", acodec_atempo_menu_hover_leave)
+        acodec_atempo_combobox.bind("<<ComboboxSelected>>", acodec_atempo_selected)
+
+        acodec_atempo.set("Original")
 
         # -------------------------------------------------------------------------------------------- Audio Atempo
 
@@ -10532,6 +10766,7 @@ audiosettings_button.grid(
 
 # --------------------------------------------------------------------------- # codec settings Button
 
+
 # File input check ----------------------------------------------------------------------------------------------------
 def file_input_check(file_input):
     global track_count, file_input_quoted, autosavefilename
@@ -10623,6 +10858,7 @@ def file_input_check(file_input):
 
 # ---------------------------------------------------------------------------------------------------- File input check
 
+
 # Drag and drop code for file input -----------------------------------------------------------------------------------
 def drop_input(event):
     global file_input
@@ -10643,6 +10879,7 @@ def drop_input(event):
 
 
 # ----------------------------------------------------------------------------------- Drag and drop code for file input
+
 
 # Select "Open File" code ---------------------------------------------------------------------------------------------
 def input_button_commands():
@@ -10680,6 +10917,7 @@ def input_button_commands():
 
 
 # --------------------------------------------------------------------------------------------- Select "Open File" code
+
 
 # Batch Processing ----------------------------------------------------------------------------------------------------
 def batch_processing_input():
@@ -12662,6 +12900,7 @@ add_job_button.grid(row=0, column=1, columnspan=2, padx=5, pady=5, sticky=N + S 
 
 # ------------------------------------------------------------------------------ Add to jobs list
 
+
 # Start Audio Job: Manual -----------------------------------------------------------------------
 def start_audio_job_manual():
     global encoding_job_type
@@ -12698,6 +12937,7 @@ start_audio_button.grid(
 
 
 # --------------------------------------------------------------------------- Start Audio Job: Manual
+
 
 # Start Audio Job: Auto -----------------------------------------------------------------------------
 def encode_last_used_setting():
@@ -12826,6 +13066,7 @@ status_label.grid(column=0, row=4, columnspan=4, sticky=W + E)
 
 # ----------------------------------------------------------------- Status Label at bottom of main GUI
 
+
 # dependency check ----------------------------------------------------------------------------------------------------
 def check_dependencies():
     global batch_encoder_menu, ffmpeg, mpv_player, mediainfo
@@ -12876,7 +13117,6 @@ def check_dependencies():
                 config["ffmpeg_path"]["path"].replace('"', "")
             ).is_file()
         ):
-
             # clear path to ffmpeg in config.ini
             config.set("ffmpeg_path", "path", "")
             with open(config_file, "w") as configfile:
