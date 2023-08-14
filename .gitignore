@@ -11,3 +11,4 @@ ytconfig.ini
 FFMPEGAudioEncoder.exe
 Runtime/jobs.dat
 Runtime/logs/
+test.py
