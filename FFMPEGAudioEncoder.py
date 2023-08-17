@@ -7000,19 +7000,24 @@ def openaudiowindow():
         )
 
         # Quality or Bitrate ------------------------------------------------------------------------------------------
-        def quality_or_bitrate(*args):
+        def quality_or_bitrate(_):
             if q_acodec_profile.get() == "True VBR":
-                q_acodec_quality_spinbox.configure(state=NORMAL)
-                q_acodec_bitrate_spinbox.configure(state=DISABLED)
                 qaac_high_efficiency.set("")
                 qaac_high_efficiency_checkbox.configure(state=DISABLED)
+                q_acodec_quality_spinbox_label.grid()
+                q_acodec_quality_spinbox.grid()
+                q_acodec_bitrate_label.grid_remove()
+                q_acodec_bitrate_spinbox.grid_remove()
+
             elif q_acodec_profile.get() != "True VBR":
                 qaac_high_efficiency.set(
                     config_profile["FFMPEG QAAC - SETTINGS"]["qaac_high_efficiency"]
                     + " "
                 )
-                q_acodec_quality_spinbox.configure(state=DISABLED)
-                q_acodec_bitrate_spinbox.configure(state=NORMAL)
+                q_acodec_quality_spinbox_label.grid_remove()
+                q_acodec_quality_spinbox.grid_remove()
+                q_acodec_bitrate_label.grid()
+                q_acodec_bitrate_spinbox.grid()
                 qaac_high_efficiency_checkbox.configure(state=NORMAL)
 
         # ------------------------------------------------------------------------------------------ Quality or Bitrate
@@ -7348,7 +7353,7 @@ def openaudiowindow():
             audio_window, text="Bitrate :", background="#434547", foreground="white"
         )
         q_acodec_bitrate_label.grid(
-            row=2, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W
+            row=2, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W
         )
         q_acodec_bitrate_spinbox = Spinbox(
             audio_window,
@@ -7367,12 +7372,20 @@ def openaudiowindow():
             disabledbackground="grey",
         )
         q_acodec_bitrate_spinbox.grid(
-            row=3, column=2, columnspan=1, padx=10, pady=3, sticky=N + S + E + W
+            row=3, column=1, columnspan=1, padx=10, pady=3, sticky=N + S + E + W
         )
 
         def disable_enable_bitrate():
             if q_acodec_profile.get() == "True VBR":
-                q_acodec_bitrate_spinbox.configure(state=DISABLED)
+                q_acodec_quality_spinbox_label.grid()
+                q_acodec_quality_spinbox.grid()
+                q_acodec_bitrate_label.grid_remove()
+                q_acodec_bitrate_spinbox.grid_remove()
+            else:
+                q_acodec_quality_spinbox_label.grid_remove()
+                q_acodec_quality_spinbox.grid_remove()
+                q_acodec_bitrate_label.grid()
+                q_acodec_bitrate_spinbox.grid()
 
         # ----------------------------------------------------------------------------------------------------- Bitrate
 
@@ -7513,7 +7526,6 @@ def openaudiowindow():
             "ABR": "--abr ",
             "CBR": "--cbr ",
         }
-        q_acodec_profile.trace("w", quality_or_bitrate)
         q_acodec_profile.set(
             config_profile["FFMPEG QAAC - SETTINGS"]["q_acodec_profile"]
         )  # set the default option
@@ -7524,7 +7536,10 @@ def openaudiowindow():
             row=2, column=0, columnspan=1, padx=10, pady=3, sticky=W + E
         )
         q_acodec_profile_menu = OptionMenu(
-            audio_window, q_acodec_profile, *q_acodec_profile_choices.keys()
+            audio_window,
+            q_acodec_profile,
+            *q_acodec_profile_choices.keys(),
+            command=quality_or_bitrate,
         )
         q_acodec_profile_menu.config(
             background="#23272A", foreground="white", highlightthickness=1
