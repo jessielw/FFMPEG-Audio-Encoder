@@ -76,7 +76,7 @@ log_error_to_file = (
 )
 
 # Set main window title variable
-main_root_title = "FFMPEG Audio Encoder v4.08"
+main_root_title = "FFMPEG Audio Encoder v4.10"
 
 # default an empty variable to be updated based off user input
 batch_mode = None
@@ -10428,7 +10428,6 @@ def startaudiojob():
             )
 
         # Use subprocess.Popen to feed the command to the terminal and handle the stder/stdout output
-        print(command)
         job = subprocess.Popen(
             "cmd /c " + command + '"',
             universal_newlines=True,
@@ -10615,20 +10614,25 @@ def startaudiojob():
                     )
                     try:  # Block of code to turn 00:00:00 frmt to milliseconds (same as duration) for progress bar
                         time = line.split()[2].rsplit("=", 1)[1]
-                        progress = (
-                            sum(
-                                x * float(t)
-                                for x, t in zip(
-                                    [1, 60, 3600], reversed(time.split(":"))
+                        try:
+                            progress = (
+                                sum(
+                                    x * float(t)
+                                    for x, t in zip(
+                                        [1, 60, 3600], reversed(time.split(":"))
+                                    )
                                 )
+                                * 1000
                             )
-                            * 1000
-                        )
-                        percent = float(
-                            str(
-                                "{:.1%}".format(float(progress) / float(total_duration))
-                            ).replace("%", "")
-                        )
+                            percent = float(
+                                str(
+                                    "{:.1%}".format(
+                                        float(progress) / float(total_duration)
+                                    )
+                                ).replace("%", "")
+                            )
+                        except (ValueError, TypeError):
+                            continue
                         try:
                             app_progress_bar["value"] = int(
                                 percent
@@ -10636,8 +10640,8 @@ def startaudiojob():
                         except (Exception,):
                             pass
                     except (
-                        Exception,
-                    ):  # If progress window errors out for what ever reason
+                        Exception
+                    ) as e:  # If progress window errors out for what ever reason
                         progress_error = "yes"  # Set error to 'yes'
                         progress_window.destroy()  # Close progress window
                         subprocess.Popen(
@@ -10648,6 +10652,7 @@ def startaudiojob():
                             title="Error!",
                             message=f"There was an error:"
                             f'\n\n"{str(line).rstrip()}"\n\n'
+                            f"Additional info: {e}\n\n"
                             f"Would you like to report the "
                             f"error on the github tracker?",
                         )
@@ -12291,22 +12296,25 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
                             progress_error = "no"  # Once 'size=' is found 3 times, set progress_error to 'no'
                         try:  # Block of code to turn 00:00:00 frmt to ms (same as duration) for progress bar
                             time = line.split()[2].rsplit("=", 1)[1]
-                            progress = (
-                                sum(
-                                    x * float(t)
-                                    for x, t in zip(
-                                        [1, 60, 3600], reversed(time.split(":"))
+                            try:
+                                progress = (
+                                    sum(
+                                        x * float(t)
+                                        for x, t in zip(
+                                            [1, 60, 3600], reversed(time.split(":"))
+                                        )
                                     )
+                                    * 1000
                                 )
-                                * 1000
-                            )
-                            percent = float(
-                                str(
-                                    "{:.1%}".format(
-                                        float(progress) / float(total_duration)
-                                    )
-                                ).replace("%", "")
-                            )
+                                percent = float(
+                                    str(
+                                        "{:.1%}".format(
+                                            float(progress) / float(total_duration)
+                                        )
+                                    ).replace("%", "")
+                                )
+                            except (ValueError, TypeError):
+                                continue
                             app_progress_bar["value"] = int(
                                 percent
                             )  # Input progress into progress bar
@@ -12631,22 +12639,25 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
                                 progress_error = "no"  # Once 'size=' is found 3 times, set progress_error to 'no'
                             try:  # Block of code to turn 00:00:00 frmt to ms (same as duration) for progress bar
                                 time = line.split()[2].rsplit("=", 1)[1]
-                                progress = (
-                                    sum(
-                                        x * float(t)
-                                        for x, t in zip(
-                                            [1, 60, 3600], reversed(time.split(":"))
+                                try:
+                                    progress = (
+                                        sum(
+                                            x * float(t)
+                                            for x, t in zip(
+                                                [1, 60, 3600], reversed(time.split(":"))
+                                            )
                                         )
+                                        * 1000
                                     )
-                                    * 1000
-                                )
-                                percent = float(
-                                    str(
-                                        "{:.1%}".format(
-                                            float(progress) / float(total_duration)
-                                        )
-                                    ).replace("%", "")
-                                )
+                                    percent = float(
+                                        str(
+                                            "{:.1%}".format(
+                                                float(progress) / float(total_duration)
+                                            )
+                                        ).replace("%", "")
+                                    )
+                                except (ValueError, TypeError):
+                                    continue
                                 app_progress_bar["value"] = int(
                                     percent
                                 )  # Input progress into progress bar
