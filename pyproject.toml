@@ -1,0 +1,22 @@
+[project]
+name = "ffmpeg-audio-encoder"
+version = "4.11.1"
+description = "A powerful FFMPEG audio encoder GUI "
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pillow>=12.1.0",
+    "platformdirs>=4.5.1",
+    "psutil>=7.2.1",
+    "pymediainfo>=7.0.1",
+    "pyperclip>=1.11.0",
+    "tkinterdnd2>=0.4.3",
+    "typing-extensions>=4.15.0",
+    "yt-dlp>=2025.12.8",
+]
+
+[dependency-groups]
+dev = [
+    "pyinstaller>=6.17.0",
+    "ruff>=0.14.11",
+]

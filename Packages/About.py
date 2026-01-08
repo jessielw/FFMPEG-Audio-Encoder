@@ -65,7 +65,7 @@ def openaboutwindow(main_root_title):
     about_window_text.pack()
     about_window_text.insert(INSERT, f"{main_root_title}\n")
     about_window_text.insert(INSERT, "\n")
-    about_window_text.insert(INSERT, "Development: jlw4049\n\nContributors: BassThatHertz, aaronrausch")
+    about_window_text.insert(INSERT, "Development: jessielw\n\nContributors: BassThatHertz, aaronrausch")
     about_window_text.insert(INSERT, "\n\n")
     about_window_text.insert(INSERT, "Power audio encoding GUI, that mostly uses FFMPEG at the heart. \n")
     about_window_text.configure(state=DISABLED)
@@ -77,7 +77,7 @@ def openaboutwindow(main_root_title):
     about_information_frame.grid_columnconfigure(0, weight=1)
 
     license_text = """
-    Copyright (c) 2012-2022 Scott Chacon and others
+    Copyright (c) 2026 Jessie Wilson
 
     Permission is hereby granted, free of charge, to any person obtaining
     a copy of this software and associated documentation files (the

@@ -76,7 +76,7 @@ log_error_to_file = (
 )
 
 # Set main window title variable
-main_root_title = "FFMPEG Audio Encoder v4.11"
+main_root_title = "FFMPEG Audio Encoder v4.11.1"
 
 # default an empty variable to be updated based off user input
 batch_mode = None
@@ -365,7 +365,7 @@ class HoverButton(Button):
 
 # Open GitHub tracker for program -------------------------------------------------------------------------------------
 def open_github_error_tracker():
-    webbrowser.open("https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues")
+    webbrowser.open("https://github.com/jessielw/FFMPEG-Audio-Encoder/issues")
 
 
 # ------------------------------------------------------------------------------------- Open github tracker for program
@@ -832,23 +832,23 @@ my_menu_bar.add_cascade(label="Help", menu=help_menu)
 help_menu.add_command(
     label="Documentation                 [F1]",  # Open GitHub wiki
     command=lambda: webbrowser.open(
-        "https://github.com/jlw4049/FFMPEG-Audio-Encoder/wiki"
+        "https://github.com/jessielw/FFMPEG-Audio-Encoder/wiki"
     ),
 )
 root.bind(
     "<F1>",
     lambda event: webbrowser.open(
-        "https://github.com/jlw4049/FFMPEG-Audio-Encoder/wiki"
+        "https://github.com/jessielw/FFMPEG-Audio-Encoder/wiki"
     ),
 )  # Hotkey
 help_menu.add_command(
     label="Project Page",  # Open GitHub project page
-    command=lambda: webbrowser.open("https://github.com/jlw4049/FFMPEG-Audio-Encoder"),
+    command=lambda: webbrowser.open("https://github.com/jessielw/FFMPEG-Audio-Encoder"),
 )
 help_menu.add_command(
     label="Report Error / Feature Request",  # Open GitHub tracker link
     command=lambda: webbrowser.open(
-        "https://github.com/jlw4049/FFMPEG-Audio-Encoder/" "issues/new/choose"
+        "https://github.com/jessielw/FFMPEG-Audio-Encoder/" "issues/new/choose"
     ),
 )
 help_menu.add_separator()
@@ -10658,7 +10658,7 @@ def startaudiojob():
                         )
                         if msg_error:  # If user wants to post bug on the github tracker
                             webbrowser.open(
-                                "https://github.com/jlw4049/FFMPEG-Audio-Encoder/issues"
+                                "https://github.com/jessielw/FFMPEG-Audio-Encoder/issues"
                             )
                 else:
                     progress_error = "yes"
