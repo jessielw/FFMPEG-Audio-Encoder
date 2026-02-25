@@ -1,6 +1,6 @@
 [project]
 name = "ffmpeg-audio-encoder"
-version = "4.11.1"
+version = "4.11.2"
 description = "A powerful FFMPEG audio encoder GUI "
 readme = "README.md"
 requires-python = ">=3.11"
@@ -8,6 +8,7 @@ dependencies = [
     "pillow>=12.1.0",
     "platformdirs>=4.5.1",
     "psutil>=7.2.1",
+    "pyautogui>=0.9.54",
     "pymediainfo>=7.0.1",
     "pyperclip>=1.11.0",
     "tkinterdnd2>=0.4.3",

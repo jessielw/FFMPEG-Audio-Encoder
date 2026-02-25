@@ -76,7 +76,7 @@ log_error_to_file = (
 )
 
 # Set main window title variable
-main_root_title = "FFMPEG Audio Encoder v4.11.1"
+main_root_title = "FFMPEG Audio Encoder v4.11.2"
 
 # default an empty variable to be updated based off user input
 batch_mode = None
@@ -1001,8 +1001,10 @@ def set_auto_save_suffix():
         )
         if encoder.get() == "AAC":
             file_out = pathlib.Path(convert_filename).with_suffix("._new_.mp4")
-        elif encoder.get() == "AC3" or encoder.get() == "E-AC3":
+        elif encoder.get() == "AC3":
             file_out = pathlib.Path(convert_filename).with_suffix("._new_.ac3")
+        elif encoder.get() == "E-AC3":
+            file_out = pathlib.Path(convert_filename).with_suffix("._new_.eac3")
         elif encoder.get() == "DTS":
             file_out = pathlib.Path(convert_filename).with_suffix("._new_.dts")
         elif encoder.get() == "Opus":
@@ -1624,9 +1626,11 @@ def openaudiowindow():
                                 f"{window_width}x{window_height}+"
                                 f'{root.geometry().split("+")[1]}+{root.geometry().split("+")[2]}'
                             )
-                            audio_track_win.resizable(
-                                0, 0
-                            )  # makes window not resizable
+                            audio_track_win.grid_rowconfigure(0, weight=1)
+                            audio_track_win.grid_columnconfigure(0, weight=1)
+                            # audio_track_win.resizable(
+                            #     0, 0
+                            # )  # makes window not resizable
                             audio_track_win.grab_set()  # forces audio_track_win to stay on top of root
                             audio_track_win.protocol(
                                 "WM_DELETE_WINDOW", mini_track_window_exit
@@ -1651,7 +1655,7 @@ def openaudiowindow():
                                 pady=(8, 0),
                             )
 
-                            track_frame.rowconfigure(0, weight=1)
+                            track_frame.rowconfigure(1, weight=1)
                             track_frame.grid_columnconfigure(0, weight=1)
 
                             # ----------------------------------------------------------------------------- Track Frame
@@ -1679,8 +1683,6 @@ def openaudiowindow():
 
                             show_cmd_scrolled = scrolledtextwidget.ScrolledText(
                                 track_frame,
-                                width=30,
-                                height=6,
                                 tabs=10,
                                 spacing2=3,
                                 spacing1=2,
@@ -1692,7 +1694,7 @@ def openaudiowindow():
                                 columnspan=3,
                                 pady=(20, 4),
                                 padx=5,
-                                sticky=E + W,
+                                sticky=N + S + W + E,
                             )
                             show_cmd_scrolled.configure(
                                 state=NORMAL, bg="black", fg="#CFD2D1", bd=8
@@ -9138,13 +9140,21 @@ def file_save():
             initialfile=autosavefilename,
             filetypes=[("AAC", "*.mp4")],
         )
-    elif encoder.get() == "AC3" or encoder.get() == "E-AC3":
+    elif encoder.get() == "AC3":
         file_output = filedialog.asksaveasfilename(
             defaultextension=".ac3",
             initialdir=autofilesave_dir_path,
             title="Select a Save Location",
             initialfile=autosavefilename,
-            filetypes=[("'AC3', 'E-AC3,'", "*.ac3")],
+            filetypes=[("AC3", "*.ac3")],
+        )
+    elif encoder.get() == "E-AC3":
+        file_output = filedialog.asksaveasfilename(
+            defaultextension=".eac3",
+            initialdir=autofilesave_dir_path,
+            title="Select a Save Location",
+            initialfile=autosavefilename,
+            filetypes=[("E-AC3", "*.ac3")],
         )
     elif encoder.get() == "DTS":
         file_output = filedialog.asksaveasfilename(
@@ -10590,7 +10600,7 @@ def startaudiojob():
                 encode_window_progress.configure(state=DISABLED)
             except TclError:
                 return
-
+            
             if (
                 total_duration is None
             ):  # Set's the percent to 100% if input has no duration
@@ -10834,12 +10844,13 @@ def file_input_check(file_input):
                 auto_file_out = (
                     str(pathlib.Path(file_input).with_suffix("")) + "._new_.mp4"
                 )
-            elif (
-                config_profile["Auto Encode"]["codec"] == "AC3"
-                or config_profile["Auto Encode"]["codec"] == "E-AC3"
-            ):
+            elif (config_profile["Auto Encode"]["codec"] == "AC3"):
                 auto_file_out = (
                     str(pathlib.Path(file_input).with_suffix("")) + "._new_.ac3"
+                )
+            elif config_profile["Auto Encode"]["codec"] == "E-AC3":
+                auto_file_out = (
+                    str(pathlib.Path(file_input).with_suffix("")) + "._new_.eac3"
                 )
             elif config_profile["Auto Encode"]["codec"] == "DTS":
                 auto_file_out = (
@@ -11550,9 +11561,13 @@ def batch_processing_input():
                 batch_file_out = pathlib.Path(convert_filename).with_suffix(
                     "._new_.mp4"
                 )
-            elif encoder.get() == "AC3" or encoder.get() == "E-AC3":
+            elif encoder.get() == "AC3":
                 batch_file_out = pathlib.Path(convert_filename).with_suffix(
                     "._new_.ac3"
+                )
+            elif encoder.get() == "E-AC3":
+                batch_file_out = pathlib.Path(convert_filename).with_suffix(
+                    "._new_.eac3"
                 )
             elif encoder.get() == "DTS":
                 batch_file_out = pathlib.Path(convert_filename).with_suffix(
