@@ -1,6 +1,6 @@
 [project]
 name = "ffmpeg-audio-encoder"
-version = "4.11.2"
+version = "4.11.3"
 description = "A powerful FFMPEG audio encoder GUI "
 readme = "README.md"
 requires-python = ">=3.11"

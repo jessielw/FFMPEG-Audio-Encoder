@@ -76,7 +76,7 @@ log_error_to_file = (
 )
 
 # Set main window title variable
-main_root_title = "FFMPEG Audio Encoder v4.11.2"
+main_root_title = "FFMPEG Audio Encoder v4.11.3"
 
 # default an empty variable to be updated based off user input
 batch_mode = None
