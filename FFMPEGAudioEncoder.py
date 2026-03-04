@@ -12795,7 +12795,7 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
         try:
             with open("Runtime/jobs.dat", "rb") as pickle_file:
                 saved_jobs = pickle.load(pickle_file)
-        except FileNotFoundError:
+        except (FileNotFoundError, EOFError, pickle.UnpicklingError):
             return
 
         for (
@@ -12820,7 +12820,7 @@ def open_jobs_manager():  # Opens the job manager window -----------------------
                         saved_jobs
                     ):  # Update listbox window with list of saved jobs in dat file
                         job_listbox.insert(END, jobs)
-            except EOFError:
+            except (EOFError, pickle.UnpicklingError):
                 pass
             job_listbox.after(
                 100, updater
