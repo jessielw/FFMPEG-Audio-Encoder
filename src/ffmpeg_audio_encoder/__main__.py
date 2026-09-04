@@ -9,7 +9,11 @@ from PySide6.QtWidgets import QApplication
 from ffmpeg_audio_encoder import __version__
 from ffmpeg_audio_encoder.domain.errors import AudioEncoderError
 from ffmpeg_audio_encoder.encoders import default_registry
-from ffmpeg_audio_encoder.infrastructure.persistence import PresetRepository, SettingsRepository
+from ffmpeg_audio_encoder.infrastructure.persistence import (
+    JobRepository,
+    PresetRepository,
+    SettingsRepository,
+)
 from ffmpeg_audio_encoder.infrastructure.tools import inspect_toolchain, locate_toolchain
 from ffmpeg_audio_encoder.ui.main_window import MainWindow
 from ffmpeg_audio_encoder.ui.theme import ThemeManager
@@ -74,6 +78,7 @@ def main() -> int:
         PresetRepository(),
         theme_manager,
         tool_report,
+        JobRepository(),
     )
     window.show()
     return app.exec()

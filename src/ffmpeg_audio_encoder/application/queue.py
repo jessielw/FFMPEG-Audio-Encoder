@@ -6,6 +6,7 @@ from uuid import UUID
 
 from PySide6.QtCore import QObject, Signal
 
+from ffmpeg_audio_encoder.domain.errors import ValidationError
 from ffmpeg_audio_encoder.domain.models import (
     EncodeJob,
     EncodingRequest,
@@ -14,6 +15,7 @@ from ffmpeg_audio_encoder.domain.models import (
 )
 from ffmpeg_audio_encoder.encoders.registry import EncoderRegistry
 from ffmpeg_audio_encoder.infrastructure.output import temporary_output_path
+from ffmpeg_audio_encoder.infrastructure.persistence import JobRepository
 from ffmpeg_audio_encoder.infrastructure.process import QtProcessRunner
 from ffmpeg_audio_encoder.infrastructure.progress import ProgressUpdate
 
@@ -23,24 +25,48 @@ class JobQueueController(QObject):
     job_updated = Signal(str)
     log = Signal(str, str)
     active_changed = Signal(bool)
+    persistence_error = Signal(str)
 
     def __init__(
         self,
         registry: EncoderRegistry,
         toolchain: Toolchain,
         runner: QtProcessRunner | None = None,
+        job_repository: JobRepository | None = None,
         parent: QObject | None = None,
     ) -> None:
         super().__init__(parent)
         self.registry = registry
         self.toolchain = toolchain
         self.runner = runner or QtProcessRunner(self)
-        self.jobs: list[EncodeJob] = []
+        self.job_repository = job_repository
+        self.jobs = job_repository.load() if job_repository is not None else []
         self._run_queue = False
         self._active_id: UUID | None = None
+        restored_running = False
+        for job in self.jobs:
+            if job.state is JobState.RUNNING:
+                job.state = JobState.FAILED
+                job.error = "Application exited while this job was encoding."
+                job.finished_at = datetime.now(UTC)
+                restored_running = True
+            job.progress = 1.0 if job.state is JobState.SUCCEEDED else 0.0
+            job.status = {
+                JobState.QUEUED: "Waiting",
+                JobState.RUNNING: "Encoding",
+                JobState.SUCCEEDED: "Complete",
+                JobState.FAILED: "Failed",
+                JobState.CANCELLED: "Cancelled",
+            }[job.state]
+            try:
+                self.registry.get(job.request.encoder_id)
+            except ValidationError:
+                job.status = "Unavailable encoder"
         self.runner.progress.connect(self._on_progress)
         self.runner.log.connect(self.log)
         self.runner.finished.connect(self._on_finished)
+        if restored_running:
+            self._persist()
 
     @property
     def active_job(self) -> EncodeJob | None:
@@ -50,6 +76,7 @@ class JobQueueController(QObject):
         self.registry.get(request.encoder_id).validate(request)
         job = EncodeJob(request=request, overwrite=overwrite)
         self.jobs.append(job)
+        self._persist()
         self.job_added.emit(str(job.id))
         return job
 
@@ -82,17 +109,20 @@ class JobQueueController(QObject):
         job.error = None
         job.started_at = None
         job.finished_at = None
+        self._persist()
         self.job_updated.emit(str(job.id))
 
     def remove(self, job_ids: set[UUID]) -> None:
         self.jobs[:] = [
             job for job in self.jobs if job.id not in job_ids or job.state is JobState.RUNNING
         ]
+        self._persist()
         self.job_updated.emit("")
 
     def clear_completed(self) -> None:
         terminal = {JobState.SUCCEEDED, JobState.FAILED, JobState.CANCELLED}
         self.jobs[:] = [job for job in self.jobs if job.state not in terminal]
+        self._persist()
         self.job_updated.emit("")
 
     def _start_next(self) -> None:
@@ -120,9 +150,13 @@ class JobQueueController(QObject):
             job.progress = 0.0 if plan.duration_seconds else None
             job.started_at = datetime.now(UTC)
             self._active_id = job.id
+            self._persist()
             self.job_updated.emit(str(job.id))
             self.active_changed.emit(True)
             self.runner.start(job.id, plan)
+        except ValidationError as exc:
+            self._fail(job, str(exc))
+            self._start_next()
         except (OSError, ValueError, RuntimeError) as exc:
             self._fail(job, str(exc))
             self._start_next()
@@ -163,6 +197,7 @@ class JobQueueController(QObject):
                 self._fail(job, error or "Encoder process failed")
         job.finished_at = datetime.now(UTC)
         self._active_id = None
+        self._persist()
         self.job_updated.emit(job_id)
         self.active_changed.emit(False)
         self._start_next()
@@ -172,7 +207,16 @@ class JobQueueController(QObject):
         job.status = "Failed"
         job.error = message
         job.finished_at = datetime.now(UTC)
+        self._persist()
         self.job_updated.emit(str(job.id))
+
+    def _persist(self) -> None:
+        if self.job_repository is None:
+            return
+        try:
+            self.job_repository.save(self.jobs)
+        except OSError as exc:
+            self.persistence_error.emit(f"Could not save the encoding queue: {exc}")
 
     def _find(self, job_id: UUID | None) -> EncodeJob | None:
         return next((job for job in self.jobs if job.id == job_id), None)

@@ -3,7 +3,8 @@ name = "ffmpeg-audio-encoder"
 version = "5.0.0.dev0"
 description = "A cross-platform PySide6 audio encoding front end"
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11,<3.15"
 dependencies = [
     "platformdirs>=4.3",
@@ -22,7 +23,6 @@ build-backend = "hatchling.build"
 dev = [
     "basedpyright>=1.31",
     "pytest>=8.3",
-    "pytest-cov>=6.0",
     "pytest-qt>=4.4",
     "pytest-timeout>=2.3",
     "ruff>=0.12",
@@ -44,9 +44,6 @@ include = ["pyproject.toml", "src/**/*.py", "tests/**/*.py", "build.py"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
 
-[tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101"]
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = ["-q", "--tb=short"]
@@ -60,4 +57,3 @@ strict = [
     "src/ffmpeg_audio_encoder/domain",
     "src/ffmpeg_audio_encoder/encoders",
 ]
-

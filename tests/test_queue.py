@@ -1,3 +1,5 @@
+from dataclasses import replace
+from datetime import UTC, datetime
 from pathlib import Path
 
 from PySide6.QtCore import QObject, Signal
@@ -6,6 +8,7 @@ from ffmpeg_audio_encoder.application.queue import JobQueueController
 from ffmpeg_audio_encoder.domain.models import (
     AudioStream,
     Codec,
+    EncodeJob,
     EncodingRequest,
     JobState,
     OutputFormat,
@@ -14,6 +17,7 @@ from ffmpeg_audio_encoder.domain.models import (
 )
 from ffmpeg_audio_encoder.encoders import default_registry
 from ffmpeg_audio_encoder.encoders.ffmpeg import FlacEncoder
+from ffmpeg_audio_encoder.infrastructure.persistence import JobRepository
 
 
 class FakeRunner(QObject):
@@ -106,3 +110,79 @@ def test_existing_output_requires_explicit_overwrite(tmp_path: Path, qtbot) -> N
     assert job.state is JobState.FAILED
     assert output.read_bytes() == b"existing"
     assert not runner.is_running
+
+
+def test_queue_state_is_persisted_across_transitions(tmp_path: Path, qtbot) -> None:
+    repository = JobRepository(tmp_path / "jobs.json")
+    runner = FakeRunner()
+    controller = JobQueueController(
+        default_registry(),
+        Toolchain(Path("ffmpeg"), Path("ffprobe")),
+        runner=runner,  # type: ignore[arg-type]
+        job_repository=repository,
+    )
+    job = controller.add(request(tmp_path / "one.wav", tmp_path / "one.flac"))
+    assert repository.load()[0].state is JobState.QUEUED
+
+    controller.start()
+    assert repository.load()[0].state is JobState.RUNNING
+    assert runner.plan is not None
+    runner.plan.temporary_output.write_bytes(b"flac")
+    runner.complete()
+
+    restored = repository.load()[0]
+    assert restored.id == job.id
+    assert restored.state is JobState.SUCCEEDED
+    assert restored.finished_at is not None
+
+
+def test_running_job_is_restored_as_failed_without_auto_start(tmp_path: Path, qtbot) -> None:
+    repository = JobRepository(tmp_path / "jobs.json")
+    interrupted = EncodeJob(
+        request=request(tmp_path / "one.wav", tmp_path / "one.flac"),
+        state=JobState.RUNNING,
+        status="Encoding",
+        started_at=datetime(2026, 9, 3, 12, 30, tzinfo=UTC),
+    )
+    repository.save([interrupted])
+    runner = FakeRunner()
+
+    controller = JobQueueController(
+        default_registry(),
+        Toolchain(Path("ffmpeg"), Path("ffprobe")),
+        runner=runner,  # type: ignore[arg-type]
+        job_repository=repository,
+    )
+
+    restored = controller.jobs[0]
+    assert restored.state is JobState.FAILED
+    assert restored.status == "Failed"
+    assert restored.error == "Application exited while this job was encoding."
+    assert restored.finished_at is not None
+    assert not runner.is_running
+    assert repository.load()[0].state is JobState.FAILED
+
+
+def test_restored_job_with_unknown_encoder_is_retained_and_marked_unavailable(
+    tmp_path: Path, qtbot
+) -> None:
+    repository = JobRepository(tmp_path / "jobs.json")
+    unavailable_request = replace(
+        request(tmp_path / "one.wav", tmp_path / "one.flac"),
+        encoder_id="removed.encoder",
+    )
+    repository.save([EncodeJob(request=unavailable_request)])
+    runner = FakeRunner()
+
+    controller = JobQueueController(
+        default_registry(),
+        Toolchain(Path("ffmpeg"), Path("ffprobe")),
+        runner=runner,  # type: ignore[arg-type]
+        job_repository=repository,
+    )
+
+    assert controller.jobs[0].state is JobState.QUEUED
+    assert controller.jobs[0].status == "Unavailable encoder"
+    controller.start()
+    assert controller.jobs[0].state is JobState.FAILED
+    assert controller.jobs[0].error == "Unknown encoder adapter: removed.encoder"

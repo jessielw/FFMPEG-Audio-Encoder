@@ -42,6 +42,10 @@ The custom FFmpeg output-arguments field is saved in presets and is parsed into 
 it is never executed through a shell. Managed progress, muxer, and output arguments remain under
 application control.
 
+The encoding queue is saved atomically to a versioned `jobs.json` file in the application
+configuration directory. Queued jobs remain paused after restart. A job that was running when
+the application exited is restored as failed so it can be reviewed and retried safely.
+
 ## Legacy v4
 
 The original program depends on working-directory-relative paths:

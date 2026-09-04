@@ -1,14 +1,23 @@
+from datetime import UTC, datetime
 from pathlib import Path
 
 from ffmpeg_audio_encoder.domain.models import (
     AppSettings,
+    AudioStream,
     Codec,
     CommonAudioOptions,
+    EncodeJob,
     EncoderPreset,
+    EncodingRequest,
+    JobState,
     OutputFormat,
     ThemePreference,
 )
-from ffmpeg_audio_encoder.infrastructure.persistence import PresetRepository, SettingsRepository
+from ffmpeg_audio_encoder.infrastructure.persistence import (
+    JobRepository,
+    PresetRepository,
+    SettingsRepository,
+)
 
 
 def test_settings_round_trip(tmp_path: Path) -> None:
@@ -78,3 +87,58 @@ def test_legacy_channel_counts_are_migrated(tmp_path: Path) -> None:
     )
     presets = PresetRepository(path).load()
     assert presets[0].common == CommonAudioOptions(48000, "stereo")
+
+
+def test_jobs_round_trip_all_durable_fields(tmp_path: Path) -> None:
+    repository = JobRepository(tmp_path / "jobs.json")
+    created_at = datetime(2026, 9, 3, 12, 30, tzinfo=UTC)
+    started_at = datetime(2026, 9, 3, 12, 31, tzinfo=UTC)
+    finished_at = datetime(2026, 9, 3, 12, 32, tzinfo=UTC)
+    job = EncodeJob(
+        request=EncodingRequest(
+            input_path=tmp_path / "input.mkv",
+            stream=AudioStream(
+                2,
+                1,
+                "aac",
+                channels=6,
+                channel_layout="5.1",
+                sample_rate=48000,
+                language="eng",
+                title="Main",
+                duration_seconds=65.5,
+            ),
+            encoder_id="ffmpeg.libopus",
+            codec=Codec.OPUS,
+            output_format=OutputFormat.OGG_OPUS,
+            output_path=tmp_path / "output.opus",
+            common=CommonAudioOptions(48000, "stereo"),
+            encoder_options={
+                "bitrate_kbps": 128,
+                "vbr": "on",
+                "custom_args": "-cutoff 20000",
+            },
+        ),
+        overwrite=True,
+        state=JobState.FAILED,
+        error="test failure",
+        created_at=created_at,
+        started_at=started_at,
+        finished_at=finished_at,
+    )
+
+    repository.save([job])
+
+    assert repository.load() == [job]
+    assert not (tmp_path / ".jobs.json.tmp").exists()
+
+
+def test_malformed_jobs_are_quarantined(tmp_path: Path) -> None:
+    path = tmp_path / "jobs.json"
+    path.write_text("not json", encoding="utf-8")
+
+    assert JobRepository(path).load() == []
+    assert not path.exists()
+    quarantined = list(tmp_path.glob("jobs.corrupt-*.json"))
+    assert len(quarantined) == 1
+    assert quarantined[0].read_text(encoding="utf-8") == "not json"

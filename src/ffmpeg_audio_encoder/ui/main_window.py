@@ -51,7 +51,11 @@ from ffmpeg_audio_encoder.domain.models import (
 from ffmpeg_audio_encoder.encoders import default_registry
 from ffmpeg_audio_encoder.encoders.base import EncoderAdapter
 from ffmpeg_audio_encoder.infrastructure.output import default_output_path, temporary_output_path
-from ffmpeg_audio_encoder.infrastructure.persistence import PresetRepository, SettingsRepository
+from ffmpeg_audio_encoder.infrastructure.persistence import (
+    JobRepository,
+    PresetRepository,
+    SettingsRepository,
+)
 from ffmpeg_audio_encoder.infrastructure.probe import QtMediaProbe
 from ffmpeg_audio_encoder.infrastructure.tools import (
     ToolReport,
@@ -84,10 +88,12 @@ class MainWindow(QMainWindow):
         preset_repository: PresetRepository,
         theme_manager: ThemeManager,
         tool_report: ToolReport | None,
+        job_repository: JobRepository | None = None,
     ) -> None:
         super().__init__()
         self.settings_repository = settings_repository
         self.preset_repository = preset_repository
+        self.job_repository = job_repository
         self.theme_manager = theme_manager
         self.settings = settings_repository.load()
         self.registry = default_registry()
@@ -399,9 +405,17 @@ class MainWindow(QMainWindow):
         self.probe_service = QtMediaProbe(report.toolchain.ffprobe, self)
         self.probe_service.completed.connect(self._probe_completed)
         self.probe_service.failed.connect(self._probe_failed)
-        self.queue = JobQueueController(self.registry, report.toolchain, parent=self)
+        self.queue = JobQueueController(
+            self.registry,
+            report.toolchain,
+            job_repository=self.job_repository,
+            parent=self,
+        )
         self.queue.log.connect(self._append_log)
         self.queue.active_changed.connect(self._active_changed)
+        self.queue.persistence_error.connect(
+            lambda message: self.statusBar().showMessage(message, 12000)
+        )
         self.queue_model.set_controller(self.queue)
         self.statusBar().showMessage(
             f"Ready · {report.ffmpeg_version} · {report.ffprobe_version}", 12000
