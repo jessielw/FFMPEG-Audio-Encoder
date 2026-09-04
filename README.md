@@ -1,0 +1,53 @@
+# FFmpeg Audio Encoder v5
+
+This branch contains a clean PySide6 successor to the original Tkinter application. The
+maintained legacy source remains available in [`legacy_v4`](legacy_v4/README.md).
+
+## Development
+
+```console
+uv sync --group dev
+uv run ffmpeg-audio-encoder
+```
+
+Install FFmpeg and ffprobe on `PATH`, or select their executables in application settings.
+
+```console
+uv run ruff format --check .
+uv run ruff check .
+uv run basedpyright
+uv run pytest
+uv run ffmpeg-audio-encoder --diagnostics
+```
+
+Build a native one-folder application bundle with `uv sync --group build` followed by
+`uv run python build.py`.
+
+FFmpeg and third-party encoders are intentionally not bundled. The application detects the
+encoders and muxers exposed by the configured FFmpeg build and disables unavailable choices.
+
+| Codec | FFmpeg encoder | Output |
+| --- | --- | --- |
+| Opus | `libopus` | Ogg Opus (`.opus`) |
+| FLAC | `flac` | FLAC (`.flac`) |
+| AAC | `aac` | M4A (`.m4a`) or ADTS (`.aac`) |
+| MP3 | `libmp3lame` | MP3 (`.mp3`) |
+| AC-3 | `ac3` | Raw AC-3 (`.ac3`) |
+| E-AC-3 | `eac3` | Raw E-AC-3 (`.eac3`) |
+| DTS | `dca` | Raw DTS (`.dts`) |
+| ALAC | `alac` | M4A (`.m4a`) |
+
+Each adapter exposes curated rate-control and quality settings plus codec-aware channel layouts.
+The custom FFmpeg output-arguments field is saved in presets and is parsed into an argument list;
+it is never executed through a shell. Managed progress, muxer, and output arguments remain under
+application control.
+
+## Legacy v4
+
+The original program depends on working-directory-relative paths:
+
+```console
+cd legacy_v4
+uv sync
+uv run python FFMPEGAudioEncoder.py
+```

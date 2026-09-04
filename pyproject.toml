@@ -1,0 +1,63 @@
+[project]
+name = "ffmpeg-audio-encoder"
+version = "5.0.0.dev0"
+description = "A cross-platform PySide6 audio encoding front end"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11,<3.15"
+dependencies = [
+    "platformdirs>=4.3",
+    "pyside6-essentials>=6.8",
+    "qtawesome>=1.4",
+]
+
+[project.gui-scripts]
+ffmpeg-audio-encoder = "ffmpeg_audio_encoder.__main__:main"
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.31",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "pytest-qt>=4.4",
+    "pytest-timeout>=2.3",
+    "ruff>=0.12",
+]
+build = [
+    "pyinstaller>=6.15",
+    "pyinstaller-hooks-contrib>=2025.8",
+    "setuptools>=78,<82",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ffmpeg_audio_encoder"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+include = ["pyproject.toml", "src/**/*.py", "tests/**/*.py", "build.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["-q", "--tb=short"]
+timeout = 60
+timeout_method = "thread"
+
+[tool.basedpyright]
+include = ["src", "tests", "build.py"]
+typeCheckingMode = "standard"
+strict = [
+    "src/ffmpeg_audio_encoder/domain",
+    "src/ffmpeg_audio_encoder/encoders",
+]
+

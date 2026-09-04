@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg libegl1
+      - run: uv sync --group dev
+      - run: uv run ruff format --check .
+      - run: uv run ruff check .
+      - run: uv run basedpyright
+      - run: uv run pytest
+
+  bundle:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-13, macos-14]
+    runs-on: ${{ matrix.os }}
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg libegl1
+      - if: runner.os == 'macOS'
+        run: brew install ffmpeg
+      - if: runner.os == 'Windows'
+        run: choco install ffmpeg -y --no-progress
+      - run: uv sync --group dev --group build
+      - run: uv run pytest
+      - run: uv run python build.py
+      - if: runner.os == 'Windows'
+        run: .\dist\FFMPEGAudioEncoder\FFMPEGAudioEncoder.exe --version
+      - if: runner.os == 'Linux'
+        run: ./dist/FFMPEGAudioEncoder/FFMPEGAudioEncoder --version
+      - if: runner.os == 'macOS'
+        run: ./dist/FFMPEGAudioEncoder.app/Contents/MacOS/FFMPEGAudioEncoder --version
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FFMPEGAudioEncoder-${{ matrix.os }}
+          path: dist/

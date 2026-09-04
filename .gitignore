@@ -1,0 +1,29 @@
+.idea/
+.vscode/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.spec
+artifacts/
+
+# Existing local developer files.
+Apps/
+test.py
+
+# Legacy v4 runtime output. Keep its checked-in Runtime/Images directory.
+legacy_v4/Apps/
+legacy_v4/Encoder/
+legacy_v4/FFMPEGAudioEncoder.exe
+legacy_v4/Runtime/jobs.dat
+legacy_v4/Runtime/logs/
+legacy_v4/config.ini
+legacy_v4/profiles.ini
+legacy_v4/ytconfig.ini
+legacy_v4/test.py
