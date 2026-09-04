@@ -154,6 +154,59 @@ def test_generated_aac_form_supports_decimal_conditional_and_text_options(
     assert window.channels.findData("7.1") >= 0
 
 
+def test_sample_rate_choices_follow_ffmpeg_encoder_capabilities(
+    tmp_path: Path, qtbot, qapp: QApplication
+) -> None:
+    report = ToolReport(
+        Toolchain(Path("ffmpeg"), Path("ffprobe")),
+        "ffmpeg version",
+        "ffprobe version",
+        frozenset({"aac", "ac3", "flac"}),
+        frozenset({"ipod", "adts", "ac3", "flac"}),
+    )
+    window = MainWindow(
+        SettingsRepository(tmp_path / "settings.json"),
+        PresetRepository(tmp_path / "presets.json"),
+        ThemeManager(qapp),
+        report,
+    )
+    qtbot.addWidget(window)
+
+    window.encoder_combo.setCurrentIndex(window.encoder_combo.findData("ffmpeg.aac"))
+    assert not window.sample_rate.isEditable()
+    assert [window.sample_rate.itemData(index) for index in range(window.sample_rate.count())] == [
+        None,
+        7350,
+        8000,
+        11025,
+        12000,
+        16000,
+        22050,
+        24000,
+        32000,
+        44100,
+        48000,
+        64000,
+        88200,
+        96000,
+    ]
+
+    window.sample_rate.setCurrentIndex(window.sample_rate.findData(44100))
+    window.encoder_combo.setCurrentIndex(window.encoder_combo.findData("ffmpeg.ac3"))
+    assert window.sample_rate.currentData() == 44100
+    assert [window.sample_rate.itemData(index) for index in range(window.sample_rate.count())] == [
+        None,
+        32000,
+        44100,
+        48000,
+    ]
+
+    window.encoder_combo.setCurrentIndex(window.encoder_combo.findData("ffmpeg.flac"))
+    assert window.sample_rate.isEditable()
+    assert window._set_sample_rate(12345)
+    assert window._sample_rate_value() == 12345
+
+
 def test_theme_manager_produces_a_real_icon(qapp: QApplication, qtbot) -> None:
     from PySide6.QtWidgets import QPushButton
 

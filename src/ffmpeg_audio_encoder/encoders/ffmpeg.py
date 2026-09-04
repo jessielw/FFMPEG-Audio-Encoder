@@ -56,6 +56,44 @@ ALAC_LAYOUTS = _layouts(
 )
 MP3_LAYOUTS = _layouts("mono", "stereo")
 
+OPUS_SAMPLE_RATES = (8000, 12000, 16000, 24000, 48000)
+AAC_SAMPLE_RATES = (
+    7350,
+    8000,
+    11025,
+    12000,
+    16000,
+    22050,
+    24000,
+    32000,
+    44100,
+    48000,
+    64000,
+    88200,
+    96000,
+)
+MP3_SAMPLE_RATES = (8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000)
+DOLBY_SAMPLE_RATES = (32000, 44100, 48000)
+DTS_SAMPLE_RATES = (8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000)
+LOSSLESS_SAMPLE_RATE_CHOICES = (
+    8000,
+    11025,
+    12000,
+    16000,
+    22050,
+    24000,
+    32000,
+    44100,
+    48000,
+    64000,
+    88200,
+    96000,
+    176400,
+    192000,
+    352800,
+    384000,
+)
+
 AC3_BITRATES = (
     32,
     40,
@@ -172,8 +210,23 @@ def _validate_identity(request: EncodingRequest, descriptor: EncoderDescriptor) 
         raise ValidationError(f"{descriptor.display_name} cannot write {request.output_format}")
     if request.stream.index < 0:
         raise ValidationError("Audio stream index cannot be negative")
-    if request.common.sample_rate is not None and request.common.sample_rate <= 0:
-        raise ValidationError("Sample rate must be positive")
+    sample_rate = request.common.sample_rate
+    if sample_rate is not None:
+        if sample_rate <= 0:
+            raise ValidationError("Sample rate must be positive")
+        if descriptor.sample_rate_range is not None:
+            minimum, maximum = descriptor.sample_rate_range
+            if not minimum <= sample_rate <= maximum:
+                raise ValidationError(
+                    f"{descriptor.display_name} supports sample rates from "
+                    f"{minimum} Hz to {maximum} Hz"
+                )
+        elif descriptor.sample_rate_choices and sample_rate not in descriptor.sample_rate_choices:
+            supported = ", ".join(str(rate) for rate in descriptor.sample_rate_choices)
+            raise ValidationError(
+                f"{descriptor.display_name} does not support {sample_rate} Hz; "
+                f"supported sample rates: {supported} Hz"
+            )
     layout = request.common.channel_layout
     if layout is not None and layout not in {choice.value for choice in descriptor.channel_layouts}:
         raise ValidationError(f"{descriptor.display_name} does not support the {layout} layout")
@@ -322,6 +375,7 @@ class OpusEncoder(_FfmpegEncoder):
         ),
         required_ffmpeg_encoders=("libopus",),
         channel_layouts=COMMON_LAYOUTS,
+        sample_rate_choices=OPUS_SAMPLE_RATES,
     )
 
     def build_plan(
@@ -364,6 +418,8 @@ class FlacEncoder(_FfmpegEncoder):
         ),
         required_ffmpeg_encoders=("flac",),
         channel_layouts=COMMON_LAYOUTS,
+        sample_rate_choices=LOSSLESS_SAMPLE_RATE_CHOICES,
+        sample_rate_range=(1, 1_048_575),
     )
 
     def build_plan(
@@ -430,6 +486,7 @@ class AacEncoder(_FfmpegEncoder):
         ),
         required_ffmpeg_encoders=("aac",),
         channel_layouts=COMMON_LAYOUTS,
+        sample_rate_choices=AAC_SAMPLE_RATES,
     )
 
     def build_plan(
@@ -511,6 +568,7 @@ class Mp3Encoder(_FfmpegEncoder):
         ),
         required_ffmpeg_encoders=("libmp3lame",),
         channel_layouts=MP3_LAYOUTS,
+        sample_rate_choices=MP3_SAMPLE_RATES,
     )
 
     def build_plan(
@@ -557,6 +615,7 @@ class Ac3Encoder(_FfmpegEncoder):
         ),
         required_ffmpeg_encoders=("ac3",),
         channel_layouts=DOLBY_LAYOUTS,
+        sample_rate_choices=DOLBY_SAMPLE_RATES,
     )
 
     def build_plan(
@@ -589,6 +648,7 @@ class Eac3Encoder(_FfmpegEncoder):
         ),
         required_ffmpeg_encoders=("eac3",),
         channel_layouts=DOLBY_LAYOUTS,
+        sample_rate_choices=DOLBY_SAMPLE_RATES,
     )
 
     def build_plan(
@@ -621,6 +681,7 @@ class DtsEncoder(_FfmpegEncoder):
         ),
         required_ffmpeg_encoders=("dca",),
         channel_layouts=DTS_LAYOUTS,
+        sample_rate_choices=DTS_SAMPLE_RATES,
     )
 
     def build_plan(
@@ -647,6 +708,8 @@ class AlacEncoder(_FfmpegEncoder):
         ),
         required_ffmpeg_encoders=("alac",),
         channel_layouts=ALAC_LAYOUTS,
+        sample_rate_choices=LOSSLESS_SAMPLE_RATE_CHOICES,
+        sample_rate_range=(1, 2_147_483_647),
     )
 
     def build_plan(

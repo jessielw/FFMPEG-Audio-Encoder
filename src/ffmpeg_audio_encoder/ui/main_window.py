@@ -5,7 +5,13 @@ from pathlib import Path
 from uuid import UUID
 
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QCloseEvent, QDragEnterEvent, QDropEvent, QStandardItemModel
+from PySide6.QtGui import (
+    QCloseEvent,
+    QDragEnterEvent,
+    QDropEvent,
+    QIntValidator,
+    QStandardItemModel,
+)
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QCheckBox,
@@ -175,10 +181,8 @@ class MainWindow(QMainWindow):
         self.format_combo = QComboBox()
         self.codec_combo.setEnabled(False)
         self.format_combo.setEnabled(False)
-        self.sample_rate = QSpinBox()
-        self.sample_rate.setRange(0, 384000)
-        self.sample_rate.setSingleStep(1000)
-        self.sample_rate.setSpecialValueText("Preserve")
+        self.sample_rate = QComboBox()
+        self.sample_rate.addItem("Preserve", None)
         self.channels = QComboBox()
         self.channels.addItem("Preserve", None)
         config_form.addRow("Audio stream", self.stream_combo)
@@ -346,7 +350,7 @@ class MainWindow(QMainWindow):
         self.input_table.itemSelectionChanged.connect(self._sync_selected_draft)
         self.stream_combo.currentIndexChanged.connect(self._stream_changed)
         self.encoder_combo.currentIndexChanged.connect(self._encoder_changed)
-        self.sample_rate.valueChanged.connect(self._refresh_preview)
+        self.sample_rate.currentTextChanged.connect(self._refresh_preview)
         self.channels.currentIndexChanged.connect(self._refresh_preview)
         self.output_edit.textEdited.connect(self._output_edited)
         self.queue_selected_button.clicked.connect(self._queue_selected)
@@ -466,6 +470,7 @@ class MainWindow(QMainWindow):
     def _encoder_changed(self, *_args: object) -> None:
         adapter = self._current_adapter()
         current_layout = self.channels.currentData()
+        current_sample_rate = self._sample_rate_value()
         self.codec_combo.clear()
         self.format_combo.clear()
         self.channels.clear()
@@ -481,8 +486,65 @@ class MainWindow(QMainWindow):
             self.channels.addItem(layout.label, layout.value)
         layout_index = self.channels.findData(current_layout)
         self.channels.setCurrentIndex(max(layout_index, 0))
+        self._populate_sample_rates(adapter, current_sample_rate)
         self._rebuild_option_widgets(adapter)
         self._refresh_preview()
+
+    def _populate_sample_rates(
+        self, adapter: EncoderAdapter, current_sample_rate: int | None
+    ) -> None:
+        descriptor = adapter.descriptor
+        self.sample_rate.blockSignals(True)
+        self.sample_rate.clear()
+        self.sample_rate.setEditable(descriptor.sample_rate_range is not None)
+        self.sample_rate.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
+        self.sample_rate.addItem("Preserve", None)
+        for rate in descriptor.sample_rate_choices:
+            self.sample_rate.addItem(f"{rate:,} Hz", rate)
+        if descriptor.sample_rate_range is not None:
+            minimum, maximum = descriptor.sample_rate_range
+            line_edit = self.sample_rate.lineEdit()
+            if line_edit is not None:
+                line_edit.setValidator(QIntValidator(minimum, maximum, line_edit))
+            self.sample_rate.setToolTip(
+                "Choose a common rate or type any rate supported by this encoder "
+                f"from {minimum:,} to {maximum:,} Hz."
+            )
+        else:
+            self.sample_rate.setToolTip("Sample rates supported by this FFmpeg encoder.")
+        self._set_sample_rate(current_sample_rate)
+        self.sample_rate.blockSignals(False)
+
+    def _sample_rate_value(self) -> int | None:
+        data = self.sample_rate.currentData()
+        if isinstance(data, int) and not isinstance(data, bool):
+            return data
+        text = self.sample_rate.currentText().strip()
+        if not text or self.sample_rate.currentIndex() == 0:
+            return None
+        try:
+            return int(text)
+        except ValueError as exc:
+            raise ValueError("Enter a valid sample rate in Hz") from exc
+
+    def _set_sample_rate(self, sample_rate: int | None) -> bool:
+        if sample_rate is None:
+            self.sample_rate.setCurrentIndex(0)
+            return True
+        index = self.sample_rate.findData(sample_rate)
+        if index >= 0:
+            self.sample_rate.setCurrentIndex(index)
+            return True
+        adapter = self._current_adapter()
+        limits = adapter.descriptor.sample_rate_range if adapter is not None else None
+        if self.sample_rate.isEditable() and limits is not None:
+            minimum, maximum = limits
+            if minimum <= sample_rate <= maximum:
+                self.sample_rate.setCurrentIndex(-1)
+                self.sample_rate.setEditText(str(sample_rate))
+                return True
+        self.sample_rate.setCurrentIndex(0)
+        return False
 
     def _rebuild_option_widgets(self, adapter: EncoderAdapter) -> None:
         while self.options_form.rowCount():
@@ -678,7 +740,7 @@ class MainWindow(QMainWindow):
             output_format=output_format,
             output_path=output,
             common=CommonAudioOptions(
-                sample_rate=self.sample_rate.value() or None,
+                sample_rate=self._sample_rate_value(),
                 channel_layout=self.channels.currentData(),
             ),
             encoder_options=self._current_options(),
@@ -797,7 +859,7 @@ class MainWindow(QMainWindow):
             adapter.descriptor.id,
             codec,
             output_format,
-            CommonAudioOptions(self.sample_rate.value() or None, self.channels.currentData()),
+            CommonAudioOptions(self._sample_rate_value(), self.channels.currentData()),
             self._current_options(),
         )
         self.presets = [
@@ -821,7 +883,11 @@ class MainWindow(QMainWindow):
         self.encoder_combo.setCurrentIndex(adapter_index)
         self.codec_combo.setCurrentIndex(self.codec_combo.findData(preset.codec.value))
         self.format_combo.setCurrentIndex(self.format_combo.findData(preset.output_format.value))
-        self.sample_rate.setValue(preset.common.sample_rate or 0)
+        if not self._set_sample_rate(preset.common.sample_rate):
+            self.statusBar().showMessage(
+                "The preset's sample rate is not supported by this encoder; preserving input rate.",
+                12000,
+            )
         self.channels.setCurrentIndex(self.channels.findData(preset.common.channel_layout))
         for key, value in preset.encoder_options.items():
             widget = self.option_widgets.get(key)

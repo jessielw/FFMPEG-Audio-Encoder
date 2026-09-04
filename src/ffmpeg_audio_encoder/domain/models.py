@@ -199,6 +199,8 @@ class EncoderDescriptor:
     required_tools: tuple[str, ...] = ("ffmpeg",)
     required_ffmpeg_encoders: tuple[str, ...] = ()
     channel_layouts: tuple[ChannelLayoutChoice, ...] = ()
+    sample_rate_choices: tuple[int, ...] = ()
+    sample_rate_range: tuple[int, int] | None = None
 
 
 @dataclass(frozen=True, slots=True)

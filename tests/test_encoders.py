@@ -183,3 +183,95 @@ def test_codec_specific_layout_is_validated() -> None:
                 encoder.default_options(),
             )
         )
+
+
+@pytest.mark.parametrize(
+    ("encoder", "expected_rates"),
+    [
+        (OpusEncoder(), (8000, 12000, 16000, 24000, 48000)),
+        (
+            AacEncoder(),
+            (
+                7350,
+                8000,
+                11025,
+                12000,
+                16000,
+                22050,
+                24000,
+                32000,
+                44100,
+                48000,
+                64000,
+                88200,
+                96000,
+            ),
+        ),
+        (
+            Mp3Encoder(),
+            (8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000),
+        ),
+        (Ac3Encoder(), (32000, 44100, 48000)),
+        (Eac3Encoder(), (32000, 44100, 48000)),
+        (
+            DtsEncoder(),
+            (8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000),
+        ),
+    ],
+)
+def test_fixed_rate_encoders_describe_ffmpeg_supported_rates(
+    encoder, expected_rates: tuple[int, ...]
+) -> None:
+    assert encoder.descriptor.sample_rate_choices == expected_rates
+    assert encoder.descriptor.sample_rate_range is None
+
+
+def test_fixed_rate_encoder_rejects_an_unsupported_sample_rate() -> None:
+    encoder = AacEncoder()
+    with pytest.raises(ValidationError, match="does not support 50000 Hz"):
+        encoder.validate(
+            EncodingRequest(
+                Path("input.wav"),
+                AudioStream(0, 1, "pcm_s16le"),
+                encoder.descriptor.id,
+                Codec.AAC,
+                OutputFormat.M4A,
+                Path("output.m4a"),
+                CommonAudioOptions(sample_rate=50000),
+                encoder.default_options(),
+            )
+        )
+
+
+@pytest.mark.parametrize("sample_rate", [12345, 384000, 1_048_575])
+def test_flac_accepts_nonstandard_rates_within_ffmpeg_range(sample_rate: int) -> None:
+    encoder = FlacEncoder()
+    encoder.validate(
+        EncodingRequest(
+            Path("input.wav"),
+            AudioStream(0, 1, "pcm_s16le"),
+            encoder.descriptor.id,
+            Codec.FLAC,
+            OutputFormat.FLAC,
+            Path("output.flac"),
+            CommonAudioOptions(sample_rate=sample_rate),
+            encoder.default_options(),
+        )
+    )
+
+
+def test_flac_rejects_a_rate_above_ffmpeg_limit() -> None:
+    encoder = FlacEncoder()
+    with pytest.raises(ValidationError, match="supports sample rates from"):
+        encoder.validate(
+            EncodingRequest(
+                Path("input.wav"),
+                AudioStream(0, 1, "pcm_s16le"),
+                encoder.descriptor.id,
+                Codec.FLAC,
+                OutputFormat.FLAC,
+                Path("output.flac"),
+                CommonAudioOptions(sample_rate=1_048_576),
+                encoder.default_options(),
+            )
+        )
