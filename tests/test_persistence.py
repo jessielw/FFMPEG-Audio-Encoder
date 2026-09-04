@@ -154,6 +154,23 @@ def test_jobs_round_trip_all_durable_fields(tmp_path: Path) -> None:
     assert not (tmp_path / ".jobs.json.tmp").exists()
 
 
+def test_signed_audio_delay_round_trips_and_defaults_to_zero(tmp_path: Path) -> None:
+    repository = PresetRepository(tmp_path / "presets.json")
+    preset = EncoderPreset(
+        "Delayed",
+        "ffmpeg.flac",
+        Codec.FLAC,
+        OutputFormat.FLAC,
+        CommonAudioOptions(delay_ms=-125.5),
+        {"compression_level": 5},
+    )
+
+    repository.save([preset])
+
+    assert repository.load() == [preset]
+    assert CommonAudioOptions().delay_ms == 0.0
+
+
 def test_malformed_jobs_are_quarantined(tmp_path: Path) -> None:
     path = tmp_path / "jobs.json"
     path.write_text("not json", encoding="utf-8")

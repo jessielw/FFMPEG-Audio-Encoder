@@ -238,6 +238,14 @@ def _validate_identity(request: EncodingRequest, descriptor: EncoderDescriptor) 
         or not 0.25 <= request.common.tempo_ratio <= 4.0
     ):
         raise ValidationError("Tempo must be between 0.25x and 4.0x")
+    if (
+        not math.isfinite(request.common.delay_ms)
+        or not -86_400_000 <= request.common.delay_ms <= 86_400_000
+    ):
+        raise ValidationError("Audio delay must be between -86400000 ms and 86400000 ms")
+    duration = _adjusted_duration(request)
+    if request.common.delay_ms < 0 and duration is not None and duration <= 0:
+        raise ValidationError("Negative audio delay must leave some audio to encode")
 
 
 def _validate_options(request: EncodingRequest, descriptor: EncoderDescriptor) -> None:
@@ -314,13 +322,35 @@ def _audio_filters(request: EncodingRequest) -> list[str]:
         ratio /= 2.0
     if not math.isclose(ratio, 1.0):
         filters.append(f"atempo={ratio:g}")
+    delay_ms = request.common.delay_ms
+    if delay_ms > 0:
+        filters.append(f"adelay={_format_seconds(delay_ms / 1000)}s:all=1")
+    elif delay_ms < 0:
+        filters.extend(
+            (
+                f"atrim=start={_format_seconds(abs(delay_ms) / 1000)}",
+                "asetpts=PTS-STARTPTS",
+            )
+        )
     return filters
+
+
+def _format_seconds(value: float) -> str:
+    return f"{value:.9f}".rstrip("0").rstrip(".")
+
+
+def _adjusted_duration(request: EncodingRequest) -> float | None:
+    duration = request.stream.duration_seconds
+    if duration is None:
+        return None
+    return duration / request.common.tempo_ratio + request.common.delay_ms / 1000
 
 
 # Shared adapter primitives. The underscore-prefixed implementations remain for
 # compatibility with the original FFmpeg adapters.
 base_arguments = _base_arguments
 custom_arguments = _custom_arguments
+adjusted_duration = _adjusted_duration
 integer_option = _integer_option
 string_option = _string_option
 validate_identity = _validate_identity
@@ -349,7 +379,7 @@ def _finish_plan(
         (ProcessStage(toolchain.ffmpeg, tuple(arguments), "stdout"),),
         temporary_output,
         request.output_path,
-        request.stream.duration_seconds,
+        _adjusted_duration(request),
     )
 
 

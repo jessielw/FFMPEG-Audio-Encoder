@@ -62,6 +62,8 @@ publish, cancellation, and progress behavior as the internal FFmpeg adapters. qa
 a working Apple CoreAudioToolbox installation; its startup check determines availability.
 
 Each adapter exposes curated rate-control and quality settings plus codec-aware channel layouts.
+Common audio controls include gain, tempo, and a signed millisecond delay: positive delay prepends
+silence and negative delay trims the beginning before encoding.
 The custom FFmpeg output-arguments field is saved in presets and is parsed into an argument list;
 it is never executed through a shell. Managed progress, muxer, and output arguments remain under
 application control.

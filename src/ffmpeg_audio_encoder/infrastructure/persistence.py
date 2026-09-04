@@ -333,11 +333,13 @@ def _decode_options(value: object) -> dict[str, JsonScalar]:
 def _decode_common(raw: dict[str, Any]) -> CommonAudioOptions:
     gain = _optional_float(raw.get("gain_db"))
     tempo = _optional_float(raw.get("tempo_ratio"))
+    delay = _optional_float(raw.get("delay_ms"))
     return CommonAudioOptions(
         sample_rate=_optional_int(raw.get("sample_rate")),
         channel_layout=_decode_channel_layout(raw),
         gain_db=0.0 if gain is None else gain,
         tempo_ratio=1.0 if tempo is None else tempo,
+        delay_ms=0.0 if delay is None else delay,
     )
 
 

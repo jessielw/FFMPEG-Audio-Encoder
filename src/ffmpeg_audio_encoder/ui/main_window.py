@@ -228,6 +228,14 @@ class MainWindow(QMainWindow):
         self.tempo_ratio.setDecimals(3)
         self.tempo_ratio.setSingleStep(0.001)
         self.tempo_ratio.setValue(1.0)
+        self.delay_ms = QDoubleSpinBox()
+        self.delay_ms.setRange(-86_400_000.0, 86_400_000.0)
+        self.delay_ms.setDecimals(3)
+        self.delay_ms.setSingleStep(1.0)
+        self.delay_ms.setSuffix(" ms")
+        self.delay_ms.setToolTip(
+            "Positive values prepend silence; negative values trim the beginning."
+        )
         self.tempo_ratio.setSuffix("x")
         self.stream_details_button = QPushButton("Inspect selected stream")
         config_form.addRow("Audio stream", self.stream_combo)
@@ -239,6 +247,7 @@ class MainWindow(QMainWindow):
         config_form.addRow("Channel layout", self.channels)
         config_form.addRow("Gain", self.gain_db)
         config_form.addRow("Tempo", self.tempo_ratio)
+        config_form.addRow("Audio delay", self.delay_ms)
         general_layout.addLayout(config_form)
         general_layout.addStretch(1)
 
@@ -431,6 +440,7 @@ class MainWindow(QMainWindow):
         self.channels.currentIndexChanged.connect(self._common_options_changed)
         self.gain_db.valueChanged.connect(self._common_options_changed)
         self.tempo_ratio.valueChanged.connect(self._common_options_changed)
+        self.delay_ms.valueChanged.connect(self._common_options_changed)
         self.output_edit.textEdited.connect(self._output_edited)
         self.browse_output_button.clicked.connect(self._browse_output)
         self.queue_selected_button.clicked.connect(self._queue_selected)
@@ -967,6 +977,7 @@ class MainWindow(QMainWindow):
                 channel_layout=self.channels.currentData(),
                 gain_db=self.gain_db.value(),
                 tempo_ratio=self.tempo_ratio.value(),
+                delay_ms=self.delay_ms.value(),
             ),
             encoder_options=self._current_options(),
         )
@@ -1351,6 +1362,7 @@ class MainWindow(QMainWindow):
                 self.channels.currentData(),
                 self.gain_db.value(),
                 self.tempo_ratio.value(),
+                self.delay_ms.value(),
             ),
             self._current_options(),
         )
@@ -1400,6 +1412,7 @@ class MainWindow(QMainWindow):
         self.channels.setCurrentIndex(max(layout_index, 0))
         self.gain_db.setValue(configuration.common.gain_db)
         self.tempo_ratio.setValue(configuration.common.tempo_ratio)
+        self.delay_ms.setValue(configuration.common.delay_ms)
         for key, value in configuration.encoder_options.items():
             widget = self.option_widgets.get(key)
             if (
@@ -1450,6 +1463,7 @@ class MainWindow(QMainWindow):
                 self.channels.currentData(),
                 self.gain_db.value(),
                 self.tempo_ratio.value(),
+                self.delay_ms.value(),
             ),
             self._current_options(),
         )

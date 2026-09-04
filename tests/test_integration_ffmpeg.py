@@ -47,6 +47,7 @@ def tool_report():
         pytest.skip(str(exc))
 
 
+@pytest.mark.parametrize("delay_ms", [25.0, -25.0])
 @pytest.mark.parametrize(
     ("encoder_id", "codec", "output_format"),
     [
@@ -67,6 +68,7 @@ def test_real_qprocess_queue_encode(
     encoder_id: str,
     codec: Codec,
     output_format: OutputFormat,
+    delay_ms: float,
 ) -> None:
     source = tmp_path / "tone.wav"
     output = tmp_path / f"tone{output_format.suffix}"
@@ -84,7 +86,7 @@ def test_real_qprocess_queue_encode(
         codec,
         output_format,
         output,
-        CommonAudioOptions(channel_layout="stereo"),
+        CommonAudioOptions(channel_layout="stereo", delay_ms=delay_ms),
         encoder_options=adapter.default_options(),
     )
     queue = JobQueueController(registry, tool_report.toolchain)

@@ -177,6 +177,7 @@ class CommonAudioOptions:
     channel_layout: str | None = None
     gain_db: float = 0.0
     tempo_ratio: float = 1.0
+    delay_ms: float = 0.0
 
 
 @dataclass(frozen=True, slots=True)

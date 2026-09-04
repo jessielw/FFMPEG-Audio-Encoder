@@ -115,7 +115,7 @@ def test_main_window_restores_last_encoder_configuration(
                 "ffmpeg.flac",
                 Codec.FLAC,
                 OutputFormat.FLAC,
-                CommonAudioOptions(44_100, "stereo", 2.5, 1.25),
+                CommonAudioOptions(44_100, "stereo", 2.5, 1.25, -125.5),
                 {"compression_level": 7, "custom_args": ""},
             )
         )
@@ -141,6 +141,7 @@ def test_main_window_restores_last_encoder_configuration(
     assert window.channels.currentData() == "stereo"
     assert window.gain_db.value() == 2.5
     assert window.tempo_ratio.value() == 1.25
+    assert window.delay_ms.value() == -125.5
     assert window.option_widgets["compression_level"].property("value") == 7
 
 
@@ -166,6 +167,8 @@ def test_main_window_probes_input_and_switches_generated_encoder_form(
     assert "-c:a libopus" in window.command_preview.toPlainText()
     flac_index = window.encoder_combo.findData("ffmpeg.flac")
     window.encoder_combo.setCurrentIndex(flac_index)
+    window.delay_ms.setValue(-125.5)
+    assert "atrim=start=0.1255,asetpts=PTS-STARTPTS" in window.command_preview.toPlainText()
     assert "-c:a flac" in window.command_preview.toPlainText()
     assert set(window.option_widgets) == {"compression_level", "custom_args"}
 

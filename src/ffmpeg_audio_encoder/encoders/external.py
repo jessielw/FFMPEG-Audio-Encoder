@@ -20,6 +20,7 @@ from ffmpeg_audio_encoder.domain.models import (
 from ffmpeg_audio_encoder.encoders.ffmpeg import (
     AAC_SAMPLE_RATES,
     COMMON_LAYOUTS,
+    adjusted_duration,
     base_arguments,
     custom_arguments,
     integer_option,
@@ -88,7 +89,7 @@ def _external_plan(
         ),
         temporary_output,
         request.output_path,
-        request.stream.duration_seconds,
+        adjusted_duration(request),
     )
 
 

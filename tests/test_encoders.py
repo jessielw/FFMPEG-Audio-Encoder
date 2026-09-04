@@ -410,3 +410,91 @@ def test_flac_rejects_a_rate_above_ffmpeg_limit() -> None:
                 encoder.default_options(),
             )
         )
+
+
+@pytest.mark.parametrize(
+    ("delay_ms", "expected_filter", "expected_duration"),
+    [
+        (125.5, "atempo=2,adelay=0.1255s:all=1", 5.1255),
+        (-125.5, "atempo=2,atrim=start=0.1255,asetpts=PTS-STARTPTS", 4.8745),
+    ],
+)
+def test_signed_delay_is_applied_after_tempo_and_adjusts_duration(
+    tmp_path: Path,
+    delay_ms: float,
+    expected_filter: str,
+    expected_duration: float,
+) -> None:
+    encoder = OpusEncoder()
+    original = opus_request()
+    request = EncodingRequest(
+        original.input_path,
+        original.stream,
+        original.encoder_id,
+        original.codec,
+        original.output_format,
+        original.output_path,
+        CommonAudioOptions(48000, "stereo", tempo_ratio=2.0, delay_ms=delay_ms),
+        original.encoder_options,
+    )
+
+    plan = encoder.build_plan(
+        request,
+        Toolchain(Path("ffmpeg"), Path("ffprobe")),
+        tmp_path / "temporary.opus",
+    )
+    arguments = plan.stages[0].arguments
+
+    assert arguments[arguments.index("-af") + 1] == expected_filter
+    assert plan.duration_seconds == pytest.approx(expected_duration)
+
+
+@pytest.mark.parametrize("encoder", [QaacEncoder(), FdkAacEncoder()])
+def test_external_encoders_receive_common_delay_filter(encoder, tmp_path: Path) -> None:
+    request = EncodingRequest(
+        Path("input.wav"),
+        AudioStream(0, 1, "pcm_s16le", 2, "stereo", 48000, duration_seconds=10.0),
+        encoder.descriptor.id,
+        Codec.AAC,
+        OutputFormat.M4A,
+        Path("output.m4a"),
+        CommonAudioOptions(delay_ms=50.0),
+        encoder.default_options(),
+    )
+    toolchain = Toolchain(
+        Path("ffmpeg"),
+        Path("ffprobe"),
+        qaac=Path("qaac64"),
+        fdkaac=Path("fdkaac"),
+    )
+
+    plan = encoder.build_plan(request, toolchain, tmp_path / "temporary.m4a")
+    arguments = plan.stages[0].arguments
+
+    assert arguments[arguments.index("-af") + 1] == "adelay=0.05s:all=1"
+    assert plan.duration_seconds == pytest.approx(10.05)
+
+
+@pytest.mark.parametrize(
+    ("delay_ms", "message"),
+    [
+        (float("inf"), "Audio delay must be between"),
+        (86_400_001.0, "Audio delay must be between"),
+        (-10_000.0, "must leave some audio"),
+    ],
+)
+def test_invalid_audio_delays_are_rejected(delay_ms: float, message: str) -> None:
+    original = opus_request()
+    request = EncodingRequest(
+        original.input_path,
+        original.stream,
+        original.encoder_id,
+        original.codec,
+        original.output_format,
+        original.output_path,
+        CommonAudioOptions(delay_ms=delay_ms),
+        original.encoder_options,
+    )
+
+    with pytest.raises(ValidationError, match=message):
+        OpusEncoder().validate(request)
