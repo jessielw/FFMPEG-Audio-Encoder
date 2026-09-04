@@ -14,7 +14,15 @@ from PySide6.QtWidgets import (
 )
 
 from ffmpeg_audio_encoder.domain.errors import AudioEncoderError
-from ffmpeg_audio_encoder.domain.models import AppSettings, ThemePreference, Toolchain
+from ffmpeg_audio_encoder.domain.models import (
+    AppSettings,
+    Codec,
+    CommonAudioOptions,
+    EncoderConfiguration,
+    OutputFormat,
+    ThemePreference,
+    Toolchain,
+)
 from ffmpeg_audio_encoder.infrastructure.persistence import PresetRepository, SettingsRepository
 from ffmpeg_audio_encoder.infrastructure.tools import (
     ToolReport,
@@ -95,6 +103,45 @@ def test_encoding_configuration_uses_scrollable_tabs(
         assert area.horizontalScrollBarPolicy() is Qt.ScrollBarPolicy.ScrollBarAlwaysOff
     assert window.options_form.rowWrapPolicy() is QFormLayout.RowWrapPolicy.WrapLongRows
     assert window.options_group.title() == "FFmpeg libopus options"
+
+
+def test_main_window_restores_last_encoder_configuration(
+    tmp_path: Path, qtbot, qapp: QApplication
+) -> None:
+    settings_repository = SettingsRepository(tmp_path / "settings.json")
+    settings_repository.save(
+        AppSettings(
+            last_configuration=EncoderConfiguration(
+                "ffmpeg.flac",
+                Codec.FLAC,
+                OutputFormat.FLAC,
+                CommonAudioOptions(44_100, "stereo", 2.5, 1.25),
+                {"compression_level": 7, "custom_args": ""},
+            )
+        )
+    )
+    report = ToolReport(
+        Toolchain(Path("ffmpeg"), Path("ffprobe")),
+        "ffmpeg version",
+        "ffprobe version",
+        frozenset({"flac"}),
+        frozenset({"flac"}),
+    )
+
+    window = MainWindow(
+        settings_repository,
+        PresetRepository(tmp_path / "presets.json"),
+        ThemeManager(qapp),
+        report,
+    )
+    qtbot.addWidget(window)
+
+    assert window.encoder_combo.currentData() == "ffmpeg.flac"
+    assert window._sample_rate_value() == 44_100
+    assert window.channels.currentData() == "stereo"
+    assert window.gain_db.value() == 2.5
+    assert window.tempo_ratio.value() == 1.25
+    assert window.option_widgets["compression_level"].property("value") == 7
 
 
 def test_main_window_probes_input_and_switches_generated_encoder_form(

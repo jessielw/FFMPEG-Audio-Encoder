@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import json
+from collections import deque
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from PySide6.QtCore import QObject, QProcess, Signal
+from PySide6.QtCore import QObject, QProcess, QTimer, Signal
 
 from ffmpeg_audio_encoder.domain.errors import ProbeError
 from ffmpeg_audio_encoder.domain.models import AudioStream, MediaAsset
@@ -73,17 +74,51 @@ class QtMediaProbe(QObject):
     completed = Signal(str, object)
     failed = Signal(str, str)
 
-    def __init__(self, ffprobe_path: Path, parent: QObject | None = None) -> None:
+    def __init__(
+        self,
+        ffprobe_path: Path,
+        parent: QObject | None = None,
+        *,
+        max_concurrent: int = 4,
+        timeout_ms: int = 30_000,
+    ) -> None:
         super().__init__(parent)
         self.ffprobe_path = ffprobe_path
+        self.max_concurrent = max(1, max_concurrent)
+        self.timeout_ms = max(1, timeout_ms)
+        self._pending: deque[Path] = deque()
+        self._known: set[str] = set()
         self._processes: dict[str, QProcess] = {}
         self._stdout: dict[str, bytearray] = {}
         self._stderr: dict[str, bytearray] = {}
 
     def probe(self, path: Path) -> None:
         key = str(path)
-        if key in self._processes:
+        if key in self._known:
             return
+        self._known.add(key)
+        self._pending.append(path)
+        self._start_pending()
+
+    def cancel_all(self) -> None:
+        self._pending.clear()
+        self._known.clear()
+        processes = list(self._processes.values())
+        self._processes.clear()
+        self._stdout.clear()
+        self._stderr.clear()
+        for process in processes:
+            process.disconnect(self)
+            if process.state() is not QProcess.ProcessState.NotRunning:
+                process.kill()
+            process.deleteLater()
+
+    def _start_pending(self) -> None:
+        while self._pending and len(self._processes) < self.max_concurrent:
+            self._start_process(self._pending.popleft())
+
+    def _start_process(self, path: Path) -> None:
+        key = str(path)
         process = QProcess(self)
         self._processes[key] = process
         self._stdout[key] = bytearray()
@@ -99,6 +134,9 @@ class QtMediaProbe(QObject):
             )
         )
         process.finished.connect(lambda exit_code, _status, key=key: self._finish(key, exit_code))
+        process.errorOccurred.connect(
+            lambda error, key=key, process=process: self._process_error(key, process, error)
+        )
         process.setProgram(str(self.ffprobe_path))
         process.setArguments(
             [
@@ -112,14 +150,44 @@ class QtMediaProbe(QObject):
             ]
         )
         process.start()
+        QTimer.singleShot(
+            self.timeout_ms,
+            lambda key=key, process=process: self._timeout(key, process),
+        )
+
+    def _process_error(self, key: str, process: QProcess, error: QProcess.ProcessError) -> None:
+        if error is QProcess.ProcessError.FailedToStart:
+            self._fail(key, process.errorString() or "ffprobe failed to start")
+
+    def _timeout(self, key: str, process: QProcess) -> None:
+        if self._processes.get(key) is process:
+            self._fail(key, f"ffprobe timed out after {self.timeout_ms / 1000:g} seconds")
+
+    def _fail(self, key: str, message: str) -> None:
+        process = self._processes.pop(key, None)
+        if process is None:
+            return
+        self._stdout.pop(key, None)
+        self._stderr.pop(key, None)
+        self._known.discard(key)
+        process.disconnect(self)
+        if process.state() is not QProcess.ProcessState.NotRunning:
+            process.kill()
+        process.deleteLater()
+        self.failed.emit(key, message)
+        self._start_pending()
 
     def _finish(self, key: str, exit_code: int) -> None:
-        process = self._processes.pop(key)
+        process = self._processes.pop(key, None)
+        if process is None:
+            return
         stdout = bytes(self._stdout.pop(key)).decode("utf-8", errors="replace")
         stderr = bytes(self._stderr.pop(key)).decode("utf-8", errors="replace").strip()
+        self._known.discard(key)
         process.deleteLater()
         if exit_code != 0:
             self.failed.emit(key, stderr or f"ffprobe exited with code {exit_code}")
+            self._start_pending()
             return
         try:
             payload = json.loads(stdout)
@@ -128,3 +196,4 @@ class QtMediaProbe(QObject):
             self.completed.emit(key, parse_ffprobe_json(Path(key), payload))
         except (json.JSONDecodeError, ProbeError) as exc:
             self.failed.emit(key, str(exc))
+        self._start_pending()

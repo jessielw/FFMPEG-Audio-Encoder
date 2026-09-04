@@ -175,6 +175,8 @@ class MediaAsset:
 class CommonAudioOptions:
     sample_rate: int | None = None
     channel_layout: str | None = None
+    gain_db: float = 0.0
+    tempo_ratio: float = 1.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -260,8 +262,17 @@ class EncoderPreset:
 
 
 @dataclass(frozen=True, slots=True)
+class EncoderConfiguration:
+    encoder_id: str
+    codec: Codec
+    output_format: OutputFormat
+    common: CommonAudioOptions
+    encoder_options: Mapping[str, JsonScalar]
+
+
+@dataclass(frozen=True, slots=True)
 class AppSettings:
-    schema_version: int = 1
+    schema_version: int = 2
     ffmpeg_path: str | None = None
     ffprobe_path: str | None = None
     qaac_path: str | None = None
@@ -276,3 +287,4 @@ class AppSettings:
     draft_splitter_sizes: tuple[int, int] = (620, 460)
     main_splitter_sizes: tuple[int, int] = (460, 240)
     queue_panel_collapsed: bool = False
+    last_configuration: EncoderConfiguration | None = None

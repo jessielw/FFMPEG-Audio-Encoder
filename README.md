@@ -13,6 +13,17 @@ uv run ffmpeg-audio-encoder
 Install FFmpeg and ffprobe on `PATH`, or select their executables in application settings.
 Optional qaac and fdkaac executables can also be found on `PATH` or selected in settings.
 
+The PySide6 application includes:
+
+- drag-and-drop input, stream inspection, and per-stream encoding;
+- presets plus automatic restoration of the last encoder configuration;
+- sample-rate, channel-layout, gain, and tempo controls;
+- a durable queue with selected-job starts, stop-after-current, retry, cancellation, and
+  crash-safe temporary outputs;
+- live per-job progress, command/error details, bounded session logs, and output-folder actions;
+- asynchronous tool detection, bounded media probing, rotating application logs, and
+  single-instance protection.
+
 ```console
 uv run ruff format --check .
 uv run ruff check .
@@ -57,7 +68,13 @@ application control.
 
 The encoding queue is saved atomically to a versioned `jobs.json` file in the application
 configuration directory. Queued jobs remain paused after restart. A job that was running when
-the application exited is restored as failed so it can be reviewed and retried safely.
+the application exited is restored as failed so it can be reviewed and retried safely. Corrupt
+settings, preset, and queue files are renamed with a `corrupt-<timestamp>` suffix instead of
+being overwritten.
+
+Outputs are encoded to job-specific `.part` files and published atomically only after a
+successful encode. The application rejects source/output self-overwrites and duplicate active
+destinations; generated destination-name collisions are numbered automatically.
 
 ## Legacy v4
 

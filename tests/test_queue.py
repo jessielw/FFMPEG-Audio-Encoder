@@ -2,9 +2,11 @@ from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 
+import pytest
 from PySide6.QtCore import QObject, Signal
 
 from ffmpeg_audio_encoder.application.queue import JobQueueController
+from ffmpeg_audio_encoder.domain.errors import ValidationError
 from ffmpeg_audio_encoder.domain.models import (
     AudioStream,
     Codec,
@@ -17,6 +19,7 @@ from ffmpeg_audio_encoder.domain.models import (
 )
 from ffmpeg_audio_encoder.encoders import default_registry
 from ffmpeg_audio_encoder.encoders.ffmpeg import FlacEncoder
+from ffmpeg_audio_encoder.infrastructure.output import temporary_output_path
 from ffmpeg_audio_encoder.infrastructure.persistence import JobRepository
 
 
@@ -186,3 +189,100 @@ def test_restored_job_with_unknown_encoder_is_retained_and_marked_unavailable(
     controller.start()
     assert controller.jobs[0].state is JobState.FAILED
     assert controller.jobs[0].error == "Unknown encoder adapter: removed.encoder"
+
+
+def test_selected_start_only_runs_the_requested_jobs(tmp_path: Path, qtbot) -> None:
+    runner = FakeRunner()
+    controller = JobQueueController(
+        default_registry(),
+        Toolchain(Path("ffmpeg"), Path("ffprobe")),
+        runner=runner,  # type: ignore[arg-type]
+    )
+    first = controller.add(request(tmp_path / "one.wav", tmp_path / "one.flac"))
+    second = controller.add(request(tmp_path / "two.wav", tmp_path / "two.flac"))
+    third = controller.add(request(tmp_path / "three.wav", tmp_path / "three.flac"))
+
+    controller.start({second.id})
+
+    assert first.state is JobState.QUEUED
+    assert second.state is JobState.RUNNING
+    assert third.state is JobState.QUEUED
+    assert runner.plan is not None
+    runner.plan.temporary_output.write_bytes(b"flac")
+    runner.complete()
+    assert second.state is JobState.SUCCEEDED
+    assert first.state is JobState.QUEUED
+    assert third.state is JobState.QUEUED
+    assert not controller.is_dispatching
+
+
+def test_shutdown_cancels_without_dispatching_the_next_job(tmp_path: Path, qtbot) -> None:
+    runner = FakeRunner()
+    controller = JobQueueController(
+        default_registry(),
+        Toolchain(Path("ffmpeg"), Path("ffprobe")),
+        runner=runner,  # type: ignore[arg-type]
+    )
+    first = controller.add(request(tmp_path / "one.wav", tmp_path / "one.flac"))
+    second = controller.add(request(tmp_path / "two.wav", tmp_path / "two.flac"))
+    controller.start()
+
+    controller.shutdown()
+
+    assert first.state is JobState.CANCELLED
+    assert second.state is JobState.QUEUED
+    assert not runner.is_running
+    assert controller.active_job is None
+
+
+def test_cancel_all_cancels_active_and_pending_jobs(tmp_path: Path, qtbot) -> None:
+    runner = FakeRunner()
+    controller = JobQueueController(
+        default_registry(),
+        Toolchain(Path("ffmpeg"), Path("ffprobe")),
+        runner=runner,  # type: ignore[arg-type]
+    )
+    first = controller.add(request(tmp_path / "one.wav", tmp_path / "one.flac"))
+    second = controller.add(request(tmp_path / "two.wav", tmp_path / "two.flac"))
+    controller.start()
+
+    controller.cancel_all()
+
+    assert first.state is JobState.CANCELLED
+    assert second.state is JobState.CANCELLED
+    assert not controller.is_dispatching
+
+
+def test_queue_rejects_self_overwrite_and_duplicate_destinations(tmp_path: Path) -> None:
+    controller = JobQueueController(
+        default_registry(),
+        Toolchain(Path("ffmpeg"), Path("ffprobe")),
+        runner=FakeRunner(),  # type: ignore[arg-type]
+    )
+    output = tmp_path / "shared.flac"
+    controller.add(request(tmp_path / "one.wav", output))
+
+    with pytest.raises(ValidationError, match="already targets"):
+        controller.add(request(tmp_path / "two.wav", output))
+    with pytest.raises(ValidationError, match="cannot replace the input"):
+        controller.add(request(output, output))
+
+
+def test_restoring_interrupted_job_removes_its_partial_output(tmp_path: Path, qtbot) -> None:
+    repository = JobRepository(tmp_path / "jobs.json")
+    interrupted = EncodeJob(
+        request=request(tmp_path / "one.wav", tmp_path / "one.flac"),
+        state=JobState.RUNNING,
+    )
+    partial = temporary_output_path(interrupted.request.output_path, interrupted.id)
+    partial.write_bytes(b"partial")
+    repository.save([interrupted])
+
+    JobQueueController(
+        default_registry(),
+        Toolchain(Path("ffmpeg"), Path("ffprobe")),
+        runner=FakeRunner(),  # type: ignore[arg-type]
+        job_repository=repository,
+    )
+
+    assert not partial.exists()

@@ -7,6 +7,8 @@ from PySide6.QtCore import (
     Qt,
     Slot,
 )
+from PySide6.QtGui import QPainter
+from PySide6.QtWidgets import QApplication, QStyle, QStyledItemDelegate, QStyleOptionProgressBar
 
 from ffmpeg_audio_encoder.application.queue import JobQueueController
 from ffmpeg_audio_encoder.domain.models import EncodeJob
@@ -61,6 +63,8 @@ class QueueTableModel(QAbstractTableModel):
         job = self.controller.jobs[index.row()]
         if role == Qt.ItemDataRole.ToolTipRole and job.error:
             return job.error
+        if role == Qt.ItemDataRole.UserRole and index.column() == 4:
+            return job.progress
         if role != Qt.ItemDataRole.DisplayRole:
             return None
         values = (
@@ -79,6 +83,40 @@ class QueueTableModel(QAbstractTableModel):
         return self.controller.jobs[row]
 
     @Slot(str)
-    def refresh(self, _job_id: str = "") -> None:
+    def refresh(self, job_id: str = "") -> None:
+        if job_id and self.controller is not None:
+            row = next(
+                (index for index, job in enumerate(self.controller.jobs) if str(job.id) == job_id),
+                -1,
+            )
+            if row >= 0:
+                self.dataChanged.emit(
+                    self.index(row, 0),
+                    self.index(row, len(self.HEADERS) - 1),
+                )
+                return
         self.beginResetModel()
         self.endResetModel()
+
+
+class ProgressDelegate(QStyledItemDelegate):
+    def paint(self, painter: QPainter, option, index) -> None:
+        if index.column() != 4:
+            super().paint(painter, option, index)
+            return
+        progress = index.data(Qt.ItemDataRole.UserRole)
+        progress_option = QStyleOptionProgressBar()
+        progress_option.rect = option.rect.adjusted(2, 2, -2, -2)
+        progress_option.state = option.state
+        progress_option.textVisible = True
+        if isinstance(progress, float):
+            progress_option.minimum = 0
+            progress_option.maximum = 1000
+            progress_option.progress = round(progress * 1000)
+            progress_option.text = f"{progress:.0%}"
+        else:
+            progress_option.minimum = 0
+            progress_option.maximum = 0
+            progress_option.text = "Working..."
+        style = option.widget.style() if option.widget is not None else QApplication.style()
+        style.drawControl(QStyle.ControlElement.CE_ProgressBar, progress_option, painter)

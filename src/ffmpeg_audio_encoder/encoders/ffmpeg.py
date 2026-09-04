@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import shlex
 from pathlib import Path
 
@@ -230,6 +231,13 @@ def _validate_identity(request: EncodingRequest, descriptor: EncoderDescriptor) 
     layout = request.common.channel_layout
     if layout is not None and layout not in {choice.value for choice in descriptor.channel_layouts}:
         raise ValidationError(f"{descriptor.display_name} does not support the {layout} layout")
+    if not math.isfinite(request.common.gain_db) or not -30 <= request.common.gain_db <= 30:
+        raise ValidationError("Gain must be between -30 dB and 30 dB")
+    if (
+        not math.isfinite(request.common.tempo_ratio)
+        or not 0.25 <= request.common.tempo_ratio <= 4.0
+    ):
+        raise ValidationError("Tempo must be between 0.25x and 4.0x")
 
 
 def _validate_options(request: EncodingRequest, descriptor: EncoderDescriptor) -> None:
@@ -287,7 +295,26 @@ def _base_arguments(request: EncodingRequest) -> list[str]:
         arguments.extend(("-ar", str(request.common.sample_rate)))
     if request.common.channel_layout is not None:
         arguments.extend(("-channel_layout:a", request.common.channel_layout))
+    filters = _audio_filters(request)
+    if filters:
+        arguments.extend(("-af", ",".join(filters)))
     return arguments
+
+
+def _audio_filters(request: EncodingRequest) -> list[str]:
+    filters: list[str] = []
+    if request.common.gain_db:
+        filters.append(f"volume={request.common.gain_db:g}dB")
+    ratio = request.common.tempo_ratio
+    while ratio < 0.5:
+        filters.append("atempo=0.5")
+        ratio /= 0.5
+    while ratio > 2.0:
+        filters.append("atempo=2")
+        ratio /= 2.0
+    if not math.isclose(ratio, 1.0):
+        filters.append(f"atempo={ratio:g}")
+    return filters
 
 
 # Shared adapter primitives. The underscore-prefixed implementations remain for

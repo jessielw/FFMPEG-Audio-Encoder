@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 from uuid import UUID
 
@@ -7,7 +8,7 @@ from ffmpeg_audio_encoder.infrastructure.output import (
     sanitize_filename_component,
     temporary_output_path,
 )
-from ffmpeg_audio_encoder.infrastructure.probe import parse_ffprobe_json
+from ffmpeg_audio_encoder.infrastructure.probe import QtMediaProbe, parse_ffprobe_json
 from ffmpeg_audio_encoder.infrastructure.progress import FFmpegProgressParser
 
 
@@ -80,3 +81,28 @@ def test_progress_parser_handles_chunks_and_known_duration() -> None:
 def test_progress_without_duration_is_indeterminate() -> None:
     update = FFmpegProgressParser(None).feed("out_time=00:00:01.0\nprogress=continue\n")[0]
     assert update.fraction is None
+
+
+def test_media_probe_reports_failed_start(tmp_path: Path, qtbot) -> None:
+    probe = QtMediaProbe(tmp_path / "missing-ffprobe", timeout_ms=1_000)
+    failures: list[str] = []
+    probe.failed.connect(lambda _path, message: failures.append(message))
+
+    probe.probe(tmp_path / "input.wav")
+
+    qtbot.waitUntil(lambda: bool(failures), timeout=3_000)
+    assert "start" in failures[0].lower() or "find" in failures[0].lower()
+
+
+def test_media_probe_bounds_concurrent_processes(tmp_path: Path, qtbot) -> None:
+    probe = QtMediaProbe(Path(sys.executable), max_concurrent=2, timeout_ms=10_000)
+
+    for index in range(5):
+        probe.probe(tmp_path / f"input-{index}.wav")
+
+    assert len(probe._processes) == 2
+    assert len(probe._pending) == 3
+
+    probe.cancel_all()
+    assert not probe._processes
+    assert not probe._pending

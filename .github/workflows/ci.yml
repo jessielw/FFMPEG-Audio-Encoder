@@ -47,10 +47,16 @@ jobs:
       - run: uv run python build.py
       - if: runner.os == 'Windows'
         run: .\dist\FFMPEGAudioEncoder\FFMPEGAudioEncoder.exe --version
+      - if: runner.os == 'Windows'
+        run: .\dist\FFMPEGAudioEncoder\FFMPEGAudioEncoder.exe --diagnostics
       - if: runner.os == 'Linux'
         run: ./dist/FFMPEGAudioEncoder/FFMPEGAudioEncoder --version
+      - if: runner.os == 'Linux'
+        run: ./dist/FFMPEGAudioEncoder/FFMPEGAudioEncoder --diagnostics
       - if: runner.os == 'macOS'
         run: ./dist/FFMPEGAudioEncoder.app/Contents/MacOS/FFMPEGAudioEncoder --version
+      - if: runner.os == 'macOS'
+        run: ./dist/FFMPEGAudioEncoder.app/Contents/MacOS/FFMPEGAudioEncoder --diagnostics
       - uses: actions/upload-artifact@v4
         with:
           name: FFMPEGAudioEncoder-${{ matrix.os }}

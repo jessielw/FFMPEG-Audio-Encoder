@@ -74,6 +74,55 @@ def test_opus_builds_an_argument_list_with_exact_global_stream_mapping(tmp_path:
     assert plan.stages[0].program == Path("ffmpeg")
 
 
+@pytest.mark.parametrize(
+    ("tempo", "expected"),
+    [
+        (0.25, "atempo=0.5,atempo=0.5"),
+        (4.0, "atempo=2,atempo=2"),
+    ],
+)
+def test_common_gain_and_tempo_build_a_managed_filter_chain(
+    tmp_path: Path, tempo: float, expected: str
+) -> None:
+    encoder = OpusEncoder()
+    request = opus_request()
+    request = EncodingRequest(
+        request.input_path,
+        request.stream,
+        request.encoder_id,
+        request.codec,
+        request.output_format,
+        request.output_path,
+        CommonAudioOptions(48000, "stereo", 3.5, tempo),
+        request.encoder_options,
+    )
+    plan = encoder.build_plan(
+        request,
+        Toolchain(Path("ffmpeg"), Path("ffprobe")),
+        tmp_path / "temporary.opus",
+    )
+    arguments = plan.stages[0].arguments
+    filters = arguments[arguments.index("-af") + 1]
+    assert filters == f"volume=3.5dB,{expected}"
+
+
+@pytest.mark.parametrize(("gain", "tempo"), [(31.0, 1.0), (0.0, 0.2)])
+def test_common_filters_reject_out_of_range_values(gain: float, tempo: float) -> None:
+    request = opus_request()
+    invalid = EncodingRequest(
+        request.input_path,
+        request.stream,
+        request.encoder_id,
+        request.codec,
+        request.output_format,
+        request.output_path,
+        CommonAudioOptions(gain_db=gain, tempo_ratio=tempo),
+        request.encoder_options,
+    )
+    with pytest.raises(ValidationError):
+        OpusEncoder().validate(invalid)
+
+
 @pytest.mark.parametrize("bitrate", [5, 511, "160"])
 def test_opus_rejects_invalid_bitrates(bitrate: object) -> None:
     with pytest.raises(ValidationError):

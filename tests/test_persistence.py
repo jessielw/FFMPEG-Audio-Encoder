@@ -7,6 +7,7 @@ from ffmpeg_audio_encoder.domain.models import (
     Codec,
     CommonAudioOptions,
     EncodeJob,
+    EncoderConfiguration,
     EncoderPreset,
     EncodingRequest,
     JobState,
@@ -37,6 +38,13 @@ def test_settings_round_trip(tmp_path: Path) -> None:
         draft_splitter_sizes=(500, 400),
         main_splitter_sizes=(440, 220),
         queue_panel_collapsed=True,
+        last_configuration=EncoderConfiguration(
+            "ffmpeg.libopus",
+            Codec.OPUS,
+            OutputFormat.OGG_OPUS,
+            CommonAudioOptions(48000, "stereo", 1.5, 1.001),
+            {"bitrate_kbps": 160},
+        ),
     )
     repository.save(settings)
     assert repository.load() == settings
@@ -47,6 +55,8 @@ def test_malformed_or_newer_settings_fall_back_safely(tmp_path: Path) -> None:
     path = tmp_path / "settings.json"
     path.write_text("not json", encoding="utf-8")
     assert SettingsRepository(path).load() == AppSettings()
+    assert not path.exists()
+    assert len(list(tmp_path.glob("settings.corrupt-*.json"))) == 1
     path.write_text('{"schema_version": 99}', encoding="utf-8")
     assert SettingsRepository(path).load() == AppSettings()
 
@@ -89,6 +99,15 @@ def test_legacy_channel_counts_are_migrated(tmp_path: Path) -> None:
     )
     presets = PresetRepository(path).load()
     assert presets[0].common == CommonAudioOptions(48000, "stereo")
+
+
+def test_malformed_presets_are_quarantined(tmp_path: Path) -> None:
+    path = tmp_path / "presets.json"
+    path.write_text("not json", encoding="utf-8")
+
+    assert PresetRepository(path).load() == []
+    assert not path.exists()
+    assert len(list(tmp_path.glob("presets.corrupt-*.json"))) == 1
 
 
 def test_jobs_round_trip_all_durable_fields(tmp_path: Path) -> None:

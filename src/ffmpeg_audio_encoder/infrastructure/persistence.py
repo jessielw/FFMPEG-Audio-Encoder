@@ -16,6 +16,7 @@ from ffmpeg_audio_encoder.domain.models import (
     Codec,
     CommonAudioOptions,
     EncodeJob,
+    EncoderConfiguration,
     EncoderPreset,
     EncodingRequest,
     JobState,
@@ -24,7 +25,7 @@ from ffmpeg_audio_encoder.domain.models import (
     ThemePreference,
 )
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 PRESET_SCHEMA_VERSION = 2
 JOB_SCHEMA_VERSION = 1
 
@@ -52,7 +53,7 @@ class SettingsRepository:
             return AppSettings()
         try:
             raw = json.loads(self.path.read_text(encoding="utf-8"))
-            if not isinstance(raw, dict) or raw.get("schema_version") != SCHEMA_VERSION:
+            if not isinstance(raw, dict) or raw.get("schema_version") not in {1, SCHEMA_VERSION}:
                 return AppSettings()
             return AppSettings(
                 ffmpeg_path=_optional_string(raw.get("ffmpeg_path")),
@@ -60,7 +61,7 @@ class SettingsRepository:
                 qaac_path=_optional_string(raw.get("qaac_path")),
                 fdkaac_path=_optional_string(raw.get("fdkaac_path")),
                 default_output_dir=_optional_string(raw.get("default_output_dir")),
-                overwrite_default=bool(raw.get("overwrite_default", False)),
+                overwrite_default=_optional_bool(raw.get("overwrite_default"), False),
                 theme=ThemePreference(str(raw.get("theme", ThemePreference.AUTOMATIC))),
                 window_x=_optional_int(raw.get("window_x")),
                 window_y=_optional_int(raw.get("window_y")),
@@ -68,14 +69,21 @@ class SettingsRepository:
                 window_height=_positive_int(raw.get("window_height"), 760),
                 draft_splitter_sizes=_splitter_sizes(raw.get("draft_splitter_sizes"), (620, 460)),
                 main_splitter_sizes=_splitter_sizes(raw.get("main_splitter_sizes"), (460, 240)),
-                queue_panel_collapsed=bool(raw.get("queue_panel_collapsed", False)),
+                queue_panel_collapsed=_optional_bool(raw.get("queue_panel_collapsed"), False),
+                last_configuration=_decode_configuration(raw.get("last_configuration")),
             )
-        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        except OSError:
+            return AppSettings()
+        except (ValueError, TypeError, json.JSONDecodeError):
+            _quarantine_path(self.path)
             return AppSettings()
 
     def save(self, settings: AppSettings) -> None:
         payload = asdict(settings)
         payload["theme"] = settings.theme.value
+        payload["schema_version"] = SCHEMA_VERSION
+        if settings.last_configuration is not None:
+            payload["last_configuration"] = _encode_configuration(settings.last_configuration)
         _atomic_json_write(self.path, payload)
 
 
@@ -89,7 +97,7 @@ class PresetRepository:
         try:
             raw = json.loads(self.path.read_text(encoding="utf-8"))
             if not isinstance(raw, dict) or raw.get("schema_version") not in {
-                SCHEMA_VERSION,
+                1,
                 PRESET_SCHEMA_VERSION,
             }:
                 return []
@@ -98,7 +106,10 @@ class PresetRepository:
                 return []
             presets = [self._decode(item) for item in items if isinstance(item, dict)]
             return sorted(presets, key=lambda preset: preset.name.casefold())
-        except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError):
+        except OSError:
+            return []
+        except (ValueError, TypeError, KeyError, json.JSONDecodeError):
+            _quarantine_path(self.path)
             return []
 
     def save(self, presets: list[EncoderPreset]) -> None:
@@ -138,10 +149,7 @@ class PresetRepository:
             encoder_id=str(raw["encoder_id"]),
             codec=Codec(str(raw["codec"])),
             output_format=OutputFormat(str(raw["output_format"])),
-            common=CommonAudioOptions(
-                sample_rate=_optional_int(common.get("sample_rate")),
-                channel_layout=_decode_channel_layout(common),
-            ),
+            common=_decode_common(common),
             encoder_options=options,
         )
 
@@ -179,10 +187,7 @@ class JobRepository:
         )
 
     def _quarantine(self) -> None:
-        timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
-        quarantine = self.path.with_name(f"{self.path.stem}.corrupt-{timestamp}{self.path.suffix}")
-        with suppress(OSError):
-            self.path.replace(quarantine)
+        _quarantine_path(self.path)
 
     @staticmethod
     def _encode(job: EncodeJob) -> dict[str, object]:
@@ -237,10 +242,7 @@ class JobRepository:
                 encoder_id=_required_string(request_raw.get("encoder_id")),
                 codec=Codec(_required_string(request_raw.get("codec"))),
                 output_format=OutputFormat(_required_string(request_raw.get("output_format"))),
-                common=CommonAudioOptions(
-                    sample_rate=_optional_int(common_raw.get("sample_rate")),
-                    channel_layout=_optional_string(common_raw.get("channel_layout")),
-                ),
+                common=_decode_common(common_raw),
                 encoder_options=_decode_options(request_raw.get("encoder_options")),
                 stream=AudioStream(
                     index=_required_int(stream_raw.get("index")),
@@ -259,6 +261,13 @@ class JobRepository:
 
 def _optional_string(value: object) -> str | None:
     return value if isinstance(value, str) and value else None
+
+
+def _quarantine_path(path: Path) -> None:
+    timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
+    quarantine = path.with_name(f"{path.stem}.corrupt-{timestamp}{path.suffix}")
+    with suppress(OSError):
+        path.replace(quarantine)
 
 
 def _nullable_string(value: object) -> str | None:
@@ -319,6 +328,42 @@ def _decode_options(value: object) -> dict[str, JsonScalar]:
             raise TypeError("invalid encoder option")
         options[key] = option
     return options
+
+
+def _decode_common(raw: dict[str, Any]) -> CommonAudioOptions:
+    gain = _optional_float(raw.get("gain_db"))
+    tempo = _optional_float(raw.get("tempo_ratio"))
+    return CommonAudioOptions(
+        sample_rate=_optional_int(raw.get("sample_rate")),
+        channel_layout=_decode_channel_layout(raw),
+        gain_db=0.0 if gain is None else gain,
+        tempo_ratio=1.0 if tempo is None else tempo,
+    )
+
+
+def _encode_configuration(configuration: EncoderConfiguration) -> dict[str, object]:
+    return {
+        "encoder_id": configuration.encoder_id,
+        "codec": configuration.codec.value,
+        "output_format": configuration.output_format.value,
+        "common": asdict(configuration.common),
+        "encoder_options": dict(configuration.encoder_options),
+    }
+
+
+def _decode_configuration(value: object) -> EncoderConfiguration | None:
+    if value is None:
+        return None
+    raw = _required_dict(value)
+    common_value = raw.get("common")
+    common = common_value if isinstance(common_value, dict) else {}
+    return EncoderConfiguration(
+        encoder_id=_required_string(raw.get("encoder_id")),
+        codec=Codec(_required_string(raw.get("codec"))),
+        output_format=OutputFormat(_required_string(raw.get("output_format"))),
+        common=_decode_common(common),
+        encoder_options=_decode_options(raw.get("encoder_options")),
+    )
 
 
 def _encode_datetime(value: datetime | None) -> str | None:

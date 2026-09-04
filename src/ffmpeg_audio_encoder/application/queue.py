@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import os
+from contextlib import suppress
 from datetime import UTC, datetime
+from pathlib import Path
 from uuid import UUID
 
 from PySide6.QtCore import QObject, Signal
@@ -42,10 +44,14 @@ class JobQueueController(QObject):
         self.job_repository = job_repository
         self.jobs = job_repository.load() if job_repository is not None else []
         self._run_queue = False
+        self._run_scope: set[UUID] | None = None
         self._active_id: UUID | None = None
+        self._shutting_down = False
         restored_running = False
         for job in self.jobs:
             if job.state is JobState.RUNNING:
+                with suppress(OSError):
+                    temporary_output_path(job.request.output_path, job.id).unlink(missing_ok=True)
                 job.state = JobState.FAILED
                 job.error = "Application exited while this job was encoding."
                 job.finished_at = datetime.now(UTC)
@@ -72,15 +78,26 @@ class JobQueueController(QObject):
     def active_job(self) -> EncodeJob | None:
         return self._find(self._active_id) if self._active_id else None
 
+    @property
+    def is_dispatching(self) -> bool:
+        return self._run_queue
+
+    def job(self, job_id: UUID) -> EncodeJob | None:
+        return self._find(job_id)
+
     def add(self, request: EncodingRequest, overwrite: bool = False) -> EncodeJob:
         self.registry.get(request.encoder_id).validate(request)
+        self._validate_destination(request)
         job = EncodeJob(request=request, overwrite=overwrite)
         self.jobs.append(job)
         self._persist()
         self.job_added.emit(str(job.id))
         return job
 
-    def start(self) -> None:
+    def start(self, job_ids: set[UUID] | None = None) -> None:
+        if self._shutting_down:
+            return
+        self._run_scope = set(job_ids) if job_ids is not None else None
         self._run_queue = True
         self._start_next()
 
@@ -94,6 +111,28 @@ class JobQueueController(QObject):
 
     def stop_after_current(self) -> None:
         self._run_queue = False
+        self._run_scope = None
+
+    def cancel_all(self) -> None:
+        self.stop_after_current()
+        changed = False
+        for job in self.jobs:
+            if job.state is JobState.QUEUED:
+                job.state = JobState.CANCELLED
+                job.progress = 0.0
+                job.status = "Cancelled"
+                job.error = None
+                job.finished_at = datetime.now(UTC)
+                changed = True
+        if changed:
+            self._persist()
+            self.job_updated.emit("")
+        self.cancel_active()
+
+    def shutdown(self) -> None:
+        self._shutting_down = True
+        self.stop_after_current()
+        self.cancel_active()
 
     def retry(self, job_id: UUID) -> None:
         job = self._find(job_id)
@@ -102,6 +141,12 @@ class JobQueueController(QObject):
             JobState.CANCELLED,
             JobState.SUCCEEDED,
         }:
+            return
+        try:
+            self._validate_destination(job.request, exclude=job.id)
+        except ValidationError as exc:
+            job.error = str(exc)
+            self.job_updated.emit(str(job.id))
             return
         job.state = JobState.QUEUED
         job.progress = 0.0
@@ -126,11 +171,20 @@ class JobQueueController(QObject):
         self.job_updated.emit("")
 
     def _start_next(self) -> None:
-        if not self._run_queue or self.runner.is_running:
+        if self._shutting_down or not self._run_queue or self.runner.is_running:
             return
-        job = next((job for job in self.jobs if job.state is JobState.QUEUED), None)
+        job = next(
+            (
+                job
+                for job in self.jobs
+                if job.state is JobState.QUEUED
+                and (self._run_scope is None or job.id in self._run_scope)
+            ),
+            None,
+        )
         if job is None:
             self._run_queue = False
+            self._run_scope = None
             self.active_changed.emit(False)
             return
         output = job.request.output_path
@@ -200,7 +254,8 @@ class JobQueueController(QObject):
         self._persist()
         self.job_updated.emit(job_id)
         self.active_changed.emit(False)
-        self._start_next()
+        if not self._shutting_down:
+            self._start_next()
 
     def _fail(self, job: EncodeJob, message: str) -> None:
         job.state = JobState.FAILED
@@ -218,5 +273,25 @@ class JobQueueController(QObject):
         except OSError as exc:
             self.persistence_error.emit(f"Could not save the encoding queue: {exc}")
 
+    def _validate_destination(
+        self, request: EncodingRequest, *, exclude: UUID | None = None
+    ) -> None:
+        output_key = _path_key(request.output_path)
+        if output_key == _path_key(request.input_path):
+            raise ValidationError("The output path cannot replace the input file")
+        for job in self.jobs:
+            if (
+                job.id != exclude
+                and job.state in {JobState.QUEUED, JobState.RUNNING}
+                and _path_key(job.request.output_path) == output_key
+            ):
+                raise ValidationError(
+                    f"Another queued job already targets this output: {request.output_path}"
+                )
+
     def _find(self, job_id: UUID | None) -> EncodeJob | None:
         return next((job for job in self.jobs if job.id == job_id), None)
+
+
+def _path_key(path: Path) -> str:
+    return os.path.normcase(os.path.abspath(os.fspath(path)))
