@@ -261,11 +261,11 @@ def _custom_arguments(request: EncodingRequest, descriptor: EncoderDescriptor) -
     if not text:
         return []
     if "\x00" in text:
-        raise ValidationError("Custom FFmpeg arguments cannot contain NUL characters")
+        raise ValidationError("Custom arguments cannot contain NUL characters")
     try:
         return shlex.split(text, posix=True)
     except ValueError as exc:
-        raise ValidationError(f"Invalid custom FFmpeg arguments: {exc}") from exc
+        raise ValidationError(f"Invalid custom arguments: {exc}") from exc
 
 
 def _base_arguments(request: EncodingRequest) -> list[str]:
@@ -288,6 +288,16 @@ def _base_arguments(request: EncodingRequest) -> list[str]:
     if request.common.channel_layout is not None:
         arguments.extend(("-channel_layout:a", request.common.channel_layout))
     return arguments
+
+
+# Shared adapter primitives. The underscore-prefixed implementations remain for
+# compatibility with the original FFmpeg adapters.
+base_arguments = _base_arguments
+custom_arguments = _custom_arguments
+integer_option = _integer_option
+string_option = _string_option
+validate_identity = _validate_identity
+validate_options = _validate_options
 
 
 def _finish_plan(

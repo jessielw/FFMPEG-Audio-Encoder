@@ -11,6 +11,7 @@ uv run ffmpeg-audio-encoder
 ```
 
 Install FFmpeg and ffprobe on `PATH`, or select their executables in application settings.
+Optional qaac and fdkaac executables can also be found on `PATH` or selected in settings.
 
 ```console
 uv run ruff format --check .
@@ -36,6 +37,18 @@ encoders and muxers exposed by the configured FFmpeg build and disables unavaila
 | E-AC-3 | `eac3` | Raw E-AC-3 (`.eac3`) |
 | DTS | `dca` | Raw DTS (`.dts`) |
 | ALAC | `alac` | M4A (`.m4a`) |
+
+Two external AAC adapters are also available:
+
+| Adapter | Profiles / modes | Output |
+| --- | --- | --- |
+| qaac (Apple AAC) | AAC-LC or HE-AAC; TVBR, CVBR, ABR, or CBR | M4A or ADTS |
+| fdkaac (Fraunhofer FDK AAC) | AAC-LC, HE-AAC, or HE-AAC v2; CBR or VBR | M4A or ADTS |
+
+External adapters use FFmpeg to decode the selected source stream to PCM over a pipe. The
+external encoder writes directly to the queue's temporary output, preserving the same atomic
+publish, cancellation, and progress behavior as the internal FFmpeg adapters. qaac also requires
+a working Apple CoreAudioToolbox installation; its startup check determines availability.
 
 Each adapter exposes curated rate-control and quality settings plus codec-aware channel layouts.
 The custom FFmpeg output-arguments field is saved in presets and is parsed into an argument list;

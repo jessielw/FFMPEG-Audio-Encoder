@@ -154,6 +154,31 @@ def test_generated_aac_form_supports_decimal_conditional_and_text_options(
     assert window.channels.findData("7.1") >= 0
 
 
+def test_external_aac_formats_do_not_depend_on_ffmpeg_output_muxers(
+    tmp_path: Path, qtbot, qapp: QApplication
+) -> None:
+    report = ToolReport(
+        Toolchain(Path("ffmpeg"), Path("ffprobe"), qaac=Path("qaac64")),
+        "ffmpeg version",
+        "ffprobe version",
+        frozenset(),
+        frozenset({"wav"}),
+        "qaac 2.82",
+    )
+    window = MainWindow(
+        SettingsRepository(tmp_path / "settings.json"),
+        PresetRepository(tmp_path / "presets.json"),
+        ThemeManager(qapp),
+        report,
+    )
+    qtbot.addWidget(window)
+    window.encoder_combo.setCurrentIndex(window.encoder_combo.findData("qaac.aac"))
+
+    assert [
+        window.format_combo.itemData(index) for index in range(window.format_combo.count())
+    ] == ["m4a", "adts-aac"]
+
+
 def test_sample_rate_choices_follow_ffmpeg_encoder_capabilities(
     tmp_path: Path, qtbot, qapp: QApplication
 ) -> None:

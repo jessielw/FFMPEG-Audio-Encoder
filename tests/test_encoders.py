@@ -12,6 +12,7 @@ from ffmpeg_audio_encoder.domain.models import (
     Toolchain,
 )
 from ffmpeg_audio_encoder.encoders import default_registry
+from ffmpeg_audio_encoder.encoders.external import FdkAacEncoder, QaacEncoder
 from ffmpeg_audio_encoder.encoders.ffmpeg import (
     AacEncoder,
     Ac3Encoder,
@@ -51,6 +52,8 @@ def test_default_registry_has_unique_first_party_adapters() -> None:
         "ffmpeg.eac3",
         "ffmpeg.dca",
         "ffmpeg.alac",
+        "qaac.aac",
+        "fdkaac.aac",
     ]
 
 
@@ -89,6 +92,89 @@ def test_flac_rejects_an_incompatible_codec() -> None:
     )
     with pytest.raises(ValidationError):
         FlacEncoder().validate(request)
+
+
+@pytest.mark.parametrize(
+    ("encoder", "tool_name"),
+    [(QaacEncoder(), "qaac"), (FdkAacEncoder(), "fdkaac")],
+)
+def test_external_aac_adapters_pipe_wav_from_ffmpeg(
+    encoder, tool_name: str, tmp_path: Path
+) -> None:
+    request = EncodingRequest(
+        Path("input with spaces.mkv"),
+        AudioStream(2, 1, "flac", 2, "stereo", 48000, duration_seconds=10.0),
+        encoder.descriptor.id,
+        Codec.AAC,
+        OutputFormat.M4A,
+        Path("output with spaces.m4a"),
+        CommonAudioOptions(48000, "stereo"),
+        encoder.default_options(),
+    )
+    toolchain = Toolchain(
+        Path("ffmpeg"),
+        Path("ffprobe"),
+        qaac=Path("qaac64"),
+        fdkaac=Path("fdkaac"),
+    )
+    temporary = tmp_path / "temporary.m4a"
+    plan = encoder.build_plan(request, toolchain, temporary)
+
+    assert len(plan.stages) == 2
+    assert plan.stages[0].program == Path("ffmpeg")
+    assert plan.stages[0].progress_stream == "stderr"
+    assert plan.stages[0].arguments[-3:] == ("-f", "wav", "pipe:1")
+    assert plan.stages[1].program == getattr(toolchain, tool_name)
+    assert "--ignorelength" in plan.stages[1].arguments
+    assert plan.stages[1].arguments[-3:] == ("-o", str(temporary), "-")
+
+
+def test_qaac_rejects_tvbr_for_he_aac() -> None:
+    encoder = QaacEncoder()
+    options = encoder.default_options()
+    options["profile"] = "he"
+    with pytest.raises(ValidationError, match="True VBR"):
+        encoder.validate(
+            EncodingRequest(
+                Path("input.wav"),
+                AudioStream(0, 1, "pcm_s16le", 2),
+                encoder.descriptor.id,
+                Codec.AAC,
+                OutputFormat.M4A,
+                Path("output.m4a"),
+                encoder_options=options,
+            )
+        )
+
+
+def test_fdkaac_rejects_he_v2_for_multichannel_audio() -> None:
+    encoder = FdkAacEncoder()
+    options = encoder.default_options()
+    options["profile"] = 29
+    with pytest.raises(ValidationError, match="requires stereo"):
+        encoder.validate(
+            EncodingRequest(
+                Path("input.wav"),
+                AudioStream(0, 1, "pcm_s16le", 6),
+                encoder.descriptor.id,
+                Codec.AAC,
+                OutputFormat.M4A,
+                Path("output.m4a"),
+                encoder_options=options,
+            )
+        )
+
+
+def test_fdkaac_exposes_only_supported_channel_layouts() -> None:
+    assert [layout.value for layout in FdkAacEncoder.descriptor.channel_layouts] == [
+        "mono",
+        "stereo",
+        "3.0",
+        "4.0",
+        "5.0",
+        "5.1",
+        "7.1",
+    ]
 
 
 @pytest.mark.parametrize(

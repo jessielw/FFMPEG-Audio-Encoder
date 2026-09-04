@@ -45,7 +45,9 @@ class QtProcessRunner(QObject):
             process.setProgram(str(stage.program))
             process.setArguments(list(stage.arguments))
             process.setProcessChannelMode(QProcess.ProcessChannelMode.SeparateChannels)
-            process.readyReadStandardError.connect(partial(self._read_stderr, process))
+            process.readyReadStandardError.connect(
+                partial(self._read_stderr, process, stage.progress_stream)
+            )
             process.readyReadStandardOutput.connect(
                 partial(self._read_stdout, process, stage.progress_stream)
             )
@@ -55,7 +57,7 @@ class QtProcessRunner(QObject):
 
         for source, destination in zip(self._processes, self._processes[1:], strict=False):
             source.setStandardOutputProcess(destination)
-        for process in reversed(self._processes):
+        for process in self._processes:
             process.start()
         self.started.emit(str(job_id))
 
@@ -75,10 +77,13 @@ class QtProcessRunner(QObject):
             if process.state() != QProcess.ProcessState.NotRunning:
                 process.kill()
 
-    def _read_stderr(self, process: QProcess) -> None:
+    def _read_stderr(self, process: QProcess, progress_stream: str | None) -> None:
         if self._job_id is None:
             return
         text = bytes(process.readAllStandardError().data()).decode("utf-8", errors="replace")
+        if progress_stream == "stderr" and self._parser is not None:
+            for update in self._parser.feed(text):
+                self.progress.emit(str(self._job_id), update)
         if text:
             self.log.emit(str(self._job_id), text)
 

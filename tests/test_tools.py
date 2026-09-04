@@ -33,8 +33,32 @@ def test_capability_report_is_descriptor_driven() -> None:
     assert not report.supports_muxer(OutputFormat.MP3)
 
 
+def test_external_encoder_capability_requires_tool_and_wav_muxer() -> None:
+    registry = default_registry()
+    toolchain = Toolchain(
+        Path("ffmpeg"),
+        Path("ffprobe"),
+        qaac=Path("qaac64"),
+        fdkaac=Path("fdkaac"),
+    )
+    report = ToolReport(
+        toolchain,
+        "ffmpeg version",
+        "ffprobe version",
+        frozenset({"aac"}),
+        frozenset({"wav"}),
+        "qaac 2.82",
+        None,
+    )
+    assert report.supports_adapter(registry.get("qaac.aac").descriptor)
+    assert not report.supports_adapter(registry.get("fdkaac.aac").descriptor)
+
+
 def test_inspection_parses_audio_encoders_and_muxers(monkeypatch) -> None:
-    def fake_run_tool(_program: Path, arguments: list[str]) -> str:
+    def fake_run_tool(program: Path, arguments: list[str], *, check: bool = True) -> str:
+        if program == Path("fdkaac"):
+            assert not check
+            return "fdkaac 1.0.0\nUsage: fdkaac [options] input_file"
         if arguments == ["-version"]:
             return "ffmpeg version test"
         if arguments[-1] == "-encoders":
@@ -44,6 +68,7 @@ def test_inspection_parses_audio_encoders_and_muxers(monkeypatch) -> None:
         raise AssertionError(arguments)
 
     monkeypatch.setattr(tools, "_run_tool", fake_run_tool)
-    report = inspect_toolchain(Toolchain(Path("ffmpeg"), Path("ffprobe")))
+    report = inspect_toolchain(Toolchain(Path("ffmpeg"), Path("ffprobe"), fdkaac=Path("fdkaac")))
     assert report.encoders == frozenset({"aac", "flac"})
     assert report.muxers == frozenset({"ipod", "mp3"})
+    assert report.fdkaac_version == "fdkaac 1.0.0"

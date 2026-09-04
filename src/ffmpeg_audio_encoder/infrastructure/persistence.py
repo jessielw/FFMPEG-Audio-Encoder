@@ -57,6 +57,8 @@ class SettingsRepository:
             return AppSettings(
                 ffmpeg_path=_optional_string(raw.get("ffmpeg_path")),
                 ffprobe_path=_optional_string(raw.get("ffprobe_path")),
+                qaac_path=_optional_string(raw.get("qaac_path")),
+                fdkaac_path=_optional_string(raw.get("fdkaac_path")),
                 default_output_dir=_optional_string(raw.get("default_output_dir")),
                 overwrite_default=bool(raw.get("overwrite_default", False)),
                 theme=ThemePreference(str(raw.get("theme", ThemePreference.AUTOMATIC))),

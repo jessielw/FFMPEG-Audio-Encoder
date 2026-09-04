@@ -25,6 +25,8 @@ def test_settings_round_trip(tmp_path: Path) -> None:
     settings = AppSettings(
         ffmpeg_path="/tools/ffmpeg",
         ffprobe_path="/tools/ffprobe",
+        qaac_path="/tools/qaac64",
+        fdkaac_path="/tools/fdkaac",
         default_output_dir="/output",
         overwrite_default=True,
         theme=ThemePreference.DARK,

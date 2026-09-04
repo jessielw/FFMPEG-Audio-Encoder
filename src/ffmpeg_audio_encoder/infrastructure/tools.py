@@ -29,6 +29,8 @@ class ToolReport:
     ffprobe_version: str
     encoders: frozenset[str]
     muxers: frozenset[str] = frozenset()
+    qaac_version: str | None = None
+    fdkaac_version: str | None = None
 
     @property
     def supports_opus(self) -> bool:
@@ -45,7 +47,20 @@ class ToolReport:
         return not self.muxers or output_format.ffmpeg_muxer in self.muxers
 
     def supports_adapter(self, descriptor: EncoderDescriptor) -> bool:
-        return all(name in self.encoders for name in descriptor.required_ffmpeg_encoders)
+        available_tools = {
+            "ffmpeg",
+            "ffprobe",
+            *({"qaac"} if self.qaac_version else set()),
+            *({"fdkaac"} if self.fdkaac_version else set()),
+        }
+        return (
+            all(name in available_tools for name in descriptor.required_tools)
+            and all(name in self.encoders for name in descriptor.required_ffmpeg_encoders)
+            and (
+                not self.muxers
+                or all(name in self.muxers for name in descriptor.required_ffmpeg_muxers)
+            )
+        )
 
 
 def _resolve_executable(configured: str | None, name: str) -> Path:
@@ -60,18 +75,31 @@ def _resolve_executable(configured: str | None, name: str) -> Path:
     raise ToolNotFoundError(f"{detail}{name} was not found on PATH")
 
 
+def _resolve_optional_executable(configured: str | None, *names: str) -> Path | None:
+    if configured:
+        configured_path = Path(configured).expanduser()
+        return configured_path.resolve() if configured_path.is_file() else None
+    for name in names:
+        discovered = shutil.which(name)
+        if discovered:
+            return Path(discovered).resolve()
+    return None
+
+
 def locate_toolchain(settings: AppSettings) -> Toolchain:
     return Toolchain(
         ffmpeg=_resolve_executable(settings.ffmpeg_path, "ffmpeg"),
         ffprobe=_resolve_executable(settings.ffprobe_path, "ffprobe"),
+        qaac=_resolve_optional_executable(settings.qaac_path, "qaac64", "qaac"),
+        fdkaac=_resolve_optional_executable(settings.fdkaac_path, "fdkaac"),
     )
 
 
-def _run_tool(program: Path, arguments: list[str]) -> str:
+def _run_tool(program: Path, arguments: list[str], *, check: bool = True) -> str:
     try:
         result = subprocess.run(
             [str(program), *arguments],
-            check=True,
+            check=check,
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -99,10 +127,26 @@ def inspect_toolchain(toolchain: Toolchain) -> ToolReport:
         columns = line.split()
         if len(columns) >= 2 and "E" in columns[0] and columns[1] != "=":
             muxers.add(columns[1])
+    qaac_version = _inspect_optional_tool(toolchain.qaac, ["--check"])
+    fdkaac_version = _inspect_optional_tool(toolchain.fdkaac, ["--help"], check=False)
     return ToolReport(
         toolchain,
         ffmpeg_version,
         ffprobe_version,
         frozenset(encoders),
         frozenset(muxers),
+        qaac_version,
+        fdkaac_version,
     )
+
+
+def _inspect_optional_tool(
+    program: Path | None, arguments: list[str], *, check: bool = True
+) -> str | None:
+    if program is None:
+        return None
+    try:
+        output = _run_tool(program, arguments, check=check)
+    except ToolNotFoundError:
+        return None
+    return output.splitlines()[0] if output else program.name

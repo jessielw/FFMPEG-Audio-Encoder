@@ -44,6 +44,10 @@ def _diagnostics(settings_repository: SettingsRepository) -> int:
                 "ffprobe": str(report.toolchain.ffprobe),
                 "ffmpeg_version": report.ffmpeg_version,
                 "ffprobe_version": report.ffprobe_version,
+                "qaac": str(report.toolchain.qaac) if report.toolchain.qaac else None,
+                "qaac_version": report.qaac_version,
+                "fdkaac": str(report.toolchain.fdkaac) if report.toolchain.fdkaac else None,
+                "fdkaac_version": report.fdkaac_version,
                 "encoders": {
                     adapter.descriptor.id: report.supports_adapter(adapter.descriptor)
                     for adapter in default_registry()

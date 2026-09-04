@@ -198,6 +198,8 @@ class EncoderDescriptor:
     options: tuple[OptionDefinition, ...]
     required_tools: tuple[str, ...] = ("ffmpeg",)
     required_ffmpeg_encoders: tuple[str, ...] = ()
+    required_ffmpeg_muxers: tuple[str, ...] = ()
+    output_muxed_by_ffmpeg: bool = True
     channel_layouts: tuple[ChannelLayoutChoice, ...] = ()
     sample_rate_choices: tuple[int, ...] = ()
     sample_rate_range: tuple[int, int] | None = None
@@ -229,6 +231,8 @@ class ProcessPlan:
 class Toolchain:
     ffmpeg: Path
     ffprobe: Path
+    qaac: Path | None = None
+    fdkaac: Path | None = None
 
 
 @dataclass(slots=True)
@@ -260,6 +264,8 @@ class AppSettings:
     schema_version: int = 1
     ffmpeg_path: str | None = None
     ffprobe_path: str | None = None
+    qaac_path: str | None = None
+    fdkaac_path: str | None = None
     default_output_dir: str | None = None
     overwrite_default: bool = False
     theme: ThemePreference = ThemePreference.AUTOMATIC

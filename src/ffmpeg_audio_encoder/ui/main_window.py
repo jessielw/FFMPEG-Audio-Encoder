@@ -480,7 +480,11 @@ class MainWindow(QMainWindow):
         for codec in adapter.descriptor.codecs:
             self.codec_combo.addItem(str(codec), codec.value)
         for output_format in adapter.descriptor.output_formats:
-            if self.tool_report is None or self.tool_report.supports_muxer(output_format):
+            if (
+                self.tool_report is None
+                or not adapter.descriptor.output_muxed_by_ffmpeg
+                or self.tool_report.supports_muxer(output_format)
+            ):
                 self.format_combo.addItem(str(output_format), output_format.value)
         for layout in adapter.descriptor.channel_layouts:
             self.channels.addItem(layout.label, layout.value)
