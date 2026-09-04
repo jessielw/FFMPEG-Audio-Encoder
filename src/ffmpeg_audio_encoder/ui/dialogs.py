@@ -56,6 +56,7 @@ class SettingsDialog(QDialog):
         self.ffprobe = _PathRow(settings.ffprobe_path, directory=False)
         self.qaac = _PathRow(settings.qaac_path, directory=False)
         self.fdkaac = _PathRow(settings.fdkaac_path, directory=False)
+        self.opusenc = _PathRow(settings.opusenc_path, directory=False)
         self.output = _PathRow(settings.default_output_dir, directory=True)
         self.overwrite = QCheckBox("Allow queued jobs to replace existing outputs")
         self.overwrite.setChecked(settings.overwrite_default)
@@ -69,6 +70,7 @@ class SettingsDialog(QDialog):
         form.addRow("ffprobe", self.ffprobe)
         form.addRow("qaac", self.qaac)
         form.addRow("fdkaac", self.fdkaac)
+        form.addRow("opusenc", self.opusenc)
         form.addRow("Default output folder", self.output)
         form.addRow("Appearance", self.theme)
         form.addRow("Overwrite", self.overwrite)
@@ -93,6 +95,7 @@ class SettingsDialog(QDialog):
             ffprobe_path=self.ffprobe.value(),
             qaac_path=self.qaac.value(),
             fdkaac_path=self.fdkaac.value(),
+            opusenc_path=self.opusenc.value(),
             default_output_dir=self.output.value(),
             overwrite_default=self.overwrite.isChecked(),
             theme=theme,

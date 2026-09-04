@@ -533,6 +533,7 @@ class MainWindow(QMainWindow):
                     f"ffprobe: {report.ffprobe_version}",
                     f"qaac: {report.qaac_version or 'unavailable'}",
                     f"fdkaac: {report.fdkaac_version or 'unavailable'}",
+                    f"opusenc: {report.opusenc_version or 'unavailable'}",
                 )
             )
         QApplication.clipboard().setText("\n".join(lines))
@@ -543,7 +544,7 @@ class MainWindow(QMainWindow):
             self,
             "About FFmpeg Audio Encoder",
             "FFmpeg Audio Encoder v5\n\nA cross-platform PySide6 front end for "
-            "FFmpeg, qaac, and fdkaac.\n\nLicensed under the MIT License.",
+            "FFmpeg, opusenc, qaac, and fdkaac.\n\nLicensed under the MIT License.",
         )
 
     def _restore_splitters(self) -> None:

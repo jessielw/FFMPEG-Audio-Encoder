@@ -1,6 +1,6 @@
 """First-party encoder adapters."""
 
-from ffmpeg_audio_encoder.encoders.external import FdkAacEncoder, QaacEncoder
+from ffmpeg_audio_encoder.encoders.external import FdkAacEncoder, OpusencEncoder, QaacEncoder
 from ffmpeg_audio_encoder.encoders.ffmpeg import (
     AacEncoder,
     Ac3Encoder,
@@ -17,6 +17,7 @@ from ffmpeg_audio_encoder.encoders.registry import EncoderRegistry
 def default_registry() -> EncoderRegistry:
     registry = EncoderRegistry()
     registry.register(OpusEncoder())
+    registry.register(OpusencEncoder())
     registry.register(FlacEncoder())
     registry.register(AacEncoder())
     registry.register(Mp3Encoder())
@@ -40,6 +41,7 @@ __all__ = [
     "FlacEncoder",
     "Mp3Encoder",
     "OpusEncoder",
+    "OpusencEncoder",
     "QaacEncoder",
     "default_registry",
 ]

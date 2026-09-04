@@ -297,6 +297,42 @@ def test_external_aac_formats_do_not_depend_on_ffmpeg_output_muxers(
     ] == ["m4a", "adts-aac"]
 
 
+def test_standalone_opus_does_not_require_ffmpeg_libopus(
+    tmp_path: Path, qtbot, qapp: QApplication
+) -> None:
+    report = ToolReport(
+        Toolchain(Path("ffmpeg"), Path("ffprobe"), opusenc=Path("opusenc")),
+        "ffmpeg version",
+        "ffprobe version",
+        frozenset(),
+        frozenset({"wav"}),
+        opusenc_version="opusenc opus-tools 0.2",
+    )
+    window = MainWindow(
+        SettingsRepository(tmp_path / "settings.json"),
+        PresetRepository(tmp_path / "presets.json"),
+        ThemeManager(qapp),
+        report,
+    )
+    qtbot.addWidget(window)
+
+    index = window.encoder_combo.findData("opusenc.opus")
+    assert index >= 0
+    assert window._adapter_available("opusenc.opus")
+    window.encoder_combo.setCurrentIndex(index)
+    assert set(window.option_widgets) == {
+        "bitrate_kbps",
+        "rate_control",
+        "signal",
+        "complexity",
+        "frame_duration",
+        "packet_loss",
+        "phase_inversion",
+        "max_delay_ms",
+        "custom_args",
+    }
+
+
 def test_sample_rate_choices_follow_ffmpeg_encoder_capabilities(
     tmp_path: Path, qtbot, qapp: QApplication
 ) -> None:

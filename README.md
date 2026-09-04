@@ -11,7 +11,8 @@ uv run ffmpeg-audio-encoder
 ```
 
 Install FFmpeg and ffprobe on `PATH`, or select their executables in application settings.
-Optional qaac and fdkaac executables can also be found on `PATH` or selected in settings.
+Optional opusenc, qaac, and fdkaac executables can also be found on `PATH` or selected in
+settings.
 
 The PySide6 application includes:
 
@@ -49,17 +50,19 @@ encoders and muxers exposed by the configured FFmpeg build and disables unavaila
 | DTS | `dca` | Raw DTS (`.dts`) |
 | ALAC | `alac` | M4A (`.m4a`) |
 
-Two external AAC adapters are also available:
+Standalone Opus and AAC adapters are also available:
 
 | Adapter | Profiles / modes | Output |
 | --- | --- | --- |
+| opusenc | VBR, constrained VBR, or hard CBR; music/speech tuning | Ogg Opus |
 | qaac (Apple AAC) | AAC-LC or HE-AAC; TVBR, CVBR, ABR, or CBR | M4A or ADTS |
 | fdkaac (Fraunhofer FDK AAC) | AAC-LC, HE-AAC, or HE-AAC v2; CBR or VBR | M4A or ADTS |
 
-External adapters use FFmpeg to decode the selected source stream to PCM over a pipe. The
-external encoder writes directly to the queue's temporary output, preserving the same atomic
-publish, cancellation, and progress behavior as the internal FFmpeg adapters. qaac also requires
-a working Apple CoreAudioToolbox installation; its startup check determines availability.
+External adapters use FFmpeg to decode the selected source stream to PCM over a pipe. opusenc
+receives 24-bit WAV while the AAC encoders receive 16-bit WAV. The external encoder writes
+directly to the queue's temporary output, preserving the same atomic publish, cancellation, and
+progress behavior as the internal FFmpeg adapters. qaac also requires a working Apple
+CoreAudioToolbox installation; its startup check determines availability.
 
 Each adapter exposes curated rate-control and quality settings plus codec-aware channel layouts.
 Common audio controls include gain, tempo, and a signed millisecond delay: positive delay prepends

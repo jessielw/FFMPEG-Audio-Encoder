@@ -253,6 +253,7 @@ class Toolchain:
     ffprobe: Path
     qaac: Path | None = None
     fdkaac: Path | None = None
+    opusenc: Path | None = None
 
 
 @dataclass(slots=True)
@@ -295,6 +296,7 @@ class AppSettings:
     ffprobe_path: str | None = None
     qaac_path: str | None = None
     fdkaac_path: str | None = None
+    opusenc_path: str | None = None
     default_output_dir: str | None = None
     overwrite_default: bool = False
     theme: ThemePreference = ThemePreference.AUTOMATIC

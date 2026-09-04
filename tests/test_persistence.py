@@ -28,6 +28,7 @@ def test_settings_round_trip(tmp_path: Path) -> None:
         ffprobe_path="/tools/ffprobe",
         qaac_path="/tools/qaac64",
         fdkaac_path="/tools/fdkaac",
+        opusenc_path="/tools/opusenc",
         default_output_dir="/output",
         overwrite_default=True,
         theme=ThemePreference.DARK,

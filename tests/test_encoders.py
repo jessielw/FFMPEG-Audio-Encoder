@@ -12,7 +12,7 @@ from ffmpeg_audio_encoder.domain.models import (
     Toolchain,
 )
 from ffmpeg_audio_encoder.encoders import default_registry
-from ffmpeg_audio_encoder.encoders.external import FdkAacEncoder, QaacEncoder
+from ffmpeg_audio_encoder.encoders.external import FdkAacEncoder, OpusencEncoder, QaacEncoder
 from ffmpeg_audio_encoder.encoders.ffmpeg import (
     AacEncoder,
     Ac3Encoder,
@@ -45,6 +45,7 @@ def test_default_registry_has_unique_first_party_adapters() -> None:
     registry = default_registry()
     assert [adapter.descriptor.id for adapter in registry] == [
         "ffmpeg.libopus",
+        "opusenc.opus",
         "ffmpeg.flac",
         "ffmpeg.aac",
         "ffmpeg.libmp3lame",
@@ -176,6 +177,83 @@ def test_external_aac_adapters_pipe_wav_from_ffmpeg(
     assert plan.stages[1].program == getattr(toolchain, tool_name)
     assert "--ignorelength" in plan.stages[1].arguments
     assert plan.stages[1].arguments[-3:] == ("-o", str(temporary), "-")
+
+
+def test_opusenc_adapter_pipes_24_bit_wav_and_maps_native_options(tmp_path: Path) -> None:
+    encoder = OpusencEncoder()
+    options = encoder.default_options()
+    options.update(
+        {
+            "rate_control": "cvbr",
+            "signal": "speech",
+            "phase_inversion": "disabled",
+            "custom_args": "--comment title=Example",
+        }
+    )
+    request = EncodingRequest(
+        Path("input with spaces.mkv"),
+        AudioStream(2, 1, "flac", 2, "stereo", 48000, duration_seconds=10.0),
+        encoder.descriptor.id,
+        Codec.OPUS,
+        OutputFormat.OGG_OPUS,
+        Path("output with spaces.opus"),
+        CommonAudioOptions(48000, "stereo"),
+        options,
+    )
+    toolchain = Toolchain(Path("ffmpeg"), Path("ffprobe"), opusenc=Path("opusenc"))
+    temporary = tmp_path / "temporary.opus"
+
+    plan = encoder.build_plan(request, toolchain, temporary)
+
+    assert len(plan.stages) == 2
+    assert plan.stages[0].program == Path("ffmpeg")
+    assert plan.stages[0].arguments[plan.stages[0].arguments.index("-c:a") + 1] == "pcm_s24le"
+    assert plan.stages[0].arguments[-3:] == ("-f", "wav", "pipe:1")
+    assert plan.stages[1].program == Path("opusenc")
+    assert "--ignorelength" in plan.stages[1].arguments
+    assert "--no-downmix" in plan.stages[1].arguments
+    assert "--cvbr" in plan.stages[1].arguments
+    assert "--speech" in plan.stages[1].arguments
+    assert "--no-phase-inv" in plan.stages[1].arguments
+    assert plan.stages[1].arguments[-4:] == ("--comment", "title=Example", "-", str(temporary))
+
+
+def test_opusenc_rejects_bitrate_above_effective_channel_limit() -> None:
+    encoder = OpusencEncoder()
+    options = encoder.default_options()
+    options["bitrate_kbps"] = 513
+    with pytest.raises(ValidationError, match="512 kb/s"):
+        encoder.validate(
+            EncodingRequest(
+                Path("input.wav"),
+                AudioStream(0, 1, "pcm_s16le", 6),
+                encoder.descriptor.id,
+                Codec.OPUS,
+                OutputFormat.OGG_OPUS,
+                Path("output.opus"),
+                CommonAudioOptions(channel_layout="stereo"),
+                options,
+            )
+        )
+
+
+def test_opusenc_requires_configured_executable(tmp_path: Path) -> None:
+    encoder = OpusencEncoder()
+    request = EncodingRequest(
+        Path("input.wav"),
+        AudioStream(0, 1, "pcm_s16le", 2),
+        encoder.descriptor.id,
+        Codec.OPUS,
+        OutputFormat.OGG_OPUS,
+        Path("output.opus"),
+        encoder_options=encoder.default_options(),
+    )
+    with pytest.raises(ValidationError, match="opusenc is not configured"):
+        encoder.build_plan(
+            request,
+            Toolchain(Path("ffmpeg"), Path("ffprobe")),
+            tmp_path / "temporary.opus",
+        )
 
 
 def test_qaac_rejects_tvbr_for_he_aac() -> None:

@@ -31,10 +31,11 @@ class ToolReport:
     muxers: frozenset[str] = frozenset()
     qaac_version: str | None = None
     fdkaac_version: str | None = None
+    opusenc_version: str | None = None
 
     @property
     def supports_opus(self) -> bool:
-        return "libopus" in self.encoders
+        return "libopus" in self.encoders or self.opusenc_version is not None
 
     @property
     def supports_flac(self) -> bool:
@@ -52,6 +53,7 @@ class ToolReport:
             "ffprobe",
             *({"qaac"} if self.qaac_version else set()),
             *({"fdkaac"} if self.fdkaac_version else set()),
+            *({"opusenc"} if self.opusenc_version else set()),
         }
         return (
             all(name in available_tools for name in descriptor.required_tools)
@@ -92,6 +94,7 @@ def locate_toolchain(settings: AppSettings) -> Toolchain:
         ffprobe=_resolve_executable(settings.ffprobe_path, "ffprobe"),
         qaac=_resolve_optional_executable(settings.qaac_path, "qaac64", "qaac"),
         fdkaac=_resolve_optional_executable(settings.fdkaac_path, "fdkaac"),
+        opusenc=_resolve_optional_executable(settings.opusenc_path, "opusenc"),
     )
 
 
@@ -129,6 +132,7 @@ def inspect_toolchain(toolchain: Toolchain) -> ToolReport:
             muxers.add(columns[1])
     qaac_version = _inspect_optional_tool(toolchain.qaac, ["--check"])
     fdkaac_version = _inspect_optional_tool(toolchain.fdkaac, ["--help"], check=False)
+    opusenc_version = _inspect_optional_tool(toolchain.opusenc, ["--version"])
     return ToolReport(
         toolchain,
         ffmpeg_version,
@@ -137,6 +141,7 @@ def inspect_toolchain(toolchain: Toolchain) -> ToolReport:
         frozenset(muxers),
         qaac_version,
         fdkaac_version,
+        opusenc_version,
     )
 
 

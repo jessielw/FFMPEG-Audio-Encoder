@@ -20,6 +20,7 @@ from ffmpeg_audio_encoder.domain.models import (
 from ffmpeg_audio_encoder.encoders.ffmpeg import (
     AAC_SAMPLE_RATES,
     COMMON_LAYOUTS,
+    OPUS_SAMPLE_RATES,
     adjusted_duration,
     base_arguments,
     custom_arguments,
@@ -58,12 +59,14 @@ def _custom_option(tool_name: str) -> OptionDefinition:
     )
 
 
-def _pcm_stage(request: EncodingRequest, toolchain: Toolchain) -> ProcessStage:
+def _pcm_stage(
+    request: EncodingRequest, toolchain: Toolchain, pcm_codec: str = "pcm_s16le"
+) -> ProcessStage:
     arguments = base_arguments(request)
     arguments.extend(
         (
             "-c:a",
-            "pcm_s16le",
+            pcm_codec,
             "-progress",
             "pipe:2",
             "-nostats",
@@ -81,10 +84,11 @@ def _external_plan(
     temporary_output: Path,
     encoder: Path,
     arguments: list[str],
+    pcm_codec: str = "pcm_s16le",
 ) -> ProcessPlan:
     return ProcessPlan(
         (
-            _pcm_stage(request, toolchain),
+            _pcm_stage(request, toolchain, pcm_codec),
             ProcessStage(encoder, tuple(arguments)),
         ),
         temporary_output,
@@ -102,6 +106,142 @@ class _ExternalAacEncoder:
     def validate(self, request: EncodingRequest) -> None:
         validate_identity(request, self.descriptor)
         validate_options(request, self.descriptor)
+
+
+class OpusencEncoder:
+    descriptor = EncoderDescriptor(
+        id="opusenc.opus",
+        display_name="opusenc (standalone Opus)",
+        codecs=(Codec.OPUS,),
+        output_formats=(OutputFormat.OGG_OPUS,),
+        options=(
+            OptionDefinition("bitrate_kbps", "Bitrate", OptionKind.INTEGER, 160, 6, 2048, " kb/s"),
+            OptionDefinition(
+                "rate_control",
+                "Bitrate mode",
+                OptionKind.CHOICE,
+                "vbr",
+                choices=(
+                    _choice("Variable", "vbr"),
+                    _choice("Constrained variable", "cvbr"),
+                    _choice("Hard constant", "hard_cbr"),
+                ),
+            ),
+            OptionDefinition(
+                "signal",
+                "Signal tuning",
+                OptionKind.CHOICE,
+                "auto",
+                choices=(
+                    _choice("Automatic", "auto"),
+                    _choice("Music", "music"),
+                    _choice("Speech", "speech"),
+                ),
+            ),
+            OptionDefinition("complexity", "Complexity", OptionKind.INTEGER, 10, 0, 10),
+            OptionDefinition(
+                "frame_duration",
+                "Frame duration",
+                OptionKind.CHOICE,
+                "20",
+                suffix=" ms",
+                choices=tuple(
+                    _choice(value, value) for value in ("2.5", "5", "10", "20", "40", "60")
+                ),
+            ),
+            OptionDefinition(
+                "packet_loss", "Expected packet loss", OptionKind.INTEGER, 0, 0, 100, "%"
+            ),
+            OptionDefinition(
+                "phase_inversion",
+                "Phase inversion",
+                OptionKind.CHOICE,
+                "enabled",
+                choices=(
+                    _choice("Enabled", "enabled"),
+                    _choice("Disabled", "disabled"),
+                ),
+            ),
+            OptionDefinition(
+                "max_delay_ms",
+                "Maximum container delay",
+                OptionKind.INTEGER,
+                1000,
+                0,
+                1000,
+                " ms",
+            ),
+            _custom_option("opusenc"),
+        ),
+        required_tools=("ffmpeg", "opusenc"),
+        required_ffmpeg_muxers=("wav",),
+        output_muxed_by_ffmpeg=False,
+        channel_layouts=COMMON_LAYOUTS,
+        sample_rate_choices=OPUS_SAMPLE_RATES,
+    )
+
+    def default_options(self) -> dict[str, JsonScalar]:
+        return {option.key: option.default for option in self.descriptor.options}
+
+    def validate(self, request: EncodingRequest) -> None:
+        validate_identity(request, self.descriptor)
+        validate_options(request, self.descriptor)
+        channels = request.stream.channels
+        if request.common.channel_layout is not None:
+            channels = {
+                "mono": 1,
+                "stereo": 2,
+                "3.0": 3,
+                "quad": 4,
+                "5.0": 5,
+                "5.1": 6,
+                "6.1": 7,
+                "7.1": 8,
+            }.get(request.common.channel_layout)
+        bitrate = integer_option(request, self.descriptor, "bitrate_kbps")
+        if channels is not None and bitrate > 256 * channels:
+            maximum = 256 * channels
+            raise ValidationError(
+                f"opusenc bitrate must not exceed {maximum} kb/s for {channels}-channel audio"
+            )
+
+    def build_plan(
+        self, request: EncodingRequest, toolchain: Toolchain, temporary_output: Path
+    ) -> ProcessPlan:
+        self.validate(request)
+        if toolchain.opusenc is None:
+            raise ValidationError("opusenc is not configured or available on PATH")
+        mode = string_option(request, self.descriptor, "rate_control")
+        arguments = [
+            "--ignorelength",
+            "--no-downmix",
+            "--bitrate",
+            str(integer_option(request, self.descriptor, "bitrate_kbps")),
+            {"vbr": "--vbr", "cvbr": "--cvbr", "hard_cbr": "--hard-cbr"}[mode],
+            "--comp",
+            str(integer_option(request, self.descriptor, "complexity")),
+            "--framesize",
+            string_option(request, self.descriptor, "frame_duration"),
+            "--expect-loss",
+            str(integer_option(request, self.descriptor, "packet_loss")),
+            "--max-delay",
+            str(integer_option(request, self.descriptor, "max_delay_ms")),
+        ]
+        signal = string_option(request, self.descriptor, "signal")
+        if signal != "auto":
+            arguments.append(f"--{signal}")
+        if string_option(request, self.descriptor, "phase_inversion") == "disabled":
+            arguments.append("--no-phase-inv")
+        arguments.extend(custom_arguments(request, self.descriptor))
+        arguments.extend(("-", str(temporary_output)))
+        return _external_plan(
+            request,
+            toolchain,
+            temporary_output,
+            toolchain.opusenc,
+            arguments,
+            pcm_codec="pcm_s24le",
+        )
 
 
 class QaacEncoder(_ExternalAacEncoder):

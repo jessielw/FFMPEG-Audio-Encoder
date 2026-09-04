@@ -56,6 +56,8 @@ def _diagnostics(settings_repository: SettingsRepository) -> int:
                 "qaac_version": report.qaac_version,
                 "fdkaac": str(report.toolchain.fdkaac) if report.toolchain.fdkaac else None,
                 "fdkaac_version": report.fdkaac_version,
+                "opusenc": str(report.toolchain.opusenc) if report.toolchain.opusenc else None,
+                "opusenc_version": report.opusenc_version,
                 "encoders": {
                     adapter.descriptor.id: report.supports_adapter(adapter.descriptor)
                     for adapter in default_registry()
