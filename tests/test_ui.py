@@ -54,6 +54,23 @@ def test_main_window_can_shrink_and_scroll(tmp_path: Path, qtbot, qapp: QApplica
     assert scroll_area.verticalScrollBar().maximum() > 0
 
 
+def test_settings_button_is_reenabled_after_tool_inspection(
+    tmp_path: Path, qtbot, qapp: QApplication
+) -> None:
+    window = MainWindow(
+        SettingsRepository(tmp_path / "settings.json"),
+        PresetRepository(tmp_path / "presets.json"),
+        ThemeManager(qapp),
+        None,
+    )
+    qtbot.addWidget(window)
+
+    window.settings_button.setEnabled(False)
+    window._tool_inspection_finished()
+
+    assert window.settings_button.isEnabled()
+
+
 def test_main_window_uses_custom_splitters_and_can_collapse_queue(
     tmp_path: Path, qtbot, qapp: QApplication
 ) -> None:

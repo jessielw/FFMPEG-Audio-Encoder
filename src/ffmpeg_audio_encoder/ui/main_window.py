@@ -1566,6 +1566,7 @@ class MainWindow(QMainWindow):
         self._pending_settings = None
         if thread is not None:
             thread.deleteLater()
+        self.settings_button.setEnabled(not bool(self.queue and self.queue.active_job))
         self._refresh_actions()
         if self._closing and not (self.queue and self.queue.active_job):
             QTimer.singleShot(0, self.close)
