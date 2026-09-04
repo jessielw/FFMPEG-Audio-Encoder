@@ -8,6 +8,7 @@ import wave
 from pathlib import Path
 
 import pytest
+from pymediainfo import MediaInfo
 
 from ffmpeg_audio_encoder.application.queue import JobQueueController
 from ffmpeg_audio_encoder.domain.errors import AudioEncoderError
@@ -21,6 +22,7 @@ from ffmpeg_audio_encoder.domain.models import (
     OutputFormat,
 )
 from ffmpeg_audio_encoder.encoders import default_registry
+from ffmpeg_audio_encoder.infrastructure.probe import apply_mediainfo_delays, parse_ffprobe_json
 from ffmpeg_audio_encoder.infrastructure.tools import inspect_toolchain, locate_toolchain
 
 
@@ -45,6 +47,59 @@ def tool_report():
         return inspect_toolchain(locate_toolchain(AppSettings()))
     except AudioEncoderError as exc:
         pytest.skip(str(exc))
+
+
+@pytest.mark.parametrize("delay_ms", [80.0, -80.0])
+def test_real_matroska_track_delay_is_reported_with_the_correct_sign(
+    tmp_path: Path, tool_report, delay_ms: float
+) -> None:
+    output = tmp_path / f"delay-{delay_ms:+g}.mkv"
+    video_input = ["-f", "lavfi", "-i", "testsrc2=duration=0.25:size=16x16:rate=25"]
+    audio_input = ["-f", "lavfi", "-i", "sine=frequency=1000:duration=0.25"]
+    inputs = (
+        [*video_input, "-itsoffset", "0.08", *audio_input]
+        if delay_ms > 0
+        else ["-itsoffset", "0.08", *video_input, *audio_input]
+    )
+    subprocess.run(
+        [
+            str(tool_report.toolchain.ffmpeg),
+            "-v",
+            "error",
+            "-y",
+            *inputs,
+            "-map",
+            "0:v:0",
+            "-map",
+            "1:a:0",
+            "-c:v",
+            "ffv1",
+            "-c:a",
+            "pcm_s16le",
+            str(output),
+        ],
+        check=True,
+    )
+    ffprobe = subprocess.run(
+        [
+            str(tool_report.toolchain.ffprobe),
+            "-v",
+            "error",
+            "-show_streams",
+            "-show_format",
+            "-of",
+            "json",
+            str(output),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    asset = parse_ffprobe_json(output, json.loads(ffprobe.stdout))
+    enriched = apply_mediainfo_delays(asset, MediaInfo.parse(output).to_data())
+
+    assert enriched.detected_delays[0].milliseconds == pytest.approx(delay_ms, abs=1)
 
 
 @pytest.mark.parametrize("delay_ms", [25.0, -25.0])

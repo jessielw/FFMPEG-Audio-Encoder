@@ -22,6 +22,8 @@ def build_app() -> Path:
         str(project_root / "src"),
         "--collect-all",
         "qtawesome",
+        "--collect-all",
+        "pymediainfo",
     ]
     legacy_icon = project_root / "legacy_v4" / "Runtime" / "Images" / "icon.ico"
     if sys.platform == "win32" and legacy_icon.is_file():

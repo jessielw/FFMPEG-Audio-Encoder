@@ -1,15 +1,24 @@
 from __future__ import annotations
 
 import json
+import math
 from collections import deque
 from collections.abc import Mapping
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
-from PySide6.QtCore import QObject, QProcess, QTimer, Signal
+from pymediainfo import MediaInfo
+from PySide6.QtCore import QObject, QProcess, QRunnable, QThreadPool, QTimer, Signal, Slot
 
 from ffmpeg_audio_encoder.domain.errors import ProbeError
-from ffmpeg_audio_encoder.domain.models import AudioStream, MediaAsset
+from ffmpeg_audio_encoder.domain.models import (
+    AudioStream,
+    DelaySource,
+    DetectedDelay,
+    MediaAsset,
+)
+from ffmpeg_audio_encoder.infrastructure.delay import MAX_DELAY_MS, parse_filename_delay
 
 
 def _optional_float(value: object) -> float | None:
@@ -18,6 +27,16 @@ def _optional_float(value: object) -> float | None:
     try:
         parsed = float(value)
         return parsed if parsed >= 0 else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _optional_signed_float(value: object) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (str, int, float)):
+        return None
+    try:
+        parsed = float(value)
+        return parsed if math.isfinite(parsed) else None
     except (TypeError, ValueError):
         return None
 
@@ -40,6 +59,26 @@ def parse_ffprobe_json(path: Path, payload: Mapping[str, Any]) -> MediaAsset:
     if not isinstance(raw_streams, list):
         raise ProbeError("ffprobe response does not contain a stream list")
 
+    video_streams = [
+        stream
+        for stream in raw_streams
+        if isinstance(stream, Mapping)
+        and stream.get("codec_type") == "video"
+        and _optional_int(stream.get("index")) is not None
+        and not (
+            isinstance(stream.get("disposition"), Mapping)
+            and stream["disposition"].get("attached_pic") == 1
+        )
+    ]
+    reference_video_position = next(
+        (
+            position
+            for position, stream in enumerate(video_streams)
+            if isinstance(stream.get("disposition"), Mapping)
+            and stream["disposition"].get("default") == 1
+        ),
+        0 if video_streams else None,
+    )
     audio_streams: list[AudioStream] = []
     for raw_stream in raw_streams:
         if not isinstance(raw_stream, Mapping) or raw_stream.get("codec_type") != "audio":
@@ -67,7 +106,132 @@ def parse_ffprobe_json(path: Path, payload: Mapping[str, Any]) -> MediaAsset:
         )
     if not audio_streams:
         raise ProbeError("The selected input does not contain an audio stream")
-    return MediaAsset(path, tuple(audio_streams), format_duration)
+    asset = MediaAsset(
+        path,
+        tuple(audio_streams),
+        format_duration,
+        has_video_reference=bool(video_streams),
+        video_stream_indexes=tuple(
+            index
+            for stream in video_streams
+            if (index := _optional_int(stream.get("index"))) is not None
+        ),
+        reference_video_position=reference_video_position,
+    )
+    if video_streams or len(audio_streams) != 1:
+        return asset
+    filename_delay = parse_filename_delay(path.stem)
+    if filename_delay is None:
+        return asset
+    return replace(
+        asset,
+        detected_delays=(
+            DetectedDelay(
+                audio_streams[0].index,
+                filename_delay.milliseconds,
+                DelaySource.FILENAME,
+            ),
+        ),
+    )
+
+
+def apply_mediainfo_delays(
+    asset: MediaAsset, payload: Mapping[str, Any], error: str | None = None
+) -> MediaAsset:
+    if not asset.has_video_reference:
+        return asset
+    if error:
+        return replace(
+            asset, delay_detection_note=f"MediaInfo delay detection unavailable: {error}"
+        )
+    raw_tracks = payload.get("tracks")
+    if not isinstance(raw_tracks, list):
+        return replace(asset, delay_detection_note="MediaInfo did not return a track list")
+    audio_tracks = [
+        track
+        for track in raw_tracks
+        if isinstance(track, Mapping) and str(track.get("track_type")).casefold() == "audio"
+    ]
+    video_tracks = [
+        track
+        for track in raw_tracks
+        if isinstance(track, Mapping) and str(track.get("track_type")).casefold() == "video"
+    ]
+    matched_audio_tracks = _match_mediainfo_tracks(
+        tuple(stream.index for stream in asset.audio_streams), audio_tracks
+    )
+    matched_video_tracks = _match_mediainfo_tracks(asset.video_stream_indexes, video_tracks)
+    reference_position = asset.reference_video_position
+    if (
+        matched_audio_tracks is None
+        or matched_video_tracks is None
+        or reference_position is None
+        or reference_position >= len(matched_video_tracks)
+    ):
+        return replace(asset, delay_detection_note="MediaInfo track matching was ambiguous")
+
+    detected: list[DetectedDelay] = []
+    for stream, track in zip(asset.audio_streams, matched_audio_tracks, strict=True):
+        if reference_position == 0:
+            milliseconds = _optional_signed_float(track.get("delay_relative_to_video"))
+        else:
+            audio_delay = _optional_signed_float(track.get("delay"))
+            video_delay = _optional_signed_float(
+                matched_video_tracks[reference_position].get("delay")
+            )
+            milliseconds = (
+                audio_delay - video_delay
+                if audio_delay is not None and video_delay is not None
+                else None
+            )
+        if milliseconds is None or abs(milliseconds) > MAX_DELAY_MS:
+            continue
+        detected.append(DetectedDelay(stream.index, round(milliseconds, 3), DelaySource.CONTAINER))
+    note = (
+        None
+        if len(detected) == len(asset.audio_streams)
+        else "MediaInfo did not report a usable delay for every audio track"
+    )
+    return replace(asset, detected_delays=tuple(detected), delay_detection_note=note)
+
+
+def _match_mediainfo_tracks(
+    stream_indexes: tuple[int, ...], tracks: list[Mapping[str, Any]]
+) -> tuple[Mapping[str, Any], ...] | None:
+    tracks_by_order: dict[int, Mapping[str, Any]] = {}
+    ambiguous_orders: set[int] = set()
+    for track in tracks:
+        order = _optional_int(track.get("streamorder", track.get("stream_order")))
+        if order is None:
+            continue
+        if order in tracks_by_order:
+            ambiguous_orders.add(order)
+        else:
+            tracks_by_order[order] = track
+    if all(index in tracks_by_order and index not in ambiguous_orders for index in stream_indexes):
+        return tuple(tracks_by_order[index] for index in stream_indexes)
+    if len(stream_indexes) == len(tracks):
+        return tuple(tracks)
+    return None
+
+
+class _MediaInfoTaskSignals(QObject):
+    finished = Signal(str, object, str)
+
+
+class _MediaInfoTask(QRunnable):
+    def __init__(self, key: str) -> None:
+        super().__init__()
+        self.key = key
+        self.signals = _MediaInfoTaskSignals()
+
+    @Slot()
+    def run(self) -> None:
+        try:
+            result = MediaInfo.parse(self.key).to_data()
+            self.signals.finished.emit(self.key, result, "")
+        except Exception as exc:
+            self.signals.finished.emit(self.key, {}, str(exc))
 
 
 class QtMediaProbe(QObject):
@@ -91,6 +255,10 @@ class QtMediaProbe(QObject):
         self._processes: dict[str, QProcess] = {}
         self._stdout: dict[str, bytearray] = {}
         self._stderr: dict[str, bytearray] = {}
+        self._media_info_pool = QThreadPool(self)
+        self._media_info_pool.setMaxThreadCount(1)
+        self._media_info_tasks: dict[str, _MediaInfoTask] = {}
+        self._awaiting_media_info: dict[str, MediaAsset] = {}
 
     def probe(self, path: Path) -> None:
         key = str(path)
@@ -107,6 +275,9 @@ class QtMediaProbe(QObject):
         self._processes.clear()
         self._stdout.clear()
         self._stderr.clear()
+        self._media_info_pool.clear()
+        self._media_info_tasks.clear()
+        self._awaiting_media_info.clear()
         for process in processes:
             process.disconnect(self)
             if process.state() is not QProcess.ProcessState.NotRunning:
@@ -183,9 +354,9 @@ class QtMediaProbe(QObject):
             return
         stdout = bytes(self._stdout.pop(key)).decode("utf-8", errors="replace")
         stderr = bytes(self._stderr.pop(key)).decode("utf-8", errors="replace").strip()
-        self._known.discard(key)
         process.deleteLater()
         if exit_code != 0:
+            self._known.discard(key)
             self.failed.emit(key, stderr or f"ffprobe exited with code {exit_code}")
             self._start_pending()
             return
@@ -193,7 +364,29 @@ class QtMediaProbe(QObject):
             payload = json.loads(stdout)
             if not isinstance(payload, dict):
                 raise ProbeError("ffprobe returned an unexpected JSON value")
-            self.completed.emit(key, parse_ffprobe_json(Path(key), payload))
+            asset = parse_ffprobe_json(Path(key), payload)
+            if asset.has_video_reference:
+                self._start_media_info(key, asset)
+            else:
+                self._known.discard(key)
+                self.completed.emit(key, asset)
         except (json.JSONDecodeError, ProbeError) as exc:
+            self._known.discard(key)
             self.failed.emit(key, str(exc))
         self._start_pending()
+
+    def _start_media_info(self, key: str, asset: MediaAsset) -> None:
+        task = _MediaInfoTask(key)
+        self._awaiting_media_info[key] = asset
+        self._media_info_tasks[key] = task
+        task.signals.finished.connect(self._finish_media_info)
+        self._media_info_pool.start(task)
+
+    def _finish_media_info(self, key: str, raw_payload: object, error: str) -> None:
+        asset = self._awaiting_media_info.pop(key, None)
+        self._media_info_tasks.pop(key, None)
+        if asset is None:
+            return
+        self._known.discard(key)
+        payload = raw_payload if isinstance(raw_payload, Mapping) else {}
+        self.completed.emit(key, apply_mediainfo_delays(asset, payload, error or None))

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import math
 import os
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from uuid import UUID
 
@@ -52,6 +53,8 @@ from ffmpeg_audio_encoder.domain.errors import AudioEncoderError
 from ffmpeg_audio_encoder.domain.models import (
     Codec,
     CommonAudioOptions,
+    DelaySource,
+    DetectedDelay,
     EncoderConfiguration,
     EncoderPreset,
     EncodingRequest,
@@ -90,6 +93,7 @@ class InputDraft:
     stream_position: int = 0
     output_override: Path | None = None
     error: str | None = None
+    delay_overrides_ms: dict[int, float] = field(default_factory=dict)
 
 
 OptionWidget = QSpinBox | QDoubleSpinBox | QComboBox | QLineEdit
@@ -236,6 +240,9 @@ class MainWindow(QMainWindow):
         self.delay_ms.setToolTip(
             "Positive values prepend silence; negative values trim the beginning."
         )
+        self.delay_ms.setEnabled(False)
+        self.delay_status = QLabel("Select a probed audio track to detect its delay.")
+        self.delay_status.setWordWrap(True)
         self.tempo_ratio.setSuffix("x")
         self.stream_details_button = QPushButton("Inspect selected stream")
         config_form.addRow("Audio stream", self.stream_combo)
@@ -248,6 +255,7 @@ class MainWindow(QMainWindow):
         config_form.addRow("Gain", self.gain_db)
         config_form.addRow("Tempo", self.tempo_ratio)
         config_form.addRow("Audio delay", self.delay_ms)
+        config_form.addRow("", self.delay_status)
         general_layout.addLayout(config_form)
         general_layout.addStretch(1)
 
@@ -440,7 +448,7 @@ class MainWindow(QMainWindow):
         self.channels.currentIndexChanged.connect(self._common_options_changed)
         self.gain_db.valueChanged.connect(self._common_options_changed)
         self.tempo_ratio.valueChanged.connect(self._common_options_changed)
-        self.delay_ms.valueChanged.connect(self._common_options_changed)
+        self.delay_ms.valueChanged.connect(self._delay_changed)
         self.output_edit.textEdited.connect(self._output_edited)
         self.browse_output_button.clicked.connect(self._browse_output)
         self.queue_selected_button.clicked.connect(self._queue_selected)
@@ -808,6 +816,20 @@ class MainWindow(QMainWindow):
         self._refresh_preview()
         self._schedule_configuration_save()
 
+    def _delay_changed(self, value: float) -> None:
+        draft = self._current_draft()
+        if draft is None or draft.asset is None:
+            return
+        stream = draft.asset.audio_streams[draft.stream_position]
+        detected = self._detected_delay(draft, stream.index)
+        automatic = detected.milliseconds if detected is not None else 0.0
+        if math.isclose(value, automatic, abs_tol=0.0005):
+            draft.delay_overrides_ms.pop(stream.index, None)
+        else:
+            draft.delay_overrides_ms[stream.index] = value
+        self._update_delay_status(draft, stream.index)
+        self._refresh_preview()
+
     def _refresh_option_states(self) -> None:
         adapter = self._current_adapter()
         if adapter is None:
@@ -896,6 +918,7 @@ class MainWindow(QMainWindow):
                 self.stream_combo.addItem(stream.display_name)
             self.stream_combo.setCurrentIndex(draft.stream_position)
         self.stream_combo.blockSignals(False)
+        self._sync_delay_control()
         self._refresh_preview()
         self._refresh_actions()
 
@@ -904,13 +927,72 @@ class MainWindow(QMainWindow):
         if draft and draft.asset and 0 <= position < len(draft.asset.audio_streams):
             draft.stream_position = position
             draft.output_override = None
+        self._sync_delay_control()
         self._refresh_preview()
+
+    @staticmethod
+    def _detected_delay(draft: InputDraft, stream_index: int) -> DetectedDelay | None:
+        if draft.asset is None:
+            return None
+        return next(
+            (
+                detected
+                for detected in draft.asset.detected_delays
+                if detected.stream_index == stream_index
+            ),
+            None,
+        )
+
+    def _effective_delay_ms(self, draft: InputDraft, stream_index: int) -> float:
+        override = draft.delay_overrides_ms.get(stream_index)
+        if override is not None:
+            return override
+        detected = self._detected_delay(draft, stream_index)
+        return detected.milliseconds if detected is not None else 0.0
+
+    def _sync_delay_control(self) -> None:
+        draft = self._current_draft()
+        self.delay_ms.blockSignals(True)
+        if draft is None or draft.asset is None:
+            self.delay_ms.setValue(0.0)
+            self.delay_ms.setEnabled(False)
+            self.delay_status.setText("Select a probed audio track to detect its delay.")
+        else:
+            stream = draft.asset.audio_streams[draft.stream_position]
+            self.delay_ms.setEnabled(True)
+            self.delay_ms.setValue(self._effective_delay_ms(draft, stream.index))
+            self._update_delay_status(draft, stream.index)
+        self.delay_ms.blockSignals(False)
+
+    def _update_delay_status(self, draft: InputDraft, stream_index: int) -> None:
+        detected = self._detected_delay(draft, stream_index)
+        override = draft.delay_overrides_ms.get(stream_index)
+        if override is not None:
+            detected_text = (
+                f"; detected {detected.milliseconds:+.3f} ms from {detected.source.value}"
+                if detected is not None
+                else ""
+            )
+            self.delay_status.setText(f"Manual override{detected_text}.")
+        elif detected is not None:
+            self.delay_status.setText(
+                f"Automatically detected {detected.milliseconds:+.3f} ms "
+                f"from {detected.source.value}."
+            )
+        elif draft.asset is not None and draft.asset.delay_detection_note:
+            self.delay_status.setText(draft.asset.delay_detection_note)
+        elif draft.asset is not None and draft.asset.has_video_reference:
+            self.delay_status.setText("Container delay was unavailable; using 0 ms.")
+        else:
+            self.delay_status.setText("No filename DELAY marker detected; using 0 ms.")
 
     def _show_stream_details(self) -> None:
         draft = self._current_draft()
         if draft is None or draft.asset is None:
             return
         stream = draft.asset.audio_streams[draft.stream_position]
+        detected = self._detected_delay(draft, stream.index)
+        effective_delay = self._effective_delay_ms(draft, stream.index)
         duration = (
             f"{stream.duration_seconds:.3f} seconds"
             if stream.duration_seconds is not None
@@ -930,6 +1012,12 @@ class MainWindow(QMainWindow):
                     f"Language: {stream.language or 'Unknown'}",
                     f"Title: {stream.title or 'Untitled'}",
                     f"Duration: {duration}",
+                    (
+                        f"Detected delay: {detected.milliseconds:+.3f} ms ({detected.source.value})"
+                        if detected is not None
+                        else "Detected delay: Unavailable"
+                    ),
+                    f"Effective delay: {effective_delay:+.3f} ms",
                 )
             ),
         )
@@ -960,8 +1048,16 @@ class MainWindow(QMainWindow):
         output_directory = (
             Path(self.settings.default_output_dir) if self.settings.default_output_dir else None
         )
+        detected_delay = self._detected_delay(draft, stream.index)
         output = draft.output_override or default_output_path(
-            draft.path, stream, codec, output_format, output_directory
+            draft.path,
+            stream,
+            codec,
+            output_format,
+            output_directory,
+            strip_delay_marker=(
+                detected_delay is not None and detected_delay.source is DelaySource.FILENAME
+            ),
         )
         if draft.output_override is not None and output.suffix.lower() != output_format.suffix:
             raise ValueError(f"Output extension must be {output_format.suffix} for {output_format}")
@@ -977,7 +1073,7 @@ class MainWindow(QMainWindow):
                 channel_layout=self.channels.currentData(),
                 gain_db=self.gain_db.value(),
                 tempo_ratio=self.tempo_ratio.value(),
-                delay_ms=self.delay_ms.value(),
+                delay_ms=self._effective_delay_ms(draft, stream.index),
             ),
             encoder_options=self._current_options(),
         )
@@ -1362,7 +1458,6 @@ class MainWindow(QMainWindow):
                 self.channels.currentData(),
                 self.gain_db.value(),
                 self.tempo_ratio.value(),
-                self.delay_ms.value(),
             ),
             self._current_options(),
         )
@@ -1412,7 +1507,6 @@ class MainWindow(QMainWindow):
         self.channels.setCurrentIndex(max(layout_index, 0))
         self.gain_db.setValue(configuration.common.gain_db)
         self.tempo_ratio.setValue(configuration.common.tempo_ratio)
-        self.delay_ms.setValue(configuration.common.delay_ms)
         for key, value in configuration.encoder_options.items():
             widget = self.option_widgets.get(key)
             if (
@@ -1463,7 +1557,6 @@ class MainWindow(QMainWindow):
                 self.channels.currentData(),
                 self.gain_db.value(),
                 self.tempo_ratio.value(),
-                self.delay_ms.value(),
             ),
             self._current_options(),
         )

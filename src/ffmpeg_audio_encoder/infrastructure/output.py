@@ -5,6 +5,7 @@ from pathlib import Path
 from uuid import UUID
 
 from ffmpeg_audio_encoder.domain.models import AudioStream, Codec, OutputFormat
+from ffmpeg_audio_encoder.infrastructure.delay import strip_filename_delay_marker
 
 _INVALID_FILENAME = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
 _WINDOWS_RESERVED = {
@@ -33,8 +34,13 @@ def default_output_path(
     codec: Codec,
     output_format: OutputFormat,
     output_directory: Path | None = None,
+    *,
+    strip_delay_marker: bool = False,
 ) -> Path:
-    parts = [sanitize_filename_component(input_path.stem), f"[Audio {stream.ordinal}]"]
+    input_stem = (
+        strip_filename_delay_marker(input_path.stem) if strip_delay_marker else input_path.stem
+    )
+    parts = [sanitize_filename_component(input_stem), f"[Audio {stream.ordinal}]"]
     if stream.language:
         parts.append(f"[{sanitize_filename_component(stream.language)}]")
     if stream.channels:

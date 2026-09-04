@@ -16,9 +16,13 @@ from PySide6.QtWidgets import (
 from ffmpeg_audio_encoder.domain.errors import AudioEncoderError
 from ffmpeg_audio_encoder.domain.models import (
     AppSettings,
+    AudioStream,
     Codec,
     CommonAudioOptions,
+    DelaySource,
+    DetectedDelay,
     EncoderConfiguration,
+    MediaAsset,
     OutputFormat,
     ThemePreference,
     Toolchain,
@@ -30,7 +34,7 @@ from ffmpeg_audio_encoder.infrastructure.tools import (
     locate_toolchain,
 )
 from ffmpeg_audio_encoder.ui.custom_splitter import CustomSplitter, CustomSplitterHandle
-from ffmpeg_audio_encoder.ui.main_window import MainWindow
+from ffmpeg_audio_encoder.ui.main_window import InputDraft, MainWindow
 from ffmpeg_audio_encoder.ui.theme import ThemeManager
 from tests.test_integration_ffmpeg import _write_test_wave
 
@@ -158,7 +162,7 @@ def test_main_window_restores_last_encoder_configuration(
     assert window.channels.currentData() == "stereo"
     assert window.gain_db.value() == 2.5
     assert window.tempo_ratio.value() == 1.25
-    assert window.delay_ms.value() == -125.5
+    assert window.delay_ms.value() == 0
     assert window.option_widgets["compression_level"].property("value") == 7
 
 
@@ -188,6 +192,53 @@ def test_main_window_probes_input_and_switches_generated_encoder_form(
     assert "atrim=start=0.1255,asetpts=PTS-STARTPTS" in window.command_preview.toPlainText()
     assert "-c:a flac" in window.command_preview.toPlainText()
     assert set(window.option_widgets) == {"compression_level", "custom_args"}
+
+
+def test_requests_use_each_drafts_detected_or_overridden_delay(
+    tmp_path: Path, qtbot, qapp: QApplication
+) -> None:
+    report = ToolReport(
+        Toolchain(Path("ffmpeg"), Path("ffprobe")),
+        "ffmpeg version",
+        "ffprobe version",
+        frozenset({"flac"}),
+        frozenset({"flac"}),
+    )
+    window = MainWindow(
+        SettingsRepository(tmp_path / "settings.json"),
+        PresetRepository(tmp_path / "presets.json"),
+        ThemeManager(qapp),
+        report,
+    )
+    qtbot.addWidget(window)
+    window.encoder_combo.setCurrentIndex(window.encoder_combo.findData("ffmpeg.flac"))
+    first_stream = AudioStream(1, 1, "aac")
+    second_stream = AudioStream(2, 1, "ac3")
+    first = InputDraft(
+        tmp_path / "First [DELAY 80ms].aac",
+        asset=MediaAsset(
+            tmp_path / "First [DELAY 80ms].aac",
+            (first_stream,),
+            detected_delays=(DetectedDelay(1, 80, DelaySource.FILENAME),),
+        ),
+    )
+    second = InputDraft(
+        tmp_path / "Second.mkv",
+        asset=MediaAsset(
+            tmp_path / "Second.mkv",
+            (second_stream,),
+            detected_delays=(DetectedDelay(2, -21.5, DelaySource.CONTAINER),),
+            has_video_reference=True,
+        ),
+        delay_overrides_ms={2: -10},
+    )
+
+    first_request = window._build_request(first)
+    second_request = window._build_request(second)
+
+    assert first_request.common.delay_ms == 80
+    assert second_request.common.delay_ms == -10
+    assert "DELAY" not in first_request.output_path.name
 
 
 def test_generated_aac_form_supports_decimal_conditional_and_text_options(

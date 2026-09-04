@@ -2,13 +2,23 @@ import sys
 from pathlib import Path
 from uuid import UUID
 
-from ffmpeg_audio_encoder.domain.models import Codec, OutputFormat
+import pytest
+
+from ffmpeg_audio_encoder.domain.models import Codec, DelaySource, OutputFormat
+from ffmpeg_audio_encoder.infrastructure.delay import (
+    parse_filename_delay,
+    strip_filename_delay_marker,
+)
 from ffmpeg_audio_encoder.infrastructure.output import (
     default_output_path,
     sanitize_filename_component,
     temporary_output_path,
 )
-from ffmpeg_audio_encoder.infrastructure.probe import QtMediaProbe, parse_ffprobe_json
+from ffmpeg_audio_encoder.infrastructure.probe import (
+    QtMediaProbe,
+    apply_mediainfo_delays,
+    parse_ffprobe_json,
+)
 from ffmpeg_audio_encoder.infrastructure.progress import FFmpegProgressParser
 
 
@@ -34,6 +44,152 @@ def test_ffprobe_parser_uses_global_duration_and_real_stream_indexes(tmp_path: P
     assert stream.ordinal == 1
     assert stream.duration_seconds == 12.5
     assert stream.language == "eng"
+
+
+def test_container_delays_are_correlated_to_each_audio_track(tmp_path: Path) -> None:
+    asset = parse_ffprobe_json(
+        tmp_path / "movie.mkv",
+        {
+            "streams": [
+                {
+                    "index": 0,
+                    "codec_type": "video",
+                    "codec_name": "h264",
+                    "disposition": {"default": 1, "attached_pic": 0},
+                },
+                {"index": 2, "codec_type": "audio", "codec_name": "aac"},
+                {"index": 4, "codec_type": "audio", "codec_name": "ac3"},
+            ]
+        },
+    )
+    enriched = apply_mediainfo_delays(
+        asset,
+        {
+            "tracks": [
+                {"track_type": "General"},
+                {"track_type": "Video", "streamorder": "0", "delay": 0},
+                {
+                    "track_type": "Audio",
+                    "streamorder": "4",
+                    "delay_relative_to_video": -21.5,
+                },
+                {
+                    "track_type": "Audio",
+                    "streamorder": "2",
+                    "delay_relative_to_video": 80,
+                },
+            ]
+        },
+    )
+
+    assert [
+        (delay.stream_index, delay.milliseconds, delay.source) for delay in enriched.detected_delays
+    ] == [
+        (2, 80.0, DelaySource.CONTAINER),
+        (4, -21.5, DelaySource.CONTAINER),
+    ]
+    assert enriched.delay_detection_note is None
+
+
+def test_default_non_first_video_is_used_as_delay_reference(tmp_path: Path) -> None:
+    asset = parse_ffprobe_json(
+        tmp_path / "alternate-angle.mkv",
+        {
+            "streams": [
+                {
+                    "index": 0,
+                    "codec_type": "video",
+                    "disposition": {"default": 0, "attached_pic": 0},
+                },
+                {
+                    "index": 1,
+                    "codec_type": "video",
+                    "disposition": {"default": 1, "attached_pic": 0},
+                },
+                {"index": 2, "codec_type": "audio", "codec_name": "flac"},
+            ]
+        },
+    )
+    enriched = apply_mediainfo_delays(
+        asset,
+        {
+            "tracks": [
+                {"track_type": "Video", "delay": 0},
+                {"track_type": "Video", "delay": 20},
+                {"track_type": "Audio", "delay": 100, "delay_relative_to_video": 100},
+            ]
+        },
+    )
+
+    assert enriched.detected_delays[0].milliseconds == 80
+
+
+def test_video_container_with_missing_mediainfo_delay_does_not_guess(tmp_path: Path) -> None:
+    asset = parse_ffprobe_json(
+        tmp_path / "movie [DELAY 90ms].mkv",
+        {
+            "streams": [
+                {"index": 0, "codec_type": "video", "disposition": {"attached_pic": 0}},
+                {"index": 1, "codec_type": "audio", "codec_name": "aac"},
+            ]
+        },
+    )
+    enriched = apply_mediainfo_delays(
+        asset,
+        {"tracks": [{"track_type": "Video"}, {"track_type": "Audio"}]},
+    )
+
+    assert not enriched.detected_delays
+    assert enriched.delay_detection_note
+
+
+@pytest.mark.parametrize(
+    ("stem", "expected"),
+    [
+        ("Movie [DELAY -21ms]", -21.0),
+        ("Movie.delay_80ms", 80.0),
+        ("Movie (Delay +12.5 ms)", 12.5),
+    ],
+)
+def test_filename_delay_parser_accepts_explicit_markers(stem: str, expected: float) -> None:
+    detected = parse_filename_delay(stem)
+    assert detected is not None
+    assert detected.milliseconds == expected
+
+
+@pytest.mark.parametrize(
+    "stem",
+    [
+        "Movie -21ms",
+        "Movie delay 1s",
+        "Movie delayish -21ms",
+        "Movie [DELAY 1ms] [DELAY 2ms]",
+        "Movie [DELAY 86400001ms]",
+    ],
+)
+def test_filename_delay_parser_rejects_unsafe_or_ambiguous_values(stem: str) -> None:
+    assert parse_filename_delay(stem) is None
+
+
+def test_audio_only_filename_delay_is_detected_and_removed_from_output_name(
+    tmp_path: Path,
+) -> None:
+    asset = parse_ffprobe_json(
+        tmp_path / "Movie [DELAY -21ms].ac3",
+        {"streams": [{"index": 0, "codec_type": "audio", "codec_name": "ac3"}]},
+    )
+
+    assert asset.detected_delays[0].milliseconds == -21
+    assert asset.detected_delays[0].source is DelaySource.FILENAME
+    assert strip_filename_delay_marker(asset.path.stem) == "Movie"
+    output = default_output_path(
+        asset.path,
+        asset.audio_streams[0],
+        Codec.OPUS,
+        OutputFormat.OGG_OPUS,
+        strip_delay_marker=True,
+    )
+    assert output.name == "Movie [Audio 1] [Opus].opus"
 
 
 def test_readable_output_and_unique_temporary_name(tmp_path: Path) -> None:

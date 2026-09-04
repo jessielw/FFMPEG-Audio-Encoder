@@ -64,6 +64,10 @@ a working Apple CoreAudioToolbox installation; its startup check determines avai
 Each adapter exposes curated rate-control and quality settings plus codec-aware channel layouts.
 Common audio controls include gain, tempo, and a signed millisecond delay: positive delay prepends
 silence and negative delay trims the beginning before encoding.
+Container delays are detected per audio track with the bundled MediaInfo library. For single-track
+audio-only inputs, case-insensitive filename markers such as `[DELAY -21ms]` are detected instead.
+The detected value remains editable and is baked into the encoded samples; filename-derived delay
+markers are removed from automatically generated output names.
 The custom FFmpeg output-arguments field is saved in presets and is parsed into an argument list;
 it is never executed through a shell. Managed progress, muxer, and output arguments remain under
 application control.

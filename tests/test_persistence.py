@@ -133,7 +133,7 @@ def test_jobs_round_trip_all_durable_fields(tmp_path: Path) -> None:
             codec=Codec.OPUS,
             output_format=OutputFormat.OGG_OPUS,
             output_path=tmp_path / "output.opus",
-            common=CommonAudioOptions(48000, "stereo"),
+            common=CommonAudioOptions(48000, "stereo", delay_ms=-12.5),
             encoder_options={
                 "bitrate_kbps": 128,
                 "vbr": "on",
@@ -154,7 +154,7 @@ def test_jobs_round_trip_all_durable_fields(tmp_path: Path) -> None:
     assert not (tmp_path / ".jobs.json.tmp").exists()
 
 
-def test_signed_audio_delay_round_trips_and_defaults_to_zero(tmp_path: Path) -> None:
+def test_file_specific_delay_is_omitted_from_reusable_presets(tmp_path: Path) -> None:
     repository = PresetRepository(tmp_path / "presets.json")
     preset = EncoderPreset(
         "Delayed",
@@ -167,7 +167,9 @@ def test_signed_audio_delay_round_trips_and_defaults_to_zero(tmp_path: Path) -> 
 
     repository.save([preset])
 
-    assert repository.load() == [preset]
+    loaded = repository.load()
+    assert loaded[0].common.delay_ms == 0
+    assert "delay_ms" not in (tmp_path / "presets.json").read_text(encoding="utf-8")
     assert CommonAudioOptions().delay_ms == 0.0
 
 

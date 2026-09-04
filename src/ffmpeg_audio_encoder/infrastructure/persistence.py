@@ -128,7 +128,7 @@ class PresetRepository:
             "encoder_id": preset.encoder_id,
             "codec": preset.codec.value,
             "output_format": preset.output_format.value,
-            "common": asdict(preset.common),
+            "common": _encode_reusable_common(preset.common),
             "encoder_options": dict(preset.encoder_options),
         }
 
@@ -343,12 +343,18 @@ def _decode_common(raw: dict[str, Any]) -> CommonAudioOptions:
     )
 
 
+def _encode_reusable_common(common: CommonAudioOptions) -> dict[str, object]:
+    payload = asdict(common)
+    payload.pop("delay_ms", None)
+    return payload
+
+
 def _encode_configuration(configuration: EncoderConfiguration) -> dict[str, object]:
     return {
         "encoder_id": configuration.encoder_id,
         "codec": configuration.codec.value,
         "output_format": configuration.output_format.value,
-        "common": asdict(configuration.common),
+        "common": _encode_reusable_common(configuration.common),
         "encoder_options": dict(configuration.encoder_options),
     }
 

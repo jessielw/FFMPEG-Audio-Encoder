@@ -104,6 +104,11 @@ class ThemePreference(StrEnum):
         return self.value.title()
 
 
+class DelaySource(StrEnum):
+    CONTAINER = "container"
+    FILENAME = "filename"
+
+
 class OptionKind(StrEnum):
     INTEGER = "integer"
     DECIMAL = "decimal"
@@ -165,10 +170,22 @@ class AudioStream:
 
 
 @dataclass(frozen=True, slots=True)
+class DetectedDelay:
+    stream_index: int
+    milliseconds: float
+    source: DelaySource
+
+
+@dataclass(frozen=True, slots=True)
 class MediaAsset:
     path: Path
     audio_streams: tuple[AudioStream, ...]
     duration_seconds: float | None = None
+    detected_delays: tuple[DetectedDelay, ...] = ()
+    has_video_reference: bool = False
+    video_stream_indexes: tuple[int, ...] = ()
+    reference_video_position: int | None = None
+    delay_detection_note: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

@@ -8,6 +8,7 @@ license-files = ["LICENSE"]
 requires-python = ">=3.11,<3.15"
 dependencies = [
     "platformdirs>=4.3",
+    "pymediainfo>=7.0.1",
     "pyside6-essentials>=6.8",
     "qtawesome>=1.4",
 ]

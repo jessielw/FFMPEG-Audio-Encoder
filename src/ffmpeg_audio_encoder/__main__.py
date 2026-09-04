@@ -8,6 +8,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 # import qtawesome as qta
+from pymediainfo import MediaInfo
 from PySide6.QtCore import QLockFile, QTimer
 from PySide6.QtWidgets import QApplication, QMessageBox
 
@@ -50,6 +51,7 @@ def _diagnostics(settings_repository: SettingsRepository) -> int:
                 "ffprobe": str(report.toolchain.ffprobe),
                 "ffmpeg_version": report.ffmpeg_version,
                 "ffprobe_version": report.ffprobe_version,
+                "mediainfo_available": MediaInfo.can_parse(),
                 "qaac": str(report.toolchain.qaac) if report.toolchain.qaac else None,
                 "qaac_version": report.qaac_version,
                 "fdkaac": str(report.toolchain.fdkaac) if report.toolchain.fdkaac else None,
