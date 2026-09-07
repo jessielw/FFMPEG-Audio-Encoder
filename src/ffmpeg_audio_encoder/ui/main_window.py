@@ -477,7 +477,7 @@ class MainWindow(QMainWindow):
         self.main_splitter.addWidget(self.draft_splitter)
         self.main_splitter.addWidget(queue_panel)
         self.main_splitter.setChildrenCollapsible(True)
-        self.main_splitter.setCollapsible(0, False)
+        self.main_splitter.setCollapsible(0, True)
         self.main_splitter.setCollapsible(1, True)
         self.main_splitter.setStretchFactor(0, 3)
         self.main_splitter.setStretchFactor(1, 2)
