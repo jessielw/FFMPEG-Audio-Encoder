@@ -3,12 +3,14 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from ffmpeg_audio_encoder.domain.models import OutputFormat, Toolchain
+from ffmpeg_audio_encoder.domain.models import AppSettings, OutputFormat, Toolchain
 from ffmpeg_audio_encoder.encoders import default_registry
 from ffmpeg_audio_encoder.infrastructure import tools
 from ffmpeg_audio_encoder.infrastructure.tools import (
     ToolReport,
     inspect_toolchain,
+    locate_toolchain,
+    prune_deezy_scratch,
     subprocess_creation_flags,
 )
 
@@ -87,3 +89,71 @@ def test_inspection_parses_audio_encoders_and_muxers(monkeypatch) -> None:
     assert report.muxers == frozenset({"ipod", "mp3"})
     assert report.fdkaac_version == "fdkaac 1.0.0"
     assert report.opusenc_version == "opusenc opus-tools 0.2"
+
+
+def test_deezy_dependencies_are_discovered_beside_configured_executable(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    suffix = ".exe" if sys.platform == "win32" else ""
+    ffmpeg = tmp_path / f"ffmpeg{suffix}"
+    ffprobe = tmp_path / f"ffprobe{suffix}"
+    deezy = tmp_path / f"deezy{suffix}"
+    dee = tmp_path / "apps" / "dee" / f"dee{suffix}"
+    truehdd = tmp_path / "apps" / "truehdd" / f"truehdd{suffix}"
+    for executable in (ffmpeg, ffprobe, deezy, dee, truehdd):
+        executable.parent.mkdir(parents=True, exist_ok=True)
+        executable.touch()
+
+    # DeeZy tools resolve from PATH first, so this has to run with an empty PATH to
+    # prove the configured executable and its adjacent apps folder are the fallback.
+    monkeypatch.setattr(tools.shutil, "which", lambda _name: None)
+
+    toolchain = locate_toolchain(
+        AppSettings(
+            ffmpeg_path=str(ffmpeg),
+            ffprobe_path=str(ffprobe),
+            deezy_path=str(deezy),
+        )
+    )
+
+    assert toolchain.deezy == deezy.resolve()
+    assert toolchain.dee == dee.resolve()
+    assert toolchain.truehdd == truehdd.resolve()
+
+
+def test_deezy_capabilities_require_truehdd_only_for_immersive_modes() -> None:
+    registry = default_registry()
+    report = ToolReport(
+        Toolchain(Path("ffmpeg"), Path("ffprobe"), deezy=Path("deezy"), dee=Path("dee")),
+        "ffmpeg version",
+        "ffprobe version",
+        frozenset(),
+        deezy_version="DeeZy 1.3.10",
+        dee_version="dee.exe, Version 5.2.1",
+    )
+    assert report.supports_adapter(registry.get("deezy.dd").descriptor)
+    assert report.supports_adapter(registry.get("deezy.ddp_bluray").descriptor)
+    assert not report.supports_adapter(registry.get("deezy.atmos").descriptor)
+    assert not report.supports_adapter(registry.get("deezy.ac4").descriptor)
+
+
+def test_prune_deezy_scratch_clears_intermediates_from_a_killed_run(tmp_path: Path) -> None:
+    scratch = tmp_path / "deezy-temp"
+    leftover = scratch / "movie_deezy"
+    leftover.mkdir(parents=True)
+    (leftover / "atmos_meta.atmos.audio").write_bytes(b"partial decode")
+    (scratch / "stray.caf").write_bytes(b"stray")
+    toolchain = Toolchain(Path("ffmpeg"), Path("ffprobe"), deezy_temp_dir=scratch)
+
+    prune_deezy_scratch(toolchain)
+
+    assert scratch.is_dir()
+    assert list(scratch.iterdir()) == []
+
+
+def test_prune_deezy_scratch_tolerates_a_missing_directory(tmp_path: Path) -> None:
+    prune_deezy_scratch(Toolchain(Path("ffmpeg"), Path("ffprobe")))
+    prune_deezy_scratch(
+        Toolchain(Path("ffmpeg"), Path("ffprobe"), deezy_temp_dir=tmp_path / "absent")
+    )

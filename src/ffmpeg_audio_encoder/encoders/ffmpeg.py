@@ -260,6 +260,9 @@ def _validate_options(request: EncodingRequest, descriptor: EncoderDescriptor) -
         elif option.kind is OptionKind.TEXT:
             if not isinstance(value, str):
                 raise ValidationError(f"{option.label} must be text")
+        elif option.kind is OptionKind.BOOLEAN:
+            if not isinstance(value, bool):
+                raise ValidationError(f"{option.label} must be enabled or disabled")
         elif value not in {choice.value for choice in option.choices}:
             raise ValidationError(f"Invalid {option.label.lower()}")
         if isinstance(value, (int, float)) and not isinstance(value, bool):

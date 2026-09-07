@@ -25,7 +25,7 @@ from ffmpeg_audio_encoder.domain.models import (
     ThemePreference,
 )
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 PRESET_SCHEMA_VERSION = 2
 JOB_SCHEMA_VERSION = 1
 
@@ -53,7 +53,11 @@ class SettingsRepository:
             return AppSettings()
         try:
             raw = json.loads(self.path.read_text(encoding="utf-8"))
-            if not isinstance(raw, dict) or raw.get("schema_version") not in {1, SCHEMA_VERSION}:
+            if not isinstance(raw, dict) or raw.get("schema_version") not in {
+                1,
+                2,
+                SCHEMA_VERSION,
+            }:
                 return AppSettings()
             return AppSettings(
                 ffmpeg_path=_optional_string(raw.get("ffmpeg_path")),
@@ -61,6 +65,9 @@ class SettingsRepository:
                 qaac_path=_optional_string(raw.get("qaac_path")),
                 fdkaac_path=_optional_string(raw.get("fdkaac_path")),
                 opusenc_path=_optional_string(raw.get("opusenc_path")),
+                deezy_path=_optional_string(raw.get("deezy_path")),
+                dee_path=_optional_string(raw.get("dee_path")),
+                truehdd_path=_optional_string(raw.get("truehdd_path")),
                 default_output_dir=_optional_string(raw.get("default_output_dir")),
                 overwrite_default=_optional_bool(raw.get("overwrite_default"), False),
                 theme=ThemePreference(str(raw.get("theme", ThemePreference.AUTOMATIC))),
@@ -68,6 +75,8 @@ class SettingsRepository:
                 window_y=_optional_int(raw.get("window_y")),
                 window_width=_positive_int(raw.get("window_width"), 1120),
                 window_height=_positive_int(raw.get("window_height"), 760),
+                window_maximized=_optional_bool(raw.get("window_maximized"), False),
+                last_input_dir=_optional_string(raw.get("last_input_dir")),
                 draft_splitter_sizes=_splitter_sizes(raw.get("draft_splitter_sizes"), (620, 460)),
                 main_splitter_sizes=_splitter_sizes(raw.get("main_splitter_sizes"), (460, 240)),
                 queue_panel_collapsed=_optional_bool(raw.get("queue_panel_collapsed"), False),

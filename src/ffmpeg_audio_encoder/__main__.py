@@ -58,6 +58,12 @@ def _diagnostics(settings_repository: SettingsRepository) -> int:
                 "fdkaac_version": report.fdkaac_version,
                 "opusenc": str(report.toolchain.opusenc) if report.toolchain.opusenc else None,
                 "opusenc_version": report.opusenc_version,
+                "deezy": str(report.toolchain.deezy) if report.toolchain.deezy else None,
+                "deezy_version": report.deezy_version,
+                "dee": str(report.toolchain.dee) if report.toolchain.dee else None,
+                "dee_version": report.dee_version,
+                "truehdd": str(report.toolchain.truehdd) if report.toolchain.truehdd else None,
+                "truehdd_version": report.truehdd_version,
                 "encoders": {
                     adapter.descriptor.id: report.supports_adapter(adapter.descriptor)
                     for adapter in default_registry()
@@ -135,6 +141,7 @@ def main() -> int:
         None,
         JobRepository(),
     )
+    app.aboutToQuit.connect(window.terminate_encoders)
     window.show()
     QTimer.singleShot(0, window.discover_tools)
     return app.exec()

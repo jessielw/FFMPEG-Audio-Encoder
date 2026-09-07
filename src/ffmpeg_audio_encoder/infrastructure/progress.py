@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from contextlib import suppress
 from dataclasses import dataclass
 
@@ -10,6 +11,7 @@ class ProgressUpdate:
     speed: str | None = None
     total_size: int | None = None
     ended: bool = False
+    phase: str | None = None
 
 
 class FFmpegProgressParser:
@@ -64,3 +66,38 @@ class FFmpegProgressParser:
             return int(hours) * 3600 + int(minutes) * 60 + float(seconds)
         except (ValueError, TypeError):
             return None
+
+
+class DeezyProgressParser:
+    _PROGRESS_LINE = re.compile(
+        r"(?P<phase>.+?)\s+\((?P<current>\d+) of (?P<total>\d+)\)\s+"
+        r"(?P<percent>\d+(?:\.\d+)?)%"
+    )
+
+    def __init__(self) -> None:
+        self._buffer = ""
+
+    def feed(self, text: str) -> list[ProgressUpdate]:
+        self._buffer += text.replace("\r\n", "\n").replace("\r", "\n")
+        lines = self._buffer.split("\n")
+        self._buffer = lines.pop()
+        updates: list[ProgressUpdate] = []
+        for line in lines:
+            match = self._PROGRESS_LINE.search(line.strip())
+            if match is None:
+                continue
+            current = int(match.group("current"))
+            total = int(match.group("total"))
+            percent = float(match.group("percent"))
+            if total <= 0 or not 1 <= current <= total:
+                continue
+            stage_fraction = min(max(percent / 100.0, 0.0), 1.0)
+            fraction = min(max(((current - 1) + stage_fraction) / total, 0.0), 1.0)
+            updates.append(
+                ProgressUpdate(
+                    fraction,
+                    ended=current == total and stage_fraction >= 1.0,
+                    phase=match.group("phase").strip(),
+                )
+            )
+        return updates

@@ -6,15 +6,17 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from uuid import UUID
 
-from PySide6.QtCore import QPoint, Qt, QThread, QTimer, QUrl, Signal
+from PySide6.QtCore import QPoint, QRect, QSize, Qt, QThread, QTimer, QUrl, Signal
 from PySide6.QtGui import (
     QAction,
     QCloseEvent,
     QDesktopServices,
     QDragEnterEvent,
     QDropEvent,
+    QGuiApplication,
     QIntValidator,
     QKeySequence,
+    QShowEvent,
     QStandardItemModel,
 )
 from PySide6.QtWidgets import (
@@ -44,18 +46,22 @@ from PySide6.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QTabWidget,
+    QToolBar,
+    QToolButton,
     QVBoxLayout,
     QWidget,
 )
 
+from ffmpeg_audio_encoder import __version__
 from ffmpeg_audio_encoder.application.queue import JobQueueController
-from ffmpeg_audio_encoder.domain.errors import AudioEncoderError
+from ffmpeg_audio_encoder.domain.errors import AudioEncoderError, ValidationError
 from ffmpeg_audio_encoder.domain.models import (
     Codec,
     CommonAudioOptions,
     DelaySource,
     DetectedDelay,
     EncoderConfiguration,
+    EncoderGroup,
     EncoderPreset,
     EncodingRequest,
     JobState,
@@ -66,7 +72,7 @@ from ffmpeg_audio_encoder.domain.models import (
     Toolchain,
 )
 from ffmpeg_audio_encoder.encoders import default_registry
-from ffmpeg_audio_encoder.encoders.base import EncoderAdapter
+from ffmpeg_audio_encoder.encoders.base import DynamicOptionChoiceProvider, EncoderAdapter
 from ffmpeg_audio_encoder.infrastructure.output import default_output_path, temporary_output_path
 from ffmpeg_audio_encoder.infrastructure.persistence import (
     JobRepository,
@@ -84,6 +90,8 @@ from ffmpeg_audio_encoder.ui.dialogs import SettingsDialog
 from ffmpeg_audio_encoder.ui.models import ProgressDelegate, QueueTableModel
 from ffmpeg_audio_encoder.ui.theme import ThemeManager
 
+_FOLDER_PROMPT_THRESHOLD = 100
+
 
 @dataclass(slots=True)
 class InputDraft:
@@ -96,7 +104,7 @@ class InputDraft:
     delay_overrides_ms: dict[int, float] = field(default_factory=dict)
 
 
-OptionWidget = QSpinBox | QDoubleSpinBox | QComboBox | QLineEdit
+OptionWidget = QSpinBox | QDoubleSpinBox | QComboBox | QLineEdit | QCheckBox
 
 
 class ToolInspectionThread(QThread):
@@ -139,8 +147,12 @@ class MainWindow(QMainWindow):
         self.job_logs: dict[str, str] = {}
         self._syncing_output = False
         self._restoring_configuration = False
+        self._refreshing_dynamic_choices = False
         self._closing = False
         self._expanded_queue_height = 250
+        self._restore_maximized = self.settings.window_maximized
+        self._job_command_cache: dict[str, str] = {}
+        self._details_job_id: str | None = None
         self._tool_thread: ToolInspectionThread | None = None
         self._pending_settings = None
         self._configuration_save_timer = QTimer(self)
@@ -148,12 +160,10 @@ class MainWindow(QMainWindow):
         self._configuration_save_timer.setInterval(350)
         self._configuration_save_timer.timeout.connect(self._persist_last_configuration)
 
-        self.setWindowTitle("FFmpeg Audio Encoder v5")
+        self.setWindowTitle(f"FFmpeg Audio Encoder v{__version__}")
         self.setAcceptDrops(True)
         self.setMinimumSize(480, 360)
-        self.resize(self.settings.window_width, self.settings.window_height)
-        if self.settings.window_x is not None and self.settings.window_y is not None:
-            self.move(self.settings.window_x, self.settings.window_y)
+        self._restore_window_geometry()
         self._build_ui()
         self._configure_services(tool_report)
         self._populate_encoders()
@@ -165,6 +175,22 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage(
                 "FFmpeg/ffprobe are not configured. Open Settings before adding files."
             )
+
+    def _restore_window_geometry(self) -> None:
+        """Reapply the saved client-area rect.
+
+        ``setGeometry`` is deliberate: it consumes the same client rect that
+        ``geometry``/``normalGeometry`` report at save time, so the window lands exactly
+        where it was left. ``move`` would position the frame instead and walk the window
+        down the screen by one title bar per launch.
+        """
+        width = max(self.settings.window_width, self.minimumWidth())
+        height = max(self.settings.window_height, self.minimumHeight())
+        if self.settings.window_x is None or self.settings.window_y is None:
+            self.resize(width, height)
+            return
+        rect = QRect(self.settings.window_x, self.settings.window_y, width, height)
+        self.setGeometry(_visible_rect(rect))
 
     def _build_ui(self) -> None:
         page = QWidget()
@@ -190,6 +216,7 @@ class MainWindow(QMainWindow):
         self.input_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.input_table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.input_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.input_table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.input_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         self.input_table.horizontalHeader().setSectionResizeMode(
             1, QHeaderView.ResizeMode.ResizeToContents
@@ -244,9 +271,20 @@ class MainWindow(QMainWindow):
         self.delay_status = QLabel("Select a probed audio track to detect its delay.")
         self.delay_status.setWordWrap(True)
         self.tempo_ratio.setSuffix("x")
-        self.stream_details_button = QPushButton("Inspect selected stream")
-        config_form.addRow("Audio stream", self.stream_combo)
-        config_form.addRow("", self.stream_details_button)
+        self.stream_details_button = QToolButton()
+        self.stream_details_button.setAutoRaise(True)
+        self.stream_details_button.setToolTip("Inspect the selected audio stream")
+        self.stream_details_button.setAccessibleName("Inspect selected stream")
+        # Square, combo-height: the eye reads as part of the stream row, not a field.
+        stream_button_extent = self.stream_combo.sizeHint().height()
+        self.stream_details_button.setFixedSize(stream_button_extent, stream_button_extent)
+        stream_row = QWidget()
+        stream_row_layout = QHBoxLayout(stream_row)
+        stream_row_layout.setContentsMargins(0, 0, 0, 0)
+        stream_row_layout.setSpacing(4)
+        stream_row_layout.addWidget(self.stream_combo, 1)
+        stream_row_layout.addWidget(self.stream_details_button)
+        config_form.addRow("Audio stream", stream_row)
         config_form.addRow("Encoder", self.encoder_combo)
         config_form.addRow("Codec", self.codec_combo)
         config_form.addRow("Container", self.format_combo)
@@ -344,40 +382,65 @@ class MainWindow(QMainWindow):
         queue_panel = QWidget()
         queue_layout = QVBoxLayout(queue_panel)
         queue_layout.setContentsMargins(0, 0, 0, 0)
-        queue_primary_actions = QHBoxLayout()
-        queue_primary_actions.addWidget(QLabel("Encoding queue"))
-        self.queue_selected_button = QPushButton("Queue selected inputs")
-        self.queue_start_button = QPushButton("Queue and start")
-        self.start_button = QPushButton("Start queue")
-        self.start_selected_button = QPushButton("Start selected")
-        self.stop_button = QPushButton("Stop after current")
-        self.cancel_button = QPushButton("Cancel active")
-        self.cancel_all_button = QPushButton("Cancel all")
-        self.retry_button = QPushButton("Retry selected")
-        self.remove_jobs_button = QPushButton("Remove selected")
-        self.clear_button = QPushButton("Clear finished")
-        for button in (
-            self.queue_selected_button,
-            self.queue_start_button,
-            self.start_button,
-            self.start_selected_button,
-        ):
-            queue_primary_actions.addWidget(button)
-        queue_primary_actions.addStretch(1)
-        queue_layout.addLayout(queue_primary_actions)
+        queue_heading = QLabel("Encoding queue")
+        heading_font = queue_heading.font()
+        heading_font.setBold(True)
+        queue_heading.setFont(heading_font)
+        queue_heading.setContentsMargins(2, 0, 10, 0)
 
-        queue_secondary_actions = QHBoxLayout()
-        for button in (
-            self.stop_button,
-            self.cancel_button,
-            self.cancel_all_button,
-            self.retry_button,
-            self.remove_jobs_button,
-            self.clear_button,
-        ):
-            queue_secondary_actions.addWidget(button)
-        queue_secondary_actions.addStretch(1)
-        queue_layout.addLayout(queue_secondary_actions)
+        # A toolbar rather than two ragged rows of push buttons: one flat strip that
+        # separates queueing from running, halting and housekeeping, and that folds
+        # into an overflow menu instead of wrapping when the window narrows.
+        self.queue_toolbar = QToolBar()
+        self.queue_toolbar.setMovable(False)
+        self.queue_toolbar.setFloatable(False)
+        self.queue_toolbar.setIconSize(QSize(16, 16))
+        self.queue_toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        self.queue_toolbar.addWidget(queue_heading)
+        self.queue_selected_action = self._add_queue_action(
+            "Queue selected inputs",
+            "ph.list-plus-light",
+            "Add the selected inputs to the queue without starting them",
+        )
+        self.queue_start_action = self._add_queue_action(
+            "Queue and start",
+            "ph.rocket-launch-light",
+            "Queue the selected inputs and begin encoding immediately",
+        )
+        self.queue_toolbar.addSeparator()
+        self.start_action = self._add_queue_action(
+            "Start queue", "ph.play-light", "Run every queued job in order"
+        )
+        self.start_selected_action = self._add_queue_action(
+            "Start selected", "ph.play-circle-light", "Run only the selected queued jobs"
+        )
+        self.queue_toolbar.addSeparator()
+        self.stop_action = self._add_queue_action(
+            "Stop after current",
+            "ph.pause-light",
+            "Finish the running job, then hold the rest of the queue",
+        )
+        self.cancel_action = self._add_queue_action(
+            "Cancel active", "ph.stop-circle-light", "Abort the job that is running now"
+        )
+        self.cancel_all_action = self._add_queue_action(
+            "Cancel all", "ph.x-circle-light", "Abort the running job and drop everything queued"
+        )
+        self.queue_toolbar.addSeparator()
+        self.retry_action = self._add_queue_action(
+            "Retry selected",
+            "ph.arrow-counter-clockwise-light",
+            "Requeue the selected finished, failed or cancelled jobs",
+        )
+        self.remove_jobs_action = self._add_queue_action(
+            "Remove selected", "ph.minus-circle-light", "Drop the selected jobs from the queue"
+        )
+        self.clear_action = self._add_queue_action(
+            "Clear finished",
+            "ph.eraser-light",
+            "Remove every succeeded, failed and cancelled job",
+        )
+        queue_layout.addWidget(self.queue_toolbar)
         self.queue_model = QueueTableModel()
         self.queue_table = QTableView()
         self.queue_table.setModel(self.queue_model)
@@ -390,21 +453,24 @@ class MainWindow(QMainWindow):
         )
         self.queue_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.queue_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
-        queue_layout.addWidget(self.queue_table)
+        self.queue_table.setMinimumHeight(120)
+        queue_layout.addWidget(self.queue_table, 3)
         self.queue_summary = QLabel("No jobs")
         queue_layout.addWidget(self.queue_summary)
         self.job_details = QPlainTextEdit()
         self.job_details.setReadOnly(True)
-        self.job_details.setMaximumHeight(130)
+        self.job_details.setMinimumHeight(90)
         self.job_details.setPlaceholderText("Select a job to see its details")
         self.log_output = QPlainTextEdit()
         self.log_output.setReadOnly(True)
         self.log_output.setMaximumBlockCount(3000)
-        self.log_output.setMaximumHeight(130)
+        self.log_output.setMinimumHeight(90)
         self.queue_details_tabs = QTabWidget()
         self.queue_details_tabs.addTab(self.job_details, "Selected job")
         self.queue_details_tabs.addTab(self.log_output, "Session log")
-        queue_layout.addWidget(self.queue_details_tabs)
+        # Stretch rather than a fixed cap, so dragging the splitter grows the text
+        # areas instead of only the tab frame around them.
+        queue_layout.addWidget(self.queue_details_tabs, 2)
         queue_panel.setMinimumHeight(0)
 
         self.main_splitter = CustomSplitter(Qt.Orientation.Vertical)
@@ -428,10 +494,7 @@ class MainWindow(QMainWindow):
         self.theme_manager.register(self.add_files_button, "ph.files-light")
         self.theme_manager.register(self.settings_button, "ph.gear-light")
         self.theme_manager.register(self.toggle_queue_button, "ph.queue-light")
-        self.theme_manager.register(self.queue_selected_button, "ph.queue-light")
-        self.theme_manager.register(self.queue_start_button, "ph.play-circle-light")
-        self.theme_manager.register(self.start_button, "ph.play-light")
-        self.theme_manager.register(self.cancel_button, "ph.stop-light")
+        self.theme_manager.register(self.stream_details_button, "ph.eye-light", 16)
 
         self.add_files_button.clicked.connect(self._choose_files)
         self.remove_inputs_button.clicked.connect(self._remove_inputs)
@@ -451,26 +514,46 @@ class MainWindow(QMainWindow):
         self.delay_ms.valueChanged.connect(self._delay_changed)
         self.output_edit.textEdited.connect(self._output_edited)
         self.browse_output_button.clicked.connect(self._browse_output)
-        self.queue_selected_button.clicked.connect(self._queue_selected)
-        self.queue_start_button.clicked.connect(self._queue_and_start_selected)
-        self.start_button.clicked.connect(self._start_queue)
-        self.start_selected_button.clicked.connect(self._start_selected_jobs)
-        self.stop_button.clicked.connect(self._stop_queue)
-        self.cancel_button.clicked.connect(self._cancel_active)
-        self.cancel_all_button.clicked.connect(self._cancel_all)
-        self.retry_button.clicked.connect(self._retry_selected)
-        self.remove_jobs_button.clicked.connect(self._remove_selected_jobs)
-        self.clear_button.clicked.connect(self._clear_finished)
+        self.queue_selected_action.triggered.connect(self._queue_selected)
+        self.queue_start_action.triggered.connect(self._queue_and_start_selected)
+        self.start_action.triggered.connect(self._start_queue)
+        self.start_selected_action.triggered.connect(self._start_selected_jobs)
+        self.stop_action.triggered.connect(self._stop_queue)
+        self.cancel_action.triggered.connect(self._cancel_active)
+        self.cancel_all_action.triggered.connect(self._cancel_all)
+        self.retry_action.triggered.connect(self._retry_selected)
+        self.remove_jobs_action.triggered.connect(self._remove_selected_jobs)
+        self.clear_action.triggered.connect(self._clear_finished)
         self.save_preset_button.clicked.connect(self._save_preset)
         self.delete_preset_button.clicked.connect(self._delete_preset)
         self.preset_combo.currentIndexChanged.connect(self._apply_preset)
         self.queue_table.selectionModel().selectionChanged.connect(self._selected_job_changed)
         self.queue_table.customContextMenuRequested.connect(self._queue_context_menu)
+        self.input_table.customContextMenuRequested.connect(self._input_context_menu)
         self.input_table.itemSelectionChanged.connect(self._refresh_actions)
+        self.input_table.itemDoubleClicked.connect(self._show_stream_details)
+        self.queue_table.doubleClicked.connect(self._open_selected_output_folder)
+        self._install_delete_shortcut(self.input_table, self._remove_inputs)
+        self._install_delete_shortcut(self.queue_table, self._remove_selected_jobs)
 
         self._build_menus()
 
         QTimer.singleShot(0, self._restore_splitters)
+
+    def _add_queue_action(self, text: str, icon_name: str, tooltip: str) -> QAction:
+        action = QAction(text, self)
+        action.setToolTip(tooltip)
+        self.queue_toolbar.addAction(action)
+        self.theme_manager.register(action, icon_name)
+        return action
+
+    @staticmethod
+    def _install_delete_shortcut(widget: QWidget, slot) -> None:
+        action = QAction("Remove selected", widget)
+        action.setShortcut(QKeySequence.StandardKey.Delete)
+        action.setShortcutContext(Qt.ShortcutContext.WidgetShortcut)
+        action.triggered.connect(slot)
+        widget.addAction(action)
 
     def _build_menus(self) -> None:
         file_menu = self.menuBar().addMenu("&File")
@@ -493,6 +576,15 @@ class MainWindow(QMainWindow):
         settings_action.setShortcut(QKeySequence("Ctrl+,"))
         settings_action.triggered.connect(self._open_settings)
         edit_menu.addAction(settings_action)
+
+        view_menu = self.menuBar().addMenu("&View")
+        self.queue_panel_action = QAction("&Queue panel", self)
+        self.queue_panel_action.setCheckable(True)
+        self.queue_panel_action.setChecked(self.toggle_queue_button.isChecked())
+        # Not Ctrl+Q: that is StandardKey.Quit on Linux.
+        self.queue_panel_action.setShortcut(QKeySequence("F9"))
+        self.queue_panel_action.toggled.connect(self._set_queue_visible)
+        view_menu.addAction(self.queue_panel_action)
 
         help_menu = self.menuBar().addMenu("&Help")
         documentation_action = QAction("&Documentation", self)
@@ -523,7 +615,7 @@ class MainWindow(QMainWindow):
 
     def _copy_diagnostics(self) -> None:
         report = self.tool_report
-        lines = ["FFmpeg Audio Encoder v5"]
+        lines = [f"FFmpeg Audio Encoder v{__version__}"]
         if report is None:
             lines.append("Toolchain: unavailable")
         else:
@@ -534,6 +626,9 @@ class MainWindow(QMainWindow):
                     f"qaac: {report.qaac_version or 'unavailable'}",
                     f"fdkaac: {report.fdkaac_version or 'unavailable'}",
                     f"opusenc: {report.opusenc_version or 'unavailable'}",
+                    f"DeeZy: {report.deezy_version or 'unavailable'}",
+                    f"DEE: {report.dee_version or 'unavailable'}",
+                    f"TrueHDD: {report.truehdd_version or 'unavailable'}",
                 )
             )
         QApplication.clipboard().setText("\n".join(lines))
@@ -543,8 +638,8 @@ class MainWindow(QMainWindow):
         QMessageBox.about(
             self,
             "About FFmpeg Audio Encoder",
-            "FFmpeg Audio Encoder v5\n\nA cross-platform PySide6 front end for "
-            "FFmpeg, opusenc, qaac, and fdkaac.\n\nLicensed under the MIT License.",
+            f"FFmpeg Audio Encoder v{__version__}\n\nA cross-platform PySide6 front end for "
+            "FFmpeg, DeeZy, opusenc, qaac, and fdkaac.\n\nLicensed under the MIT License.",
         )
 
     def _restore_splitters(self) -> None:
@@ -579,6 +674,11 @@ class MainWindow(QMainWindow):
         self.toggle_queue_button.setChecked(visible)
         self.toggle_queue_button.setText("Hide queue" if visible else "Show queue")
         self.toggle_queue_button.blockSignals(False)
+        action = getattr(self, "queue_panel_action", None)
+        if action is not None:
+            action.blockSignals(True)
+            action.setChecked(visible)
+            action.blockSignals(False)
 
     def _configure_services(self, report: ToolReport | None) -> None:
         if self.probe_service is not None:
@@ -586,6 +686,10 @@ class MainWindow(QMainWindow):
             self.probe_service.deleteLater()
         if self.queue is not None:
             self.queue.shutdown()
+            # deleteLater destroys the runner's QProcess objects on the next event
+            # loop turn, which is far sooner than an async cancel can finish. Take
+            # the process trees down synchronously first so nothing is orphaned.
+            self.queue.terminate_processes()
             self.queue.deleteLater()
         self.tool_report = report
         if report is None:
@@ -620,6 +724,11 @@ class MainWindow(QMainWindow):
         )
 
     def _queue_changed(self, *_args: object) -> None:
+        if self.queue is not None and self._job_command_cache:
+            live = {str(job.id) for job in self.queue.jobs}
+            self._job_command_cache = {
+                key: value for key, value in self._job_command_cache.items() if key in live
+            }
         self._refresh_queue_summary()
         self._selected_job_changed()
         self._refresh_actions()
@@ -628,24 +737,28 @@ class MainWindow(QMainWindow):
         current_id = self.encoder_combo.currentData()
         self.encoder_combo.blockSignals(True)
         self.encoder_combo.clear()
+        previous_group: EncoderGroup | None = None
         for adapter in self.registry:
-            available = self._adapter_available(adapter.descriptor.id)
+            descriptor = adapter.descriptor
+            if previous_group is not None and descriptor.group is not previous_group:
+                self.encoder_combo.insertSeparator(self.encoder_combo.count())
+            previous_group = descriptor.group
+            available = self._adapter_available(descriptor.id)
             label = (
-                adapter.descriptor.display_name
-                if available
-                else f"{adapter.descriptor.display_name} (unavailable)"
+                descriptor.display_name if available else f"{descriptor.display_name} (unavailable)"
             )
-            self.encoder_combo.addItem(label, adapter.descriptor.id)
+            self.encoder_combo.addItem(label, descriptor.id)
             model = self.encoder_combo.model()
             if isinstance(model, QStandardItemModel):
                 model.item(self.encoder_combo.count() - 1).setEnabled(available)
-        index = self.encoder_combo.findData(current_id)
+        # ``findData(None)`` would land on a separator row, so only search for real ids.
+        index = self.encoder_combo.findData(current_id) if isinstance(current_id, str) else -1
         if index < 0:
             index = next(
                 (
                     i
                     for i in range(self.encoder_combo.count())
-                    if self._adapter_available(str(self.encoder_combo.itemData(i)))
+                    if self._adapter_available(self.encoder_combo.itemData(i))
                 ),
                 0,
             )
@@ -653,12 +766,13 @@ class MainWindow(QMainWindow):
         self.encoder_combo.blockSignals(False)
         self._encoder_changed()
 
-    def _adapter_available(self, adapter_id: str) -> bool:
-        if self.tool_report is None:
+    def _adapter_available(self, adapter_id: object) -> bool:
+        """Separator rows carry no adapter id, so anything unknown counts as unavailable."""
+        if self.tool_report is None or not isinstance(adapter_id, str):
             return False
         try:
             adapter = self.registry.get(adapter_id)
-        except KeyError:
+        except ValidationError:
             return False
         return self.tool_report.supports_adapter(adapter.descriptor)
 
@@ -673,9 +787,10 @@ class MainWindow(QMainWindow):
         self.codec_combo.clear()
         self.format_combo.clear()
         self.channels.clear()
-        self.channels.addItem("Preserve", None)
         if adapter is None:
+            self.channels.addItem("Preserve", None)
             return
+        self.channels.addItem(adapter.descriptor.default_channel_layout_label, None)
         for codec in adapter.descriptor.codecs:
             self.codec_combo.addItem(str(codec), codec.value)
         for output_format in adapter.descriptor.output_formats:
@@ -691,8 +806,25 @@ class MainWindow(QMainWindow):
         self.channels.setCurrentIndex(max(layout_index, 0))
         self._populate_sample_rates(adapter, current_sample_rate)
         self._rebuild_option_widgets(adapter)
+        self._apply_common_control_capabilities(adapter)
         self._refresh_preview()
         self._schedule_configuration_save()
+
+    def _apply_common_control_capabilities(self, adapter: EncoderAdapter) -> None:
+        descriptor = adapter.descriptor
+        if not descriptor.supports_sample_rate:
+            self.sample_rate.setCurrentIndex(0)
+        if not descriptor.supports_channel_layout:
+            self.channels.setCurrentIndex(0)
+        if not descriptor.supports_gain:
+            self.gain_db.setValue(0.0)
+        if not descriptor.supports_tempo:
+            self.tempo_ratio.setValue(1.0)
+        self.sample_rate.setEnabled(descriptor.supports_sample_rate)
+        self.channels.setEnabled(descriptor.supports_channel_layout)
+        self.gain_db.setEnabled(descriptor.supports_gain)
+        self.tempo_ratio.setEnabled(descriptor.supports_tempo)
+        self._sync_delay_control()
 
     def _populate_sample_rates(
         self, adapter: EncoderAdapter, current_sample_rate: int | None
@@ -789,6 +921,12 @@ class MainWindow(QMainWindow):
                     widget.addItem(choice.label, choice.value)
                 widget.setCurrentIndex(widget.findData(definition.default))
                 widget.currentIndexChanged.connect(self._option_values_changed)
+            elif definition.kind is OptionKind.BOOLEAN:
+                if not isinstance(definition.default, bool):
+                    raise TypeError(f"Boolean option {definition.key} has a non-boolean default")
+                widget = QCheckBox()
+                widget.setChecked(definition.default)
+                widget.toggled.connect(self._option_values_changed)
             else:
                 widget = QLineEdit()
                 if not isinstance(definition.default, str):
@@ -799,9 +937,12 @@ class MainWindow(QMainWindow):
             widget.setToolTip(definition.tooltip)
             self.option_widgets[definition.key] = widget
             self.options_form.addRow(definition.label, widget)
+        self._refresh_dynamic_option_choices()
         self._refresh_option_states()
 
     def _widget_value(self, widget: OptionWidget) -> JsonScalar:
+        if isinstance(widget, QCheckBox):
+            return widget.isChecked()
         if isinstance(widget, (QSpinBox, QDoubleSpinBox)):
             return widget.value()
         if isinstance(widget, QComboBox):
@@ -809,13 +950,61 @@ class MainWindow(QMainWindow):
         return widget.text()
 
     def _option_values_changed(self, *_args: object) -> None:
+        self._refresh_dynamic_option_choices()
         self._refresh_option_states()
         self._refresh_preview()
         self._schedule_configuration_save()
 
     def _common_options_changed(self, *_args: object) -> None:
+        self._refresh_dynamic_option_choices()
         self._refresh_preview()
         self._schedule_configuration_save()
+
+    def _refresh_dynamic_option_choices(self) -> None:
+        if self._refreshing_dynamic_choices:
+            return
+        adapter = self._current_adapter()
+        if adapter is None or not isinstance(adapter, DynamicOptionChoiceProvider):
+            return
+        draft = self._current_draft()
+        stream = (
+            draft.asset.audio_streams[draft.stream_position]
+            if draft is not None and draft.asset is not None
+            else None
+        )
+        encoder_options = adapter.default_options()
+        encoder_options.update(self._current_options())
+        self._refreshing_dynamic_choices = True
+        try:
+            for definition in adapter.descriptor.options:
+                widget = self.option_widgets.get(definition.key)
+                if definition.kind is not OptionKind.CHOICE or not isinstance(widget, QComboBox):
+                    continue
+                choices = adapter.option_choices(
+                    definition.key,
+                    stream,
+                    self.channels.currentData(),
+                    encoder_options,
+                )
+                existing = tuple(
+                    (widget.itemText(index), widget.itemData(index))
+                    for index in range(widget.count())
+                )
+                desired = tuple((choice.label, choice.value) for choice in choices)
+                if existing == desired:
+                    continue
+                current = widget.currentData()
+                widget.blockSignals(True)
+                widget.clear()
+                for choice in choices:
+                    widget.addItem(choice.label, choice.value)
+                selected = widget.findData(current)
+                if selected < 0:
+                    selected = widget.findData(definition.default)
+                widget.setCurrentIndex(max(selected, 0))
+                widget.blockSignals(False)
+        finally:
+            self._refreshing_dynamic_choices = False
 
     def _delay_changed(self, value: float) -> None:
         draft = self._current_draft()
@@ -846,20 +1035,63 @@ class MainWindow(QMainWindow):
                     controlling is not None
                     and self._widget_value(controlling) in definition.enabled_when_values
                 )
+            for controlling_key, allowed_values in definition.enabled_when_all:
+                controlling = self.option_widgets.get(controlling_key)
+                enabled = (
+                    enabled
+                    and controlling is not None
+                    and self._widget_value(controlling) in allowed_values
+                )
             widget.setEnabled(enabled)
 
     def _choose_files(self) -> None:
-        paths, _ = QFileDialog.getOpenFileNames(self, "Choose media files", "", "All files (*)")
+        paths, _ = QFileDialog.getOpenFileNames(
+            self, "Choose media files", self.settings.last_input_dir or "", "All files (*)"
+        )
+        if not paths:
+            return
+        self.settings = replace(self.settings, last_input_dir=str(Path(paths[0]).parent))
         self._add_paths(Path(path) for path in paths)
+
+    def _expand_inputs(self, paths) -> list[Path] | None:
+        """Flatten directories into their files. Returns None if the user backs out."""
+        expanded: list[Path] = []
+        for raw_path in paths:
+            path = raw_path.expanduser()
+            if path.is_dir():
+                found = sorted(child for child in path.rglob("*") if child.is_file())
+                if len(found) > _FOLDER_PROMPT_THRESHOLD:
+                    answer = QMessageBox.question(
+                        self,
+                        "Add folder",
+                        f"{path.name} contains {len(found)} files. Add all of them?",
+                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                    )
+                    if answer is not QMessageBox.StandardButton.Yes:
+                        return None
+                expanded.extend(found)
+            else:
+                expanded.append(path)
+        return expanded
 
     def _add_paths(self, paths) -> None:
         if self.probe_service is None:
             QMessageBox.warning(self, "Tools not configured", "Configure FFmpeg and ffprobe first.")
             return
+        candidates = self._expand_inputs(paths)
+        if candidates is None:
+            return
         existing = {draft.path for draft in self.drafts}
-        for raw_path in paths:
-            path = raw_path.expanduser().resolve()
-            if not path.is_file() or path in existing:
+        added = 0
+        duplicates = 0
+        skipped = 0
+        for candidate in candidates:
+            path = candidate.resolve()
+            if not path.is_file():
+                skipped += 1
+                continue
+            if path in existing:
+                duplicates += 1
                 continue
             existing.add(path)
             draft = InputDraft(path)
@@ -872,8 +1104,20 @@ class MainWindow(QMainWindow):
             self.input_table.setItem(row, 1, QTableWidgetItem(draft.status))
             self.input_table.setItem(row, 2, QTableWidgetItem("…"))
             self.probe_service.probe(path)
+            added += 1
         if self.input_table.rowCount() and self.input_table.currentRow() < 0:
             self.input_table.selectRow(0)
+        self._report_added_inputs(added, duplicates, skipped)
+
+    def _report_added_inputs(self, added: int, duplicates: int, skipped: int) -> None:
+        if not (added or duplicates or skipped):
+            return
+        parts = [f"Added {added} input{'' if added == 1 else 's'}"]
+        if duplicates:
+            parts.append(f"{duplicates} already listed")
+        if skipped:
+            parts.append(f"{skipped} not readable")
+        self.statusBar().showMessage(" - ".join(parts), 8000)
 
     def _probe_completed(self, path_string: str, raw_asset: object) -> None:
         if not isinstance(raw_asset, MediaAsset):
@@ -920,6 +1164,7 @@ class MainWindow(QMainWindow):
             self.stream_combo.setCurrentIndex(draft.stream_position)
         self.stream_combo.blockSignals(False)
         self._sync_delay_control()
+        self._refresh_dynamic_option_choices()
         self._refresh_preview()
         self._refresh_actions()
 
@@ -929,6 +1174,7 @@ class MainWindow(QMainWindow):
             draft.stream_position = position
             draft.output_override = None
         self._sync_delay_control()
+        self._refresh_dynamic_option_choices()
         self._refresh_preview()
 
     @staticmethod
@@ -960,7 +1206,9 @@ class MainWindow(QMainWindow):
             self.delay_status.setText("Select a probed audio track to detect its delay.")
         else:
             stream = draft.asset.audio_streams[draft.stream_position]
-            self.delay_ms.setEnabled(True)
+            adapter = self._current_adapter()
+            supports_delay = adapter is not None and adapter.descriptor.supports_delay
+            self.delay_ms.setEnabled(supports_delay)
             self.delay_ms.setValue(self._effective_delay_ms(draft, stream.index))
             self._update_delay_status(draft, stream.index)
         self.delay_ms.blockSignals(False)
@@ -987,7 +1235,7 @@ class MainWindow(QMainWindow):
         else:
             self.delay_status.setText("No filename DELAY marker detected; using 0 ms.")
 
-    def _show_stream_details(self) -> None:
+    def _show_stream_details(self, *_args: object) -> None:
         draft = self._current_draft()
         if draft is None or draft.asset is None:
             return
@@ -1280,51 +1528,145 @@ class MainWindow(QMainWindow):
 
     def _append_log(self, job_id: str, text: str) -> None:
         self.log_output.appendPlainText(f"[{job_id[:8]}] {text.rstrip()}")
+        had_log = bool(self.job_logs.get(job_id))
         self.job_logs[job_id] = (self.job_logs.get(job_id, "") + text)[-200_000:]
-        selected = self._selected_job_ids()
-        if any(str(job_id_value) == job_id for job_id_value in selected):
+        if job_id != self._details_job_id:
+            return
+        if had_log:
+            # Append rather than re-render: rebuilding per line would re-run build_plan
+            # and snap the scrollbar back on every line of a long encode.
+            self._append_details_line(text.rstrip())
+        else:
             self._selected_job_changed()
+
+    def _append_details_line(self, line: str) -> None:
+        scrollbar = self.job_details.verticalScrollBar()
+        previous = scrollbar.value()
+        following = previous >= scrollbar.maximum()
+        self.job_details.appendPlainText(line)
+        scrollbar.setValue(scrollbar.maximum() if following else previous)
+
+    def _job_command(self, job) -> str:
+        """Render, and memoise, a job's display command.
+
+        EncodingRequest is frozen and retry reuses the same request, so a job's command
+        never changes once it has been queued.
+        """
+        key = str(job.id)
+        cached = self._job_command_cache.get(key)
+        if cached is not None:
+            return cached
+        if self.queue is None:
+            return ""
+        try:
+            command = (
+                self.registry.get(job.request.encoder_id)
+                .build_plan(
+                    job.request,
+                    self.queue.toolchain,
+                    temporary_output_path(job.request.output_path, job.id),
+                )
+                .display_command()
+            )
+        except AudioEncoderError as exc:
+            command = str(exc)
+        self._job_command_cache[key] = command
+        return command
 
     def _selected_job_changed(self, *_args: object) -> None:
         if self.queue is None:
             self.job_details.clear()
+            self._details_job_id = None
             return
         selected = self._selected_job_ids()
         job = self.queue.job(next(iter(selected))) if len(selected) == 1 else None
         if job is None:
             self.job_details.clear()
+            self._details_job_id = None
             self._refresh_actions()
             return
-        try:
-            adapter = self.registry.get(job.request.encoder_id)
-            plan = adapter.build_plan(
-                job.request,
-                self.queue.toolchain,
-                temporary_output_path(job.request.output_path, job.id),
-            )
-            command = plan.display_command()
-        except AudioEncoderError as exc:
-            command = str(exc)
-        log_text = self.job_logs.get(str(job.id), "")
-        self.job_details.setPlainText(
-            "\n".join(
-                (
-                    f"State: {job.state.value}",
-                    f"Status: {job.status}",
-                    f"Input: {job.request.input_path}",
-                    f"Output: {job.request.output_path}",
-                    f"Encoder: {job.request.encoder_id}",
-                    f"Created: {job.created_at.isoformat()}",
-                    f"Started: {job.started_at.isoformat() if job.started_at else '-'}",
-                    f"Finished: {job.finished_at.isoformat() if job.finished_at else '-'}",
-                    f"Error: {job.error or '-'}",
-                    f"Command: {command}",
-                    "",
-                    "Log:",
-                    log_text.rstrip() or "(No session log for this job)",
-                )
+        job_id = str(job.id)
+        log_text = self.job_logs.get(job_id, "")
+        details = "\n".join(
+            (
+                f"State: {job.state.value}",
+                f"Status: {job.status}",
+                f"Input: {job.request.input_path}",
+                f"Output: {job.request.output_path}",
+                f"Encoder: {job.request.encoder_id}",
+                f"Created: {job.created_at.isoformat()}",
+                f"Started: {job.started_at.isoformat() if job.started_at else '-'}",
+                f"Finished: {job.finished_at.isoformat() if job.finished_at else '-'}",
+                f"Error: {job.error or '-'}",
+                f"Command: {self._job_command(job)}",
+                "",
+                "Log:",
+                log_text.rstrip() or "(No session log for this job)",
             )
         )
+        if details != self.job_details.toPlainText():
+            scrollbar = self.job_details.verticalScrollBar()
+            same_job = job_id == self._details_job_id
+            previous = scrollbar.value()
+            following = previous >= scrollbar.maximum()
+            self.job_details.setPlainText(details)
+            if same_job:
+                scrollbar.setValue(scrollbar.maximum() if following else previous)
+        self._details_job_id = job_id
+        self._refresh_actions()
+
+    def _build_input_menu(self) -> QMenu:
+        menu = QMenu(self)
+        draft = self._current_draft()
+        selected = self._selected_drafts()
+        menu.addAction("Add files…", self._choose_files)
+        remove_action = menu.addAction("Remove selected", self._remove_inputs)
+        remove_action.setEnabled(bool(selected))
+        menu.addSeparator()
+        inspect_action = menu.addAction("Inspect stream", self._show_stream_details)
+        inspect_action.setEnabled(draft is not None and draft.asset is not None)
+        folder_action = menu.addAction("Open containing folder", self._open_selected_input_folder)
+        folder_action.setEnabled(draft is not None)
+        copy_action = menu.addAction("Copy full path", self._copy_selected_input_paths)
+        copy_action.setEnabled(bool(selected))
+        menu.addSeparator()
+        clear_action = menu.addAction("Clear all inputs", self._clear_inputs)
+        clear_action.setEnabled(bool(self.drafts))
+        return menu
+
+    def _input_context_menu(self, position: QPoint) -> None:
+        index = self.input_table.indexAt(position)
+        if index.isValid() and not self.input_table.selectionModel().isRowSelected(
+            index.row(), index.parent()
+        ):
+            self.input_table.selectRow(index.row())
+        self._build_input_menu().exec(self.input_table.viewport().mapToGlobal(position))
+
+    def _open_selected_input_folder(self) -> None:
+        draft = self._current_draft()
+        if draft is not None:
+            QDesktopServices.openUrl(QUrl.fromLocalFile(str(draft.path.parent)))
+
+    def _copy_selected_input_paths(self) -> None:
+        drafts = self._selected_drafts()
+        if drafts:
+            QApplication.clipboard().setText("\n".join(str(draft.path) for draft in drafts))
+
+    def _clear_inputs(self) -> None:
+        if not self.drafts:
+            return
+        if len(self.drafts) > 1:
+            answer = QMessageBox.question(
+                self,
+                "Clear inputs",
+                f"Remove all {len(self.drafts)} inputs?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            )
+            if answer is not QMessageBox.StandardButton.Yes:
+                return
+        self.drafts.clear()
+        self.input_table.setRowCount(0)
+        self._sync_selected_draft()
         self._refresh_actions()
 
     def _queue_context_menu(self, position: QPoint) -> None:
@@ -1350,7 +1692,7 @@ class MainWindow(QMainWindow):
         selected = self._selected_job_ids()
         return self.queue.job(next(iter(selected))) if len(selected) == 1 else None
 
-    def _open_selected_output_folder(self) -> None:
+    def _open_selected_output_folder(self, *_args: object) -> None:
         job = self._selected_job()
         if job is not None:
             QDesktopServices.openUrl(QUrl.fromLocalFile(str(job.request.output_path.parent)))
@@ -1359,19 +1701,7 @@ class MainWindow(QMainWindow):
         job = self._selected_job()
         if job is None or self.queue is None:
             return
-        try:
-            command = (
-                self.registry.get(job.request.encoder_id)
-                .build_plan(
-                    job.request,
-                    self.queue.toolchain,
-                    temporary_output_path(job.request.output_path, job.id),
-                )
-                .display_command()
-            )
-        except AudioEncoderError as exc:
-            command = str(exc)
-        QApplication.clipboard().setText(command)
+        QApplication.clipboard().setText(self._job_command(job))
 
     def _copy_selected_error(self) -> None:
         job = self._selected_job()
@@ -1411,22 +1741,22 @@ class MainWindow(QMainWindow):
                 for job in queue.jobs
             )
         )
-        ready_inputs = any(draft.asset is not None for draft in self._selected_drafts())
-        self.queue_selected_button.setEnabled(bool(queue) and ready_inputs)
-        self.queue_start_button.setEnabled(bool(queue) and ready_inputs and not has_active)
-        self.start_button.setEnabled(has_queued and not has_active)
-        self.start_selected_button.setEnabled(selected_queued and not has_active)
-        self.stop_button.setEnabled(bool(queue and queue.is_dispatching and has_active))
-        self.cancel_button.setEnabled(has_active)
-        self.cancel_all_button.setEnabled(has_active or has_queued)
-        self.retry_button.setEnabled(selected_terminal and not has_active)
-        self.remove_jobs_button.setEnabled(removable)
-        self.clear_button.setEnabled(terminal_jobs)
+        draft = self._current_draft()
+        probed_draft = draft is not None and draft.asset is not None
+        ready_inputs = any(item.asset is not None for item in self._selected_drafts())
+        self.queue_selected_action.setEnabled(bool(queue) and ready_inputs)
+        self.queue_start_action.setEnabled(bool(queue) and ready_inputs and not has_active)
+        self.start_action.setEnabled(has_queued and not has_active)
+        self.start_selected_action.setEnabled(selected_queued and not has_active)
+        self.stop_action.setEnabled(bool(queue and queue.is_dispatching and has_active))
+        self.cancel_action.setEnabled(has_active)
+        self.cancel_all_action.setEnabled(has_active or has_queued)
+        self.retry_action.setEnabled(selected_terminal and not has_active)
+        self.remove_jobs_action.setEnabled(removable)
+        self.clear_action.setEnabled(terminal_jobs)
         self.remove_inputs_button.setEnabled(bool(self._selected_drafts()))
-        self.stream_details_button.setEnabled(
-            (draft := self._current_draft()) is not None and draft.asset is not None
-        )
-        self.browse_output_button.setEnabled(draft is not None and draft.asset is not None)
+        self.stream_details_button.setEnabled(probed_draft)
+        self.browse_output_button.setEnabled(probed_draft)
 
     def _populate_presets(self) -> None:
         self.preset_combo.blockSignals(True)
@@ -1497,17 +1827,27 @@ class MainWindow(QMainWindow):
             return False
         self._restoring_configuration = True
         self.encoder_combo.setCurrentIndex(adapter_index)
+        adapter = self._current_adapter()
+        if adapter is None:
+            self._restoring_configuration = False
+            return False
+        descriptor = adapter.descriptor
         codec_index = self.codec_combo.findData(configuration.codec.value)
         if codec_index >= 0:
             self.codec_combo.setCurrentIndex(codec_index)
         format_index = self.format_combo.findData(configuration.output_format.value)
         if format_index >= 0:
             self.format_combo.setCurrentIndex(format_index)
-        restored_all = self._set_sample_rate(configuration.common.sample_rate)
-        layout_index = self.channels.findData(configuration.common.channel_layout)
+        restored_all = self._set_sample_rate(
+            configuration.common.sample_rate if descriptor.supports_sample_rate else None
+        )
+        layout = configuration.common.channel_layout if descriptor.supports_channel_layout else None
+        layout_index = self.channels.findData(layout)
         self.channels.setCurrentIndex(max(layout_index, 0))
-        self.gain_db.setValue(configuration.common.gain_db)
-        self.tempo_ratio.setValue(configuration.common.tempo_ratio)
+        self.gain_db.setValue(configuration.common.gain_db if descriptor.supports_gain else 0.0)
+        self.tempo_ratio.setValue(
+            configuration.common.tempo_ratio if descriptor.supports_tempo else 1.0
+        )
         for key, value in configuration.encoder_options.items():
             widget = self.option_widgets.get(key)
             if (
@@ -1526,8 +1866,17 @@ class MainWindow(QMainWindow):
                 option_index = widget.findData(value)
                 if option_index >= 0:
                     widget.setCurrentIndex(option_index)
+            elif isinstance(widget, QCheckBox) and isinstance(value, bool):
+                widget.setChecked(value)
             elif isinstance(widget, QLineEdit) and isinstance(value, str):
                 widget.setText(value)
+        self._refresh_dynamic_option_choices()
+        for key, value in configuration.encoder_options.items():
+            widget = self.option_widgets.get(key)
+            if isinstance(widget, QComboBox):
+                option_index = widget.findData(value)
+                if option_index >= 0:
+                    widget.setCurrentIndex(option_index)
         self._restoring_configuration = False
         self._refresh_option_states()
         self._refresh_preview()
@@ -1671,6 +2020,20 @@ class MainWindow(QMainWindow):
         if self._closing and not active:
             QTimer.singleShot(0, self.close)
 
+    def terminate_encoders(self) -> None:
+        """Kill any surviving encoder process tree. Wired to QApplication.aboutToQuit
+        so that quitting by a route other than closeEvent cannot leak a child."""
+        if self.queue is not None:
+            self.queue.terminate_processes()
+
+    def showEvent(self, event: QShowEvent) -> None:
+        super().showEvent(event)
+        if self._restore_maximized:
+            # Deferred to the first show so callers keep control of when the window
+            # appears; maximizing in __init__ would force it visible early.
+            self._restore_maximized = False
+            self.setWindowState(self.windowState() | Qt.WindowState.WindowMaximized)
+
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
@@ -1710,7 +2073,11 @@ class MainWindow(QMainWindow):
         configuration = self._current_configuration()
         if configuration is not None:
             self.settings = replace(self.settings, last_configuration=configuration)
-        geometry = self.geometry()
+        # normalGeometry is the un-maximized client rect, so a window closed while
+        # maximized still remembers a sane size to restore down to.
+        geometry = self.normalGeometry()
+        if geometry.isEmpty():
+            geometry = self.geometry()
         draft_sizes = self.draft_splitter.sizes()
         main_sizes = self.main_splitter.sizes()
         if main_sizes[1] == 0:
@@ -1721,6 +2088,7 @@ class MainWindow(QMainWindow):
             window_y=geometry.y(),
             window_width=geometry.width(),
             window_height=geometry.height(),
+            window_maximized=self.isMaximized(),
             draft_splitter_sizes=(draft_sizes[0], draft_sizes[1]),
             main_splitter_sizes=(main_sizes[0], main_sizes[1]),
             queue_panel_collapsed=not self.toggle_queue_button.isChecked(),
@@ -1734,3 +2102,21 @@ class MainWindow(QMainWindow):
 
 def _path_key(path: Path) -> str:
     return os.path.normcase(os.path.abspath(os.fspath(path)))
+
+
+def _visible_rect(rect: QRect) -> QRect:
+    """Return ``rect`` if any screen still shows it, otherwise a centred fallback.
+
+    Guards against a rect saved on a monitor that has since been unplugged or resized,
+    which would otherwise reopen the window somewhere the user cannot reach it.
+    """
+    if any(screen.availableGeometry().intersects(rect) for screen in QGuiApplication.screens()):
+        return rect
+    screen = QGuiApplication.primaryScreen()
+    if screen is None:
+        return rect
+    available = screen.availableGeometry()
+    size = rect.size().boundedTo(available.size())
+    centred = QRect(available.topLeft(), size)
+    centred.moveCenter(available.center())
+    return centred

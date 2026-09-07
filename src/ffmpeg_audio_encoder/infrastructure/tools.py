@@ -3,8 +3,11 @@ from __future__ import annotations
 import shutil
 import subprocess
 import sys
+from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import Path
+
+from platformdirs import user_cache_path
 
 from ffmpeg_audio_encoder.domain.errors import ToolNotFoundError
 from ffmpeg_audio_encoder.domain.models import (
@@ -32,6 +35,9 @@ class ToolReport:
     qaac_version: str | None = None
     fdkaac_version: str | None = None
     opusenc_version: str | None = None
+    deezy_version: str | None = None
+    dee_version: str | None = None
+    truehdd_version: str | None = None
 
     @property
     def supports_opus(self) -> bool:
@@ -54,6 +60,9 @@ class ToolReport:
             *({"qaac"} if self.qaac_version else set()),
             *({"fdkaac"} if self.fdkaac_version else set()),
             *({"opusenc"} if self.opusenc_version else set()),
+            *({"deezy"} if self.deezy_version else set()),
+            *({"dee"} if self.dee_version else set()),
+            *({"truehdd"} if self.truehdd_version else set()),
         }
         return (
             all(name in available_tools for name in descriptor.required_tools)
@@ -65,22 +74,14 @@ class ToolReport:
         )
 
 
-def _resolve_executable(configured: str | None, name: str) -> Path:
-    if configured:
-        configured_path = Path(configured).expanduser()
-        if configured_path.is_file():
-            return configured_path.resolve()
-    discovered = shutil.which(name)
-    if discovered:
-        return Path(discovered).resolve()
-    detail = f"Configured path {configured!r} is invalid and " if configured else ""
-    raise ToolNotFoundError(f"{detail}{name} was not found on PATH")
+def _configured_file(configured: str | None) -> Path | None:
+    if not configured:
+        return None
+    configured_path = Path(configured).expanduser()
+    return configured_path.resolve() if configured_path.is_file() else None
 
 
-def _resolve_optional_executable(configured: str | None, *names: str) -> Path | None:
-    if configured:
-        configured_path = Path(configured).expanduser()
-        return configured_path.resolve() if configured_path.is_file() else None
+def _on_path(*names: str) -> Path | None:
     for name in names:
         discovered = shutil.which(name)
         if discovered:
@@ -88,14 +89,88 @@ def _resolve_optional_executable(configured: str | None, *names: str) -> Path | 
     return None
 
 
+def _resolve_executable(configured: str | None, name: str) -> Path:
+    resolved = _configured_file(configured) or _on_path(name)
+    if resolved is not None:
+        return resolved
+    detail = f"Configured path {configured!r} is invalid and " if configured else ""
+    raise ToolNotFoundError(f"{detail}{name} was not found on PATH")
+
+
+def _resolve_optional_executable(configured: str | None, *names: str) -> Path | None:
+    if configured:
+        return _configured_file(configured)
+    return _on_path(*names)
+
+
+def _resolve_deezy_tool(configured: str | None, *names: str) -> Path | None:
+    """Locate a DeeZy toolchain member: PATH first, then the configured override."""
+    return _on_path(*names) or _configured_file(configured)
+
+
+def _resolve_deezy_dependency(
+    configured: str | None,
+    deezy: Path | None,
+    directory_name: str,
+    *names: str,
+) -> Path | None:
+    """Locate a tool DeeZy drives: PATH, then DeeZy's bundled ``apps`` layout, then
+    the configured override. ``truehdd`` and ``dee`` normally ship beside DeeZy
+    rather than on PATH."""
+    discovered = _on_path(*names)
+    if discovered is not None:
+        return discovered
+    if deezy is not None:
+        for name in names:
+            adjacent = deezy.parent / "apps" / directory_name / name
+            if adjacent.is_file():
+                return adjacent.resolve()
+    return _configured_file(configured)
+
+
 def locate_toolchain(settings: AppSettings) -> Toolchain:
+    deezy = _resolve_deezy_tool(settings.deezy_path, "deezy")
+    executable_suffix = ".exe" if sys.platform == "win32" else ""
     return Toolchain(
         ffmpeg=_resolve_executable(settings.ffmpeg_path, "ffmpeg"),
         ffprobe=_resolve_executable(settings.ffprobe_path, "ffprobe"),
         qaac=_resolve_optional_executable(settings.qaac_path, "qaac64", "qaac"),
         fdkaac=_resolve_optional_executable(settings.fdkaac_path, "fdkaac"),
         opusenc=_resolve_optional_executable(settings.opusenc_path, "opusenc"),
+        deezy=deezy,
+        dee=_resolve_deezy_dependency(
+            settings.dee_path,
+            deezy,
+            "dee",
+            f"dee{executable_suffix}",
+        ),
+        truehdd=_resolve_deezy_dependency(
+            settings.truehdd_path,
+            deezy,
+            "truehdd",
+            f"truehdd{executable_suffix}",
+        ),
+        deezy_work_dir=user_cache_path("FFmpegAudioEncoder", appauthor=False) / "deezy-work",
+        deezy_temp_dir=user_cache_path("FFmpegAudioEncoder", appauthor=False) / "deezy-temp",
     )
+
+
+def prune_deezy_scratch(toolchain: Toolchain) -> None:
+    """Drop DeeZy intermediates left behind by a killed or cancelled job.
+
+    DeeZy only cleans up after a run it completes, and the Atmos and AC-4 decodes it
+    leaves behind are the size of the source track. Safe to call at startup, when no
+    job of ours can be running.
+    """
+    scratch = toolchain.deezy_temp_dir
+    if scratch is None or not scratch.is_dir():
+        return
+    for entry in scratch.iterdir():
+        with suppress(OSError):
+            if entry.is_dir():
+                shutil.rmtree(entry, ignore_errors=True)
+            else:
+                entry.unlink()
 
 
 def _run_tool(program: Path, arguments: list[str], *, check: bool = True) -> str:
@@ -133,6 +208,12 @@ def inspect_toolchain(toolchain: Toolchain) -> ToolReport:
     qaac_version = _inspect_optional_tool(toolchain.qaac, ["--check"])
     fdkaac_version = _inspect_optional_tool(toolchain.fdkaac, ["--help"], check=False)
     opusenc_version = _inspect_optional_tool(toolchain.opusenc, ["--version"])
+    # These probes stay tolerant of a non-zero exit: a tool that prints its version
+    # and then complains about something unrelated is still a usable tool, and a
+    # failure here silently hides every adapter that depends on it.
+    deezy_version = _inspect_optional_tool(toolchain.deezy, ["--version"], check=False)
+    dee_version = _inspect_optional_tool(toolchain.dee, ["--help"], check=False)
+    truehdd_version = _inspect_optional_tool(toolchain.truehdd, ["--version"], check=False)
     return ToolReport(
         toolchain,
         ffmpeg_version,
@@ -142,6 +223,9 @@ def inspect_toolchain(toolchain: Toolchain) -> ToolReport:
         qaac_version,
         fdkaac_version,
         opusenc_version,
+        deezy_version,
+        dee_version,
+        truehdd_version,
     )
 
 

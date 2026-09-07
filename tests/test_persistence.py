@@ -1,3 +1,4 @@
+import json
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -29,6 +30,9 @@ def test_settings_round_trip(tmp_path: Path) -> None:
         qaac_path="/tools/qaac64",
         fdkaac_path="/tools/fdkaac",
         opusenc_path="/tools/opusenc",
+        deezy_path="/tools/deezy",
+        dee_path="/tools/dee",
+        truehdd_path="/tools/truehdd",
         default_output_dir="/output",
         overwrite_default=True,
         theme=ThemePreference.DARK,
@@ -36,6 +40,8 @@ def test_settings_round_trip(tmp_path: Path) -> None:
         window_y=30,
         window_width=900,
         window_height=700,
+        window_maximized=True,
+        last_input_dir="/media/incoming",
         draft_splitter_sizes=(500, 400),
         main_splitter_sizes=(440, 220),
         queue_panel_collapsed=True,
@@ -50,6 +56,27 @@ def test_settings_round_trip(tmp_path: Path) -> None:
     repository.save(settings)
     assert repository.load() == settings
     assert not (tmp_path / ".settings.json.tmp").exists()
+
+
+def test_settings_written_before_window_state_existed_still_load(tmp_path: Path) -> None:
+    path = tmp_path / "settings.json"
+    path.write_text(
+        json.dumps(
+            {
+                "schema_version": 3,
+                "theme": "automatic",
+                "window_x": 40,
+                "window_y": 60,
+                "window_width": 1000,
+                "window_height": 800,
+            }
+        ),
+        encoding="utf-8",
+    )
+    settings = SettingsRepository(path).load()
+    assert settings.window_width == 1000
+    assert settings.window_maximized is False
+    assert settings.last_input_dir is None
 
 
 def test_malformed_or_newer_settings_fall_back_safely(tmp_path: Path) -> None:

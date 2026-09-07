@@ -9,6 +9,7 @@ from typing import TypeAlias
 from uuid import UUID, uuid4
 
 JsonScalar: TypeAlias = str | int | float | bool | None
+OptionCondition: TypeAlias = tuple[str, tuple[JsonScalar, ...]]
 
 
 def _empty_options() -> dict[str, JsonScalar]:
@@ -24,6 +25,8 @@ class Codec(StrEnum):
     EAC3 = "eac3"
     DTS = "dts"
     ALAC = "alac"
+    ATMOS = "atmos"
+    AC4 = "ac4"
 
     def __str__(self) -> str:
         return {
@@ -35,6 +38,8 @@ class Codec(StrEnum):
             self.EAC3: "E-AC-3",
             self.DTS: "DTS",
             self.ALAC: "ALAC",
+            self.ATMOS: "Dolby Digital Plus Atmos",
+            self.AC4: "AC-4",
         }[self]
 
 
@@ -47,6 +52,7 @@ class OutputFormat(StrEnum):
     AC3 = "ac3"
     EAC3 = "eac3"
     DTS = "dts"
+    AC4 = "ac4"
 
     @property
     def suffix(self) -> str:
@@ -59,6 +65,7 @@ class OutputFormat(StrEnum):
             self.AC3: ".ac3",
             self.EAC3: ".eac3",
             self.DTS: ".dts",
+            self.AC4: ".ac4",
         }[self]
 
     @property
@@ -72,6 +79,7 @@ class OutputFormat(StrEnum):
             self.AC3: "ac3",
             self.EAC3: "eac3",
             self.DTS: "dts",
+            self.AC4: "ac4",
         }[self]
 
     def __str__(self) -> str:
@@ -84,6 +92,7 @@ class OutputFormat(StrEnum):
             self.AC3: "Raw AC-3",
             self.EAC3: "Raw E-AC-3",
             self.DTS: "Raw DTS",
+            self.AC4: "Raw AC-4",
         }[self]
 
 
@@ -114,6 +123,12 @@ class OptionKind(StrEnum):
     DECIMAL = "decimal"
     CHOICE = "choice"
     TEXT = "text"
+    BOOLEAN = "boolean"
+
+
+class ProgressProtocol(StrEnum):
+    FFMPEG = "ffmpeg"
+    DEEZY = "deezy"
 
 
 @dataclass(frozen=True, slots=True)
@@ -137,6 +152,7 @@ class OptionDefinition:
     decimals: int = 0
     enabled_when_key: str | None = None
     enabled_when_values: tuple[JsonScalar, ...] = ()
+    enabled_when_all: tuple[OptionCondition, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -209,6 +225,14 @@ class EncodingRequest:
     encoder_options: Mapping[str, JsonScalar] = field(default_factory=_empty_options)
 
 
+class EncoderGroup(StrEnum):
+    """Family an adapter belongs to; drives the encoder picker's grouping."""
+
+    FFMPEG = "FFmpeg built-in"
+    STANDALONE = "Standalone encoders"
+    DEEZY = "DeeZy (Dolby professional)"
+
+
 @dataclass(frozen=True, slots=True)
 class EncoderDescriptor:
     id: str
@@ -216,13 +240,20 @@ class EncoderDescriptor:
     codecs: tuple[Codec, ...]
     output_formats: tuple[OutputFormat, ...]
     options: tuple[OptionDefinition, ...]
+    group: EncoderGroup = EncoderGroup.FFMPEG
     required_tools: tuple[str, ...] = ("ffmpeg",)
     required_ffmpeg_encoders: tuple[str, ...] = ()
     required_ffmpeg_muxers: tuple[str, ...] = ()
     output_muxed_by_ffmpeg: bool = True
     channel_layouts: tuple[ChannelLayoutChoice, ...] = ()
+    default_channel_layout_label: str = "Preserve"
     sample_rate_choices: tuple[int, ...] = ()
     sample_rate_range: tuple[int, int] | None = None
+    supports_sample_rate: bool = True
+    supports_channel_layout: bool = True
+    supports_gain: bool = True
+    supports_tempo: bool = True
+    supports_delay: bool = True
 
 
 @dataclass(frozen=True, slots=True)
@@ -230,6 +261,8 @@ class ProcessStage:
     program: Path
     arguments: tuple[str, ...]
     progress_stream: str | None = None
+    progress_protocol: ProgressProtocol = ProgressProtocol.FFMPEG
+    terminate_tree: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -238,6 +271,17 @@ class ProcessPlan:
     temporary_output: Path
     final_output: Path
     duration_seconds: float | None
+
+    @property
+    def has_determinate_progress(self) -> bool:
+        return any(
+            stage.progress_stream is not None
+            and (
+                stage.progress_protocol is ProgressProtocol.DEEZY
+                or self.duration_seconds is not None
+            )
+            for stage in self.stages
+        )
 
     def display_command(self) -> str:
         import subprocess
@@ -254,6 +298,11 @@ class Toolchain:
     qaac: Path | None = None
     fdkaac: Path | None = None
     opusenc: Path | None = None
+    deezy: Path | None = None
+    dee: Path | None = None
+    truehdd: Path | None = None
+    deezy_work_dir: Path | None = None
+    deezy_temp_dir: Path | None = None
 
 
 @dataclass(slots=True)
@@ -291,12 +340,15 @@ class EncoderConfiguration:
 
 @dataclass(frozen=True, slots=True)
 class AppSettings:
-    schema_version: int = 2
+    schema_version: int = 3
     ffmpeg_path: str | None = None
     ffprobe_path: str | None = None
     qaac_path: str | None = None
     fdkaac_path: str | None = None
     opusenc_path: str | None = None
+    deezy_path: str | None = None
+    dee_path: str | None = None
+    truehdd_path: str | None = None
     default_output_dir: str | None = None
     overwrite_default: bool = False
     theme: ThemePreference = ThemePreference.AUTOMATIC
@@ -304,6 +356,8 @@ class AppSettings:
     window_y: int | None = None
     window_width: int = 1120
     window_height: int = 760
+    window_maximized: bool = False
+    last_input_dir: str | None = None
     draft_splitter_sizes: tuple[int, int] = (620, 460)
     main_splitter_sizes: tuple[int, int] = (460, 240)
     queue_panel_collapsed: bool = False

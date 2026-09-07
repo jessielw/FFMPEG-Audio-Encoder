@@ -57,6 +57,9 @@ class SettingsDialog(QDialog):
         self.qaac = _PathRow(settings.qaac_path, directory=False)
         self.fdkaac = _PathRow(settings.fdkaac_path, directory=False)
         self.opusenc = _PathRow(settings.opusenc_path, directory=False)
+        self.deezy = _PathRow(settings.deezy_path, directory=False)
+        self.dee = _PathRow(settings.dee_path, directory=False)
+        self.truehdd = _PathRow(settings.truehdd_path, directory=False)
         self.output = _PathRow(settings.default_output_dir, directory=True)
         self.overwrite = QCheckBox("Allow queued jobs to replace existing outputs")
         self.overwrite.setChecked(settings.overwrite_default)
@@ -71,6 +74,9 @@ class SettingsDialog(QDialog):
         form.addRow("qaac", self.qaac)
         form.addRow("fdkaac", self.fdkaac)
         form.addRow("opusenc", self.opusenc)
+        form.addRow("DeeZy", self.deezy)
+        form.addRow("Dolby Encoding Engine", self.dee)
+        form.addRow("TrueHDD", self.truehdd)
         form.addRow("Default output folder", self.output)
         form.addRow("Appearance", self.theme)
         form.addRow("Overwrite", self.overwrite)
@@ -96,6 +102,9 @@ class SettingsDialog(QDialog):
             qaac_path=self.qaac.value(),
             fdkaac_path=self.fdkaac.value(),
             opusenc_path=self.opusenc.value(),
+            deezy_path=self.deezy.value(),
+            dee_path=self.dee.value(),
+            truehdd_path=self.truehdd.value(),
             default_output_dir=self.output.value(),
             overwrite_default=self.overwrite.isChecked(),
             theme=theme,

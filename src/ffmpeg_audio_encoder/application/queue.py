@@ -20,6 +20,7 @@ from ffmpeg_audio_encoder.infrastructure.output import temporary_output_path
 from ffmpeg_audio_encoder.infrastructure.persistence import JobRepository
 from ffmpeg_audio_encoder.infrastructure.process import QtProcessRunner
 from ffmpeg_audio_encoder.infrastructure.progress import ProgressUpdate
+from ffmpeg_audio_encoder.infrastructure.tools import prune_deezy_scratch
 
 
 class JobQueueController(QObject):
@@ -47,6 +48,7 @@ class JobQueueController(QObject):
         self._run_scope: set[UUID] | None = None
         self._active_id: UUID | None = None
         self._shutting_down = False
+        prune_deezy_scratch(toolchain)
         restored_running = False
         for job in self.jobs:
             if job.state is JobState.RUNNING:
@@ -102,12 +104,20 @@ class JobQueueController(QObject):
         self._start_next()
 
     def cancel_active(self) -> None:
+        """Cancel the running job only; the queue carries on with the next one.
+
+        Use ``stop_after_current`` or ``cancel_all`` to stop dispatching as well.
+        """
         job = self.active_job
         if job is None:
             return
         job.status = "Cancelling…"
         self.job_updated.emit(str(job.id))
         self.runner.cancel()
+
+    def terminate_processes(self) -> None:
+        """Kill every encoder process tree outright, for application exit."""
+        self.runner.shutdown()
 
     def stop_after_current(self) -> None:
         self._run_queue = False
@@ -171,56 +181,58 @@ class JobQueueController(QObject):
         self.job_updated.emit("")
 
     def _start_next(self) -> None:
-        if self._shutting_down or not self._run_queue or self.runner.is_running:
-            return
-        job = next(
-            (
-                job
-                for job in self.jobs
-                if job.state is JobState.QUEUED
-                and (self._run_scope is None or job.id in self._run_scope)
-            ),
-            None,
-        )
-        if job is None:
-            self._run_queue = False
-            self._run_scope = None
-            self.active_changed.emit(False)
-            return
-        output = job.request.output_path
-        if output.exists() and not job.overwrite:
-            self._fail(job, f"Output already exists: {output}")
-            self._start_next()
-            return
-        try:
-            output.parent.mkdir(parents=True, exist_ok=True)
-            temporary = temporary_output_path(output, job.id)
-            temporary.unlink(missing_ok=True)
-            plan = self.registry.get(job.request.encoder_id).build_plan(
-                job.request, self.toolchain, temporary
+        # A loop rather than recursion: a batch of jobs that all fail their
+        # pre-flight checks would otherwise recurse once per job.
+        while True:
+            if self._shutting_down or not self._run_queue or self.runner.is_running:
+                return
+            job = next(
+                (
+                    job
+                    for job in self.jobs
+                    if job.state is JobState.QUEUED
+                    and (self._run_scope is None or job.id in self._run_scope)
+                ),
+                None,
             )
-            job.state = JobState.RUNNING
-            job.status = "Encoding"
-            job.progress = 0.0 if plan.duration_seconds else None
-            job.started_at = datetime.now(UTC)
-            self._active_id = job.id
-            self._persist()
-            self.job_updated.emit(str(job.id))
-            self.active_changed.emit(True)
-            self.runner.start(job.id, plan)
-        except ValidationError as exc:
-            self._fail(job, str(exc))
-            self._start_next()
-        except (OSError, ValueError, RuntimeError) as exc:
-            self._fail(job, str(exc))
-            self._start_next()
+            if job is None:
+                self._run_queue = False
+                self._run_scope = None
+                self.active_changed.emit(False)
+                return
+            output = job.request.output_path
+            if output.exists() and not job.overwrite:
+                self._fail(job, f"Output already exists: {output}")
+                continue
+            try:
+                output.parent.mkdir(parents=True, exist_ok=True)
+                temporary = temporary_output_path(output, job.id)
+                temporary.unlink(missing_ok=True)
+                plan = self.registry.get(job.request.encoder_id).build_plan(
+                    job.request, self.toolchain, temporary
+                )
+                job.state = JobState.RUNNING
+                job.status = "Encoding"
+                job.progress = 0.0 if plan.has_determinate_progress else None
+                job.started_at = datetime.now(UTC)
+                self._active_id = job.id
+                self._persist()
+                self.job_updated.emit(str(job.id))
+                self.active_changed.emit(True)
+                self.runner.start(job.id, plan)
+                return
+            except (ValidationError, OSError, ValueError, RuntimeError) as exc:
+                self._active_id = None
+                self._fail(job, str(exc))
 
     def _on_progress(self, job_id: str, raw_update: object) -> None:
         job = self._find(UUID(job_id))
         if job is None or not isinstance(raw_update, ProgressUpdate):
             return
         job.progress = raw_update.fraction
-        if raw_update.speed:
+        if raw_update.phase:
+            job.status = f"Encoding - {raw_update.phase}"
+        elif raw_update.speed:
             job.status = f"Encoding · {raw_update.speed}"
         self.job_updated.emit(job_id)
 

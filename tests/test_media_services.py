@@ -1,10 +1,17 @@
 import sys
 from pathlib import Path
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import pytest
 
-from ffmpeg_audio_encoder.domain.models import Codec, DelaySource, OutputFormat
+from ffmpeg_audio_encoder.domain.models import (
+    Codec,
+    DelaySource,
+    OutputFormat,
+    ProcessPlan,
+    ProcessStage,
+    ProgressProtocol,
+)
 from ffmpeg_audio_encoder.infrastructure.delay import (
     parse_filename_delay,
     strip_filename_delay_marker,
@@ -19,7 +26,8 @@ from ffmpeg_audio_encoder.infrastructure.probe import (
     apply_mediainfo_delays,
     parse_ffprobe_json,
 )
-from ffmpeg_audio_encoder.infrastructure.progress import FFmpegProgressParser
+from ffmpeg_audio_encoder.infrastructure.process import QtProcessRunner
+from ffmpeg_audio_encoder.infrastructure.progress import DeezyProgressParser, FFmpegProgressParser
 
 
 def test_ffprobe_parser_uses_global_duration_and_real_stream_indexes(tmp_path: Path) -> None:
@@ -237,6 +245,57 @@ def test_progress_parser_handles_chunks_and_known_duration() -> None:
 def test_progress_without_duration_is_indeterminate() -> None:
     update = FFmpegProgressParser(None).feed("out_time=00:00:01.0\nprogress=continue\n")[0]
     assert update.fraction is None
+
+
+def test_deezy_progress_parser_aggregates_chunked_stage_lines() -> None:
+    parser = DeezyProgressParser()
+    assert parser.feed("FFMPEG (1 of 3) 5") == []
+    first = parser.feed("0.0%\n")[0]
+    second = parser.feed("DEE measure (2 of 3) 25.0%\n")[0]
+    final = parser.feed("DEE encode (3 of 3) 100.0%\n")[0]
+    assert first.fraction == pytest.approx(1 / 6)
+    assert first.phase == "FFMPEG"
+    assert second.fraction == pytest.approx(5 / 12)
+    assert final.fraction == 1.0
+    assert final.ended
+
+
+def test_qt_runner_parses_and_logs_deezy_progress_from_stderr(tmp_path: Path, qtbot) -> None:
+    plan = ProcessPlan(
+        (
+            ProcessStage(
+                Path(sys.executable),
+                (
+                    "-c",
+                    (
+                        "import sys; "
+                        "print('FFMPEG (1 of 3) 50.0%', file=sys.stderr); "
+                        "print('DEE measure (2 of 3) 25.0%', file=sys.stderr)"
+                    ),
+                ),
+                "stderr",
+                ProgressProtocol.DEEZY,
+            ),
+        ),
+        tmp_path / "temporary.eac3",
+        tmp_path / "final.eac3",
+        10,
+    )
+    runner = QtProcessRunner()
+    updates = []
+    logs: list[str] = []
+    finished: list[bool] = []
+    runner.progress.connect(lambda _job_id, update: updates.append(update))
+    runner.log.connect(lambda _job_id, message: logs.append(message))
+    runner.finished.connect(lambda _job_id, success, _error: finished.append(success))
+
+    runner.start(uuid4(), plan)
+    qtbot.waitUntil(lambda: bool(finished))
+
+    assert finished == [True]
+    assert [update.phase for update in updates] == ["FFMPEG", "DEE measure"]
+    assert updates[-1].fraction == pytest.approx(5 / 12)
+    assert "DEE measure (2 of 3) 25.0%" in "".join(logs)
 
 
 def test_media_probe_reports_failed_start(tmp_path: Path, qtbot) -> None:

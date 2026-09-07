@@ -26,13 +26,13 @@ class QueueTableModel(QAbstractTableModel):
 
     def set_controller(self, controller: JobQueueController | None) -> None:
         if self.controller is not None:
-            self.controller.job_added.disconnect(self.refresh)
+            self.controller.job_added.disconnect(self.refresh_structure)
             self.controller.job_updated.disconnect(self.refresh)
         self.beginResetModel()
         self.controller = controller
         self.endResetModel()
         if controller is not None:
-            controller.job_added.connect(self.refresh)
+            controller.job_added.connect(self.refresh_structure)
             controller.job_updated.connect(self.refresh)
 
     def rowCount(self, parent: QModelIndex | QPersistentModelIndex = _ROOT_INDEX) -> int:
@@ -81,6 +81,11 @@ class QueueTableModel(QAbstractTableModel):
         if self.controller is None or not 0 <= row < len(self.controller.jobs):
             return None
         return self.controller.jobs[row]
+
+    @Slot(str)
+    def refresh_structure(self, _job_id: str = "") -> None:
+        self.beginResetModel()
+        self.endResetModel()
 
     @Slot(str)
     def refresh(self, job_id: str = "") -> None:

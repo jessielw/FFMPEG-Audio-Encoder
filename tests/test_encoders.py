@@ -45,7 +45,6 @@ def test_default_registry_has_unique_first_party_adapters() -> None:
     registry = default_registry()
     assert [adapter.descriptor.id for adapter in registry] == [
         "ffmpeg.libopus",
-        "opusenc.opus",
         "ffmpeg.flac",
         "ffmpeg.aac",
         "ffmpeg.libmp3lame",
@@ -53,8 +52,14 @@ def test_default_registry_has_unique_first_party_adapters() -> None:
         "ffmpeg.eac3",
         "ffmpeg.dca",
         "ffmpeg.alac",
+        "opusenc.opus",
         "qaac.aac",
         "fdkaac.aac",
+        "deezy.dd",
+        "deezy.ddp",
+        "deezy.ddp_bluray",
+        "deezy.atmos",
+        "deezy.ac4",
     ]
 
 

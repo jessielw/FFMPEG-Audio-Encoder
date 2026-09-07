@@ -45,7 +45,8 @@ def default_output_path(
         parts.append(f"[{sanitize_filename_component(stream.language)}]")
     if stream.channels:
         parts.append(f"[{stream.channels}ch]")
-    parts.append(f"[{codec.value.title()}]")
+    codec_label = "AC-4" if codec is Codec.AC4 else codec.value.title()
+    parts.append(f"[{codec_label}]")
     return (output_directory or input_path.parent) / (" ".join(parts) + output_format.suffix)
 
 

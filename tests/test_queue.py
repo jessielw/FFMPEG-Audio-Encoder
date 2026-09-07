@@ -21,6 +21,7 @@ from ffmpeg_audio_encoder.encoders import default_registry
 from ffmpeg_audio_encoder.encoders.ffmpeg import FlacEncoder
 from ffmpeg_audio_encoder.infrastructure.output import temporary_output_path
 from ffmpeg_audio_encoder.infrastructure.persistence import JobRepository
+from ffmpeg_audio_encoder.ui.models import QueueTableModel
 
 
 class FakeRunner(QObject):
@@ -266,6 +267,23 @@ def test_queue_rejects_self_overwrite_and_duplicate_destinations(tmp_path: Path)
         controller.add(request(tmp_path / "two.wav", output))
     with pytest.raises(ValidationError, match="cannot replace the input"):
         controller.add(request(output, output))
+
+
+def test_queue_model_announces_first_insert_immediately(tmp_path: Path, qtbot) -> None:
+    controller = JobQueueController(
+        default_registry(),
+        Toolchain(Path("ffmpeg"), Path("ffprobe")),
+        runner=FakeRunner(),  # type: ignore[arg-type]
+    )
+    model = QueueTableModel(controller)
+    resets: list[bool] = []
+    model.modelReset.connect(lambda: resets.append(True))
+
+    controller.add(request(tmp_path / "one.wav", tmp_path / "one.flac"))
+
+    assert resets == [True]
+    assert model.rowCount() == 1
+    assert model.index(0, 1).data() == "one.wav"
 
 
 def test_restoring_interrupted_job_removes_its_partial_output(tmp_path: Path, qtbot) -> None:

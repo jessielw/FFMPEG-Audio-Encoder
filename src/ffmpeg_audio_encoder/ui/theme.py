@@ -5,12 +5,13 @@ from dataclasses import dataclass
 
 import qtawesome as qta
 from PySide6.QtCore import QObject, QSize, Qt, Slot
-from PySide6.QtGui import QPalette
+from PySide6.QtGui import QAction, QPalette
 from PySide6.QtWidgets import QApplication, QPushButton, QToolButton
+from shiboken6 import isValid
 
 from ffmpeg_audio_encoder.domain.models import ThemePreference
 
-IconTarget = QPushButton | QToolButton
+IconTarget = QPushButton | QToolButton | QAction
 
 
 @dataclass(slots=True)
@@ -53,12 +54,17 @@ class ThemeManager(QObject):
         live: list[_IconRegistration] = []
         for registration in self._icons:
             widget = registration.widget()
-            if widget is not None:
-                self._set_icon(widget, registration.name, registration.size)
-                live.append(registration)
+            # A wrapper can outlive its C++ object, so ``destroyed`` alone is not
+            # enough to know the target is still there.
+            if widget is None or not isValid(widget):
+                continue
+            self._set_icon(widget, registration.name, registration.size)
+            live.append(registration)
         self._icons = live
 
     def _set_icon(self, widget: IconTarget, name: str, size: QSize) -> None:
         color = self.app.palette().color(QPalette.ColorRole.WindowText).name()
         widget.setIcon(qta.icon(name, color=color))
-        widget.setIconSize(size)
+        # QAction has no icon size of its own; the toolbar or menu holding it decides.
+        if not isinstance(widget, QAction):
+            widget.setIconSize(size)
