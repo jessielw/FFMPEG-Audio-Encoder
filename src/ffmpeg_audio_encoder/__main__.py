@@ -4,12 +4,13 @@ import argparse
 import json
 import logging
 import sys
+from contextlib import suppress
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
-# import qtawesome as qta
 from pymediainfo import MediaInfo
 from PySide6.QtCore import QLockFile, QTimer
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from ffmpeg_audio_encoder import __version__
@@ -22,6 +23,7 @@ from ffmpeg_audio_encoder.infrastructure.persistence import (
     default_config_directory,
 )
 from ffmpeg_audio_encoder.infrastructure.tools import inspect_toolchain, locate_toolchain
+from ffmpeg_audio_encoder.resources import icon_path
 from ffmpeg_audio_encoder.ui.main_window import MainWindow
 from ffmpeg_audio_encoder.ui.theme import ThemeManager
 
@@ -110,6 +112,21 @@ def _install_exception_handler(log_path: Path) -> None:
     sys.excepthook = handle_exception
 
 
+def _claim_windows_taskbar_identity() -> None:
+    """Give the process its own AppUserModelID.
+
+    Without one, Windows groups the window under whichever executable launched it -
+    python.exe for a source run - and shows that program's icon in the taskbar no
+    matter what ``setWindowIcon`` says.
+    """
+    if sys.platform != "win32":
+        return
+    import ctypes
+
+    with suppress(AttributeError, OSError):
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("FFmpegAudioEncoder.5")
+
+
 def main() -> int:
     arguments, qt_arguments = _parser().parse_known_args()
     settings_repository = SettingsRepository()
@@ -119,12 +136,15 @@ def main() -> int:
     config_directory = default_config_directory()
     log_path = _configure_logging(config_directory)
     _install_exception_handler(log_path)
+    _claim_windows_taskbar_identity()
     app = QApplication([sys.argv[0], *qt_arguments])
     app.setStyle("Fusion")
     app.setApplicationName("FFmpeg Audio Encoder")
     app.setApplicationVersion(__version__)
     app.setOrganizationName("FFmpegAudioEncoder")
-    # app.setWindowIcon(qta.icon("ph.waveform-light", color="#3498db"))
+    # Names the .desktop entry a Linux desktop should match this window to.
+    app.setDesktopFileName("ffmpeg-audio-encoder")
+    app.setWindowIcon(QIcon(str(icon_path())))
     theme_manager = ThemeManager(app)
     instance_lock = QLockFile(str(config_directory / "application.lock"))
     if not instance_lock.tryLock(0):

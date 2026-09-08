@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 from PySide6.QtCore import QRect, Qt
-from PySide6.QtGui import QGuiApplication
+from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -37,6 +37,7 @@ from ffmpeg_audio_encoder.infrastructure.tools import (
     inspect_toolchain,
     locate_toolchain,
 )
+from ffmpeg_audio_encoder.resources import icon_path
 from ffmpeg_audio_encoder.ui import main_window as main_window_module
 from ffmpeg_audio_encoder.ui.custom_splitter import CustomSplitter, CustomSplitterHandle
 from ffmpeg_audio_encoder.ui.main_window import InputDraft, MainWindow, ToolInspectionThread
@@ -927,3 +928,148 @@ def test_stream_inspection_sits_beside_the_stream_combo(
     assert button.toolTip()
     assert button.parentWidget() is window.stream_combo.parentWidget()
     assert button.height() == window.stream_combo.sizeHint().height()
+
+
+def _preset_window(tmp_path: Path, qtbot, qapp: QApplication) -> MainWindow:
+    report = ToolReport(
+        Toolchain(Path("ffmpeg"), Path("ffprobe")),
+        "ffmpeg version",
+        "ffprobe version",
+        frozenset({"flac"}),
+        frozenset({"flac"}),
+    )
+    window = MainWindow(
+        SettingsRepository(tmp_path / "settings.json"),
+        PresetRepository(tmp_path / "presets.json"),
+        ThemeManager(qapp),
+        report,
+    )
+    qtbot.addWidget(window)
+    return window
+
+
+def test_saving_over_an_existing_preset_asks_first(
+    tmp_path: Path, qtbot, qapp: QApplication, monkeypatch
+) -> None:
+    """A name that already exists replaces the stored preset, so it needs the same
+    confirmation every other destructive action gets."""
+    window = _preset_window(tmp_path, qtbot, qapp)
+    monkeypatch.setattr(
+        main_window_module.QInputDialog,
+        "getText",
+        lambda *args, **kwargs: ("Nightly", True),
+    )
+    asked: list[str] = []
+    monkeypatch.setattr(
+        main_window_module.QMessageBox,
+        "question",
+        lambda _parent, _title, text, *args, **kwargs: (
+            asked.append(text) or main_window_module.QMessageBox.StandardButton.Yes
+        ),
+    )
+
+    window._save_preset()
+    assert not asked
+    assert [preset.name for preset in window.presets] == ["Nightly"]
+
+    window.gain_db.setValue(3.0)
+    window._save_preset()
+
+    assert asked and "Nightly" in asked[0]
+    assert [preset.name for preset in window.presets] == ["Nightly"]
+    assert window.presets[0].common.gain_db == 3.0
+
+
+def test_declining_the_replacement_keeps_the_stored_preset(
+    tmp_path: Path, qtbot, qapp: QApplication, monkeypatch
+) -> None:
+    window = _preset_window(tmp_path, qtbot, qapp)
+    monkeypatch.setattr(
+        main_window_module.QInputDialog,
+        "getText",
+        lambda *args, **kwargs: ("Nightly", True),
+    )
+    monkeypatch.setattr(
+        main_window_module.QMessageBox,
+        "question",
+        lambda *args, **kwargs: main_window_module.QMessageBox.StandardButton.Yes,
+    )
+    window.gain_db.setValue(1.5)
+    window._save_preset()
+
+    monkeypatch.setattr(
+        main_window_module.QMessageBox,
+        "question",
+        lambda *args, **kwargs: main_window_module.QMessageBox.StandardButton.No,
+    )
+    window.gain_db.setValue(9.0)
+    window._save_preset()
+
+    assert [preset.name for preset in window.presets] == ["Nightly"]
+    assert window.presets[0].common.gain_db == 1.5
+    assert [preset.name for preset in PresetRepository(tmp_path / "presets.json").load()] == [
+        "Nightly"
+    ]
+
+
+def test_deleting_a_preset_is_confirmed_and_cancellable(
+    tmp_path: Path, qtbot, qapp: QApplication, monkeypatch
+) -> None:
+    window = _preset_window(tmp_path, qtbot, qapp)
+    monkeypatch.setattr(
+        main_window_module.QInputDialog,
+        "getText",
+        lambda *args, **kwargs: ("Nightly", True),
+    )
+    window._save_preset()
+    window.preset_combo.setCurrentIndex(window.preset_combo.findData("Nightly"))
+
+    asked: list[str] = []
+    monkeypatch.setattr(
+        main_window_module.QMessageBox,
+        "question",
+        lambda _parent, _title, text, *args, **kwargs: (
+            asked.append(text) or main_window_module.QMessageBox.StandardButton.No
+        ),
+    )
+    window._delete_preset()
+
+    assert asked and "Nightly" in asked[0]
+    assert [preset.name for preset in window.presets] == ["Nightly"]
+
+    monkeypatch.setattr(
+        main_window_module.QMessageBox,
+        "question",
+        lambda *args, **kwargs: main_window_module.QMessageBox.StandardButton.Yes,
+    )
+    window._delete_preset()
+
+    assert window.presets == []
+    assert PresetRepository(tmp_path / "presets.json").load() == []
+
+
+def test_dialog_openers_are_marked_with_an_ellipsis(
+    tmp_path: Path, qtbot, qapp: QApplication
+) -> None:
+    """Every control that opens a dialog says so, and says it the same way."""
+    window = _preset_window(tmp_path, qtbot, qapp)
+
+    labels = [
+        window.add_files_button.text(),
+        window.browse_output_button.text(),
+        window.settings_action.text(),
+    ]
+    assert all(label.endswith("\u2026") for label in labels), labels
+    assert not any("..." in label for label in labels)
+
+
+def test_packaged_icon_is_present_and_loadable(qapp: QApplication) -> None:
+    """The icon ships inside the package so the runtime, the wheel and the PyInstaller
+    bundle all find it at the same path. A missing file is silent in Qt - the window
+    just falls back to the platform default - so assert on it here."""
+    path = icon_path()
+    assert path.is_file(), path
+    icon = QIcon(str(path))
+    assert not icon.isNull()
+    # The 256px entry is what Windows uses for large-icon views and the exe itself.
+    assert max(size.width() for size in icon.availableSizes()) >= 256

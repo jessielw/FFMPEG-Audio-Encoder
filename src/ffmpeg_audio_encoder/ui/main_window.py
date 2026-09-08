@@ -198,7 +198,7 @@ class MainWindow(QMainWindow):
         outer.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
 
         input_actions = QHBoxLayout()
-        self.add_files_button = QPushButton("Add files")
+        self.add_files_button = QPushButton("Add files…")
         self.remove_inputs_button = QPushButton("Remove selected")
         input_actions.addWidget(self.add_files_button)
         input_actions.addWidget(self.remove_inputs_button)
@@ -347,7 +347,7 @@ class MainWindow(QMainWindow):
         output_path_layout = QHBoxLayout(output_path_widget)
         output_path_layout.setContentsMargins(0, 0, 0, 0)
         output_path_layout.addWidget(self.output_edit, 1)
-        self.browse_output_button = QPushButton("Browse...")
+        self.browse_output_button = QPushButton("Browse…")
         output_path_layout.addWidget(self.browse_output_button)
         self.overwrite = QCheckBox("Replace an existing file")
         self.overwrite.setChecked(self.settings.overwrite_default)
@@ -557,7 +557,7 @@ class MainWindow(QMainWindow):
 
     def _build_menus(self) -> None:
         file_menu = self.menuBar().addMenu("&File")
-        open_action = QAction("&Open files...", self)
+        open_action = QAction("&Open files…", self)
         open_action.setShortcut(QKeySequence.StandardKey.Open)
         open_action.triggered.connect(self._choose_files)
         file_menu.addAction(open_action)
@@ -572,7 +572,7 @@ class MainWindow(QMainWindow):
         file_menu.addAction(quit_action)
 
         edit_menu = self.menuBar().addMenu("&Edit")
-        self.settings_action = QAction("&Settings...", self)
+        self.settings_action = QAction("&Settings…", self)
         self.settings_action.setShortcut(QKeySequence("Ctrl+,"))
         self.settings_action.triggered.connect(self._open_settings)
         edit_menu.addAction(self.settings_action)
@@ -1805,6 +1805,19 @@ class MainWindow(QMainWindow):
         name = name.strip()
         if not accepted or not name:
             return
+        replaced = next(
+            (existing for existing in self.presets if existing.name.casefold() == name.casefold()),
+            None,
+        )
+        if replaced is not None:
+            answer = QMessageBox.question(
+                self,
+                "Replace preset",
+                f"A preset named {replaced.name!r} already exists. Replace it?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            )
+            if answer is not QMessageBox.StandardButton.Yes:
+                return
         preset = EncoderPreset(
             name,
             adapter.descriptor.id,
@@ -1955,6 +1968,14 @@ class MainWindow(QMainWindow):
         name = self.preset_combo.currentData()
         if not isinstance(name, str):
             return
+        answer = QMessageBox.question(
+            self,
+            "Delete preset",
+            f"Delete the preset {name!r}?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if answer is not QMessageBox.StandardButton.Yes:
+            return
         self.presets = [preset for preset in self.presets if preset.name != name]
         try:
             self.preset_repository.save(self.presets)
@@ -2004,7 +2025,7 @@ class MainWindow(QMainWindow):
         thread.failed.connect(self._tool_inspection_failed)
         thread.finished.connect(self._tool_inspection_finished)
         self._refresh_actions()
-        self.statusBar().showMessage("Checking encoder tools...")
+        self.statusBar().showMessage("Checking encoder tools…")
         thread.start()
 
     def _tool_inspection_succeeded(self, raw_report: object) -> None:

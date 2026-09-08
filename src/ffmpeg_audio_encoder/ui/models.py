@@ -122,6 +122,6 @@ class ProgressDelegate(QStyledItemDelegate):
         else:
             progress_option.minimum = 0
             progress_option.maximum = 0
-            progress_option.text = "Working..."
+            progress_option.text = "Working…"
         style = option.widget.style() if option.widget is not None else QApplication.style()
         style.drawControl(QStyle.ControlElement.CE_ProgressBar, progress_option, painter)

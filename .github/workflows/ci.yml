@@ -2,6 +2,8 @@ name: CI
 
 on:
   push:
+    branches:
+      - "**"
   pull_request:
 
 jobs:
@@ -23,6 +25,7 @@ jobs:
       - run: uv run pytest
 
   bundle:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/v5'
     strategy:
       fail-fast: false
       matrix:

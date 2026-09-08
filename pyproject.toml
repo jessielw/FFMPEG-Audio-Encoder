@@ -1,6 +1,6 @@
 [project]
 name = "ffmpeg-audio-encoder"
-version = "5.0.0.dev0"
+dynamic = ["version"]
 description = "A cross-platform PySide6 audio encoding front end"
 readme = "README.md"
 license = "MIT"
@@ -29,10 +29,14 @@ dev = [
     "ruff>=0.12",
 ]
 build = [
+    "pillow>=11.0",
     "pyinstaller>=6.15",
     "pyinstaller-hooks-contrib>=2025.8",
     "setuptools>=78,<82",
 ]
+
+[tool.hatch.version]
+path = "src/ffmpeg_audio_encoder/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ffmpeg_audio_encoder"]

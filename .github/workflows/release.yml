@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  bundle:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            slug: windows-x64
+          - os: ubuntu-latest
+            slug: linux-x64
+          - os: macos-13
+            slug: macos-x64
+          - os: macos-14
+            slug: macos-arm64
+    runs-on: ${{ matrix.os }}
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg libegl1
+      - if: runner.os == 'macOS'
+        run: brew install ffmpeg
+      - if: runner.os == 'Windows'
+        run: choco install ffmpeg -y --no-progress
+      - run: uv sync --group dev --group build
+      - run: uv run pytest
+      - run: uv run python build.py
+
+      # The same smoke checks CI runs, kept here so a tag can never publish a bundle
+      # that cannot start or cannot find its toolchain.
+      - if: runner.os == 'Windows'
+        run: |
+          .\dist\FFMPEGAudioEncoder\FFMPEGAudioEncoder.exe --version
+          .\dist\FFMPEGAudioEncoder\FFMPEGAudioEncoder.exe --diagnostics
+      - if: runner.os == 'Linux'
+        run: |
+          ./dist/FFMPEGAudioEncoder/FFMPEGAudioEncoder --version
+          ./dist/FFMPEGAudioEncoder/FFMPEGAudioEncoder --diagnostics
+      - if: runner.os == 'macOS'
+        run: |
+          ./dist/FFMPEGAudioEncoder.app/Contents/MacOS/FFMPEGAudioEncoder --version
+          ./dist/FFMPEGAudioEncoder.app/Contents/MacOS/FFMPEGAudioEncoder --diagnostics
+
+      # One named archive per platform, so a download is a single file rather than the
+      # nested zip GitHub produces for a raw directory artifact.
+      - name: Archive the bundle
+        shell: bash
+        run: |
+          set -eu
+          name="FFMPEGAudioEncoder-${GITHUB_REF_NAME}-${{ matrix.slug }}"
+          mkdir -p artifacts
+          cd dist
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            tar -czf "../artifacts/${name}.tar.gz" FFMPEGAudioEncoder
+          elif [ "${{ runner.os }}" = "macOS" ]; then
+            # ditto preserves the bundle's symlinks and resource forks; zip does not.
+            ditto -c -k --sequesterRsrc --keepParent FFMPEGAudioEncoder.app "../artifacts/${name}.zip"
+          else
+            7z a -tzip "../artifacts/${name}.zip" FFMPEGAudioEncoder >/dev/null
+          fi
+          ls -la ../artifacts
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bundle-${{ matrix.slug }}
+          path: artifacts/*
+          if-no-files-found: error
+
+  release:
+    needs: bundle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: bundle-*
+          merge-multiple: true
+      - run: ls -la artifacts
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          generate_release_notes: true
+          draft: true
+          fail_on_unmatched_files: true

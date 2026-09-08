@@ -1,7 +1,31 @@
 # FFmpeg Audio Encoder v5
 
-This branch contains a clean PySide6 successor to the original Tkinter application. The
-maintained legacy source remains available in [`legacy_v4`](legacy_v4/README.md).
+A clean PySide6 successor to the original Tkinter application. The maintained legacy
+source remains available in [`legacy_v4`](legacy_v4/README.md).
+
+## Download
+
+Grab the bundle for your platform from the
+[latest release](https://github.com/jessielw/FFMPEG-Audio-Encoder/releases/latest):
+
+| Platform | Archive |
+| --- | --- |
+| Windows (x64) | `FFMPEGAudioEncoder-<version>-windows-x64.zip` |
+| macOS (Intel) | `FFMPEGAudioEncoder-<version>-macos-x64.zip` |
+| macOS (Apple silicon) | `FFMPEGAudioEncoder-<version>-macos-arm64.zip` |
+| Linux (x64) | `FFMPEGAudioEncoder-<version>-linux-x64.tar.gz` |
+
+Unpack the archive anywhere and run `FFMPEGAudioEncoder` from inside it. Nothing is
+installed system-wide and no runtime is required.
+
+**FFmpeg and ffprobe are not bundled.** Install them and leave them on `PATH`, or point at
+the executables in Settings. opusenc, qaac, fdkaac, and DeeZy are optional and discovered
+the same way; the encoders you have not installed are shown as unavailable rather than
+failing at encode time. `Help ▸ Copy diagnostics` reports exactly what was found.
+
+The bundles are unsigned. macOS Gatekeeper blocks them on first launch, so open the app
+once with right-click ▸ Open and confirm; Windows SmartScreen needs *More info* ▸
+*Run anyway*.
 
 ## Development
 
