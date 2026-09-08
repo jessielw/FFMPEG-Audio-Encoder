@@ -3,7 +3,10 @@ name: Release
 on:
   push:
     tags:
-      - "v*"
+      # Every tag this project carries is bare-numeric (1.0 through 4.11.3), which the
+      # old "v*" pattern never matched. The v-prefixed form stays in case that changes.
+      - "[0-9]+.[0-9]+*"
+      - "v[0-9]+.[0-9]+*"
 
 permissions:
   contents: write
