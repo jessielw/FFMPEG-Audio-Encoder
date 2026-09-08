@@ -572,10 +572,10 @@ class MainWindow(QMainWindow):
         file_menu.addAction(quit_action)
 
         edit_menu = self.menuBar().addMenu("&Edit")
-        settings_action = QAction("&Settings...", self)
-        settings_action.setShortcut(QKeySequence("Ctrl+,"))
-        settings_action.triggered.connect(self._open_settings)
-        edit_menu.addAction(settings_action)
+        self.settings_action = QAction("&Settings...", self)
+        self.settings_action.setShortcut(QKeySequence("Ctrl+,"))
+        self.settings_action.triggered.connect(self._open_settings)
+        edit_menu.addAction(self.settings_action)
 
         view_menu = self.menuBar().addMenu("&View")
         self.queue_panel_action = QAction("&Queue panel", self)
@@ -691,6 +691,9 @@ class MainWindow(QMainWindow):
             # the process trees down synchronously first so nothing is orphaned.
             self.queue.terminate_processes()
             self.queue.deleteLater()
+        # Rendered commands embed the toolchain's executable paths, so a new report
+        # invalidates every memoised command, not just those of departed jobs.
+        self._job_command_cache.clear()
         self.tool_report = report
         if report is None:
             self.probe_service = None
@@ -718,6 +721,7 @@ class MainWindow(QMainWindow):
         )
         self.queue_model.set_controller(self.queue)
         self._refresh_queue_summary()
+        self._selected_job_changed()
         self._refresh_actions()
         self.statusBar().showMessage(
             f"Ready · {report.ffmpeg_version} · {report.ffprobe_version}", 12000
@@ -1075,6 +1079,13 @@ class MainWindow(QMainWindow):
         return expanded
 
     def _add_paths(self, paths) -> None:
+        if self._inspecting_tools:
+            # The probe service these files would be handed to is seconds from being
+            # cancelled and replaced, which would strand them un-probed.
+            self.statusBar().showMessage(
+                "Checking encoder tools; add files once the check finishes.", 5000
+            )
+            return
         if self.probe_service is None:
             QMessageBox.warning(self, "Tools not configured", "Configure FFmpeg and ffprobe first.")
             return
@@ -1550,7 +1561,8 @@ class MainWindow(QMainWindow):
         """Render, and memoise, a job's display command.
 
         EncodingRequest is frozen and retry reuses the same request, so a job's command
-        never changes once it has been queued.
+        only changes when the toolchain does; ``_configure_services`` drops the cache
+        on a new tool report.
         """
         key = str(job.id)
         cached = self._job_command_cache.get(key)
@@ -1722,6 +1734,12 @@ class MainWindow(QMainWindow):
             f"{counts[JobState.FAILED]} failed - overall {completed / len(jobs):.0%}"
         )
 
+    @property
+    def _inspecting_tools(self) -> bool:
+        """True while a probe is in flight, i.e. while the toolchain, probe service and
+        queue controller are all about to be torn down and rebuilt."""
+        return self._tool_thread is not None
+
     def _refresh_actions(self, *_args: object) -> None:
         queue = self.queue
         selected_jobs = [queue.job(job_id) for job_id in self._selected_job_ids()] if queue else []
@@ -1744,19 +1762,27 @@ class MainWindow(QMainWindow):
         draft = self._current_draft()
         probed_draft = draft is not None and draft.asset is not None
         ready_inputs = any(item.asset is not None for item in self._selected_drafts())
-        self.queue_selected_action.setEnabled(bool(queue) and ready_inputs)
-        self.queue_start_action.setEnabled(bool(queue) and ready_inputs and not has_active)
-        self.start_action.setEnabled(has_queued and not has_active)
-        self.start_selected_action.setEnabled(selected_queued and not has_active)
+        # Anything that hands work to the queue waits for the incoming toolchain rather
+        # than racing the controller that is about to replace this one.
+        settled = not self._inspecting_tools
+        self.queue_selected_action.setEnabled(bool(queue) and ready_inputs and settled)
+        self.queue_start_action.setEnabled(
+            bool(queue) and ready_inputs and not has_active and settled
+        )
+        self.start_action.setEnabled(has_queued and not has_active and settled)
+        self.start_selected_action.setEnabled(selected_queued and not has_active and settled)
         self.stop_action.setEnabled(bool(queue and queue.is_dispatching and has_active))
         self.cancel_action.setEnabled(has_active)
         self.cancel_all_action.setEnabled(has_active or has_queued)
-        self.retry_action.setEnabled(selected_terminal and not has_active)
+        self.retry_action.setEnabled(selected_terminal and not has_active and settled)
         self.remove_jobs_action.setEnabled(removable)
         self.clear_action.setEnabled(terminal_jobs)
         self.remove_inputs_button.setEnabled(bool(self._selected_drafts()))
         self.stream_details_button.setEnabled(probed_draft)
         self.browse_output_button.setEnabled(probed_draft)
+        can_open_settings = not has_active and settled
+        self.settings_button.setEnabled(can_open_settings)
+        self.settings_action.setEnabled(can_open_settings)
 
     def _populate_presets(self) -> None:
         self.preset_combo.blockSignals(True)
@@ -1943,6 +1969,11 @@ class MainWindow(QMainWindow):
                 self, "Encoding in progress", "Wait for or cancel the active job first."
             )
             return
+        if self._inspecting_tools:
+            QMessageBox.information(
+                self, "Checking encoder tools", "Wait for the tool check to finish first."
+            )
+            return
         dialog = SettingsDialog(self.settings, self)
         if not dialog.exec():
             return
@@ -1972,7 +2003,7 @@ class MainWindow(QMainWindow):
         thread.succeeded.connect(self._tool_inspection_succeeded)
         thread.failed.connect(self._tool_inspection_failed)
         thread.finished.connect(self._tool_inspection_finished)
-        self.settings_button.setEnabled(False)
+        self._refresh_actions()
         self.statusBar().showMessage("Checking encoder tools...")
         thread.start()
 
@@ -2009,13 +2040,11 @@ class MainWindow(QMainWindow):
         self._pending_settings = None
         if thread is not None:
             thread.deleteLater()
-        self.settings_button.setEnabled(not bool(self.queue and self.queue.active_job))
         self._refresh_actions()
         if self._closing and not (self.queue and self.queue.active_job):
             QTimer.singleShot(0, self.close)
 
     def _active_changed(self, active: bool) -> None:
-        self.settings_button.setEnabled(not active)
         self._refresh_actions()
         if self._closing and not active:
             QTimer.singleShot(0, self.close)

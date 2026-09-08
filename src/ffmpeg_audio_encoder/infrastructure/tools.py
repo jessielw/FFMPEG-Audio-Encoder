@@ -3,6 +3,7 @@ from __future__ import annotations
 import shutil
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import Path
@@ -18,6 +19,8 @@ from ffmpeg_audio_encoder.domain.models import (
 )
 
 _WINDOWS_CREATE_NO_WINDOW = 0x08000000
+"""One worker per probe, so a slow tool delays only itself."""
+_PROBE_WORKERS = 10
 
 
 def subprocess_creation_flags() -> int:
@@ -104,8 +107,10 @@ def _resolve_optional_executable(configured: str | None, *names: str) -> Path | 
 
 
 def _resolve_deezy_tool(configured: str | None, *names: str) -> Path | None:
-    """Locate a DeeZy toolchain member: PATH first, then the configured override."""
-    return _on_path(*names) or _configured_file(configured)
+    """Locate a DeeZy toolchain member: the configured override, else PATH."""
+    if configured:
+        return _configured_file(configured)
+    return _on_path(*names)
 
 
 def _resolve_deezy_dependency(
@@ -114,9 +119,11 @@ def _resolve_deezy_dependency(
     directory_name: str,
     *names: str,
 ) -> Path | None:
-    """Locate a tool DeeZy drives: PATH, then DeeZy's bundled ``apps`` layout, then
-    the configured override. ``truehdd`` and ``dee`` normally ship beside DeeZy
+    """Locate a tool DeeZy drives: the configured override, else PATH, else DeeZy's
+    bundled ``apps`` layout. ``truehdd`` and ``dee`` normally ship beside DeeZy
     rather than on PATH."""
+    if configured:
+        return _configured_file(configured)
     discovered = _on_path(*names)
     if discovered is not None:
         return discovered
@@ -125,7 +132,7 @@ def _resolve_deezy_dependency(
             adjacent = deezy.parent / "apps" / directory_name / name
             if adjacent.is_file():
                 return adjacent.resolve()
-    return _configured_file(configured)
+    return None
 
 
 def locate_toolchain(settings: AppSettings) -> Toolchain:
@@ -191,10 +198,46 @@ def _run_tool(program: Path, arguments: list[str], *, check: bool = True) -> str
 
 
 def inspect_toolchain(toolchain: Toolchain) -> ToolReport:
-    ffmpeg_version = _run_tool(toolchain.ffmpeg, ["-version"]).splitlines()[0]
-    ffprobe_version = _run_tool(toolchain.ffprobe, ["-version"]).splitlines()[0]
-    encoder_text = _run_tool(toolchain.ffmpeg, ["-hide_banner", "-encoders"])
-    muxer_text = _run_tool(toolchain.ffmpeg, ["-hide_banner", "-muxers"])
+    """Probe every configured tool and report what it can do.
+
+    The probes are independent, and each one pays a process launch plus, for a tool
+    that hangs, the full ten second timeout. Run one after another they add up to a
+    wait the user sits through after every settings save, so launch them together.
+    """
+    with ThreadPoolExecutor(_PROBE_WORKERS, thread_name_prefix="tool-probe") as pool:
+        ffmpeg_probe = pool.submit(_run_tool, toolchain.ffmpeg, ["-version"])
+        ffprobe_probe = pool.submit(_run_tool, toolchain.ffprobe, ["-version"])
+        encoder_probe = pool.submit(_run_tool, toolchain.ffmpeg, ["-hide_banner", "-encoders"])
+        muxer_probe = pool.submit(_run_tool, toolchain.ffmpeg, ["-hide_banner", "-muxers"])
+        qaac_probe = pool.submit(_inspect_optional_tool, toolchain.qaac, ["--check"])
+        fdkaac_probe = pool.submit(
+            _inspect_optional_tool, toolchain.fdkaac, ["--help"], check=False
+        )
+        opusenc_probe = pool.submit(_inspect_optional_tool, toolchain.opusenc, ["--version"])
+        # These probes stay tolerant of a non-zero exit: a tool that prints its version
+        # and then complains about something unrelated is still a usable tool, and a
+        # failure here silently hides every adapter that depends on it.
+        deezy_probe = pool.submit(
+            _inspect_optional_tool, toolchain.deezy, ["--version"], check=False
+        )
+        dee_probe = pool.submit(_inspect_optional_tool, toolchain.dee, ["--help"], check=False)
+        truehdd_probe = pool.submit(
+            _inspect_optional_tool, toolchain.truehdd, ["--version"], check=False
+        )
+
+        # Collect ffmpeg and ffprobe first. When they are the broken tool every other
+        # probe fails too, and theirs is the error worth putting in front of the user.
+        ffmpeg_version = ffmpeg_probe.result().splitlines()[0]
+        ffprobe_version = ffprobe_probe.result().splitlines()[0]
+        encoder_text = encoder_probe.result()
+        muxer_text = muxer_probe.result()
+        qaac_version = qaac_probe.result()
+        fdkaac_version = fdkaac_probe.result()
+        opusenc_version = opusenc_probe.result()
+        deezy_version = deezy_probe.result()
+        dee_version = dee_probe.result()
+        truehdd_version = truehdd_probe.result()
+
     encoders: set[str] = set()
     for line in encoder_text.splitlines():
         columns = line.split()
@@ -205,15 +248,6 @@ def inspect_toolchain(toolchain: Toolchain) -> ToolReport:
         columns = line.split()
         if len(columns) >= 2 and "E" in columns[0] and columns[1] != "=":
             muxers.add(columns[1])
-    qaac_version = _inspect_optional_tool(toolchain.qaac, ["--check"])
-    fdkaac_version = _inspect_optional_tool(toolchain.fdkaac, ["--help"], check=False)
-    opusenc_version = _inspect_optional_tool(toolchain.opusenc, ["--version"])
-    # These probes stay tolerant of a non-zero exit: a tool that prints its version
-    # and then complains about something unrelated is still a usable tool, and a
-    # failure here silently hides every adapter that depends on it.
-    deezy_version = _inspect_optional_tool(toolchain.deezy, ["--version"], check=False)
-    dee_version = _inspect_optional_tool(toolchain.dee, ["--help"], check=False)
-    truehdd_version = _inspect_optional_tool(toolchain.truehdd, ["--version"], check=False)
     return ToolReport(
         toolchain,
         ffmpeg_version,

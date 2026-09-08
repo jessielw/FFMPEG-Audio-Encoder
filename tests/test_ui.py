@@ -37,8 +37,9 @@ from ffmpeg_audio_encoder.infrastructure.tools import (
     inspect_toolchain,
     locate_toolchain,
 )
+from ffmpeg_audio_encoder.ui import main_window as main_window_module
 from ffmpeg_audio_encoder.ui.custom_splitter import CustomSplitter, CustomSplitterHandle
-from ffmpeg_audio_encoder.ui.main_window import InputDraft, MainWindow
+from ffmpeg_audio_encoder.ui.main_window import InputDraft, MainWindow, ToolInspectionThread
 from ffmpeg_audio_encoder.ui.theme import ThemeManager
 from tests.test_integration_ffmpeg import _write_test_wave
 
@@ -77,6 +78,87 @@ def test_settings_button_is_reenabled_after_tool_inspection(
     window._tool_inspection_finished()
 
     assert window.settings_button.isEnabled()
+
+
+def test_toolchain_actions_are_gated_while_tools_are_checked(
+    tmp_path: Path, qtbot, qapp: QApplication
+) -> None:
+    """An in-flight probe is about to swap the toolchain, probe service and queue
+    controller, so nothing that depends on them should be reachable meanwhile."""
+    window = MainWindow(
+        SettingsRepository(tmp_path / "settings.json"),
+        PresetRepository(tmp_path / "presets.json"),
+        ThemeManager(qapp),
+        None,
+    )
+    qtbot.addWidget(window)
+
+    window._tool_thread = ToolInspectionThread(window.settings, window)
+    window._refresh_actions()
+
+    assert not window.settings_button.isEnabled()
+    assert not window.settings_action.isEnabled()
+    assert not window.queue_selected_action.isEnabled()
+    assert not window.start_action.isEnabled()
+    assert not window.retry_action.isEnabled()
+
+    window._tool_inspection_finished()
+
+    assert window.settings_button.isEnabled()
+    assert window.settings_action.isEnabled()
+
+
+def test_settings_cannot_be_reopened_while_a_check_is_in_flight(
+    tmp_path: Path, qtbot, qapp: QApplication, monkeypatch
+) -> None:
+    """Ctrl+, bypasses the disabled button, and _start_tool_inspection drops a second
+    request, so a save made mid-check used to vanish without a word."""
+    window = MainWindow(
+        SettingsRepository(tmp_path / "settings.json"),
+        PresetRepository(tmp_path / "presets.json"),
+        ThemeManager(qapp),
+        None,
+    )
+    qtbot.addWidget(window)
+    window._tool_thread = ToolInspectionThread(window.settings, window)
+
+    told: list[str] = []
+    monkeypatch.setattr(
+        main_window_module.QMessageBox,
+        "information",
+        lambda _parent, _title, text, *args, **kwargs: told.append(text),
+    )
+    monkeypatch.setattr(
+        main_window_module,
+        "SettingsDialog",
+        lambda *args, **kwargs: pytest.fail("the settings dialog must not open"),
+    )
+
+    window._open_settings()
+
+    assert told and "tool check" in told[0]
+
+
+def test_inputs_are_not_accepted_while_tools_are_checked(
+    tmp_path: Path, qtbot, qapp: QApplication
+) -> None:
+    """Files added mid-check would be handed to a probe service that is about to be
+    cancelled, stranding them un-probed."""
+    window = MainWindow(
+        SettingsRepository(tmp_path / "settings.json"),
+        PresetRepository(tmp_path / "presets.json"),
+        ThemeManager(qapp),
+        None,
+    )
+    qtbot.addWidget(window)
+    source = tmp_path / "clip.wav"
+    _write_test_wave(source, seconds=0.1)
+    window._tool_thread = ToolInspectionThread(window.settings, window)
+
+    window._add_paths([source])
+
+    assert window.drafts == []
+    assert "Checking encoder tools" in window.statusBar().currentMessage()
 
 
 def test_main_window_uses_custom_splitters_and_can_collapse_queue(

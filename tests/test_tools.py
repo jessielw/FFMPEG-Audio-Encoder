@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import threading
 from pathlib import Path
 
 from ffmpeg_audio_encoder.domain.models import AppSettings, OutputFormat, Toolchain
@@ -105,8 +106,8 @@ def test_deezy_dependencies_are_discovered_beside_configured_executable(
         executable.parent.mkdir(parents=True, exist_ok=True)
         executable.touch()
 
-    # DeeZy tools resolve from PATH first, so this has to run with an empty PATH to
-    # prove the configured executable and its adjacent apps folder are the fallback.
+    # dee/truehdd are unconfigured here, so empty the PATH to prove they are found in
+    # the apps folder beside the configured DeeZy executable.
     monkeypatch.setattr(tools.shutil, "which", lambda _name: None)
 
     toolchain = locate_toolchain(
@@ -120,6 +121,125 @@ def test_deezy_dependencies_are_discovered_beside_configured_executable(
     assert toolchain.deezy == deezy.resolve()
     assert toolchain.dee == dee.resolve()
     assert toolchain.truehdd == truehdd.resolve()
+
+
+def _which_within(directory: Path, suffix: str):
+    """Stand in for ``shutil.which``, including the bare-name lookup that finds
+    ``deezy.exe`` on Windows when asked for ``deezy``."""
+
+    def which(name: str) -> str | None:
+        for candidate in (directory / name, directory / f"{name}{suffix}"):
+            if candidate.is_file():
+                return str(candidate)
+        return None
+
+    return which
+
+
+def test_configured_deezy_tools_win_over_copies_on_path(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """A path typed into Settings has to beat PATH, or updating an executable there
+    silently does nothing."""
+    suffix = ".exe" if sys.platform == "win32" else ""
+    ffmpeg = tmp_path / f"ffmpeg{suffix}"
+    ffprobe = tmp_path / f"ffprobe{suffix}"
+    configured = tmp_path / "configured"
+    on_path = tmp_path / "on_path"
+    names = {"deezy": configured, "dee": configured, "truehdd": configured}
+    for executable in (ffmpeg, ffprobe):
+        executable.touch()
+    for directory in (configured, on_path):
+        directory.mkdir()
+        for name in names:
+            (directory / f"{name}{suffix}").touch()
+
+    monkeypatch.setattr(tools.shutil, "which", _which_within(on_path, suffix))
+
+    toolchain = locate_toolchain(
+        AppSettings(
+            ffmpeg_path=str(ffmpeg),
+            ffprobe_path=str(ffprobe),
+            deezy_path=str(configured / f"deezy{suffix}"),
+            dee_path=str(configured / f"dee{suffix}"),
+            truehdd_path=str(configured / f"truehdd{suffix}"),
+        )
+    )
+
+    assert toolchain.deezy == (configured / f"deezy{suffix}").resolve()
+    assert toolchain.dee == (configured / f"dee{suffix}").resolve()
+    assert toolchain.truehdd == (configured / f"truehdd{suffix}").resolve()
+
+
+def test_clearing_a_custom_path_hands_the_tool_back_to_discovery(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Emptying a Settings field has to fall back to PATH, not leave the tool missing.
+    The dialog stores a blank field as ``None``; a round-tripped one can be ``""``."""
+    suffix = ".exe" if sys.platform == "win32" else ""
+    ffmpeg = tmp_path / f"ffmpeg{suffix}"
+    ffprobe = tmp_path / f"ffprobe{suffix}"
+    on_path = tmp_path / "on_path"
+    on_path.mkdir()
+    for executable in (ffmpeg, ffprobe):
+        executable.touch()
+    for name in ("deezy", "dee", "truehdd", "opusenc", "qaac64"):
+        (on_path / f"{name}{suffix}").touch()
+
+    monkeypatch.setattr(tools.shutil, "which", _which_within(on_path, suffix))
+
+    toolchain = locate_toolchain(
+        AppSettings(
+            ffmpeg_path=str(ffmpeg),
+            ffprobe_path=str(ffprobe),
+            deezy_path=None,
+            dee_path="",
+            truehdd_path=None,
+            opusenc_path=None,
+            qaac_path="",
+        )
+    )
+
+    assert toolchain.deezy == (on_path / f"deezy{suffix}").resolve()
+    assert toolchain.dee == (on_path / f"dee{suffix}").resolve()
+    assert toolchain.truehdd == (on_path / f"truehdd{suffix}").resolve()
+    assert toolchain.opusenc == (on_path / f"opusenc{suffix}").resolve()
+    assert toolchain.qaac == (on_path / f"qaac64{suffix}").resolve()
+
+
+def test_probes_run_concurrently(monkeypatch) -> None:
+    """Every probe has to be in flight at once: a barrier that only trips when all ten
+    threads arrive would time out if they were still run one after another."""
+    barrier = threading.Barrier(10, timeout=10)
+
+    def fake_run_tool(program: Path, arguments: list[str], *, check: bool = True) -> str:
+        barrier.wait()
+        if arguments[-1] == "-encoders":
+            return " A..... aac AAC"
+        if arguments[-1] == "-muxers":
+            return " E ipod iPod"
+        return f"{program.name} version"
+
+    monkeypatch.setattr(tools, "_run_tool", fake_run_tool)
+    report = inspect_toolchain(
+        Toolchain(
+            Path("ffmpeg"),
+            Path("ffprobe"),
+            qaac=Path("qaac"),
+            fdkaac=Path("fdkaac"),
+            opusenc=Path("opusenc"),
+            deezy=Path("deezy"),
+            dee=Path("dee"),
+            truehdd=Path("truehdd"),
+        )
+    )
+
+    assert not barrier.broken
+    assert report.encoders == frozenset({"aac"})
+    assert report.deezy_version == "deezy version"
+    assert report.truehdd_version == "truehdd version"
 
 
 def test_deezy_capabilities_require_truehdd_only_for_immersive_modes() -> None:
