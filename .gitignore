@@ -27,3 +27,7 @@ legacy_v4/config.ini
 legacy_v4/profiles.ini
 legacy_v4/ytconfig.ini
 legacy_v4/test.py
+
+
+# node modules
+node_modules/
