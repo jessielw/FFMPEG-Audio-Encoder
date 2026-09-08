@@ -327,7 +327,7 @@ def _audio_filters(request: EncodingRequest) -> list[str]:
         filters.append(f"atempo={ratio:g}")
     delay_ms = request.common.delay_ms
     if delay_ms > 0:
-        filters.append(f"adelay={_format_seconds(delay_ms / 1000)}s:all=1")
+        filters.extend(_positive_delay_filters(delay_ms, request.stream.sample_rate))
     elif delay_ms < 0:
         filters.extend(
             (
@@ -336,6 +336,28 @@ def _audio_filters(request: EncodingRequest) -> list[str]:
             )
         )
     return filters
+
+
+def _positive_delay_filters(delay_ms: float, sample_rate: int | None) -> list[str]:
+    """Build the filters that prepend ``delay_ms`` of silence.
+
+    adelay counts in whole milliseconds, and its ``s`` suffix does not survive a
+    fractional value: ffmpeg 7 and older read the number with ``%d`` and drop the
+    delay entirely, while ffmpeg 9 reads it as milliseconds and delays by a
+    thousandth of what was asked. Whole samples are unambiguous to both.
+    """
+    if sample_rate:
+        delay = round(delay_ms / 1000 * sample_rate)
+        specification = f"{delay}S"
+    else:
+        delay = round(delay_ms)
+        specification = str(delay)
+    if delay <= 0:
+        return []
+    # adelay emits its padding as a single short frame, which an encoder with a
+    # minimum block size - FLAC's is 16 samples - rejects outright. Re-frame the
+    # stream so no encoder ever sees that first undersized frame.
+    return [f"adelay={specification}:all=1", "asetnsamples=n=1024:p=0"]
 
 
 def _format_seconds(value: float) -> str:

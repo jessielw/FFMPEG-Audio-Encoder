@@ -498,7 +498,7 @@ def test_flac_rejects_a_rate_above_ffmpeg_limit() -> None:
 @pytest.mark.parametrize(
     ("delay_ms", "expected_filter", "expected_duration"),
     [
-        (125.5, "atempo=2,adelay=0.1255s:all=1", 5.1255),
+        (125.5, "atempo=2,adelay=6024S:all=1,asetnsamples=n=1024:p=0", 5.1255),
         (-125.5, "atempo=2,atrim=start=0.1255,asetpts=PTS-STARTPTS", 4.8745),
     ],
 )
@@ -554,7 +554,7 @@ def test_external_encoders_receive_common_delay_filter(encoder, tmp_path: Path) 
     plan = encoder.build_plan(request, toolchain, tmp_path / "temporary.m4a")
     arguments = plan.stages[0].arguments
 
-    assert arguments[arguments.index("-af") + 1] == "adelay=0.05s:all=1"
+    assert arguments[arguments.index("-af") + 1] == "adelay=2400S:all=1,asetnsamples=n=1024:p=0"
     assert plan.duration_seconds == pytest.approx(10.05)
 
 

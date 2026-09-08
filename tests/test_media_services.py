@@ -26,7 +26,7 @@ from ffmpeg_audio_encoder.infrastructure.probe import (
     apply_mediainfo_delays,
     parse_ffprobe_json,
 )
-from ffmpeg_audio_encoder.infrastructure.process import QtProcessRunner
+from ffmpeg_audio_encoder.infrastructure.process import STDERR_TAIL_LINES, QtProcessRunner
 from ffmpeg_audio_encoder.infrastructure.progress import DeezyProgressParser, FFmpegProgressParser
 
 
@@ -322,3 +322,43 @@ def test_media_probe_bounds_concurrent_processes(tmp_path: Path, qtbot) -> None:
     probe.cancel_all()
     assert not probe._processes
     assert not probe._pending
+
+
+def test_qt_runner_reports_the_failing_processes_last_stderr_lines(tmp_path: Path, qtbot) -> None:
+    plan = ProcessPlan(
+        (
+            ProcessStage(
+                Path(sys.executable),
+                (
+                    "-c",
+                    (
+                        "import sys\n"
+                        "for index in range(40):\n"
+                        "    print(f'noise {index}', file=sys.stderr)\n"
+                        "print('invalid block size: 1', file=sys.stderr)\n"
+                        "sys.exit(3)\n"
+                    ),
+                ),
+            ),
+        ),
+        tmp_path / "temporary.flac",
+        tmp_path / "final.flac",
+        None,
+    )
+    runner = QtProcessRunner()
+    errors: list[str] = []
+    finished: list[bool] = []
+    runner.finished.connect(
+        lambda _job_id, success, error: (errors.append(error), finished.append(success))
+    )
+
+    runner.start(uuid4(), plan)
+    qtbot.waitUntil(lambda: bool(finished))
+
+    assert finished == [False]
+    assert "exited with code 3" in errors[0]
+    # The line that says what actually went wrong, which used to be dropped.
+    assert "invalid block size: 1" in errors[0]
+    # Only the tail of it: the rest of the run stays in the log, not the error.
+    assert "noise 0\n" not in errors[0]
+    assert len(errors[0].splitlines()) <= STDERR_TAIL_LINES + 1

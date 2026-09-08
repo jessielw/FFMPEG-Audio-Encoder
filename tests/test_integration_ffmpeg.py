@@ -171,3 +171,58 @@ def test_real_qprocess_queue_encode(
     payload = json.loads(probe.stdout)
     assert payload["streams"][0]["codec_name"] == codec.value
     assert payload["streams"][0]["channels"] == 2
+
+
+# A positive delay went unnoticed for a long time because the encode test above only
+# checks the codec and channel count: adelay's "s" suffix silently dropped the delay on
+# ffmpeg 7 and older, and on ffmpeg 9 it delayed by a thousandth of the asked amount and
+# handed FLAC a first frame below its minimum block size. FLAC is the codec to measure
+# with - it is lossless, so the output carries no encoder priming to confuse the length.
+@pytest.mark.parametrize("delay_ms", [25.0, 0.2])
+def test_real_positive_delay_reaches_the_encoded_output(
+    tmp_path: Path, qtbot, tool_report, delay_ms: float
+) -> None:
+    source = tmp_path / "tone.wav"
+    output = tmp_path / "delayed.flac"
+    _write_test_wave(source)
+    registry = default_registry()
+    adapter = registry.get("ffmpeg.flac")
+    if not tool_report.supports_adapter(adapter.descriptor):
+        pytest.skip("This FFmpeg build has no FLAC encoder")
+    request = EncodingRequest(
+        source,
+        AudioStream(0, 1, "pcm_s16le", 1, "mono", 48000, duration_seconds=0.25),
+        "ffmpeg.flac",
+        Codec.FLAC,
+        OutputFormat.FLAC,
+        output,
+        CommonAudioOptions(delay_ms=delay_ms),
+        encoder_options=adapter.default_options(),
+    )
+    queue = JobQueueController(registry, tool_report.toolchain)
+    job = queue.add(request)
+    queue.start()
+    qtbot.waitUntil(
+        lambda: job.state in {JobState.SUCCEEDED, JobState.FAILED},
+        timeout=20_000,
+    )
+
+    assert job.state is JobState.SUCCEEDED, job.error
+    probe = subprocess.run(
+        [
+            str(tool_report.toolchain.ffprobe),
+            "-v",
+            "error",
+            "-show_entries",
+            "format=duration",
+            "-of",
+            "json",
+            str(output),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    duration = float(json.loads(probe.stdout)["format"]["duration"])
+    assert duration == pytest.approx(0.25 + delay_ms / 1000, abs=0.002)

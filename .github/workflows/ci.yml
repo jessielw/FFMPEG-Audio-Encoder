@@ -8,6 +8,14 @@ on:
 
 jobs:
   quality:
+    strategy:
+      fail-fast: false
+      matrix:
+        # apt ships the ffmpeg most Linux users already have; the static build is a
+        # current one. Testing only the first is how an ffmpeg 9 filter regression got
+        # past every green run here and was not seen until a release tag built on
+        # macOS and Windows, where the package managers ship the newer ffmpeg.
+        ffmpeg: [distro, latest]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -18,7 +26,21 @@ jobs:
         with:
           python-version: "3.12"
           enable-cache: true
-      - run: sudo apt-get update && sudo apt-get install -y ffmpeg libegl1
+      - run: sudo apt-get update && sudo apt-get install -y libegl1
+      - if: matrix.ffmpeg == 'distro'
+        run: sudo apt-get install -y ffmpeg
+      - if: matrix.ffmpeg == 'latest'
+        run: |
+          set -euo pipefail
+          curl -fsSL -o ffmpeg.tar.xz \
+            https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz
+          mkdir -p "$RUNNER_TEMP/ffmpeg"
+          tar -xJf ffmpeg.tar.xz -C "$RUNNER_TEMP/ffmpeg" --strip-components=1
+          rm ffmpeg.tar.xz
+          echo "$RUNNER_TEMP/ffmpeg/bin" >> "$GITHUB_PATH"
+      # Named in the log so a failure that turns out to be version specific says which
+      # ffmpeg it was without a rerun.
+      - run: ffmpeg -version | head -1
       - run: uv sync --group dev
       - run: uv run ruff format --check .
       - run: uv run ruff check .
@@ -26,7 +48,11 @@ jobs:
       - run: uv run pytest
 
   bundle:
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/v5'
+    # main is the default branch and was missing here, so nothing built or smoke-tested
+    # the macOS and Windows bundles between one PR and the next release tag.
+    if: >-
+      github.event_name == 'pull_request'
+      || contains(fromJSON('["refs/heads/main", "refs/heads/master", "refs/heads/v5"]'), github.ref)
     strategy:
       fail-fast: false
       matrix:

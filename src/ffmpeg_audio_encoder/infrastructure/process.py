@@ -13,6 +13,12 @@ ProgressParser = FFmpegProgressParser | DeezyProgressParser
 
 FORCE_KILL_DELAY_MS = 3000
 
+# A failing tool explains itself on its last few stderr lines. Without them a job
+# reports only "exited with code -22", which says nothing about which argument the
+# tool rejected, in the log file and in any bug report built from it.
+STDERR_TAIL_LINES = 8
+STDERR_TAIL_CHARS = 4000
+
 
 class QtProcessRunner(QObject):
     started = Signal(str)
@@ -27,6 +33,7 @@ class QtProcessRunner(QObject):
         self._processes: list[QProcess] = []
         self._parsers: dict[QProcess, ProgressParser] = {}
         self._trees: dict[QProcess, ProcessTree] = {}
+        self._stderr_tails: dict[QProcess, str] = {}
         self._killed: set[QProcess] = set()
         self._cancel_requested = False
         self._errors: list[str] = []
@@ -53,6 +60,7 @@ class QtProcessRunner(QObject):
         self._plan = plan
         self._parsers = {}
         self._trees = {}
+        self._stderr_tails = {}
         self._killed = set()
         self._cancel_requested = False
         self._errors = []
@@ -81,6 +89,7 @@ class QtProcessRunner(QObject):
                     else FFmpegProgressParser(plan.duration_seconds)
                 )
             self._trees[process] = ProcessTree(walk_descendants=stage.terminate_tree)
+            self._stderr_tails[process] = ""
 
         for source, destination in zip(self._processes, self._processes[1:], strict=False):
             source.setStandardOutputProcess(destination)
@@ -147,6 +156,10 @@ class QtProcessRunner(QObject):
         if self._job_id is None:
             return
         text = bytes(process.readAllStandardError().data()).decode("utf-8", errors="replace")
+        if text and process in self._stderr_tails:
+            # Kept as a rolling window rather than the whole stream: a long encode can
+            # write megabytes of stderr, and only the end of it explains a failure.
+            self._stderr_tails[process] = (self._stderr_tails[process] + text)[-STDERR_TAIL_CHARS:]
         parser = self._parsers.get(process)
         if progress_stream == "stderr" and parser is not None:
             for update in parser.feed(text):
@@ -184,7 +197,22 @@ class QtProcessRunner(QObject):
     ) -> None:
         if exit_code != 0 and not self._cancel_requested and process not in self._killed:
             self._errors.append(f"{process.program()} exited with code {exit_code}")
+            self._errors.extend(self._stderr_tail(process))
         self._check_completion()
+
+    def _stderr_tail(self, process: QProcess) -> list[str]:
+        """The last few meaningful stderr lines the process wrote before it failed."""
+        buffered = self._stderr_tails.get(process, "")
+        if not buffered:
+            return []
+        # ffmpeg redraws its stats line with carriage returns, so those are line breaks
+        # here too; without that the whole run collapses into one unreadable line.
+        lines = [line.strip() for line in buffered.replace("\r", "\n").split("\n")]
+        lines = [line for line in lines if line]
+        # A buffer that filled up almost certainly starts mid-line.
+        if len(buffered) >= STDERR_TAIL_CHARS and lines:
+            lines = lines[1:]
+        return lines[-STDERR_TAIL_LINES:]
 
     def _check_completion(self) -> None:
         if self._job_id is None or any(
@@ -203,6 +231,7 @@ class QtProcessRunner(QObject):
         self._processes = []
         self._parsers = {}
         self._trees = {}
+        self._stderr_tails = {}
         self._killed = set()
         self._cancel_requested = False
         self._errors = []
