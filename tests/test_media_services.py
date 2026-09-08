@@ -306,7 +306,8 @@ def test_media_probe_reports_failed_start(tmp_path: Path, qtbot) -> None:
     probe.probe(tmp_path / "input.wav")
 
     qtbot.waitUntil(lambda: bool(failures), timeout=3_000)
-    assert "start" in failures[0].lower() or "find" in failures[0].lower()
+    # Qt's own wording for this is platform specific, so the probe prefixes it.
+    assert failures[0].startswith("ffprobe failed to start")
 
 
 def test_media_probe_bounds_concurrent_processes(tmp_path: Path, qtbot) -> None:

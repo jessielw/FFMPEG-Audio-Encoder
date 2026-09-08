@@ -328,7 +328,14 @@ class QtMediaProbe(QObject):
 
     def _process_error(self, key: str, process: QProcess, error: QProcess.ProcessError) -> None:
         if error is QProcess.ProcessError.FailedToStart:
-            self._fail(key, process.errorString() or "ffprobe failed to start")
+            # Qt words this per platform, and Linux reports the bare execve failure
+            # without naming the program, so lead with our own sentence and keep Qt's
+            # wording as the detail after it.
+            detail = process.errorString()
+            self._fail(
+                key,
+                f"ffprobe failed to start: {detail}" if detail else "ffprobe failed to start",
+            )
 
     def _timeout(self, key: str, process: QProcess) -> None:
         if self._processes.get(key) is process:

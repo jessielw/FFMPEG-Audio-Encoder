@@ -9,6 +9,7 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       QT_QPA_PLATFORM: offscreen
     steps:
@@ -29,8 +30,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-13, macos-14]
+        os: [windows-latest, ubuntu-latest, macos-15-intel, macos-15]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
     env:
       QT_QPA_PLATFORM: offscreen
     steps:
