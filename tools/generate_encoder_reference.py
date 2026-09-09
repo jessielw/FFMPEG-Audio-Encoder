@@ -133,7 +133,7 @@ def _format_notes(option: OptionDefinition) -> str:
         notes.append(_escape(option.tooltip))
     if option.enabled_when_key:
         values = ", ".join(f"`{_format_scalar(value)}`" for value in option.enabled_when_values)
-        notes.append(f"Applies only when *{option.enabled_when_key}* is {values}.")
+        notes.append(f"Applies only when `{option.enabled_when_key}` is {values}.")
     elif option.enabled_when_all:
         notes.append("Applies only to some configurations.")
     return " ".join(notes) if notes else "-"
@@ -185,7 +185,7 @@ def _render_option_table(descriptor: EncoderDescriptor) -> list[str]:
 
 def _render_descriptor(descriptor: EncoderDescriptor) -> list[str]:
     lines = [f"### {descriptor.display_name}", "", f"`{descriptor.id}`", ""]
-    lines.append("| | |")
+    lines.append("| Property | Value |")
     lines.append("| --- | --- |")
     lines.append("| Codec | " + ", ".join(str(codec) for codec in descriptor.codecs) + " |")
     outputs = ", ".join(
@@ -250,7 +250,9 @@ def main() -> int:
         return 1
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT_PATH.write_text(rendered, encoding="utf-8")
+    # Git stores this file with LF, so write LF on every platform - otherwise a Windows
+    # run leaves the whole file looking modified.
+    OUTPUT_PATH.write_text(rendered, encoding="utf-8", newline="\n")
     print(f"wrote {relative}")
     return 0
 

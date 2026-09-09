@@ -5,9 +5,13 @@ Change the encoder descriptors instead, then re-run the generator.
 
 # Encoder reference
 
-Every encoder the application offers, with the exact options it exposes. This page is generated from the encoder descriptors in the source tree, so it always matches the version of the application it ships with.
+Every encoder the application offers, with the exact options it exposes. This page is
+generated from the encoder descriptors in the source tree, so it always matches the
+version of the application it ships with.
 
-Options appear under the label the interface uses. The value shown as the default is what a fresh configuration starts from; presets and the restored last-used configuration override it.
+Options appear under the label the interface uses. The value shown as the default is what
+a fresh configuration starts from; presets and the restored last-used configuration
+override it.
 
 ## FFmpeg built-in
 
@@ -17,7 +21,7 @@ Encoders built into FFmpeg itself. They need nothing beyond a working FFmpeg bui
 
 `ffmpeg.libopus`
 
-|  |  |
+| Property | Value |
 | --- | --- |
 | Codec | Opus |
 | Output | ogg-opus (`.opus`) |
@@ -41,7 +45,7 @@ All common audio controls apply.
 
 `ffmpeg.flac`
 
-|  |  |
+| Property | Value |
 | --- | --- |
 | Codec | FLAC |
 | Output | flac (`.flac`) |
@@ -60,7 +64,7 @@ All common audio controls apply.
 
 `ffmpeg.aac`
 
-|  |  |
+| Property | Value |
 | --- | --- |
 | Codec | AAC |
 | Output | m4a (`.m4a`), adts-aac (`.aac`) |
@@ -73,8 +77,8 @@ All common audio controls apply.
 | Option | Type | Default | Range | Choices | Notes |
 | --- | --- | --- | --- | --- | --- |
 | Rate control | Choice | `Constant bitrate` | - | `Constant bitrate`, `Variable quality` | - |
-| Bitrate | Integer | `192 kb/s` | 8 to 512 kb/s | - | Applies only when _rate_control_ is `cbr`. |
-| VBR quality | Decimal | `2.0` | 0.1 to 5 | - | Applies only when _rate_control_ is `vbr`. |
+| Bitrate | Integer | `192 kb/s` | 8 to 512 kb/s | - | Applies only when `rate_control` is `cbr`. |
+| VBR quality | Decimal | `2.0` | 0.1 to 5 | - | Applies only when `rate_control` is `vbr`. |
 | Coder | Choice | `Two-loop` | - | `Two-loop`, `Fast` | - |
 | Custom FFmpeg output arguments | Text | - | - | - | Advanced: appended after managed codec settings. Arguments are never run in a shell. |
 
@@ -82,7 +86,7 @@ All common audio controls apply.
 
 `ffmpeg.libmp3lame`
 
-|  |  |
+| Property | Value |
 | --- | --- |
 | Codec | MP3 |
 | Output | mp3 (`.mp3`) |
@@ -95,8 +99,8 @@ All common audio controls apply.
 | Option | Type | Default | Range | Choices | Notes |
 | --- | --- | --- | --- | --- | --- |
 | Rate control | Choice | `Variable quality` | - | `Variable quality`, `Constant bitrate`, `Average bitrate` | - |
-| VBR quality | Integer | `0` | 0 to 9 | - | Applies only when _rate_control_ is `vbr`. |
-| Bitrate | Choice | `192 kb/s` | - | `8 kb/s`, `16 kb/s`, `24 kb/s`, `32 kb/s`, `40 kb/s`, `48 kb/s`, `56 kb/s`, `64 kb/s`, `80 kb/s`, `96 kb/s`, `112 kb/s`, `128 kb/s`, `160 kb/s`, `192 kb/s`, `224 kb/s`, `256 kb/s`, `320 kb/s` | Applies only when _rate_control_ is `cbr`, `abr`. |
+| VBR quality | Integer | `0` | 0 to 9 | - | Applies only when `rate_control` is `vbr`. |
+| Bitrate | Choice | `192 kb/s` | - | `8 kb/s`, `16 kb/s`, `24 kb/s`, `32 kb/s`, `40 kb/s`, `48 kb/s`, `56 kb/s`, `64 kb/s`, `80 kb/s`, `96 kb/s`, `112 kb/s`, `128 kb/s`, `160 kb/s`, `192 kb/s`, `224 kb/s`, `256 kb/s`, `320 kb/s` | Applies only when `rate_control` is `cbr`, `abr`. |
 | Algorithm quality | Integer | `0` | 0 to 9 | - | - |
 | Custom FFmpeg output arguments | Text | - | - | - | Advanced: appended after managed codec settings. Arguments are never run in a shell. |
 
@@ -104,7 +108,7 @@ All common audio controls apply.
 
 `ffmpeg.ac3`
 
-|  |  |
+| Property | Value |
 | --- | --- |
 | Codec | AC-3 |
 | Output | ac3 (`.ac3`) |
@@ -123,7 +127,7 @@ All common audio controls apply.
 
 `ffmpeg.eac3`
 
-|  |  |
+| Property | Value |
 | --- | --- |
 | Codec | E-AC-3 |
 | Output | eac3 (`.eac3`) |
@@ -142,7 +146,7 @@ All common audio controls apply.
 
 `ffmpeg.dca`
 
-|  |  |
+| Property | Value |
 | --- | --- |
 | Codec | DTS |
 | Output | dts (`.dts`) |
@@ -161,7 +165,7 @@ All common audio controls apply.
 
 `ffmpeg.alac`
 
-|  |  |
+| Property | Value |
 | --- | --- |
 | Codec | ALAC |
 | Output | m4a (`.m4a`) |
@@ -184,7 +188,7 @@ Third-party command-line encoders. FFmpeg decodes the selected source stream to 
 
 `opusenc.opus`
 
-|  |  |
+| Property | Value |
 | --- | --- |
 | Codec | Opus |
 | Output | ogg-opus (`.opus`) |
@@ -210,7 +214,7 @@ All common audio controls apply.
 
 `qaac.aac`
 
-|  |  |
+| Property | Value |
 | --- | --- |
 | Codec | AAC |
 | Output | m4a (`.m4a`), adts-aac (`.aac`) |
@@ -224,8 +228,8 @@ All common audio controls apply.
 | --- | --- | --- | --- | --- | --- |
 | Profile | Choice | `AAC-LC` | - | `AAC-LC`, `HE-AAC` | - |
 | Rate control | Choice | `True VBR` | - | `True VBR`, `Constrained VBR`, `Average bitrate`, `Constant bitrate` | - |
-| TVBR quality | Integer | `90` | 0 to 127 | - | Applies only when _rate_control_ is `tvbr`. |
-| Bitrate | Integer | `192 kb/s` | 8 to 512 kb/s | - | Applies only when _rate_control_ is `cvbr`, `abr`, `cbr`. |
+| TVBR quality | Integer | `90` | 0 to 127 | - | Applies only when `rate_control` is `tvbr`. |
+| Bitrate | Integer | `192 kb/s` | 8 to 512 kb/s | - | Applies only when `rate_control` is `cvbr`, `abr`, `cbr`. |
 | Encoder quality | Choice | `Best` | - | `Best`, `High`, `Fast` | - |
 | Custom qaac arguments | Text | - | - | - | Advanced: appended after managed qaac settings. Arguments are never run in a shell. |
 
@@ -233,7 +237,7 @@ All common audio controls apply.
 
 `fdkaac.aac`
 
-|  |  |
+| Property | Value |
 | --- | --- |
 | Codec | AAC |
 | Output | m4a (`.m4a`), adts-aac (`.aac`) |
@@ -247,8 +251,8 @@ All common audio controls apply.
 | --- | --- | --- | --- | --- | --- |
 | Profile | Choice | `AAC-LC` | - | `AAC-LC`, `HE-AAC`, `HE-AAC v2` | - |
 | Rate control | Choice | `Constant bitrate` | - | `Constant bitrate`, `Variable quality` | - |
-| Bitrate | Integer | `192 kb/s` | 8 to 1024 kb/s | - | Applies only when _rate_control_ is `cbr`. |
-| VBR quality | Integer | `3` | 1 to 5 | - | Applies only when _rate_control_ is `vbr`. |
+| Bitrate | Integer | `192 kb/s` | 8 to 1024 kb/s | - | Applies only when `rate_control` is `cbr`. |
+| VBR quality | Integer | `3` | 1 to 5 | - | Applies only when `rate_control` is `vbr`. |
 | Afterburner | Choice | `On` | - | `On`, `Off` | - |
 | Custom fdkaac arguments | Text | - | - | - | Advanced: appended after managed fdkaac settings. Arguments are never run in a shell. |
 
@@ -260,12 +264,12 @@ Licensed Dolby encoding through DeeZy. These need DeeZy and the Dolby Encoding E
 
 `deezy.dd`
 
-|                 |                                      |
-| --------------- | ------------------------------------ |
-| Codec           | AC-3                                 |
-| Output          | ac3 (`.ac3`)                         |
-| Requires        | FFmpeg, DeeZy, Dolby Encoding Engine |
-| Channel layouts | `Auto`, `Mono`, `Stereo`, `5.1`      |
+| Property | Value |
+| --- | --- |
+| Codec | AC-3 |
+| Output | ac3 (`.ac3`) |
+| Requires | FFmpeg, DeeZy, Dolby Encoding Engine |
+| Channel layouts | `Auto`, `Mono`, `Stereo`, `5.1` |
 
 Common audio controls: channel layout, delay. Not available: sample rate, gain, tempo.
 
@@ -289,11 +293,11 @@ Common audio controls: channel layout, delay. Not available: sample rate, gain, 
 
 `deezy.ddp`
 
-|                 |                                        |
-| --------------- | -------------------------------------- |
-| Codec           | E-AC-3                                 |
-| Output          | eac3 (`.eac3`)                         |
-| Requires        | FFmpeg, DeeZy, Dolby Encoding Engine   |
+| Property | Value |
+| --- | --- |
+| Codec | E-AC-3 |
+| Output | eac3 (`.eac3`) |
+| Requires | FFmpeg, DeeZy, Dolby Encoding Engine |
 | Channel layouts | `Auto`, `Mono`, `Stereo`, `5.1`, `7.1` |
 
 Common audio controls: channel layout, delay. Not available: sample rate, gain, tempo.
@@ -318,10 +322,10 @@ Common audio controls: channel layout, delay. Not available: sample rate, gain, 
 
 `deezy.ddp_bluray`
 
-|          |                                      |
-| -------- | ------------------------------------ |
-| Codec    | E-AC-3                               |
-| Output   | eac3 (`.eac3`)                       |
+| Property | Value |
+| --- | --- |
+| Codec | E-AC-3 |
+| Output | eac3 (`.eac3`) |
 | Requires | FFmpeg, DeeZy, Dolby Encoding Engine |
 
 Common audio controls: delay. Not available: sample rate, channel layout, gain, tempo.
@@ -345,10 +349,10 @@ Common audio controls: delay. Not available: sample rate, channel layout, gain, 
 
 `deezy.atmos`
 
-|          |                                               |
-| -------- | --------------------------------------------- |
-| Codec    | Dolby Digital Plus Atmos                      |
-| Output   | eac3 (`.eac3`)                                |
+| Property | Value |
+| --- | --- |
+| Codec | Dolby Digital Plus Atmos |
+| Output | eac3 (`.eac3`) |
 | Requires | FFmpeg, DeeZy, Dolby Encoding Engine, TrueHDD |
 
 Common audio controls: delay. Not available: sample rate, channel layout, gain, tempo.
@@ -372,10 +376,10 @@ Common audio controls: delay. Not available: sample rate, channel layout, gain, 
 
 `deezy.ac4`
 
-|          |                                               |
-| -------- | --------------------------------------------- |
-| Codec    | AC-4                                          |
-| Output   | ac4 (`.ac4`)                                  |
+| Property | Value |
+| --- | --- |
+| Codec | AC-4 |
+| Output | ac4 (`.ac4`) |
 | Requires | FFmpeg, DeeZy, Dolby Encoding Engine, TrueHDD |
 
 Common audio controls: delay. Not available: sample rate, channel layout, gain, tempo.

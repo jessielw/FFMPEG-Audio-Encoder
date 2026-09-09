@@ -45,13 +45,24 @@ uv run python tools/generate_encoder_reference.py
 
 CI runs the same script with `--check` and fails if the committed page is stale, in the same spirit as `ruff format --check`.
 
+The page is listed in `.prettierignore`, and it has to be. `--check` compares the committed file against the generator's output exactly, so anything else that rewrites it - prettier aligning table columns, for instance - breaks CI even though the rendered page is unchanged. If you ever need to reformat it, change the generator.
+
 Everything else under `docs/` is written by hand.
 
 ## Release notes
 
 `docs/release-notes.md` pulls in the repository's `CHANGELOG.md` with a `pymdownx.snippets` include, so the changelog has exactly one source. Edit `CHANGELOG.md`; the page follows.
 
-`CHANGELOG.md` is formatted with prettier (`npm run format:cl`), configured with `proseWrap: never`.
+## Formatting
+
+Markdown is formatted with prettier, configured with `proseWrap: never`:
+
+```console
+npm run format:docs   # docs/**/*.md
+npm run format:cl     # CHANGELOG.md
+```
+
+`docs/encoders/reference.md` is excluded - see [above](#the-generated-page).
 
 ## Adding a page
 
