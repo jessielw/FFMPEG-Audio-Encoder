@@ -19,6 +19,7 @@ from ffmpeg_audio_encoder.domain.models import (
     MediaAsset,
 )
 from ffmpeg_audio_encoder.infrastructure.delay import MAX_DELAY_MS, parse_filename_delay
+from ffmpeg_audio_encoder.infrastructure.qt_lifetime import detach_and_delete
 
 
 def _optional_float(value: object) -> float | None:
@@ -282,7 +283,7 @@ class QtMediaProbe(QObject):
             process.disconnect(self)
             if process.state() is not QProcess.ProcessState.NotRunning:
                 process.kill()
-            process.deleteLater()
+            detach_and_delete(process)
 
     def _start_pending(self) -> None:
         while self._pending and len(self._processes) < self.max_concurrent:
@@ -351,7 +352,7 @@ class QtMediaProbe(QObject):
         process.disconnect(self)
         if process.state() is not QProcess.ProcessState.NotRunning:
             process.kill()
-        process.deleteLater()
+        detach_and_delete(process)
         self.failed.emit(key, message)
         self._start_pending()
 
@@ -361,7 +362,7 @@ class QtMediaProbe(QObject):
             return
         stdout = bytes(self._stdout.pop(key)).decode("utf-8", errors="replace")
         stderr = bytes(self._stderr.pop(key)).decode("utf-8", errors="replace").strip()
-        process.deleteLater()
+        detach_and_delete(process)
         if exit_code != 0:
             self._known.discard(key)
             self.failed.emit(key, stderr or f"ffprobe exited with code {exit_code}")

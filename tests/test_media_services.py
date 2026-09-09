@@ -319,9 +319,12 @@ def test_media_probe_bounds_concurrent_processes(tmp_path: Path, qtbot) -> None:
     assert len(probe._processes) == 2
     assert len(probe._pending) == 3
 
+    processes = list(probe._processes.values())
     probe.cancel_all()
     assert not probe._processes
     assert not probe._pending
+    # Left parented, each would be deleted again with the probe. See qt_lifetime.
+    assert [process.parent() for process in processes] == [None, None]
 
 
 def test_qt_runner_reports_the_failing_processes_last_stderr_lines(tmp_path: Path, qtbot) -> None:

@@ -80,6 +80,7 @@ from ffmpeg_audio_encoder.infrastructure.persistence import (
     SettingsRepository,
 )
 from ffmpeg_audio_encoder.infrastructure.probe import QtMediaProbe
+from ffmpeg_audio_encoder.infrastructure.qt_lifetime import detach_and_delete
 from ffmpeg_audio_encoder.infrastructure.tools import (
     ToolReport,
     inspect_toolchain,
@@ -683,14 +684,14 @@ class MainWindow(QMainWindow):
     def _configure_services(self, report: ToolReport | None) -> None:
         if self.probe_service is not None:
             self.probe_service.cancel_all()
-            self.probe_service.deleteLater()
+            detach_and_delete(self.probe_service)
         if self.queue is not None:
             self.queue.shutdown()
-            # deleteLater destroys the runner's QProcess objects on the next event
-            # loop turn, which is far sooner than an async cancel can finish. Take
+            # The deferred delete destroys the runner's QProcess objects on the next
+            # event loop turn, which is far sooner than an async cancel can finish. Take
             # the process trees down synchronously first so nothing is orphaned.
             self.queue.terminate_processes()
-            self.queue.deleteLater()
+            detach_and_delete(self.queue)
         # Rendered commands embed the toolchain's executable paths, so a new report
         # invalidates every memoised command, not just those of departed jobs.
         self._job_command_cache.clear()
@@ -2060,7 +2061,7 @@ class MainWindow(QMainWindow):
         self._tool_thread = None
         self._pending_settings = None
         if thread is not None:
-            thread.deleteLater()
+            detach_and_delete(thread)
         self._refresh_actions()
         if self._closing and not (self.queue and self.queue.active_job):
             QTimer.singleShot(0, self.close)

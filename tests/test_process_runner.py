@@ -6,6 +6,7 @@ termination behaviour is exercised there. These tests spawn real processes.
 
 from __future__ import annotations
 
+import gc
 import os
 import subprocess
 import sys
@@ -32,13 +33,8 @@ SLEEP_FOREVER = "import time; time.sleep(120)"
 
 @pytest.fixture
 def runner(qtbot):
-    """A runner that outlives its QProcess children.
-
-    Without a parent the Python object can be collected before Qt delivers the
-    deferred deletes posted by _check_completion, which aborts the interpreter.
-    """
-    holder = QObject()
-    instance = QtProcessRunner(holder)
+    """A runner torn down after each test, whatever its processes are still doing."""
+    instance = QtProcessRunner()
     yield instance
     instance.shutdown()
     qtbot.wait(100)
@@ -151,3 +147,28 @@ def test_shutdown_terminates_a_running_tree(tmp_path: Path, qtbot, runner) -> No
     runner.shutdown()
 
     qtbot.waitUntil(lambda: not _pid_is_alive(grandchild_pid), timeout=10_000)
+
+
+def test_a_finished_job_leaves_its_processes_owned_only_by_the_posted_delete(
+    tmp_path: Path, qtbot
+) -> None:
+    """A QProcess that is both parented and deferred-deleted has two owners.
+
+    PySide6 does not survive both of them acting: a runner collected before the event
+    loop delivers the delete takes its children down a second time, and the interpreter
+    aborts with no Qt message and no traceback. That is what the Windows CI job hit.
+    """
+    runner = QtProcessRunner()
+    parents: list[QObject | None] = []
+
+    runner.start(uuid4(), _python_plan("import sys; sys.exit(0)", tmp_path))
+    process = runner._processes[0]
+    runner.finished.connect(lambda *_: parents.append(process.parent()))
+    qtbot.waitUntil(lambda: bool(parents), timeout=20_000)
+
+    assert parents == [None]
+
+    # The collection the detach makes safe.
+    del runner
+    gc.collect()
+    qtbot.wait(50)

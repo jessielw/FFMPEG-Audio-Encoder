@@ -8,6 +8,7 @@ from PySide6.QtCore import QObject, QProcess, QTimer, Signal
 from ffmpeg_audio_encoder.domain.models import ProcessPlan, ProgressProtocol
 from ffmpeg_audio_encoder.infrastructure.proc_tree import ProcessTree
 from ffmpeg_audio_encoder.infrastructure.progress import DeezyProgressParser, FFmpegProgressParser
+from ffmpeg_audio_encoder.infrastructure.qt_lifetime import detach_and_delete
 
 ProgressParser = FFmpegProgressParser | DeezyProgressParser
 
@@ -236,7 +237,7 @@ class QtProcessRunner(QObject):
         self._cancel_requested = False
         self._errors = []
         for process in processes:
-            process.deleteLater()
+            detach_and_delete(process)
         if cancelled:
             error = "Cancelled"
         self.finished.emit(job_id, success, error)
