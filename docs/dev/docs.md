@@ -37,15 +37,16 @@ Bump it deliberately, and run `zensical build --strict` after you do.
 
 ## The generated page
 
-`docs/encoders/reference.md` is **generated** by `tools/generate_encoder_reference.py` from the encoder descriptors. Do not edit it - change the descriptors and regenerate:
+`docs/encoders/reference.md` is **generated** by `tools/generate_encoder_reference.py` from the encoder descriptors, and it is **gitignored**. The docs build regenerates it every time, so it cannot go stale and there is nothing to keep in sync.
+
+Run it once before previewing locally, or that nav entry will 404:
 
 ```console
 uv run python tools/generate_encoder_reference.py
+uv run zensical serve --open
 ```
 
-CI runs the same script with `--check` and fails if the committed page is stale, in the same spirit as `ruff format --check`.
-
-The page is listed in `.prettierignore`, and it has to be. `--check` compares the committed file against the generator's output exactly, so anything else that rewrites it - prettier aligning table columns, for instance - breaks CI even though the rendered page is unchanged. If you ever need to reformat it, change the generator.
+`domain` and `encoders` are stdlib-only, so the generator runs with nothing installed - the CI and deploy jobs use `PYTHONPATH=src` against a Zensical-only environment.
 
 Everything else under `docs/` is written by hand.
 

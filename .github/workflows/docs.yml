@@ -37,9 +37,14 @@ jobs:
       # Zensical only. The docs build never imports the application, so there is no reason
       # to install PySide6 here.
       - run: uv sync --only-group docs
+      # The reference page is generated, not committed. domain/ and encoders/ are
+      # stdlib-only, so this needs the source on the path and nothing installed.
+      - run: uv run --no-sync python tools/generate_encoder_reference.py
+        env:
+          PYTHONPATH: src
       # Zensical's own guidance is to build clean on CI while its cache is being reworked.
       # --strict turns broken links and unresolved references into a failed build.
-      - run: uv run zensical build --clean --strict
+      - run: uv run --no-sync zensical build --clean --strict
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

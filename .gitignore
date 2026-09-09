@@ -13,8 +13,9 @@ dist/
 *.spec
 artifacts/
 
-# Zensical build output.
+# Zensical build output, and the encoder reference the docs build generates.
 site/
+docs/encoders/reference.md
 
 # Existing local developer files.
 Apps/

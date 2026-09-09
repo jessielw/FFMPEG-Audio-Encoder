@@ -3,16 +3,15 @@
 Every fact on that page - option labels, defaults, ranges, choices, supported channel
 layouts, which common controls an adapter honours - already exists as structured data on
 ``EncoderDescriptor`` and ``OptionDefinition``. Writing it out by hand means the docs are
-wrong the first time an adapter changes, so the page is generated and CI runs this with
-``--check`` the same way it runs ``ruff format --check``.
+wrong the first time an adapter changes, so the docs build runs this first and the page
+itself is never committed.
 
-``ffmpeg_audio_encoder.encoders`` and ``.domain`` import no Qt, so this stays headless.
+``domain`` and ``encoders`` are stdlib-only, so this runs with nothing installed - the
+docs job needs ``PYTHONPATH=src`` and no project environment.
 """
 
 from __future__ import annotations
 
-import argparse
-import sys
 from pathlib import Path
 
 from ffmpeg_audio_encoder.domain.models import (
@@ -229,31 +228,9 @@ def render() -> str:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(prog="generate_encoder_reference")
-    parser.add_argument(
-        "--check",
-        action="store_true",
-        help="fail instead of writing when the committed page is out of date",
-    )
-    arguments = parser.parse_args()
-
-    rendered = render()
-    relative = OUTPUT_PATH.relative_to(PROJECT_ROOT).as_posix()
-    if arguments.check:
-        current = OUTPUT_PATH.read_text(encoding="utf-8") if OUTPUT_PATH.is_file() else ""
-        if current == rendered:
-            return 0
-        print(
-            f"{relative} is out of date. Run: uv run python tools/generate_encoder_reference.py",
-            file=sys.stderr,
-        )
-        return 1
-
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    # Git stores this file with LF, so write LF on every platform - otherwise a Windows
-    # run leaves the whole file looking modified.
-    OUTPUT_PATH.write_text(rendered, encoding="utf-8", newline="\n")
-    print(f"wrote {relative}")
+    OUTPUT_PATH.write_text(render(), encoding="utf-8", newline="\n")
+    print(f"wrote {OUTPUT_PATH.relative_to(PROJECT_ROOT).as_posix()}")
     return 0
 
 

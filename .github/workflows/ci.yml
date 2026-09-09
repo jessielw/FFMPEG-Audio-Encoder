@@ -45,9 +45,6 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run basedpyright
-      # docs/encoders/reference.md is generated from the encoder descriptors; this is
-      # the same contract as ruff format --check above.
-      - run: uv run python tools/generate_encoder_reference.py --check
       - run: uv run pytest
 
   bundle:
@@ -108,4 +105,9 @@ jobs:
           python-version: "3.12"
           enable-cache: true
       - run: uv sync --only-group docs
-      - run: uv run zensical build --clean --strict
+      # The reference page is generated, not committed. domain/ and encoders/ are
+      # stdlib-only, so this needs the source on the path and nothing installed.
+      - run: uv run --no-sync python tools/generate_encoder_reference.py
+        env:
+          PYTHONPATH: src
+      - run: uv run --no-sync zensical build --clean --strict

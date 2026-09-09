@@ -64,7 +64,6 @@ uv run ruff format --check .
 uv run ruff check .
 uv run basedpyright
 uv run pytest
-uv run python tools/generate_encoder_reference.py --check
 uv run ffmpeg-audio-encoder --diagnostics
 ```
 
