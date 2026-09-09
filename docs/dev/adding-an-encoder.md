@@ -1,0 +1,111 @@
+# Adding an encoder
+
+An encoder is one class satisfying the `EncoderAdapter` protocol, plus one line in `default_registry()`.
+
+## 1. Write the adapter
+
+Put it in the module for its family - `encoders/ffmpeg.py`, `encoders/external.py`, or `encoders/deezy.py` - or a new module if it is genuinely a new family.
+
+```python
+class MyEncoder(_FfmpegEncoder):
+    descriptor = EncoderDescriptor(
+        id="ffmpeg.myencoder",
+        display_name="FFmpeg My Encoder",
+        codecs=(Codec.MYCODEC,),
+        output_formats=(OutputFormat.MYFORMAT,),
+        options=(
+            OptionDefinition("bitrate_kbps", "Bitrate", OptionKind.INTEGER, 192, 32, 512, " kb/s"),
+        ),
+        group=EncoderGroup.FFMPEG,
+        required_ffmpeg_encoders=("myencoder",),
+        channel_layouts=COMMON_LAYOUTS,
+        sample_rate_choices=MY_SAMPLE_RATES,
+    )
+```
+
+The descriptor is the whole user-facing surface. It decides what the picker shows, what the **Options** tab renders, which common controls apply, and - through `required_tools`, `required_ffmpeg_encoders`, and `required_ffmpeg_muxers` - whether the adapter is offered at all.
+
+### Descriptor fields worth knowing
+
+| Field | Effect |
+| --- | --- |
+| `id` | Stable identity. Persisted in presets and queue jobs, so **never rename one** without a migration. |
+| `group` | Which section of the encoder picker it appears in |
+| `required_tools` | External executables that must resolve |
+| `required_ffmpeg_encoders` / `required_ffmpeg_muxers` | Capabilities probed from the configured FFmpeg |
+| `output_muxed_by_ffmpeg` | False when the external encoder writes the container itself |
+| `channel_layouts`, `default_channel_layout_label` | The layout picker |
+| `sample_rate_choices` or `sample_rate_range` | The sample-rate picker |
+| `supports_sample_rate` / `_channel_layout` / `_gain` / `_tempo` / `_delay` | Which General-tab controls stay enabled |
+
+### Option definitions
+
+`OptionDefinition` carries `key`, `label`, `kind`, `default`, and optionally `minimum`, `maximum`, `suffix`, `choices`, `tooltip`, `step`, and `decimals`.
+
+Conditional visibility uses either `enabled_when_key` + `enabled_when_values` for a single dependency, or `enabled_when_all` for several:
+
+```python
+OptionDefinition(
+    "speech_threshold", "Speech threshold", OptionKind.INTEGER, 15, 0, 100, "%",
+    enabled_when_all=(
+        ("dialogue_intelligence", (True,)),
+        ("metering_mode", ("1770_2", "1770_3")),
+    ),
+)
+```
+
+If the available choices depend on other options at runtime - as DeeZy's bitrate lists do - also implement `DynamicOptionChoiceProvider.option_choices`.
+
+## 2. Implement the protocol
+
+```python
+def default_options(self) -> dict[str, JsonScalar]: ...
+def validate(self, request: EncodingRequest) -> None: ...
+def build_plan(
+    self, request: EncodingRequest, toolchain: Toolchain, temporary_output: Path
+) -> ProcessPlan: ...
+```
+
+`validate` raises `ValidationError` for anything the descriptor cannot express - layout rules, mode-dependent constraints, a bitrate that is not valid for the selected configuration. Reject rather than substitute: silently correcting a value is how a preset ends up producing something the user did not ask for.
+
+`build_plan` returns one or more `ProcessStage`s and **writes to `temporary_output`, not to `request.output_path`.** Publishing is the queue's job.
+
+The `_FfmpegEncoder` base and the helpers in `external.py` cover most of the plumbing; read an existing adapter in the same family before writing a new one.
+
+## 3. Register it
+
+```python
+def default_registry() -> EncoderRegistry:
+    registry = EncoderRegistry()
+    ...
+    registry.register(MyEncoder())
+    return registry
+```
+
+**The registration order is the order the encoder picker shows**, so put it where it belongs in its family, not at the end.
+
+## 4. Regenerate the reference
+
+```console
+uv run python tools/generate_encoder_reference.py
+```
+
+Commit the resulting `docs/encoders/reference.md`. CI runs the same script with `--check` and fails if it is stale.
+
+## 5. Test it
+
+Add to `tests/test_encoders.py`. Note that `test_encoders.py` asserts the full registry id list, so a new adapter needs that assertion updated - deliberately, so adding one is never accidental.
+
+For an adapter that shells out to a real encoder, follow the pattern in `test_integration_external.py`: skip when the tool is unavailable rather than failing.
+
+## 6. Run the checks
+
+```console
+uv run ruff format --check .
+uv run ruff check .
+uv run basedpyright
+uv run pytest
+uv run python tools/generate_encoder_reference.py --check
+```
+
+`encoders/` is basedpyright-`strict`, so expect stricter typing there than elsewhere in the tree.

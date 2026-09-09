@@ -1,0 +1,47 @@
+name: Documentation
+
+on:
+  # Manual runs, for pushing a docs fix without cutting a release.
+  workflow_dispatch:
+  # release.yml drafts a release; the docs go live when that draft is published. Keying
+  # off the published release rather than the tag also keeps the 5.0.0-test* tags - which
+  # release.yml's own tag patterns match - from publishing a site.
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# A manual run and a release publish must not deploy over each other, and neither should
+# be cancelled halfway through a Pages deployment.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      # Zensical only. The docs build never imports the application, so there is no reason
+      # to install PySide6 here.
+      - run: uv sync --only-group docs
+      # Zensical's own guidance is to build clean on CI while its cache is being reworked.
+      # --strict turns broken links and unresolved references into a failed build.
+      - run: uv run zensical build --clean --strict
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - uses: actions/deploy-pages@v4
+        id: deployment

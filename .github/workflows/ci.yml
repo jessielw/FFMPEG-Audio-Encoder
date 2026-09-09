@@ -45,6 +45,9 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run basedpyright
+      # docs/encoders/reference.md is generated from the encoder descriptors; this is
+      # the same contract as ruff format --check above.
+      - run: uv run python tools/generate_encoder_reference.py --check
       - run: uv run pytest
 
   bundle:
@@ -92,3 +95,17 @@ jobs:
         with:
           name: FFMPEGAudioEncoder-${{ matrix.os }}
           path: dist/
+
+  docs:
+    # Deploys happen only on a published release, so this build-only pass is what stops a
+    # broken link from being discovered at release time.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --only-group docs
+      - run: uv run zensical build --clean --strict

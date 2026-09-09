@@ -592,7 +592,7 @@ class MainWindow(QMainWindow):
         documentation_action.setShortcut(QKeySequence.StandardKey.HelpContents)
         documentation_action.triggered.connect(
             lambda: QDesktopServices.openUrl(
-                QUrl("https://github.com/jessielw/FFMPEG-Audio-Encoder/wiki")
+                QUrl("https://jessielw.github.io/FFMPEG-Audio-Encoder/")
             )
         )
         help_menu.addAction(documentation_action)
