@@ -13,6 +13,9 @@ dist/
 *.spec
 artifacts/
 
+# Zensical build output.
+site/
+
 # Existing local developer files.
 Apps/
 test.py

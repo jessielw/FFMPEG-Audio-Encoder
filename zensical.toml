@@ -1,0 +1,111 @@
+[project]
+site_name = "FFmpeg Audio Encoder"
+site_description = "A cross-platform PySide6 audio encoding front end"
+site_author = "jessielw"
+# The trailing project path matters: GitHub Pages serves this repo under a subpath, and
+# asset and link bases are derived from this URL.
+site_url = "https://jessielw.github.io/FFMPEG-Audio-Encoder/"
+copyright = "Copyright &copy; 2026 jessielw - MIT licensed"
+
+repo_url = "https://github.com/jessielw/FFMPEG-Audio-Encoder"
+repo_name = "jessielw/FFMPEG-Audio-Encoder"
+edit_uri = "edit/main/docs/"
+
+nav = [
+  { "Home" = "index.md" },
+  { "User guide" = [
+    "install.md",
+    "tools.md",
+    "first-encode.md",
+    "audio-controls.md",
+    "queue.md",
+    "presets.md",
+    "settings.md",
+    "files.md",
+    "troubleshooting.md",
+  ] },
+  { "Encoders" = [
+    "encoders/index.md",
+    "encoders/reference.md",
+    "encoders/deezy.md",
+  ] },
+  { "Development" = [
+    "dev/setup.md",
+    "dev/architecture.md",
+    "dev/adding-an-encoder.md",
+    "dev/building.md",
+    "dev/docs.md",
+  ] },
+  { "Release notes" = "release-notes.md" },
+]
+
+[project.theme]
+language = "en"
+features = [
+  "content.action.edit",
+  "content.code.annotate",
+  "content.code.copy",
+  "content.tabs.link",
+  "content.tooltips",
+  "navigation.footer",
+  "navigation.indexes",
+  "navigation.instant",
+  "navigation.instant.prefetch",
+  "navigation.sections",
+  "navigation.top",
+  "navigation.tracking",
+  "search.highlight",
+  "toc.follow",
+]
+
+# The application itself defaults to an automatic light/dark theme; the site follows the
+# same three-state preference so it does not fight the reader's OS setting.
+[[project.theme.palette]]
+media = "(prefers-color-scheme)"
+toggle.icon = "lucide/sun-moon"
+toggle.name = "Switch to light mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to system preference"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/jessielw/FFMPEG-Audio-Encoder"
+
+[project.markdown_extensions]
+abbr = {}
+admonition = {}
+attr_list = {}
+def_list = {}
+md_in_html = {}
+tables = {}
+toc.permalink = true
+pymdownx.betterem = {}
+pymdownx.details = {}
+pymdownx.highlight.anchor_linenums = true
+pymdownx.highlight.line_spans = "__span"
+pymdownx.highlight.pygments_lang_class = true
+pymdownx.inlinehilite = {}
+# Renders the application's keyboard shortcuts as real key caps.
+pymdownx.keys = {}
+pymdownx.magiclink = {}
+# Lets the release notes page include the repository CHANGELOG.md verbatim.
+pymdownx.snippets.base_path = ["."]
+pymdownx.snippets.check_paths = true
+pymdownx.superfences = {}
+pymdownx.tabbed.alternate_style = true
+pymdownx.tabbed.combine_header_slug = true
+
+[project.validation]
+invalid_links = "warn"
+invalid_link_anchors = "warn"
+unresolved_references = "warn"

@@ -34,6 +34,9 @@ build = [
     "pyinstaller-hooks-contrib>=2025.8",
     "setuptools>=78,<82",
 ]
+# Zensical is alpha and ships breaking changes between 0.0.x releases, so the docs
+# build pins an exact version rather than tracking whatever is newest.
+docs = ["zensical==0.0.60"]
 
 [tool.hatch.version]
 path = "src/ffmpeg_audio_encoder/__init__.py"
@@ -44,7 +47,7 @@ packages = ["src/ffmpeg_audio_encoder"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-include = ["pyproject.toml", "src/**/*.py", "tests/**/*.py", "build.py"]
+include = ["pyproject.toml", "src/**/*.py", "tests/**/*.py", "tools/**/*.py", "build.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
@@ -56,7 +59,7 @@ timeout = 60
 timeout_method = "thread"
 
 [tool.basedpyright]
-include = ["src", "tests", "build.py"]
+include = ["src", "tests", "tools", "build.py"]
 typeCheckingMode = "standard"
 strict = [
     "src/ffmpeg_audio_encoder/domain",
