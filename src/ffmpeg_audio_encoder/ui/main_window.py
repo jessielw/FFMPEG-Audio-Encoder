@@ -6,7 +6,17 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from uuid import UUID
 
-from PySide6.QtCore import QPoint, QRect, QSize, Qt, QThread, QTimer, QUrl, Signal
+from PySide6.QtCore import (
+    QPoint,
+    QRect,
+    QSignalBlocker,
+    QSize,
+    Qt,
+    QThread,
+    QTimer,
+    QUrl,
+    Signal,
+)
 from PySide6.QtGui import (
     QAction,
     QCloseEvent,
@@ -67,9 +77,17 @@ from ffmpeg_audio_encoder.domain.models import (
     JobState,
     JsonScalar,
     MediaAsset,
+    NoticeLevel,
     OptionKind,
     OutputFormat,
+    ProcessPlan,
     Toolchain,
+)
+from ffmpeg_audio_encoder.domain.tempo import (
+    TEMPO_DECIMALS,
+    TEMPO_PRESETS,
+    TEMPO_TOLERANCE,
+    find_tempo_preset,
 )
 from ffmpeg_audio_encoder.encoders import default_registry
 from ffmpeg_audio_encoder.encoders.base import DynamicOptionChoiceProvider, EncoderAdapter
@@ -86,6 +104,8 @@ from ffmpeg_audio_encoder.infrastructure.tools import (
     inspect_toolchain,
     locate_toolchain,
 )
+from ffmpeg_audio_encoder.ui.custom_combobox import AutoCompleteComboBox
+from ffmpeg_audio_encoder.ui.custom_spinbox import TrimmedDoubleSpinBox
 from ffmpeg_audio_encoder.ui.custom_splitter import CustomSplitter
 from ffmpeg_audio_encoder.ui.dialogs import SettingsDialog
 from ffmpeg_audio_encoder.ui.models import ProgressDelegate, QueueTableModel
@@ -105,7 +125,22 @@ class InputDraft:
     delay_overrides_ms: dict[int, float] = field(default_factory=dict)
 
 
-OptionWidget = QSpinBox | QDoubleSpinBox | QComboBox | QLineEdit | QCheckBox
+OptionWidget = QSpinBox | QDoubleSpinBox | QComboBox | QLineEdit | QCheckBox | QPlainTextEdit
+
+
+def _command_text(plan: ProcessPlan) -> str:
+    """Render a plan's command with any notices about how it was assembled above it.
+
+    The glyph is chosen here rather than in the encoders layer, which stays presentation-free
+    and only says how much each notice matters.
+    """
+    if not plan.notices:
+        return plan.display_command()
+    lines = [
+        f"{'⚠ ' if notice.level is NoticeLevel.WARNING else '- '}{notice.message}"
+        for notice in plan.notices
+    ]
+    return "\n".join((*lines, "", plan.display_command()))
 
 
 class ToolInspectionThread(QThread):
@@ -255,12 +290,22 @@ class MainWindow(QMainWindow):
         self.gain_db.setDecimals(1)
         self.gain_db.setSingleStep(0.5)
         self.gain_db.setSuffix(" dB")
-        self.tempo_ratio = QDoubleSpinBox()
+        self._applying_tempo_preset = False
+        self.tempo_preset = AutoCompleteComboBox(max_visible_items=15)
+        self.tempo_preset.setToolTip(
+            "Framerate conversions and speed changes, as a tempo ratio. "
+            "Duration changes; pitch does not."
+        )
+        self._populate_tempo_presets()
+        # Six decimals, because the PAL speed-up (23.976 to 25) is 1.042708 and
+        # three would drift by seconds over a feature-length file. Trimming is
+        # what keeps that from rendering an unchanged ratio as "1.000000x".
+        self.tempo_ratio = TrimmedDoubleSpinBox()
         self.tempo_ratio.setRange(0.25, 4.0)
-        self.tempo_ratio.setDecimals(3)
+        self.tempo_ratio.setDecimals(TEMPO_DECIMALS)
         self.tempo_ratio.setSingleStep(0.001)
         self.tempo_ratio.setValue(1.0)
-        self.delay_ms = QDoubleSpinBox()
+        self.delay_ms = TrimmedDoubleSpinBox()
         self.delay_ms.setRange(-86_400_000.0, 86_400_000.0)
         self.delay_ms.setDecimals(3)
         self.delay_ms.setSingleStep(1.0)
@@ -292,6 +337,7 @@ class MainWindow(QMainWindow):
         config_form.addRow("Sample rate", self.sample_rate)
         config_form.addRow("Channel layout", self.channels)
         config_form.addRow("Gain", self.gain_db)
+        config_form.addRow("Time modification", self.tempo_preset)
         config_form.addRow("Tempo", self.tempo_ratio)
         config_form.addRow("Audio delay", self.delay_ms)
         config_form.addRow("", self.delay_status)
@@ -358,13 +404,15 @@ class MainWindow(QMainWindow):
 
         self.command_preview = QPlainTextEdit()
         self.command_preview.setReadOnly(True)
-        self.command_preview.setMaximumHeight(92)
+        # Given room to grow rather than capped, because the preview now carries the notices
+        # explaining which managed settings a custom argument overrode - warnings scrolled
+        # out of sight would defeat the point of reporting them.
+        self.command_preview.setMinimumHeight(92)
         self.command_preview.setPlaceholderText(
             "Select a successfully probed input to preview the command"
         )
         output_layout.addWidget(QLabel("Command preview"))
-        output_layout.addWidget(self.command_preview)
-        output_layout.addStretch(1)
+        output_layout.addWidget(self.command_preview, 1)
 
         self.output_scroll = QScrollArea()
         self.output_scroll.setWidgetResizable(True)
@@ -511,7 +559,8 @@ class MainWindow(QMainWindow):
         self.sample_rate.currentTextChanged.connect(self._common_options_changed)
         self.channels.currentIndexChanged.connect(self._common_options_changed)
         self.gain_db.valueChanged.connect(self._common_options_changed)
-        self.tempo_ratio.valueChanged.connect(self._common_options_changed)
+        self.tempo_preset.currentIndexChanged.connect(self._tempo_preset_changed)
+        self.tempo_ratio.valueChanged.connect(self._tempo_ratio_changed)
         self.delay_ms.valueChanged.connect(self._delay_changed)
         self.output_edit.textEdited.connect(self._output_edited)
         self.browse_output_button.clicked.connect(self._browse_output)
@@ -825,11 +874,63 @@ class MainWindow(QMainWindow):
             self.gain_db.setValue(0.0)
         if not descriptor.supports_tempo:
             self.tempo_ratio.setValue(1.0)
+            self._sync_tempo_preset_from_ratio()
         self.sample_rate.setEnabled(descriptor.supports_sample_rate)
         self.channels.setEnabled(descriptor.supports_channel_layout)
         self.gain_db.setEnabled(descriptor.supports_gain)
+        self.tempo_preset.setEnabled(descriptor.supports_tempo)
         self.tempo_ratio.setEnabled(descriptor.supports_tempo)
         self._sync_delay_control()
+
+    def _populate_tempo_presets(self) -> None:
+        group = TEMPO_PRESETS[0].group
+        for preset in TEMPO_PRESETS:
+            if preset.group != group:
+                self.tempo_preset.insertSeparator(self.tempo_preset.count())
+                group = preset.group
+            self.tempo_preset.addItem(preset.label, preset.ratio)
+        self.tempo_preset.insertSeparator(self.tempo_preset.count())
+        self.tempo_preset.addItem("Custom", None)
+        self._tempo_custom_index = self.tempo_preset.count() - 1
+
+    def _tempo_preset_changed(self) -> None:
+        ratio = self.tempo_preset.currentData()
+        if ratio is not None:
+            # Guarded so the ratio handler below reads this as a preset being
+            # applied rather than as the user typing over the selection.
+            self._applying_tempo_preset = True
+            try:
+                self.tempo_ratio.setValue(float(ratio))
+            finally:
+                self._applying_tempo_preset = False
+        self._common_options_changed()
+
+    def _tempo_ratio_changed(self) -> None:
+        if not self._applying_tempo_preset:
+            selected = self.tempo_preset.currentData()
+            if selected is not None and not math.isclose(
+                float(selected), self.tempo_ratio.value(), rel_tol=0.0, abs_tol=TEMPO_TOLERANCE
+            ):
+                self._select_tempo_preset_index(self._tempo_custom_index)
+        self._common_options_changed()
+
+    def _sync_tempo_preset_from_ratio(self) -> None:
+        """Re-label the preset combo from the current ratio.
+
+        Only for values that arrive from elsewhere - a preset, a restored
+        configuration, an encoder that forbids tempo. Several framerate pairs
+        share a ratio, so this is deliberately not wired to every edit: it would
+        rewrite a chosen "30 to 60" as "25 to 50" behind the user's back.
+        """
+        preset = find_tempo_preset(self.tempo_ratio.value())
+        index = (
+            self._tempo_custom_index if preset is None else self.tempo_preset.findData(preset.ratio)
+        )
+        self._select_tempo_preset_index(index)
+
+    def _select_tempo_preset_index(self, index: int) -> None:
+        with QSignalBlocker(self.tempo_preset):
+            self.tempo_preset.setCurrentIndex(index)
 
     def _populate_sample_rates(
         self, adapter: EncoderAdapter, current_sample_rate: int | None
@@ -932,12 +1033,21 @@ class MainWindow(QMainWindow):
                 widget = QCheckBox()
                 widget.setChecked(definition.default)
                 widget.toggled.connect(self._option_values_changed)
+            elif definition.multiline:
+                if not isinstance(definition.default, str):
+                    raise TypeError(f"Text option {definition.key} has a non-string default")
+                widget = QPlainTextEdit()
+                widget.setPlainText(definition.default)
+                widget.setPlaceholderText(definition.placeholder)
+                widget.setTabChangesFocus(True)
+                widget.setFixedHeight(96)
+                widget.textChanged.connect(self._option_values_changed)
             else:
                 widget = QLineEdit()
                 if not isinstance(definition.default, str):
                     raise TypeError(f"Text option {definition.key} has a non-string default")
                 widget.setText(definition.default)
-                widget.setPlaceholderText("Example: -cutoff 18000")
+                widget.setPlaceholderText(definition.placeholder)
                 widget.textChanged.connect(self._option_values_changed)
             widget.setToolTip(definition.tooltip)
             self.option_widgets[definition.key] = widget
@@ -952,6 +1062,8 @@ class MainWindow(QMainWindow):
             return widget.value()
         if isinstance(widget, QComboBox):
             return widget.currentData()
+        if isinstance(widget, QPlainTextEdit):
+            return widget.toPlainText()
         return widget.text()
 
     def _option_values_changed(self, *_args: object) -> None:
@@ -1230,14 +1342,15 @@ class MainWindow(QMainWindow):
         override = draft.delay_overrides_ms.get(stream_index)
         if override is not None:
             detected_text = (
-                f"; detected {detected.milliseconds:+.3f} ms from {detected.source.value}"
+                f"; detected {_format_delay_ms(detected.milliseconds)} ms from "
+                f"{detected.source.value}"
                 if detected is not None
                 else ""
             )
             self.delay_status.setText(f"Manual override{detected_text}.")
         elif detected is not None:
             self.delay_status.setText(
-                f"Automatically detected {detected.milliseconds:+.3f} ms "
+                f"Automatically detected {_format_delay_ms(detected.milliseconds)} ms "
                 f"from {detected.source.value}."
             )
         elif draft.asset is not None and draft.asset.delay_detection_note:
@@ -1274,11 +1387,12 @@ class MainWindow(QMainWindow):
                     f"Title: {stream.title or 'Untitled'}",
                     f"Duration: {duration}",
                     (
-                        f"Detected delay: {detected.milliseconds:+.3f} ms ({detected.source.value})"
+                        f"Detected delay: {_format_delay_ms(detected.milliseconds)} ms "
+                        f"({detected.source.value})"
                         if detected is not None
                         else "Detected delay: Unavailable"
                     ),
-                    f"Effective delay: {effective_delay:+.3f} ms",
+                    f"Effective delay: {_format_delay_ms(effective_delay)} ms",
                 )
             ),
         )
@@ -1358,7 +1472,7 @@ class MainWindow(QMainWindow):
             plan = adapter.build_plan(
                 request, toolchain, temporary_output_path(request.output_path, UUID(int=0))
             )
-            self.command_preview.setPlainText(plan.display_command())
+            self.command_preview.setPlainText(_command_text(plan))
         except (ValueError, AudioEncoderError) as exc:
             self.command_preview.setPlainText(str(exc))
 
@@ -1572,14 +1686,12 @@ class MainWindow(QMainWindow):
         if self.queue is None:
             return ""
         try:
-            command = (
-                self.registry.get(job.request.encoder_id)
-                .build_plan(
+            command = _command_text(
+                self.registry.get(job.request.encoder_id).build_plan(
                     job.request,
                     self.queue.toolchain,
                     temporary_output_path(job.request.output_path, job.id),
                 )
-                .display_command()
             )
         except AudioEncoderError as exc:
             command = str(exc)
@@ -1888,6 +2000,7 @@ class MainWindow(QMainWindow):
         self.tempo_ratio.setValue(
             configuration.common.tempo_ratio if descriptor.supports_tempo else 1.0
         )
+        self._sync_tempo_preset_from_ratio()
         for key, value in configuration.encoder_options.items():
             widget = self.option_widgets.get(key)
             if (
@@ -1908,6 +2021,8 @@ class MainWindow(QMainWindow):
                     widget.setCurrentIndex(option_index)
             elif isinstance(widget, QCheckBox) and isinstance(value, bool):
                 widget.setChecked(value)
+            elif isinstance(widget, QPlainTextEdit) and isinstance(value, str):
+                widget.setPlainText(value)
             elif isinstance(widget, QLineEdit) and isinstance(value, str):
                 widget.setText(value)
         self._refresh_dynamic_option_choices()
@@ -2153,6 +2268,16 @@ class MainWindow(QMainWindow):
 
 def _path_key(path: Path) -> str:
     return os.path.normcase(os.path.abspath(os.fspath(path)))
+
+
+def _format_delay_ms(value: float) -> str:
+    """Format a signed millisecond delay, trimming padded trailing zeros.
+
+    E.g. 2480.0 -> "+2480", 21.333 -> "+21.333", -10.0 -> "-10".
+    """
+    sign = "+" if value >= 0 else "-"
+    magnitude = f"{abs(value):.3f}".rstrip("0").rstrip(".")
+    return f"{sign}{magnitude}"
 
 
 def _visible_rect(rect: QRect) -> QRect:

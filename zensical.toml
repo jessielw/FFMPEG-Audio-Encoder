@@ -18,6 +18,7 @@ nav = [
     "tools.md",
     "first-encode.md",
     "audio-controls.md",
+    "custom-arguments.md",
     "queue.md",
     "presets.md",
     "settings.md",

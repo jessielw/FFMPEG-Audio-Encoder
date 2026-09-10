@@ -131,6 +131,23 @@ class ProgressProtocol(StrEnum):
     DEEZY = "deezy"
 
 
+class NoticeLevel(StrEnum):
+    INFO = "info"
+    WARNING = "warning"
+
+
+@dataclass(frozen=True, slots=True)
+class PlanNotice:
+    """Something worth telling the user about how a plan was assembled.
+
+    Carries no presentation - the level says how much it matters and the UI decides how to
+    render it, which is what keeps the encoders layer free of glyphs.
+    """
+
+    level: NoticeLevel
+    message: str
+
+
 @dataclass(frozen=True, slots=True)
 class OptionChoice:
     label: str
@@ -153,6 +170,8 @@ class OptionDefinition:
     enabled_when_key: str | None = None
     enabled_when_values: tuple[JsonScalar, ...] = ()
     enabled_when_all: tuple[OptionCondition, ...] = ()
+    multiline: bool = False
+    placeholder: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -271,6 +290,7 @@ class ProcessPlan:
     temporary_output: Path
     final_output: Path
     duration_seconds: float | None
+    notices: tuple[PlanNotice, ...] = ()
 
     @property
     def has_determinate_progress(self) -> bool:

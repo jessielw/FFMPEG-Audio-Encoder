@@ -44,7 +44,8 @@ failing at encode time. `Help ▸ Copy diagnostics` reports exactly what was fou
   formats. Every option is in the
   [encoder reference](https://jessielw.github.io/FFMPEG-Audio-Encoder/encoders/reference/).
 - Presets, plus automatic restoration of the last encoder configuration.
-- Sample-rate, channel-layout, gain, tempo, and per-track delay controls.
+- Sample-rate, channel-layout, gain, and per-track delay controls, plus time modification
+  with named framerate conversions (`24 → 23.976`, `23.976 → 25`) and speed multipliers.
 - A durable queue with selected-job starts, stop-after-current, retry, cancellation, and
   crash-safe temporary outputs.
 - Live per-job progress, command and error details, bounded session logs, and output-folder

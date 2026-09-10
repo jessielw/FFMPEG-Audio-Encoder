@@ -19,6 +19,17 @@ from ffmpeg_audio_encoder.domain.models import (
     ProcessStage,
     Toolchain,
 )
+from ffmpeg_audio_encoder.encoders.arguments import (
+    FFMPEG_SLOTS,
+    CustomArguments,
+    Slot,
+)
+from ffmpeg_audio_encoder.encoders.arguments import (
+    apply as apply_custom,
+)
+from ffmpeg_audio_encoder.encoders.arguments import (
+    resolve as resolve_custom,
+)
 
 
 def _layouts(*values: str) -> tuple[ChannelLayoutChoice, ...]:
@@ -149,15 +160,28 @@ DTS_BITRATES = (
 )
 
 
-def _custom_option() -> OptionDefinition:
+_FFMPEG_CUSTOM_PLACEHOLDER = """-cutoff 18000
+pre: -analyzeduration 200M
+var gain = 3
+-af {filters},volume={gain}dB"""
+
+CUSTOM_TOOLTIP = (
+    "One argument group per line, never run through a shell. "
+    "Prefix a line with {slots} to place it. "
+    "{{name}} expands to a managed value or a 'var name = value' line. "
+    "A flag that collides with a managed setting overrides it."
+)
+
+
+def _custom_option(slots: str = "pre:, out:") -> OptionDefinition:
     return OptionDefinition(
         "custom_args",
-        "Custom FFmpeg output arguments",
+        "Custom FFmpeg arguments",
         OptionKind.TEXT,
         "",
-        tooltip=(
-            "Advanced: appended after managed codec settings. Arguments are never run in a shell."
-        ),
+        tooltip=CUSTOM_TOOLTIP.format(slots=slots),
+        multiline=True,
+        placeholder=_FFMPEG_CUSTOM_PLACEHOLDER,
     )
 
 
@@ -248,7 +272,12 @@ def _validate_identity(request: EncodingRequest, descriptor: EncoderDescriptor) 
         raise ValidationError("Negative audio delay must leave some audio to encode")
 
 
-def _validate_options(request: EncodingRequest, descriptor: EncoderDescriptor) -> None:
+def _validate_options(
+    request: EncodingRequest,
+    descriptor: EncoderDescriptor,
+    *,
+    custom_slots: frozenset[Slot] | None = None,
+) -> None:
     for option in descriptor.options:
         value = _value(request, descriptor, option.key)
         if option.kind is OptionKind.INTEGER:
@@ -270,10 +299,22 @@ def _validate_options(request: EncodingRequest, descriptor: EncoderDescriptor) -
                 raise ValidationError(f"{option.label} must be at least {option.minimum:g}")
             if option.maximum is not None and value > option.maximum:
                 raise ValidationError(f"{option.label} must be at most {option.maximum:g}")
-    _custom_arguments(request, descriptor)
+    # Resolve custom arguments here as well as at build time, so a bad slot, an unknown
+    # placeholder or unbalanced quoting is refused when the job is queued rather than when
+    # it is dispatched.
+    if custom_slots is None:
+        _custom_arguments(request, descriptor)
+    else:
+        _resolve_custom(request, descriptor, custom_slots)
 
 
 def _custom_arguments(request: EncodingRequest, descriptor: EncoderDescriptor) -> list[str]:
+    """Tokenise custom arguments the pre-slot way: no slots, no placeholders.
+
+    Only the DeeZy adapters still take this path. Their arguments are filtered through an
+    allow-list of Lt/Rt and Lo/Ro levels afterwards, so the richer mechanism would buy them
+    nothing and placeholder syntax would only be a new way to fail.
+    """
     if not any(option.key == "custom_args" for option in descriptor.options):
         return []
     text = _string_option(request, descriptor, "custom_args").strip()
@@ -285,6 +326,50 @@ def _custom_arguments(request: EncodingRequest, descriptor: EncoderDescriptor) -
         return shlex.split(text, posix=True)
     except ValueError as exc:
         raise ValidationError(f"Invalid custom arguments: {exc}") from exc
+
+
+def _token_text(value: JsonScalar) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bool):
+        return "1" if value else "0"
+    if isinstance(value, float):
+        return f"{value:g}"
+    return str(value)
+
+
+def _managed_tokens(request: EncodingRequest, descriptor: EncoderDescriptor) -> dict[str, str]:
+    """Placeholder values a custom argument may expand.
+
+    Every option key is a token, so a descriptor gains placeholders simply by declaring an
+    option. The computed ones cover what the descriptor cannot express. The temporary output
+    path is deliberately absent - the queue publishes it atomically and nothing the user
+    writes may reach it.
+    """
+    tokens = {
+        "filters": ",".join(_audio_filters(request)),
+        "sample_rate": _token_text(request.common.sample_rate),
+        "channel_layout": request.common.channel_layout or "",
+        "stream": str(request.stream.index),
+        "codec": request.codec.value,
+    }
+    for option in descriptor.options:
+        if option.key == "custom_args":
+            continue
+        tokens.setdefault(option.key, _token_text(_value(request, descriptor, option.key)))
+    return tokens
+
+
+def _resolve_custom(
+    request: EncodingRequest, descriptor: EncoderDescriptor, slots: frozenset[Slot]
+) -> CustomArguments:
+    if not any(option.key == "custom_args" for option in descriptor.options):
+        return CustomArguments({})
+    return resolve_custom(
+        _string_option(request, descriptor, "custom_args"),
+        managed_tokens=_managed_tokens(request, descriptor),
+        allowed_slots=slots,
+    )
 
 
 def _base_arguments(request: EncodingRequest) -> list[str]:
@@ -324,7 +409,10 @@ def _audio_filters(request: EncodingRequest) -> list[str]:
         filters.append("atempo=2")
         ratio /= 2.0
     if not math.isclose(ratio, 1.0):
-        filters.append(f"atempo={ratio:g}")
+        # Not ":g" - that caps at six *significant* digits, which turns the
+        # 24 -> 25 conversion's 1.041667 into 1.04167 and drifts audibly over a
+        # feature-length file.
+        filters.append(f"atempo={ratio:.10g}")
     delay_ms = request.common.delay_ms
     if delay_ms > 0:
         filters.extend(_positive_delay_filters(delay_ms, request.stream.sample_rate))
@@ -371,10 +459,25 @@ def _adjusted_duration(request: EncodingRequest) -> float | None:
     return duration / request.common.tempo_ratio + request.common.delay_ms / 1000
 
 
+def _insert_pre(arguments: list[str], pre: tuple[str, ...]) -> list[str]:
+    """Place pre-input arguments immediately before the managed ``-i``.
+
+    ``-i`` is always present because ``_base_arguments`` emits it, and custom arguments may
+    never set one, so the first occurrence is reliably the managed input.
+    """
+    if not pre:
+        return arguments
+    index = arguments.index("-i")
+    return [*arguments[:index], *pre, *arguments[index:]]
+
+
 # Shared adapter primitives. The underscore-prefixed implementations remain for
 # compatibility with the original FFmpeg adapters.
 base_arguments = _base_arguments
 custom_arguments = _custom_arguments
+resolve_custom_arguments = _resolve_custom
+insert_pre_arguments = _insert_pre
+audio_filters = _audio_filters
 adjusted_duration = _adjusted_duration
 integer_option = _integer_option
 string_option = _string_option
@@ -389,8 +492,17 @@ def _finish_plan(
     temporary_output: Path,
     arguments: list[str],
 ) -> ProcessPlan:
-    arguments.extend(_custom_arguments(request, descriptor))
-    arguments.extend(
+    custom = _resolve_custom(request, descriptor, FFMPEG_SLOTS)
+    merged, notices = apply_custom(
+        arguments,
+        custom.tokens(Slot.MAIN),
+        filter_chain=",".join(_audio_filters(request)),
+    )
+    merged = _insert_pre(merged, custom.tokens(Slot.PRE))
+    # The tail is appended after merging so nothing a user writes can displace it: progress
+    # parsing depends on the -progress/-nostats pair and the queue publishes the temporary
+    # output by renaming it.
+    merged.extend(
         (
             "-progress",
             "pipe:1",
@@ -401,10 +513,11 @@ def _finish_plan(
         )
     )
     return ProcessPlan(
-        (ProcessStage(toolchain.ffmpeg, tuple(arguments), "stdout"),),
+        (ProcessStage(toolchain.ffmpeg, tuple(merged), "stdout"),),
         temporary_output,
         request.output_path,
         _adjusted_duration(request),
+        (*custom.notices, *notices),
     )
 
 
@@ -416,7 +529,7 @@ class _FfmpegEncoder:
 
     def validate(self, request: EncodingRequest) -> None:
         _validate_identity(request, self.descriptor)
-        _validate_options(request, self.descriptor)
+        _validate_options(request, self.descriptor, custom_slots=FFMPEG_SLOTS)
 
 
 class OpusEncoder(_FfmpegEncoder):

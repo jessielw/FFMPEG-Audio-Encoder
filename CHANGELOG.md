@@ -2,6 +2,26 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Time modification presets**, restoring the named framerate conversions v4 offered and dropping the arithmetic v5 required in their place. The **General** tab gains a list of every conversion between 23.976, 24, 25, 29.97, 30, 50, 59.94, and 60 fps, grouped by source rate, plus speed multipliers from 0.25× to 4×. Picking one fills in the **Tempo** ratio; editing the ratio by hand sets the list to **Custom**. Ratios are derived from the exact framerates (23.976 fps is 24000/1001), so `24 → 23.976` is exactly 0.999001 rather than a rounded approximation. v4's 2.5× to 4× entries, which it emitted as a single `atempo=` that FFmpeg rejects outright, work here because the filter chain is built by halving and doubling.
+
+- **Custom arguments gained placement, reach and honest override semantics.** The per-encoder field is now multi-line and understands three things it did not before. A line can be prefixed with `pre:` to land before `-i` (for `-hwaccel`, `-analyzeduration`, `-guess_layout_max`), or `decode:` to reach the FFmpeg decode stage that feeds opusenc, qaac and fdkaac - previously only the encoder stage was reachable and the input side was not reachable at all. A `{placeholder}` expands to a managed value: every option on the encoder under its own name, plus `{filters}`, `{sample_rate}`, `{channel_layout}`, `{codec}` and `{stream}`, so `-af {filters},highpass=f=20` extends the managed filter chain instead of discarding it. A `var name = value` line declares a variable, and one that is defined but empty drops the whole argument group using it, so `-cutoff {cutoff}` disappears cleanly rather than emitting `-cutoff ""`. A custom flag that collides with a managed one now **displaces** it rather than being appended alongside it - alternative spellings included, so `-filter:a` collides with `-af` and `-acodec` with `-c:a` - and the command preview reports every displacement. See [Custom arguments](https://jessielw.github.io/FFMPEG-Audio-Encoder/custom-arguments/).
+
+### Changed
+
+- Build automatic spinbox that trims 0 decimals from delay (2480ms will be displayed as 2480 ms vs. 2480,000 ms)
+- **Custom arguments that would break a managed guarantee are now refused rather than accepted and ignored.** `-i`, `-map`, `-progress`, `-nostats`, and `-f`/`-o` in an output slot are rejected with the reason, because the input, stream selection, progress parsing, and atomic publishing depend on them. `-f` is still allowed in the new `pre:` slot, where it forces the input demuxer rather than the output muxer. A line that does not start with a flag is also refused: FFmpeg read a bare value as an extra output file, so such a value was silently writing a file nobody asked for.
+- **A custom argument containing an unrecognised `{name}` is now an error.** Braces used to be literal text. This is the one change that can reject a value saved by an earlier version - deliberately loudly, since the alternative is silently emitting a different command. Write `{{` for a literal brace.
+
+### Fixed
+
+- The **Tempo** field held three decimals, which could not express the PAL speed-up (23.976 → 25 is 1.042708) and drifted by seconds over a feature-length file. It now holds six, and trims padded zeros so an unchanged ratio still reads `1x`.
+- The `atempo` filter value was formatted with `%g`, which caps at six _significant_ digits and turned the 24 → 25 conversion's 1.041667 into 1.04167 - about 23 ms of drift over two hours.
+- The presets documentation claimed a preset stores the audio delay, and advised zeroing the field before saving to avoid baking in one file's value. Presets have never stored the delay - it is excluded deliberately, because it belongs to a particular file - so the advice was for a hazard that does not exist. Documentation only; no behaviour changed.
+
 ## [5.0.0] - 2026-09-08
 
 First release of the rewritten application. v5 replaces the Tkinter front end with a PySide6 one built on a new codebase; v4 remains available under [`legacy_v4`](legacy_v4/README.md) and is unaffected.

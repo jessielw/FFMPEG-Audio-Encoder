@@ -14,18 +14,30 @@ from ffmpeg_audio_encoder.domain.models import (
     OptionDefinition,
     OptionKind,
     OutputFormat,
+    PlanNotice,
     ProcessPlan,
     ProcessStage,
     Toolchain,
 )
+from ffmpeg_audio_encoder.encoders.arguments import (
+    EXTERNAL_SLOTS,
+    CustomArguments,
+    Slot,
+)
+from ffmpeg_audio_encoder.encoders.arguments import (
+    apply as apply_custom,
+)
 from ffmpeg_audio_encoder.encoders.ffmpeg import (
     AAC_SAMPLE_RATES,
     COMMON_LAYOUTS,
+    CUSTOM_TOOLTIP,
     OPUS_SAMPLE_RATES,
     adjusted_duration,
+    audio_filters,
     base_arguments,
-    custom_arguments,
+    insert_pre_arguments,
     integer_option,
+    resolve_custom_arguments,
     string_option,
     validate_identity,
     validate_options,
@@ -53,30 +65,39 @@ def _custom_option(tool_name: str) -> OptionDefinition:
         f"Custom {tool_name} arguments",
         OptionKind.TEXT,
         "",
-        tooltip=(
-            f"Advanced: appended after managed {tool_name} settings. "
-            "Arguments are never run in a shell."
+        tooltip=CUSTOM_TOOLTIP.format(slots="pre:, decode:, out:"),
+        multiline=True,
+        placeholder=(
+            f"--some-{tool_name}-flag\n"
+            "pre: -analyzeduration 200M\n"
+            "decode: -c:a pcm_f32le\n"
+            "var quality = 5"
         ),
     )
 
 
 def _pcm_stage(
-    request: EncodingRequest, toolchain: Toolchain, pcm_codec: str = "pcm_s16le"
-) -> ProcessStage:
+    request: EncodingRequest,
+    toolchain: Toolchain,
+    custom: CustomArguments,
+    pcm_codec: str = "pcm_s16le",
+) -> tuple[ProcessStage, list[PlanNotice]]:
+    """Build the FFmpeg decode stage that feeds the external encoder over a pipe.
+
+    ``-c:a <pcm>`` stays inside the mergeable region on purpose, so ``decode: -c:a
+    pcm_f32le`` genuinely changes the hand-off rather than being silently outranked by a
+    managed flag appended after it. Progress lands on stderr because stdout carries the WAV.
+    """
     arguments = base_arguments(request)
-    arguments.extend(
-        (
-            "-c:a",
-            pcm_codec,
-            "-progress",
-            "pipe:2",
-            "-nostats",
-            "-f",
-            "wav",
-            "pipe:1",
-        )
+    arguments.extend(("-c:a", pcm_codec))
+    merged, notices = apply_custom(
+        arguments,
+        custom.tokens(Slot.DECODE),
+        filter_chain=",".join(audio_filters(request)),
     )
-    return ProcessStage(toolchain.ffmpeg, tuple(arguments), "stderr")
+    merged = insert_pre_arguments(merged, custom.tokens(Slot.PRE))
+    merged.extend(("-progress", "pipe:2", "-nostats", "-f", "wav", "pipe:1"))
+    return ProcessStage(toolchain.ffmpeg, tuple(merged), "stderr"), notices
 
 
 def _external_plan(
@@ -85,16 +106,17 @@ def _external_plan(
     temporary_output: Path,
     encoder: Path,
     arguments: list[str],
+    custom: CustomArguments,
+    notices: list[PlanNotice],
     pcm_codec: str = "pcm_s16le",
 ) -> ProcessPlan:
+    decode_stage, decode_notices = _pcm_stage(request, toolchain, custom, pcm_codec)
     return ProcessPlan(
-        (
-            _pcm_stage(request, toolchain, pcm_codec),
-            ProcessStage(encoder, tuple(arguments)),
-        ),
+        (decode_stage, ProcessStage(encoder, tuple(arguments))),
         temporary_output,
         request.output_path,
         adjusted_duration(request),
+        (*custom.notices, *decode_notices, *notices),
     )
 
 
@@ -106,7 +128,7 @@ class _ExternalAacEncoder:
 
     def validate(self, request: EncodingRequest) -> None:
         validate_identity(request, self.descriptor)
-        validate_options(request, self.descriptor)
+        validate_options(request, self.descriptor, custom_slots=EXTERNAL_SLOTS)
 
 
 class OpusencEncoder:
@@ -187,7 +209,7 @@ class OpusencEncoder:
 
     def validate(self, request: EncodingRequest) -> None:
         validate_identity(request, self.descriptor)
-        validate_options(request, self.descriptor)
+        validate_options(request, self.descriptor, custom_slots=EXTERNAL_SLOTS)
         channels = request.stream.channels
         if request.common.channel_layout is not None:
             channels = {
@@ -234,7 +256,8 @@ class OpusencEncoder:
             arguments.append(f"--{signal}")
         if string_option(request, self.descriptor, "phase_inversion") == "disabled":
             arguments.append("--no-phase-inv")
-        arguments.extend(custom_arguments(request, self.descriptor))
+        custom = resolve_custom_arguments(request, self.descriptor, EXTERNAL_SLOTS)
+        arguments, notices = apply_custom(arguments, custom.tokens(Slot.MAIN))
         arguments.extend(("-", str(temporary_output)))
         return _external_plan(
             request,
@@ -242,6 +265,8 @@ class OpusencEncoder:
             temporary_output,
             toolchain.opusenc,
             arguments,
+            custom,
+            notices,
             pcm_codec="pcm_s24le",
         )
 
@@ -356,9 +381,12 @@ class QaacEncoder(_ExternalAacEncoder):
         )
         if request.output_format is OutputFormat.ADTS_AAC:
             arguments.append("--adts")
-        arguments.extend(custom_arguments(request, self.descriptor))
+        custom = resolve_custom_arguments(request, self.descriptor, EXTERNAL_SLOTS)
+        arguments, notices = apply_custom(arguments, custom.tokens(Slot.MAIN))
         arguments.extend(("-o", str(temporary_output), "-"))
-        return _external_plan(request, toolchain, temporary_output, toolchain.qaac, arguments)
+        return _external_plan(
+            request, toolchain, temporary_output, toolchain.qaac, arguments, custom, notices
+        )
 
 
 class FdkAacEncoder(_ExternalAacEncoder):
@@ -479,6 +507,9 @@ class FdkAacEncoder(_ExternalAacEncoder):
                     str(integer_option(request, self.descriptor, "bitrate_kbps")),
                 )
             )
-        arguments.extend(custom_arguments(request, self.descriptor))
+        custom = resolve_custom_arguments(request, self.descriptor, EXTERNAL_SLOTS)
+        arguments, notices = apply_custom(arguments, custom.tokens(Slot.MAIN))
         arguments.extend(("-o", str(temporary_output), "-"))
-        return _external_plan(request, toolchain, temporary_output, toolchain.fdkaac, arguments)
+        return _external_plan(
+            request, toolchain, temporary_output, toolchain.fdkaac, arguments, custom, notices
+        )
