@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
     QComboBox,
     QDoubleSpinBox,
     QFormLayout,
-    QLineEdit,
+    QPlainTextEdit,
     QScrollArea,
     QTableWidgetItem,
     QToolButton,
@@ -380,6 +380,79 @@ def test_a_ratio_no_preset_matches_is_restored_as_custom(
     assert window.tempo_preset.currentText() == "Custom"
 
 
+def test_command_preview_reports_what_a_custom_argument_overrode(
+    tmp_path: Path, qtbot, qapp: QApplication
+) -> None:
+    try:
+        report = inspect_toolchain(locate_toolchain(AppSettings()))
+    except AudioEncoderError as exc:
+        pytest.skip(str(exc))
+    window = MainWindow(
+        SettingsRepository(tmp_path / "settings.json"),
+        PresetRepository(tmp_path / "presets.json"),
+        ThemeManager(qapp),
+        report,
+    )
+    qtbot.addWidget(window)
+    source = tmp_path / "tone.wav"
+    _write_test_wave(source)
+    window._add_paths([source])
+    qtbot.waitUntil(lambda: bool(window.drafts and window.drafts[0].asset), timeout=10_000)
+    window.input_table.selectRow(0)
+    window.encoder_combo.setCurrentIndex(window.encoder_combo.findData("ffmpeg.aac"))
+
+    custom_args = window.option_widgets["custom_args"]
+    assert isinstance(custom_args, QPlainTextEdit)
+    custom_args.setPlainText("-b:a 256k")
+
+    notice, _blank, command = window.command_preview.toPlainText().split("\n")
+    assert "overrides Bitrate" in notice
+    # The managed bitrate is displaced rather than joined, so FFmpeg never sees two.
+    assert command.count("-b:a") == 1
+    assert "-b:a 256k" in command
+
+
+def test_a_multi_slot_custom_value_survives_a_preset_round_trip(
+    tmp_path: Path, qtbot, qapp: QApplication
+) -> None:
+    report = ToolReport(
+        Toolchain(Path("ffmpeg"), Path("ffprobe")),
+        "ffmpeg version",
+        "ffprobe version",
+        frozenset({"aac"}),
+        frozenset({"ipod", "adts"}),
+    )
+    window = MainWindow(
+        SettingsRepository(tmp_path / "settings.json"),
+        PresetRepository(tmp_path / "presets.json"),
+        ThemeManager(qapp),
+        report,
+    )
+    qtbot.addWidget(window)
+    window.encoder_combo.setCurrentIndex(window.encoder_combo.findData("ffmpeg.aac"))
+    custom_args = window.option_widgets["custom_args"]
+    assert isinstance(custom_args, QPlainTextEdit)
+    value = "pre: -guess_layout_max 0\nvar cutoff = 18000\n-cutoff {cutoff}"
+    custom_args.setPlainText(value)
+
+    stored = window._current_options()
+    assert stored["custom_args"] == value
+
+    custom_args.setPlainText("")
+    assert window._apply_configuration(
+        EncoderConfiguration(
+            "ffmpeg.aac",
+            Codec.AAC,
+            OutputFormat.M4A,
+            CommonAudioOptions(),
+            dict(stored),
+        )
+    )
+    restored = window.option_widgets["custom_args"]
+    assert isinstance(restored, QPlainTextEdit)
+    assert restored.toPlainText() == value
+
+
 def test_main_window_probes_input_and_switches_generated_encoder_form(
     tmp_path: Path, qtbot, qapp: QApplication
 ) -> None:
@@ -477,7 +550,7 @@ def test_generated_aac_form_supports_decimal_conditional_and_text_options(
     quality = window.option_widgets["quality"]
     custom_args = window.option_widgets["custom_args"]
     assert isinstance(quality, QDoubleSpinBox)
-    assert isinstance(custom_args, QLineEdit)
+    assert isinstance(custom_args, QPlainTextEdit)
     assert not quality.isEnabled()
     rate_control = window.option_widgets["rate_control"]
     assert isinstance(rate_control, QComboBox)

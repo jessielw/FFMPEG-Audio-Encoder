@@ -12,7 +12,7 @@ Presets live on the **Output** tab.
 | Codec and container | The selected audio stream |
 | Sample rate and channel layout | The output path |
 | Gain and tempo | The audio delay |
-| Every adapter-specific option, including custom FFmpeg arguments | Collision policy, tool paths, and other [settings](settings.md) |
+| Every adapter-specific option, including [custom arguments](custom-arguments.md) and the variables they declare | Collision policy, tool paths, and other [settings](settings.md) |
 
 A preset is a _configuration_, not a job. It describes how to encode, never what to encode or where to put it.
 

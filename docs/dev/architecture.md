@@ -14,7 +14,9 @@ ui/              widgets and windows
 
 ## domain
 
-`models.py` holds every dataclass and enum the rest of the application passes around - `Codec`, `OutputFormat`, `JobState`, `ThemePreference`, `DelaySource`, `OptionKind`, `AudioStream`, `CommonAudioOptions`, `EncodingRequest`, `EncoderDescriptor`, `OptionDefinition`, `ProcessPlan`, `Toolchain`, `EncodeJob`, `EncoderPreset`, `EncoderConfiguration`, `AppSettings`. All frozen, all slotted.
+`models.py` holds every dataclass and enum the rest of the application passes around - `Codec`, `OutputFormat`, `JobState`, `ThemePreference`, `DelaySource`, `OptionKind`, `NoticeLevel`, `AudioStream`, `CommonAudioOptions`, `EncodingRequest`, `EncoderDescriptor`, `OptionDefinition`, `PlanNotice`, `ProcessPlan`, `Toolchain`, `EncodeJob`, `EncoderPreset`, `EncoderConfiguration`, `AppSettings`. All frozen, all slotted.
+
+`PlanNotice` carries no presentation - only a `NoticeLevel` and a message - so `encoders/` can report that a custom argument displaced a managed one without knowing how the UI will render it.
 
 `errors.py` has `AudioEncoderError` and its three subclasses: `ValidationError`, `ProbeError`, `ToolNotFoundError`.
 
@@ -46,6 +48,8 @@ class EncoderAdapter(Protocol):
 `DynamicOptionChoiceProvider` is the second, for adapters whose option choices depend on other options - the DeeZy bitrate lists.
 
 Three modules implement them: `ffmpeg.py` (eight adapters), `external.py` (opusenc, qaac, fdkaac), and `deezy.py` (five Dolby adapters). `registry.py` is a thin ordered container, and `default_registry()` in `__init__.py` builds it - **that registration order is the order the encoder picker shows.**
+
+`arguments.py` is the custom-argument mechanism: slot prefixes, `{placeholder}` expansion, `var` declarations, and the merge that lets a custom flag displace a managed one. Adapters build a plain token list as they always have and hand it to `apply()`, which groups it and swaps out what collided; the module's docstring explains the two token classes and why substitution runs after tokenising. The DeeZy adapters deliberately bypass all of it and keep the original flat `custom_arguments` parser behind their Lt/Rt allow-list.
 
 An adapter's `build_plan` returns a `ProcessPlan` of one or more `ProcessStage`s. That is how the standalone encoders express "FFmpeg decodes to PCM, and this program consumes it" without the runner needing to know anything specific about them.
 

@@ -77,8 +77,10 @@ from ffmpeg_audio_encoder.domain.models import (
     JobState,
     JsonScalar,
     MediaAsset,
+    NoticeLevel,
     OptionKind,
     OutputFormat,
+    ProcessPlan,
     Toolchain,
 )
 from ffmpeg_audio_encoder.domain.tempo import (
@@ -123,7 +125,22 @@ class InputDraft:
     delay_overrides_ms: dict[int, float] = field(default_factory=dict)
 
 
-OptionWidget = QSpinBox | QDoubleSpinBox | QComboBox | QLineEdit | QCheckBox
+OptionWidget = QSpinBox | QDoubleSpinBox | QComboBox | QLineEdit | QCheckBox | QPlainTextEdit
+
+
+def _command_text(plan: ProcessPlan) -> str:
+    """Render a plan's command with any notices about how it was assembled above it.
+
+    The glyph is chosen here rather than in the encoders layer, which stays presentation-free
+    and only says how much each notice matters.
+    """
+    if not plan.notices:
+        return plan.display_command()
+    lines = [
+        f"{'⚠ ' if notice.level is NoticeLevel.WARNING else '- '}{notice.message}"
+        for notice in plan.notices
+    ]
+    return "\n".join((*lines, "", plan.display_command()))
 
 
 class ToolInspectionThread(QThread):
@@ -387,13 +404,15 @@ class MainWindow(QMainWindow):
 
         self.command_preview = QPlainTextEdit()
         self.command_preview.setReadOnly(True)
-        self.command_preview.setMaximumHeight(92)
+        # Given room to grow rather than capped, because the preview now carries the notices
+        # explaining which managed settings a custom argument overrode - warnings scrolled
+        # out of sight would defeat the point of reporting them.
+        self.command_preview.setMinimumHeight(92)
         self.command_preview.setPlaceholderText(
             "Select a successfully probed input to preview the command"
         )
         output_layout.addWidget(QLabel("Command preview"))
-        output_layout.addWidget(self.command_preview)
-        output_layout.addStretch(1)
+        output_layout.addWidget(self.command_preview, 1)
 
         self.output_scroll = QScrollArea()
         self.output_scroll.setWidgetResizable(True)
@@ -1014,12 +1033,21 @@ class MainWindow(QMainWindow):
                 widget = QCheckBox()
                 widget.setChecked(definition.default)
                 widget.toggled.connect(self._option_values_changed)
+            elif definition.multiline:
+                if not isinstance(definition.default, str):
+                    raise TypeError(f"Text option {definition.key} has a non-string default")
+                widget = QPlainTextEdit()
+                widget.setPlainText(definition.default)
+                widget.setPlaceholderText(definition.placeholder)
+                widget.setTabChangesFocus(True)
+                widget.setFixedHeight(96)
+                widget.textChanged.connect(self._option_values_changed)
             else:
                 widget = QLineEdit()
                 if not isinstance(definition.default, str):
                     raise TypeError(f"Text option {definition.key} has a non-string default")
                 widget.setText(definition.default)
-                widget.setPlaceholderText("Example: -cutoff 18000")
+                widget.setPlaceholderText(definition.placeholder)
                 widget.textChanged.connect(self._option_values_changed)
             widget.setToolTip(definition.tooltip)
             self.option_widgets[definition.key] = widget
@@ -1034,6 +1062,8 @@ class MainWindow(QMainWindow):
             return widget.value()
         if isinstance(widget, QComboBox):
             return widget.currentData()
+        if isinstance(widget, QPlainTextEdit):
+            return widget.toPlainText()
         return widget.text()
 
     def _option_values_changed(self, *_args: object) -> None:
@@ -1442,7 +1472,7 @@ class MainWindow(QMainWindow):
             plan = adapter.build_plan(
                 request, toolchain, temporary_output_path(request.output_path, UUID(int=0))
             )
-            self.command_preview.setPlainText(plan.display_command())
+            self.command_preview.setPlainText(_command_text(plan))
         except (ValueError, AudioEncoderError) as exc:
             self.command_preview.setPlainText(str(exc))
 
@@ -1656,14 +1686,12 @@ class MainWindow(QMainWindow):
         if self.queue is None:
             return ""
         try:
-            command = (
-                self.registry.get(job.request.encoder_id)
-                .build_plan(
+            command = _command_text(
+                self.registry.get(job.request.encoder_id).build_plan(
                     job.request,
                     self.queue.toolchain,
                     temporary_output_path(job.request.output_path, job.id),
                 )
-                .display_command()
             )
         except AudioEncoderError as exc:
             command = str(exc)
@@ -1993,6 +2021,8 @@ class MainWindow(QMainWindow):
                     widget.setCurrentIndex(option_index)
             elif isinstance(widget, QCheckBox) and isinstance(value, bool):
                 widget.setChecked(value)
+            elif isinstance(widget, QPlainTextEdit) and isinstance(value, str):
+                widget.setPlainText(value)
             elif isinstance(widget, QLineEdit) and isinstance(value, str):
                 widget.setText(value)
         self._refresh_dynamic_option_choices()

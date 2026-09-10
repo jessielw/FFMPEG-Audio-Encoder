@@ -72,13 +72,10 @@ Two rules keep this from misfiring:
 
 When a marker is used, it is **stripped from the generated output name** - the delay has been baked into the samples, so carrying the marker forward would be a lie about the new file. Leftover separator runs are tidied up, so `Track [DELAY -21ms].ac3` becomes `Track.opus` rather than `Track -.opus`.
 
-## Custom FFmpeg output arguments
+## Custom arguments
 
-Most FFmpeg adapters expose a **Custom FFmpeg output arguments** text field at the bottom of their **Options** tab, for the occasional flag the curated options do not cover - `-cutoff 18000`, for instance.
+Every FFmpeg adapter and standalone encoder exposes a **Custom arguments** field at the bottom of its **Options** tab, for the occasional flag the curated options do not cover - `-cutoff 18000`, for instance.
 
-Two things to know:
+It takes one argument group per line, is never run through a shell, and can place a line before `-i`, extend the managed filter chain rather than replacing it, and override a managed setting while reporting what it displaced.
 
-- The field is **parsed into an argument list and never run through a shell**. Shell metacharacters are not interpreted, so quoting behaves like a command line, not like `bash`.
-- Managed progress, muxer, and output arguments stay under the application's control. Your arguments are appended after the codec settings; they cannot redirect the output or break progress parsing.
-
-The field is saved in [presets](presets.md) along with everything else.
+See [Custom arguments](custom-arguments.md) for the whole thing.

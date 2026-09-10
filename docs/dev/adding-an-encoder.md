@@ -40,7 +40,9 @@ The descriptor is the whole user-facing surface. It decides what the picker show
 
 ### Option definitions
 
-`OptionDefinition` carries `key`, `label`, `kind`, `default`, and optionally `minimum`, `maximum`, `suffix`, `choices`, `tooltip`, `step`, and `decimals`.
+`OptionDefinition` carries `key`, `label`, `kind`, `default`, and optionally `minimum`, `maximum`, `suffix`, `choices`, `tooltip`, `step`, `decimals`, `placeholder`, and `multiline`.
+
+`multiline` turns a `TEXT` option into a `QPlainTextEdit` rather than a `QLineEdit`; `placeholder` is the greyed-out example shown in either. Both are how the custom-argument field renders, and neither needs a new `OptionKind`.
 
 Conditional visibility uses either `enabled_when_key` + `enabled_when_values` for a single dependency, or `enabled_when_all` for several:
 
@@ -69,6 +71,8 @@ def build_plan(
 `validate` raises `ValidationError` for anything the descriptor cannot express - layout rules, mode-dependent constraints, a bitrate that is not valid for the selected configuration. Reject rather than substitute: silently correcting a value is how a preset ends up producing something the user did not ask for.
 
 `build_plan` returns one or more `ProcessStage`s and **writes to `temporary_output`, not to `request.output_path`.** Publishing is the queue's job.
+
+To accept [custom arguments](../custom-arguments.md), include `_custom_option()` in the descriptor's `options` and route the token list through `resolve_custom_arguments` and `apply` from `encoders/arguments.py` - see `_finish_plan` in `ffmpeg.py`. Append anything load-bearing (`-progress`, the muxer, the output path) **after** the merge, so no custom argument can displace it, and pass `custom_slots=` to `validate_options` so a bad slot or placeholder is refused when the job is queued rather than when it runs.
 
 The `_FfmpegEncoder` base and the helpers in `external.py` cover most of the plumbing; read an existing adapter in the same family before writing a new one.
 
