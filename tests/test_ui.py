@@ -39,6 +39,7 @@ from ffmpeg_audio_encoder.infrastructure.tools import (
 )
 from ffmpeg_audio_encoder.resources import icon_path
 from ffmpeg_audio_encoder.ui import main_window as main_window_module
+from ffmpeg_audio_encoder.ui.custom_spinbox import TrimmedDoubleSpinBox
 from ffmpeg_audio_encoder.ui.custom_splitter import CustomSplitter, CustomSplitterHandle
 from ffmpeg_audio_encoder.ui.main_window import InputDraft, MainWindow, ToolInspectionThread
 from ffmpeg_audio_encoder.ui.theme import ThemeManager
@@ -188,6 +189,48 @@ def test_main_window_uses_custom_splitters_and_can_collapse_queue(
     window.toggle_queue_button.click()
     assert window.main_splitter.sizes()[1] > 0
     assert window.toggle_queue_button.text() == "Hide queue"
+
+
+def test_trimmed_double_spin_box_hides_padded_trailing_zeros(qtbot, qapp: QApplication) -> None:
+    spin_box = TrimmedDoubleSpinBox()
+    qtbot.addWidget(spin_box)
+    spin_box.setDecimals(3)
+    spin_box.setRange(-100_000.0, 100_000.0)
+    spin_box.setSuffix(" ms")
+    decimal_point = spin_box.locale().decimalPoint()
+
+    spin_box.setValue(2480.0)
+    assert spin_box.text() == "2480 ms"
+
+    spin_box.setValue(21.333)
+    assert spin_box.text() == f"21{decimal_point}333 ms"
+
+    spin_box.setValue(0.0)
+    assert spin_box.text() == "0 ms"
+
+    spin_box.setValue(-10.0)
+    assert spin_box.text() == "-10 ms"
+
+
+def test_delay_control_trims_padded_trailing_zeros(
+    tmp_path: Path, qtbot, qapp: QApplication
+) -> None:
+    window = MainWindow(
+        SettingsRepository(tmp_path / "settings.json"),
+        PresetRepository(tmp_path / "presets.json"),
+        ThemeManager(qapp),
+        None,
+    )
+    qtbot.addWidget(window)
+
+    assert isinstance(window.delay_ms, TrimmedDoubleSpinBox)
+
+    window.delay_ms.setValue(2480.0)
+    assert window.delay_ms.text() == "2480 ms"
+
+    decimal_point = window.delay_ms.locale().decimalPoint()
+    window.delay_ms.setValue(21.333)
+    assert window.delay_ms.text() == f"21{decimal_point}333 ms"
 
 
 def test_encoding_configuration_uses_scrollable_tabs(

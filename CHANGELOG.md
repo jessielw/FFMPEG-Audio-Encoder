@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Build automatic spinbox that trims 0 decimals from delay (2480ms will be displayed as 2480 ms vs. 2480,000 ms)
+
 ## [5.0.0] - 2026-09-08
 
 First release of the rewritten application. v5 replaces the Tkinter front end with a PySide6 one built on a new codebase; v4 remains available under [`legacy_v4`](legacy_v4/README.md) and is unaffected.

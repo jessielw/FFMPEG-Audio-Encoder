@@ -86,6 +86,7 @@ from ffmpeg_audio_encoder.infrastructure.tools import (
     inspect_toolchain,
     locate_toolchain,
 )
+from ffmpeg_audio_encoder.ui.custom_spinbox import TrimmedDoubleSpinBox
 from ffmpeg_audio_encoder.ui.custom_splitter import CustomSplitter
 from ffmpeg_audio_encoder.ui.dialogs import SettingsDialog
 from ffmpeg_audio_encoder.ui.models import ProgressDelegate, QueueTableModel
@@ -260,7 +261,7 @@ class MainWindow(QMainWindow):
         self.tempo_ratio.setDecimals(3)
         self.tempo_ratio.setSingleStep(0.001)
         self.tempo_ratio.setValue(1.0)
-        self.delay_ms = QDoubleSpinBox()
+        self.delay_ms = TrimmedDoubleSpinBox()
         self.delay_ms.setRange(-86_400_000.0, 86_400_000.0)
         self.delay_ms.setDecimals(3)
         self.delay_ms.setSingleStep(1.0)
@@ -1230,14 +1231,15 @@ class MainWindow(QMainWindow):
         override = draft.delay_overrides_ms.get(stream_index)
         if override is not None:
             detected_text = (
-                f"; detected {detected.milliseconds:+.3f} ms from {detected.source.value}"
+                f"; detected {_format_delay_ms(detected.milliseconds)} ms from "
+                f"{detected.source.value}"
                 if detected is not None
                 else ""
             )
             self.delay_status.setText(f"Manual override{detected_text}.")
         elif detected is not None:
             self.delay_status.setText(
-                f"Automatically detected {detected.milliseconds:+.3f} ms "
+                f"Automatically detected {_format_delay_ms(detected.milliseconds)} ms "
                 f"from {detected.source.value}."
             )
         elif draft.asset is not None and draft.asset.delay_detection_note:
@@ -1274,11 +1276,12 @@ class MainWindow(QMainWindow):
                     f"Title: {stream.title or 'Untitled'}",
                     f"Duration: {duration}",
                     (
-                        f"Detected delay: {detected.milliseconds:+.3f} ms ({detected.source.value})"
+                        f"Detected delay: {_format_delay_ms(detected.milliseconds)} ms "
+                        f"({detected.source.value})"
                         if detected is not None
                         else "Detected delay: Unavailable"
                     ),
-                    f"Effective delay: {effective_delay:+.3f} ms",
+                    f"Effective delay: {_format_delay_ms(effective_delay)} ms",
                 )
             ),
         )
@@ -2153,6 +2156,16 @@ class MainWindow(QMainWindow):
 
 def _path_key(path: Path) -> str:
     return os.path.normcase(os.path.abspath(os.fspath(path)))
+
+
+def _format_delay_ms(value: float) -> str:
+    """Format a signed millisecond delay, trimming padded trailing zeros.
+
+    E.g. 2480.0 -> "+2480", 21.333 -> "+21.333", -10.0 -> "-10".
+    """
+    sign = "+" if value >= 0 else "-"
+    magnitude = f"{abs(value):.3f}".rstrip("0").rstrip(".")
+    return f"{sign}{magnitude}"
 
 
 def _visible_rect(rect: QRect) -> QRect:
