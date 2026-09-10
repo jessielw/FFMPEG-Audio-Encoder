@@ -11,17 +11,21 @@ Presets live on the **Output** tab.
 | The encoder | The input file |
 | Codec and container | The selected audio stream |
 | Sample rate and channel layout | The output path |
-| Gain, tempo, and delay | Collision policy |
-| Every adapter-specific option, including custom FFmpeg arguments | Tool paths and other [settings](settings.md) |
+| Gain and tempo | The audio delay |
+| Every adapter-specific option, including custom FFmpeg arguments | Collision policy, tool paths, and other [settings](settings.md) |
 
 A preset is a _configuration_, not a job. It describes how to encode, never what to encode or where to put it.
 
-!!! note "Delay is stored, and delay is detected"
+!!! note "Delay is detected, not stored"
 
-    A preset carries whatever delay value was set when you saved it. Selecting a track with
-    a detected delay overwrites that. If you save a preset while a detected delay is in the
-    field, you are baking that specific file's delay into the preset - usually not what you
-    want, so set the field back to 0 first.
+    The [audio delay](audio-controls.md#audio-delay) is deliberately left out. It belongs to
+    one particular file - it is detected per track, from the container or the filename - so
+    carrying one file's delay into a reusable preset would bake in a value that is wrong for
+    every other file. Applying a preset leaves the detected value in the field untouched.
+
+    The same applies to the last configuration restored at startup.
+
+What is stored for [time modification](audio-controls.md#time-modification-and-tempo) is the **Tempo** ratio, not the name you picked. Applying the preset looks the ratio back up and shows the matching conversion. A few pairs share a ratio exactly - `25 → 50`, `30 → 60`, `29.97 → 59.94` and `2x speed` are all 2.0 - so one of those may come back under a different name than you chose. The ratio, and therefore the encode, is identical.
 
 ## Using them
 

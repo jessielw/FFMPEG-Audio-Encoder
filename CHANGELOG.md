@@ -4,9 +4,19 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- **Time modification presets**, restoring the named framerate conversions v4 offered and dropping the arithmetic v5 required in their place. The **General** tab gains a list of every conversion between 23.976, 24, 25, 29.97, 30, 50, 59.94, and 60 fps, grouped by source rate, plus speed multipliers from 0.25× to 4×. Picking one fills in the **Tempo** ratio; editing the ratio by hand sets the list to **Custom**. Ratios are derived from the exact framerates (23.976 fps is 24000/1001), so `24 → 23.976` is exactly 0.999001 rather than a rounded approximation. v4's 2.5× to 4× entries, which it emitted as a single `atempo=` that FFmpeg rejects outright, work here because the filter chain is built by halving and doubling.
+
 ### Changed
 
 - Build automatic spinbox that trims 0 decimals from delay (2480ms will be displayed as 2480 ms vs. 2480,000 ms)
+
+### Fixed
+
+- The **Tempo** field held three decimals, which could not express the PAL speed-up (23.976 → 25 is 1.042708) and drifted by seconds over a feature-length file. It now holds six, and trims padded zeros so an unchanged ratio still reads `1x`.
+- The `atempo` filter value was formatted with `%g`, which caps at six _significant_ digits and turned the 24 → 25 conversion's 1.041667 into 1.04167 - about 23 ms of drift over two hours.
+- The presets documentation claimed a preset stores the audio delay, and advised zeroing the field before saving to avoid baking in one file's value. Presets have never stored the delay - it is excluded deliberately, because it belongs to a particular file - so the advice was for a hazard that does not exist. Documentation only; no behaviour changed.
 
 ## [5.0.0] - 2026-09-08
 

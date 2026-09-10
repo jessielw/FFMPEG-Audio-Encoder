@@ -324,7 +324,10 @@ def _audio_filters(request: EncodingRequest) -> list[str]:
         filters.append("atempo=2")
         ratio /= 2.0
     if not math.isclose(ratio, 1.0):
-        filters.append(f"atempo={ratio:g}")
+        # Not ":g" - that caps at six *significant* digits, which turns the
+        # 24 -> 25 conversion's 1.041667 into 1.04167 and drifts audibly over a
+        # feature-length file.
+        filters.append(f"atempo={ratio:.10g}")
     delay_ms = request.common.delay_ms
     if delay_ms > 0:
         filters.extend(_positive_delay_filters(delay_ms, request.stream.sample_rate))

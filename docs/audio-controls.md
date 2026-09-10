@@ -14,9 +14,29 @@ The [DeeZy adapters](encoders/deezy.md) go further and reject layouts that would
 
 −30 to +30 dB, in 0.5 dB steps, applied by FFmpeg before the encoder sees the audio. Leave it at 0 dB unless you have a reason.
 
-## Tempo
+## Time modification and tempo
 
-0.25× to 4×. This changes duration without changing pitch. As with gain, it is applied during decode, so it is unavailable for the DeeZy adapters.
+These two rows are one control. **Time modification** is a list of named conversions; **Tempo** is the ratio the encoder actually receives. Picking a conversion fills in the ratio, and typing a ratio by hand sets the list to **Custom**.
+
+The list holds every conversion between 23.976, 24, 25, 29.97, 30, 50, 59.94, and 60 fps, grouped by source rate, plus a set of plain speed multipliers from 0.25× to 4×. So the common job - a 24 fps mix that needs to sit under a 23.976 fps picture - is one selection rather than an arithmetic exercise:
+
+| Selection     | Tempo      | What it is                  |
+| ------------- | ---------- | --------------------------- |
+| `24 → 23.976` | `0.999001` | NTSC pulldown, 1000/1001    |
+| `23.976 → 24` | `1.001`    | The same, undone            |
+| `23.976 → 25` | `1.042708` | PAL speed-up from NTSC film |
+| `25 → 23.976` | `0.959041` | PAL speed-down              |
+
+Ratios are computed from the exact framerates - 23.976 fps is really 24000/1001 - not from the rounded labels.
+
+The **Tempo** field spans 0.25× to 4× directly, for anything the list does not name. Values below 0.5× or above 2× are split into several `atempo` stages automatically, since a single one cannot go further.
+
+This changes duration without changing pitch. As with gain, it is applied during decode, so both rows are unavailable for the DeeZy adapters.
+
+!!! note
+
+    The audio delay below is applied _after_ the tempo change, and is not scaled by
+    it. A 100 ms delay is 100 ms in the output whatever the ratio is.
 
 ## Audio delay
 

@@ -292,8 +292,92 @@ def test_main_window_restores_last_encoder_configuration(
     assert window.channels.currentData() == "stereo"
     assert window.gain_db.value() == 2.5
     assert window.tempo_ratio.value() == 1.25
+    assert window.tempo_preset.currentText() == "23.976 → 29.97 (1.25x)"
     assert window.delay_ms.value() == 0
     assert window.option_widgets["compression_level"].property("value") == 7
+
+
+def tempo_window(tmp_path: Path, qtbot, qapp: QApplication) -> MainWindow:
+    window = MainWindow(
+        SettingsRepository(tmp_path / "settings.json"),
+        PresetRepository(tmp_path / "presets.json"),
+        ThemeManager(qapp),
+        None,
+    )
+    qtbot.addWidget(window)
+    return window
+
+
+def test_time_modification_preset_fills_in_the_tempo_ratio(
+    tmp_path: Path, qtbot, qapp: QApplication
+) -> None:
+    window = tempo_window(tmp_path, qtbot, qapp)
+    assert window.tempo_preset.currentText() == "Original (no change)"
+
+    window.tempo_preset.setCurrentIndex(window.tempo_preset.findText("24 → 23.976 (0.999001x)"))
+    assert window.tempo_ratio.value() == 0.999001
+    # Six decimals, but the trimming spinbox does not pad the display.
+    assert window.tempo_ratio.text() == "0.999001x"
+
+    window.tempo_preset.setCurrentIndex(window.tempo_preset.findText("Original (no change)"))
+    assert window.tempo_ratio.value() == 1.0
+    assert window.tempo_ratio.text() == "1x"
+
+
+def test_editing_the_tempo_ratio_moves_the_preset_to_custom(
+    tmp_path: Path, qtbot, qapp: QApplication
+) -> None:
+    window = tempo_window(tmp_path, qtbot, qapp)
+    window.tempo_preset.setCurrentIndex(window.tempo_preset.findText("23.976 → 24 (1.001x)"))
+    assert window.tempo_ratio.value() == 1.001
+
+    window.tempo_ratio.setValue(1.337)
+    assert window.tempo_preset.currentText() == "Custom"
+
+    # Custom leaves the ratio alone rather than resetting it.
+    window.tempo_preset.setCurrentIndex(window.tempo_preset.findText("Custom"))
+    assert window.tempo_ratio.value() == 1.337
+
+
+def test_a_chosen_preset_is_not_relabelled_to_another_with_the_same_ratio(
+    tmp_path: Path, qtbot, qapp: QApplication
+) -> None:
+    # 25 -> 50, 30 -> 60, 29.97 -> 59.94 and "2x speed" are all exactly 2.0.
+    window = tempo_window(tmp_path, qtbot, qapp)
+    window.tempo_preset.setCurrentIndex(window.tempo_preset.findText("30 → 60 (2x)"))
+    assert window.tempo_ratio.value() == 2.0
+    assert window.tempo_preset.currentText() == "30 → 60 (2x)"
+
+
+def test_a_ratio_no_preset_matches_is_restored_as_custom(
+    tmp_path: Path, qtbot, qapp: QApplication
+) -> None:
+    report = ToolReport(
+        Toolchain(Path("ffmpeg"), Path("ffprobe")),
+        "ffmpeg version",
+        "ffprobe version",
+        frozenset({"flac"}),
+        frozenset({"flac"}),
+    )
+    window = MainWindow(
+        SettingsRepository(tmp_path / "settings.json"),
+        PresetRepository(tmp_path / "presets.json"),
+        ThemeManager(qapp),
+        report,
+    )
+    qtbot.addWidget(window)
+    # What a three-decimal build would have saved for the PAL speed-up.
+    assert window._apply_configuration(
+        EncoderConfiguration(
+            "ffmpeg.flac",
+            Codec.FLAC,
+            OutputFormat.FLAC,
+            CommonAudioOptions(None, None, 0.0, 1.043),
+            {"compression_level": 5, "custom_args": ""},
+        )
+    )
+    assert window.tempo_ratio.value() == 1.043
+    assert window.tempo_preset.currentText() == "Custom"
 
 
 def test_main_window_probes_input_and_switches_generated_encoder_form(
@@ -493,7 +577,10 @@ def test_deezy_form_uses_boolean_widgets_and_disables_unsupported_common_control
     assert not window.sample_rate.isEnabled()
     assert window.channels.isEnabled()
     assert not window.gain_db.isEnabled()
+    assert not window.tempo_preset.isEnabled()
     assert not window.tempo_ratio.isEnabled()
+    assert window.tempo_ratio.value() == 1.0
+    assert window.tempo_preset.currentText() == "Original (no change)"
 
     metering = window.option_widgets["metering_mode"]
     dialogue = window.option_widgets["dialogue_intelligence"]
@@ -1053,6 +1140,36 @@ def test_declining_the_replacement_keeps_the_stored_preset(
     assert [preset.name for preset in PresetRepository(tmp_path / "presets.json").load()] == [
         "Nightly"
     ]
+
+
+def test_a_preset_neither_stores_nor_overwrites_the_file_specific_delay(
+    tmp_path: Path, qtbot, qapp: QApplication, monkeypatch
+) -> None:
+    """The delay belongs to one file, not to a reusable configuration.
+
+    Saving must not bake the current file's delay into the preset, and applying
+    must not overwrite the delay detected for whatever file is loaded now.
+    """
+    window = _preset_window(tmp_path, qtbot, qapp)
+    monkeypatch.setattr(
+        main_window_module.QInputDialog,
+        "getText",
+        lambda *args, **kwargs: ("Nightly", True),
+    )
+    window.delay_ms.setValue(-125.5)
+    window.gain_db.setValue(4.0)
+    window._save_preset()
+
+    assert window.presets[0].common.delay_ms == 0.0
+    assert "delay_ms" not in (tmp_path / "presets.json").read_text(encoding="utf-8")
+
+    # A different file is loaded now, with a different detected delay.
+    window.delay_ms.setValue(80.0)
+    window.gain_db.setValue(0.0)
+    assert window._apply_configuration(window.presets[0])
+
+    assert window.gain_db.value() == 4.0
+    assert window.delay_ms.value() == 80.0
 
 
 def test_deleting_a_preset_is_confirmed_and_cancellable(

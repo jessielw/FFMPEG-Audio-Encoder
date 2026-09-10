@@ -37,7 +37,8 @@ Still on **General**:
 | Sample rate | `Preserve`, plus the rates the encoder accepts |  |
 | Channel layout | `Preserve`, plus the layouts the encoder accepts |  |
 | Gain | −30 to +30 dB, in 0.5 dB steps |  |
-| Tempo | 0.25× to 4× |  |
+| Time modification | Framerate conversions and speed multipliers | `24 → 23.976`, `23.976 → 25`, `2x speed`, and so on |
+| Tempo | 0.25× to 4× | The ratio the conversion above fills in; editable directly |
 | Audio delay | Detected per track, editable | Positive prepends silence, negative trims the start |
 
 The delay field fills in once the track is probed, and the line beneath it says where the value came from. See [Audio controls](audio-controls.md) for the detail.

@@ -6,7 +6,17 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from uuid import UUID
 
-from PySide6.QtCore import QPoint, QRect, QSize, Qt, QThread, QTimer, QUrl, Signal
+from PySide6.QtCore import (
+    QPoint,
+    QRect,
+    QSignalBlocker,
+    QSize,
+    Qt,
+    QThread,
+    QTimer,
+    QUrl,
+    Signal,
+)
 from PySide6.QtGui import (
     QAction,
     QCloseEvent,
@@ -71,6 +81,12 @@ from ffmpeg_audio_encoder.domain.models import (
     OutputFormat,
     Toolchain,
 )
+from ffmpeg_audio_encoder.domain.tempo import (
+    TEMPO_DECIMALS,
+    TEMPO_PRESETS,
+    TEMPO_TOLERANCE,
+    find_tempo_preset,
+)
 from ffmpeg_audio_encoder.encoders import default_registry
 from ffmpeg_audio_encoder.encoders.base import DynamicOptionChoiceProvider, EncoderAdapter
 from ffmpeg_audio_encoder.infrastructure.output import default_output_path, temporary_output_path
@@ -86,6 +102,7 @@ from ffmpeg_audio_encoder.infrastructure.tools import (
     inspect_toolchain,
     locate_toolchain,
 )
+from ffmpeg_audio_encoder.ui.custom_combobox import AutoCompleteComboBox
 from ffmpeg_audio_encoder.ui.custom_spinbox import TrimmedDoubleSpinBox
 from ffmpeg_audio_encoder.ui.custom_splitter import CustomSplitter
 from ffmpeg_audio_encoder.ui.dialogs import SettingsDialog
@@ -256,9 +273,19 @@ class MainWindow(QMainWindow):
         self.gain_db.setDecimals(1)
         self.gain_db.setSingleStep(0.5)
         self.gain_db.setSuffix(" dB")
-        self.tempo_ratio = QDoubleSpinBox()
+        self._applying_tempo_preset = False
+        self.tempo_preset = AutoCompleteComboBox(max_visible_items=15)
+        self.tempo_preset.setToolTip(
+            "Framerate conversions and speed changes, as a tempo ratio. "
+            "Duration changes; pitch does not."
+        )
+        self._populate_tempo_presets()
+        # Six decimals, because the PAL speed-up (23.976 to 25) is 1.042708 and
+        # three would drift by seconds over a feature-length file. Trimming is
+        # what keeps that from rendering an unchanged ratio as "1.000000x".
+        self.tempo_ratio = TrimmedDoubleSpinBox()
         self.tempo_ratio.setRange(0.25, 4.0)
-        self.tempo_ratio.setDecimals(3)
+        self.tempo_ratio.setDecimals(TEMPO_DECIMALS)
         self.tempo_ratio.setSingleStep(0.001)
         self.tempo_ratio.setValue(1.0)
         self.delay_ms = TrimmedDoubleSpinBox()
@@ -293,6 +320,7 @@ class MainWindow(QMainWindow):
         config_form.addRow("Sample rate", self.sample_rate)
         config_form.addRow("Channel layout", self.channels)
         config_form.addRow("Gain", self.gain_db)
+        config_form.addRow("Time modification", self.tempo_preset)
         config_form.addRow("Tempo", self.tempo_ratio)
         config_form.addRow("Audio delay", self.delay_ms)
         config_form.addRow("", self.delay_status)
@@ -512,7 +540,8 @@ class MainWindow(QMainWindow):
         self.sample_rate.currentTextChanged.connect(self._common_options_changed)
         self.channels.currentIndexChanged.connect(self._common_options_changed)
         self.gain_db.valueChanged.connect(self._common_options_changed)
-        self.tempo_ratio.valueChanged.connect(self._common_options_changed)
+        self.tempo_preset.currentIndexChanged.connect(self._tempo_preset_changed)
+        self.tempo_ratio.valueChanged.connect(self._tempo_ratio_changed)
         self.delay_ms.valueChanged.connect(self._delay_changed)
         self.output_edit.textEdited.connect(self._output_edited)
         self.browse_output_button.clicked.connect(self._browse_output)
@@ -826,11 +855,63 @@ class MainWindow(QMainWindow):
             self.gain_db.setValue(0.0)
         if not descriptor.supports_tempo:
             self.tempo_ratio.setValue(1.0)
+            self._sync_tempo_preset_from_ratio()
         self.sample_rate.setEnabled(descriptor.supports_sample_rate)
         self.channels.setEnabled(descriptor.supports_channel_layout)
         self.gain_db.setEnabled(descriptor.supports_gain)
+        self.tempo_preset.setEnabled(descriptor.supports_tempo)
         self.tempo_ratio.setEnabled(descriptor.supports_tempo)
         self._sync_delay_control()
+
+    def _populate_tempo_presets(self) -> None:
+        group = TEMPO_PRESETS[0].group
+        for preset in TEMPO_PRESETS:
+            if preset.group != group:
+                self.tempo_preset.insertSeparator(self.tempo_preset.count())
+                group = preset.group
+            self.tempo_preset.addItem(preset.label, preset.ratio)
+        self.tempo_preset.insertSeparator(self.tempo_preset.count())
+        self.tempo_preset.addItem("Custom", None)
+        self._tempo_custom_index = self.tempo_preset.count() - 1
+
+    def _tempo_preset_changed(self) -> None:
+        ratio = self.tempo_preset.currentData()
+        if ratio is not None:
+            # Guarded so the ratio handler below reads this as a preset being
+            # applied rather than as the user typing over the selection.
+            self._applying_tempo_preset = True
+            try:
+                self.tempo_ratio.setValue(float(ratio))
+            finally:
+                self._applying_tempo_preset = False
+        self._common_options_changed()
+
+    def _tempo_ratio_changed(self) -> None:
+        if not self._applying_tempo_preset:
+            selected = self.tempo_preset.currentData()
+            if selected is not None and not math.isclose(
+                float(selected), self.tempo_ratio.value(), rel_tol=0.0, abs_tol=TEMPO_TOLERANCE
+            ):
+                self._select_tempo_preset_index(self._tempo_custom_index)
+        self._common_options_changed()
+
+    def _sync_tempo_preset_from_ratio(self) -> None:
+        """Re-label the preset combo from the current ratio.
+
+        Only for values that arrive from elsewhere - a preset, a restored
+        configuration, an encoder that forbids tempo. Several framerate pairs
+        share a ratio, so this is deliberately not wired to every edit: it would
+        rewrite a chosen "30 to 60" as "25 to 50" behind the user's back.
+        """
+        preset = find_tempo_preset(self.tempo_ratio.value())
+        index = (
+            self._tempo_custom_index if preset is None else self.tempo_preset.findData(preset.ratio)
+        )
+        self._select_tempo_preset_index(index)
+
+    def _select_tempo_preset_index(self, index: int) -> None:
+        with QSignalBlocker(self.tempo_preset):
+            self.tempo_preset.setCurrentIndex(index)
 
     def _populate_sample_rates(
         self, adapter: EncoderAdapter, current_sample_rate: int | None
@@ -1891,6 +1972,7 @@ class MainWindow(QMainWindow):
         self.tempo_ratio.setValue(
             configuration.common.tempo_ratio if descriptor.supports_tempo else 1.0
         )
+        self._sync_tempo_preset_from_ratio()
         for key, value in configuration.encoder_options.items():
             widget = self.option_widgets.get(key)
             if (
